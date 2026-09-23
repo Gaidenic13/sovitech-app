@@ -1,0 +1,40 @@
+# Owner documents never enter the repo (docs/guardrails.md rule 13).
+# Only synthetic, generated fixtures under fixtures/ may be committed.
+*.pdf
+*.dwg
+*.dxf
+*.rvt
+*.ifc
+*.xlsx
+*.xls
+*.docx
+*.doc
+*.zip
+!/fixtures/**
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+.venv/
+.pytest_cache/
+
+# Test output
+test-results/
+playwright-report/
+
+# OS and editor
+.DS_Store
+*.log
