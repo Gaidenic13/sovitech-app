@@ -38,3 +38,8 @@ playwright-report/
 # OS and editor
 .DS_Store
 *.log
+
+# Company knowledge: product images stay out of git (owner decision, 2026-09-24).
+# Restore them from the website repo: see company/products/tools/README.md.
+/company/products/images/
+/company/products/images-unreferenced/

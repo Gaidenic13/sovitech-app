@@ -1,8 +1,8 @@
 # SOVITECH App
 
-<!-- Checked against: docs/guardrails.md v1.1 -->
+<!-- Checked against: docs/guardrails.md v1.5 -->
 
-SOVITECH designs and integrates SAUTER-based building management systems (BMS) in Romania. This app lets a property owner describe a building, mostly by uploading documents. The app reads them, shows back what it found with sources, and produces a preliminary BMS proposal and dashboards. SOVITECH engineers review everything before it becomes a quotation. The app is desktop-first with a dark UI. The demo project, Radisson Blu Bucharest, is fictional data about a real hotel, and is always labelled as demo.
+SOVITECH designs and integrates SAUTER-based building management systems (BMS) in Romania. This app lets a property owner describe a building, mostly by uploading documents. The app reads them, shows back what it found with sources, and produces a preliminary BMS proposal and dashboards. SOVITECH engineers review everything before it becomes a quotation. The app is desktop-first with a dark UI, and it is a SOVITECH brand tool: it carries the company brand in its dark variant (`company/brand/app-alignment.md`). The demo project is a fictional hotel, working name "Demo Hotel Bucharest". The mockups show a real hotel's name, which the demo does not use. The demo is always labelled as demo.
 
 ## Where things are
 
@@ -13,7 +13,10 @@ SOVITECH designs and integrates SAUTER-based building management systems (BMS) i
 | `design/dashboards-spec.md` | Part 2 spec: the dashboards (Metrics, Topology, Wireframe), their visual system, the guardrail review (section 7) and open questions |
 | `design/reference/` | Approved design screenshots, one folder per part. Ground truth for the visuals. |
 | `prompts/sovitech-ai-system.md` | System prompt for the in-app AI |
-| `docs/build-readiness.md` | Skills, tech stack and connectors needed for the first build slice, and the open decisions (as of 2026-09-23) |
+| `docs/build-readiness.md` | Skills, tech stack and connectors needed for the first build slice, and the open decisions (as of 2026-09-23, updated 2026-09-24) |
+| `docs/ifc-input.md` | IFC models from BIM software as a primary input (owner direction, 2026-09-24): tooling, what BIM exports contain, the mapping to the app model, the synthetic fixture, and what the guardrails allow (section 6; its 6.2 items are proposals, not applied) |
+| `docs/dev-prompts/` | The three development prompts, run in order: user stories and functions, PRD, then the interactive app build. They write `docs/product/` and then the code. Start at `docs/dev-prompts/README.md`. |
+| `company/` | SOVITECH company knowledge imported from the company website repo: brand (logos, tokens, voice), business (services, sectors, references, legal identity), the SAUTER product list, and website source snapshots. Background and design input only. Its figures and product data are marketing copy, not approved reference data, so no value in the app comes from it (guardrails rule 1, G1-12). Build tools and copy checks must exclude it. Start at `company/README.md`. |
 
 **Read `docs/guardrails.md` in full before any work on:**
 - the value model;
@@ -118,7 +121,8 @@ Until these checks exist, the first change that touches data or AI creates the h
 
 ## Working with the user
 
-- The user hands the design over in parts, as screenshots. Treat them as the approved direction.
-- The project skill `frontend-design` (in `.claude/skills/`, installed from anthropics/skills) applies only to screens with no approved design. The approved screenshots in `design/reference/` are the brief, and they win over the skill's warnings about defaults (all-caps labels, near-black with one accent, eyebrows).
+- The user hands the design over in parts, as screenshots. Treat them as the approved direction for layout, structure, flows and content.
+- The visual identity follows the SOVITECH company brand, dark variant (owner decision, 2026-09-24): the real logo, the brand palette with mint as the single accent on dark, Inter, 1px/2px radii, no shadows. The mockups' teal-navy and aqua theme, their "SOVITECH" wordmark and their taglines are replaced. The proposed app tokens are in `company/brand/app-alignment.md`; extension colours marked there as proposals need the owner's OK.
+- The project skill `frontend-design` (in `.claude/skills/`, installed from anthropics/skills) applies only to screens with no approved design. The approved screenshots in `design/reference/` and the company brand in `company/brand/` are the brief, and they win over the skill's warnings about defaults (all-caps labels, near-black with one accent, eyebrows).
 - The mockups are AI-generated, so demo-data contradictions are slips. List them, and ask only about decisions that change the build.
 - The user writes in English and sometimes in Romanian. Owner documents are usually Romanian.

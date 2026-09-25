@@ -1,6 +1,6 @@
 # Build readiness: skills, tech and connectors
 
-**As of:** 2026-09-23.
+**As of:** 2026-09-23, updated 2026-09-24.
 **Method:** three research agents (skills, tech, connectors) verified their picks against current web sources. A fourth agent acting as a sceptical tech lead then removed contradictions and over-engineering, and cut the list down to the **first build slice**. That slice is part 1 intake, extraction, the value model, and a proposal estimate made of points and a CAPEX range.
 
 **Rule:** `docs/guardrails.md` takes precedence. Nothing here is approved yet. The decisions for the product owner are in section 5.
@@ -9,9 +9,9 @@
 
 ## 1. Current state
 
-- **No skills, subagents, hooks or project settings exist.** The project has no `.claude/` folder and is not yet a git repository.
+- **Skills, subagents, hooks and settings.** When this was written (2026-09-23), none existed. Since then the project has a `.claude/` folder with the `frontend-design` skill, and a local git repository on `main` (no remote). There are still no subagents or hooks.
 - **User-level skills:** only `gepeto` and `pinokio`, which are app launchers unrelated to this project.
-- **What exists:** `CLAUDE.md`, `docs/guardrails.md` v1.1, `design/onboarding-spec.md`, `design/dashboards-spec.md`, `prompts/sovitech-ai-system.md`, and the reference screenshots.
+- **What exists:** `CLAUDE.md`, `docs/guardrails.md` v1.5, `design/onboarding-spec.md`, `design/dashboards-spec.md`, `prompts/sovitech-ai-system.md`, and the reference screenshots.
 
 ---
 
@@ -161,7 +161,7 @@ What **ro-building-docs** covers:
 |------|-----|--------|
 | **GitLab**, already connected | Repo, CI and work items | Create the private project in the `sovitech` group, reusing the existing pipeline (SAST, secret detection). Add the guardrail jobs and a check that fails on document files outside `fixtures/`. **Needs your OK.** |
 | **Anthropic Console** workspace and API key | Development and evals on synthetic data | Ask for zero data retention before any real document. Anthropic's own inference geography is US or global only. |
-| **SOVITECH engineering datasets** | The critical path. No connector replaces them. | Ask SOVITECH engineers for: point templates per asset type and configuration; EUR/point or per-asset cost ranges (with basis, date, VAT and currency); function set v1; the asset taxonomy with lifeSafety flags; and a review of the glossary. |
+| **SOVITECH engineering datasets** | The critical path. No connector replaces them. `company/products/` now holds the 178-product SAUTER list from the company website, as a possible starting point for the catalogue dataset. It is marketing data (99 spec values read "NU ESTE SPECIFICAT", and modu524/525 appear only as images), and it becomes reference data only through the approver (G1-12). | Ask SOVITECH engineers for: point templates per asset type and configuration; EUR/point or per-asset cost ranges (with basis, date, VAT and currency); function set v1; the asset taxonomy with lifeSafety flags; and a review of the glossary. |
 | **SIRUTA and ISO 3166** | City id and country code on step 1 | SIRUTA licence to confirm |
 | **BNR rate feed** `https://curs.bnr.ro/nbrfxrates.xml` | EUR/RON (G10-4) | Only needed now if slice 1 shows RON. The old `www.bnr.ro` URL now redirects. |
 
@@ -184,21 +184,22 @@ What **ro-building-docs** covers:
 
 ## 5. Decisions for the product owner
 
-1. **Name the approver** in guardrails section 10, presumably you, and approve v1.1 as the baseline. Until then, no reference dataset can be approved.
+1. **Name the approver** in guardrails section 10, presumably you, and approve v1.5 as the baseline. Until then, no reference dataset can be approved.
 2. **Choose the AI processor route.** It is needed before the first real owner document, not before coding, and it also decides hosting.
    - (a) Anthropic's own API with zero data retention. Inference is US or global.
    - (b) Google Cloud's `eu` endpoint. It supports structured outputs, but has no Files API, Batch or fallbacks.
 
    Bedrock EU is ruled out because it does not support structured outputs for Opus 5 or 5.5.
 3. **Slice-1 scope:** points plus a CAPEX range only. OPEX, payback, NPV and IRR show "Not available yet".
-4. **Parsing scope in v1:** native-text PDF and XLSX only. Everything else is stored as "Not analysed".
+4. **Parsing scope in v1:** native-text PDF and XLSX only. Everything else is stored as "Not analysed". Owner direction (2026-09-24): the app is built "based on data from the onboarding flow, based on IFC files from BIM softwares", so IFC is inside the product's parsing scope. What that settles and what stays open is in `docs/ifc-input.md` 6.3. Note that under guardrails v1.5 no value read from an IFC file can pass rule 1's locator check until proposals ifc-input 6.2.1, 6.2.2, 6.2.3 and 6.2.10 are approved. Revising this decision, and whether IFC enters slice 1, is still your call.
 5. **Index-check convention:** let unbuilt cases exist as pending stubs reported as "no automated check yet", so CI is green from the first commit.
 6. **Request the SOVITECH datasets now** (section 4), and say whether the prices are confidential and must stay out of the repo.
-7. **Demo building:** its floor structure and area bases (dashboards Q4).
+7. **Demo building:** its floor structure and area bases (dashboards Q4). Its name is decided (2026-09-24): a fictional hotel, working name "Demo Hotel Bucharest", not the real hotel the mockups show.
 8. **Frontend:** a Vite single-page app with Fastify, or Next.js to match the website repo.
 9. **Standard citation:** "EN ISO 52120-1:2021" in the guardrails and the prompt mixes two editions. CEN published EN ISO 52120-1:2022, which adopts ISO 52120-1:2021.
 10. **Slice-1 display currency:** EUR only, or RON, which needs the BNR feed now.
 11. **Permissions:** may Claude create the GitLab project and add the loosening hook?
+12. **Keep `company/` out of the build.** When the workspace, TypeScript, lint and test configs are created, exclude `company/**`. It holds website source files (`.ts`, `.tsx`, `package.json`) from another project, and it quotes website copy that the reserved-term check would flag. Decided 2026-09-24: product images (`company/products/images*/`, 64 MB) stay out of git and are git-ignored. The rest of `company/` is about 16 MB; committing it was not a separate owner decision.
 
 ---
 

@@ -4,11 +4,16 @@
 
 **How to read it:** sections 1 to 5 describe what the mockups show. Anything marked **Proposed** is a suggested default for the build, used where the mockups disagree or say nothing. It has not been confirmed.
 
-**Status:** written 2026-09-23 from mockups only, and checked against the screens by three independent reviews. No code exists yet.
+**Status:** written 2026-09-23 from mockups only, and checked against the screens by three independent reviews. Updated 2026-09-24 with the product owner's decisions on the brand (section 2) and the demo name (below). No code exists yet.
 
 **Guardrails:** the data-integrity rules in `docs/guardrails.md` take precedence over anything proposed here. Section 5 of that file lists the changes they require on these screens.
 
 **Demo data:** the Radisson Blu Bucharest values in the mockups are invented. The app must label them "Demo data, not an assessment of the real building" (guardrail rule 10).
+
+**Demo name (decided 2026-09-24).** Asked "should the demo keep the real hotel's name?", the product owner answered "no".
+- The demo project is a fictional hotel. Its working name is "Demo Hotel Bucharest", and the owner may rename it.
+- The mockups show "Radisson Blu Bucharest". The transcriptions in this spec keep that text as the screens show it.
+- **Recommended, not decided:** the demo fixture should not reuse the real hotel's published facts, such as its 424 rooms or its opening in 2007 (`company/business/case-studies/radisson-blu-bucuresti.md`).
 
 | # | Step | Reference image |
 |---|------|-----------------|
@@ -45,6 +50,27 @@ Step 8 is a review with Edit links back to each step, then the Generate action.
 ---
 
 ## 2. Visual system
+
+**Decided 2026-09-24: the app carries the company brand.** Asked "follow the company brand, keep the mockup theme, or treat the app as a sub-brand?", the product owner answered "treat the app as our brand tool".
+- **Recorded interpretation.** The app is a SOVITECH brand tool, not a separate sub-brand. It carries the company brand:
+  - the real SOVITECH logo, in its white version on dark (`company/brand/logo/`);
+  - the company name;
+  - the brand palette;
+  - Inter;
+  - the brand's radius, depth and motion rules;
+  - the brand voice (`company/brand/voice-and-messaging.md`).
+
+  If the owner meant something else, this is easy to revise.
+- **The dark variant.** The app is a dark, desktop-first UI, so its visual identity follows the brand's dark variant: deep surface `#07201C`, dark `#0D2E2B`, green `#1F6B4A`, and mint `#C8E6C9` as the single accent on dark. See `company/brand/app-alignment.md`, "App theme".
+- **What the mockups still set:** layout, structure, flows and content. They stay the brief for those.
+- **What the brand replaces:**
+  - the mockups' teal-navy and aqua theme;
+  - the Eurostile-like "SOVITECH" wordmark (2.3);
+  - the mockup tagline (2.3, 2.5). The brand has no tagline in its header, footer or logo lockup.
+- **How to read 2.1 to 2.5.** The values there remain the record of what the mockups show. They are not the build tokens.
+- **Superseded proposals.** Proposals in this spec that chose part 1's teal-navy and aqua are superseded where they conflict with the brand. They stay here as a record and are not deleted. Examples from 6.2's proposed column: the single `#01F2D9` accent token, the tagline on step 1, and the button radius of 6 (the brand uses 1px for buttons, chips and checkboxes, and 2px for surfaces and inputs). Where a proposal says "accent", the accent is now brand mint.
+- **Not changed by the brand.** The guardrails still win. Badges stay at 12px or larger with WCAG AA contrast, and their labels come only from `docs/guardrails.md` 2.8.
+- **Still open for the whole app:** the title role, and a status colour kept apart from the accent. See `design/dashboards-spec.md` section 8, question 2.
 
 ### 2.1 Character
 
@@ -605,6 +631,8 @@ const automationRequires: Record<AutomationArea, SystemId[] | 'any'> = {
 
 ### 6.2 Visual inconsistencies, with the proposed canonical choice
 
+The proposed column was written before the brand decision of 2026-09-24 (section 2). Where it picks a colour such as the accent hue, a radius, or the mockup tagline, the brand wins.
+
 | Area | What varies | Proposed |
 |------|-------------|----------|
 | Accent hue | Mint green on steps 1-2 (`#03DDB7`) drifts to aqua on steps 6-8 (`#01F7E4`) | One token, `#01F2D9` |
@@ -641,6 +669,7 @@ const automationRequires: Record<AutomationArea, SystemId[] | 'any'> = {
    - Is it built from uploaded IFC or RVT files, from 2D plans, or is it a generic illustrative model?
    - Does 2D mode need per-floor plans for all 37 levels?
    - This is the largest effort driver in part 1.
+   - Partly answered by the owner's IFC direction (2026-09-24): when an IFC model is uploaded, the step 3 model is built from it. Still open: what to show without IFC, and whether the viewer is in slice 1 (`docs/ifc-input.md` 6.3.2).
 4. **Systems vs Automation.**
    - Should step 7 offer only the areas backed by systems included on step 4, plus the cross-cutting capabilities?
    - If a system is unchecked on step 4 after step 7, is the dependent area cleared, disabled, or kept with a warning?
@@ -668,4 +697,4 @@ const automationRequires: Record<AutomationArea, SystemId[] | 'any'> = {
 14. **Re-extraction.**
     - If documents change after steps 3-4, do user-confirmed or corrected facts and user deselections survive?
     - **Settled by guardrails section 2.3 and rule 4:** declared revisions supersede old candidates, but never silently replace a confirmed or verified value. User corrections are kept and never overwritten. A later document that disagrees with an owner answer raises a conflict on the review step, and no value is active until it is resolved.
-15. **Parsing scope.** Which accepted formats are parsed in v1, and which are only stored? RVT and DWG need dedicated converters.
+15. **Parsing scope.** Which accepted formats are parsed in v1, and which are only stored? RVT and DWG need dedicated converters. Owner direction (2026-09-24): the app is built "based on data from the onboarding flow, based on IFC files from BIM softwares", so IFC is inside the product's parsing scope. What that settles and what stays open is in `docs/ifc-input.md` 6.3. Note that under guardrails v1.5 no value read from an IFC file can pass rule 1's locator check until proposals ifc-input 6.2.1, 6.2.2, 6.2.3 and 6.2.10 are approved.

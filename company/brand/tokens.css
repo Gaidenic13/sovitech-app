@@ -1,0 +1,475 @@
+/*
+ * SOVITECH website design tokens
+ *
+ * What this is: every CSS custom property and Tailwind v4 @theme token from the
+ * two globals.css files of the company website, copied verbatim and grouped by
+ * source file. Values are not edited. Only these comments were added.
+ *
+ * Source repository: github.com/Gaidenic13/sovitech-website
+ * Commit: e0806142735dbdd53b913af30102f9227b380475 (2026-08-11)
+ * Copied: 2026-09-23
+ *
+ * Notes:
+ * - "@theme inline" is Tailwind v4 syntax. Outside a Tailwind v4 build it is
+ *   ignored by browsers. The :root block works as plain CSS.
+ * - Only app/globals.css is live on the website: app/layout.tsx imports it and
+ *   components.json names it. styles/globals.css is the unmodified shadcn/v0
+ *   default from the initial commit and nothing imports it. Its tokens are kept
+ *   below inside a comment, so importing this file applies only the brand tokens.
+ * - app/layout.tsx also sets --font-inter on <html> through next/font (Inter,
+ *   weights 300, 400, 600, 800, 900). That variable is not in either CSS file.
+ * - Several brand colours are used as literals in components, not as tokens:
+ *   the deep surface #07201C, the pastels #E8C5B8, #E8E8C0, #D4C4A8 and the
+ *   hover green #185c3f. See tokens.json and README.md in this folder.
+ * - The declared radius (--radius: 0.75rem) is not what the site renders. The
+ *   components use 1px, 2px and 9999px directly. See README.md, "Shape".
+ * - These are the website's brand tokens. Since 2026-09-24 the app carries this
+ *   brand in its dark variant; the app's token mapping is in app-alignment.md,
+ *   "App theme".
+ * - The last block in this file comes from the unmerged branch redesign-2026.
+ *   It is commented out and kept for reference only. Owner decision,
+ *   2026-09-24: the branch is not SOVITECH's current position and will not be
+ *   merged. Keep it apart from the main tokens.
+ */
+
+/* ==========================================================================
+   Source: app/globals.css (live stylesheet)
+   ========================================================================== */
+
+:root {
+  /* SOVITECH Design Tokens */
+  --sovitech-dark:    #0D2E2B;
+  --sovitech-green:   #1F6B4A;
+  --sovitech-mint:    #C8E6C9;
+  --sovitech-lavender:#C5C0F5;
+  --sovitech-khaki:   #8B7B5C;
+  --sovitech-coral:   #E07B6A;
+  --sovitech-indigo:  #5C5FD4;
+  --sovitech-offwhite:#F5F4F0;
+  --sovitech-gray:    #888888;
+
+  /* Semantic tokens mapped to SOVITECH palette */
+  --background:           var(--sovitech-offwhite);
+  --foreground:           var(--sovitech-dark);
+
+  --card:                 #ffffff;
+  --card-foreground:      var(--sovitech-dark);
+
+  --popover:              #ffffff;
+  --popover-foreground:   var(--sovitech-dark);
+
+  --primary:              var(--sovitech-dark);
+  --primary-foreground:   #ffffff;
+
+  --secondary:            var(--sovitech-offwhite);
+  --secondary-foreground: var(--sovitech-dark);
+
+  --muted:                #EDECEA;
+  --muted-foreground:     var(--sovitech-gray);
+
+  --accent:               var(--sovitech-green);
+  --accent-foreground:    #ffffff;
+
+  --destructive:          #E53E3E;
+  --destructive-foreground: #ffffff;
+
+  --border:               rgba(13,46,43,0.12);
+  --input:                rgba(13,46,43,0.12);
+  --ring:                 var(--sovitech-green);
+
+  --chart-1: var(--sovitech-dark);
+  --chart-2: var(--sovitech-green);
+  --chart-3: var(--sovitech-mint);
+  --chart-4: var(--sovitech-coral);
+  --chart-5: var(--sovitech-indigo);
+
+  --radius: 0.75rem;
+}
+
+@theme inline {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "Menlo", "Consolas", monospace;
+
+  --color-background:           var(--background);
+  --color-foreground:           var(--foreground);
+  --color-card:                 var(--card);
+  --color-card-foreground:      var(--card-foreground);
+  --color-popover:              var(--popover);
+  --color-popover-foreground:   var(--popover-foreground);
+  --color-primary:              var(--primary);
+  --color-primary-foreground:   var(--primary-foreground);
+  --color-secondary:            var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted:                var(--muted);
+  --color-muted-foreground:     var(--muted-foreground);
+  --color-accent:               var(--accent);
+  --color-accent-foreground:    var(--accent-foreground);
+  --color-destructive:          var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border:               var(--border);
+  --color-input:                var(--input);
+  --color-ring:                 var(--ring);
+  --color-chart-1:              var(--chart-1);
+  --color-chart-2:              var(--chart-2);
+  --color-chart-3:              var(--chart-3);
+  --color-chart-4:              var(--chart-4);
+  --color-chart-5:              var(--chart-5);
+  --radius-sm:  calc(var(--radius) - 4px);
+  --radius-md:  calc(var(--radius) - 2px);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) + 4px);
+}
+
+/* ==========================================================================
+   Source: styles/globals.css (unused shadcn/v0 default, kept for reference)
+   Commented out on purpose. The values inside are verbatim.
+   ==========================================================================
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+*/
+
+
+/* ==========================================================================
+   UNMERGED BRANCH redesign-2026. REFERENCE ONLY. WILL NOT BE MERGED.
+   Commented out on purpose, so importing this file applies only the main
+   tokens above.
+
+   Source: branch origin/redesign-2026 of github.com/Gaidenic13/sovitech-website,
+   commits d2d15d2 (2026-08-24) and af81353 (2026-08-27), file app/globals.css.
+   Compared with main at e080614. The branch is not merged into main. Owner
+   decision, 2026-09-24: it is not SOVITECH's current position and will not be
+   merged. main is the current website.
+
+   What changes:
+   - The branch adds no CSS custom property and changes none. The :root and
+     @theme blocks above are identical on the branch.
+   - It adds Tailwind v4 @utility spacing roles (Tailwind-only syntax) and a
+     plain-CSS .article-prose block. Both are copied below. The rules are
+     verbatim. Two source comments inside them were left out, because CSS
+     comments cannot nest:
+       "Heading → content gap. Collapses ten ad-hoc mb-* values into three
+        roles." (above heading-gap-tight)
+       "Card padding. p-6 is often tight on a phone and p-10 too loose; these
+        ramp." (above card-p-sm)
+     The comment above section-xs reads, in part: "Never hardcode py-* on a
+     <section> — pick the token that matches its role." It names the roles:
+     section-xs thin bands (marquees, trust strips, breadcrumb bars),
+     section-s compact, section-m default content, section-l major sections
+     (was py-16 md:py-24), section-xl hero and statement sections.
+   - New colour literals used in components and data, not as tokens. Names are
+     descriptive, not from the source:
+       #B14A36  dark coral: entertainment sector fill (lib/sector-data.ts);
+                badge text for "Modernizare & Retrofit" (lib/article-cards.ts)
+       #E3E1F9  pale lavender: Consultanță service tint (app/servicii/page.tsx)
+       #EDE7DC  warm beige: Modernizare service tint (app/servicii/page.tsx)
+       #C5C0F6  cover ground, lavender sample (lib/article-covers.ts)
+       #C8E6CA  cover ground, mint sample (lib/article-covers.ts)
+       #0A231E  cover ground fallback (lib/article-covers.ts)
+     See tokens.json key "redesign2026" and README.md section 15.
+   ==========================================================================
+
+@utility section-xs {
+  padding-block: 2rem;
+  @media (width >= 640px) { padding-block: 2.5rem; }
+}
+@utility section-s {
+  padding-block: 2.5rem;
+  @media (width >= 640px) { padding-block: 3rem; }
+}
+@utility section-m {
+  padding-block: 3rem;
+  @media (width >= 640px) { padding-block: 4rem; }
+}
+@utility section-l {
+  padding-block: 4rem;
+  @media (width >= 640px) { padding-block: 5rem; }
+  @media (width >= 1024px) { padding-block: 6rem; }
+}
+@utility section-xl {
+  padding-block: 5rem;
+  @media (width >= 640px) { padding-block: 7rem; }
+  @media (width >= 1024px) { padding-block: 8rem; }
+}
+
+@utility heading-gap-tight {
+  margin-bottom: 0.75rem;
+  @media (width >= 640px) { margin-bottom: 1rem; }
+}
+@utility heading-gap {
+  margin-bottom: 1rem;
+  @media (width >= 640px) { margin-bottom: 1.5rem; }
+}
+@utility heading-gap-loose {
+  margin-bottom: 2rem;
+  @media (width >= 640px) { margin-bottom: 3rem; }
+}
+
+@utility card-p-sm {
+  padding: 1rem;
+  @media (width >= 640px) { padding: 1.25rem; }
+}
+@utility card-p {
+  padding: 1.25rem;
+  @media (width >= 640px) { padding: 1.5rem; }
+}
+@utility card-p-lg {
+  padding: 1.5rem;
+  @media (width >= 640px) { padding: 2rem; }
+  @media (width >= 1024px) { padding: 2.5rem; }
+}
+
+.article-prose {
+  max-width: 70ch;
+  color: #0d2e2b;
+  font-weight: 300;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+.article-prose h2 {
+  font-size: 1.75rem;
+  font-weight: 300;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  scroll-margin-top: 6rem;
+}
+.article-prose h3 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  scroll-margin-top: 6rem;
+}
+.article-prose p { margin-bottom: 1.1rem; }
+.article-prose a {
+  color: #1f6b4a;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(31, 107, 74, 0.35);
+  transition: text-decoration-color 0.3s;
+}
+.article-prose a:hover { text-decoration-color: #1f6b4a; }
+.article-prose strong { font-weight: 600; }
+.article-prose ul, .article-prose ol {
+  margin: 0 0 1.1rem 0;
+  padding-left: 1.4rem;
+}
+.article-prose ul { list-style: disc; }
+.article-prose ol { list-style: decimal; }
+.article-prose li { margin-bottom: 0.45rem; }
+.article-prose li::marker { color: #1f6b4a; }
+.article-prose blockquote {
+  border-left: 2px solid #1f6b4a;
+  padding: 0.25rem 0 0.25rem 1.25rem;
+  margin: 1.5rem 0;
+  color: rgba(13, 46, 43, 0.75);
+}
+.article-prose hr {
+  border: 0;
+  border-top: 1px solid rgba(13, 46, 43, 0.12);
+  margin: 2.5rem 0;
+}
+.article-prose .standfirst {
+  color: rgba(13, 46, 43, 0.6);
+  font-style: italic;
+}
+.article-prose .table-scroll {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  border: 1px solid rgba(13, 46, 43, 0.1);
+  border-radius: 2px;
+}
+.article-prose table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.article-prose th {
+  text-align: left;
+  font-weight: 600;
+  background: rgba(13, 46, 43, 0.04);
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid rgba(13, 46, 43, 0.12);
+  white-space: nowrap;
+}
+.article-prose td {
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid rgba(13, 46, 43, 0.07);
+  vertical-align: top;
+}
+.article-prose tr:last-child td { border-bottom: 0; }
+.article-prose .article-diagram {
+  margin: 2rem 0;
+}
+.article-prose .article-diagram img {
+  width: 100%;
+  height: auto;
+  border: 1px solid rgba(13, 46, 43, 0.1);
+  border-radius: 2px;
+  background: #ffffff;
+}
+.article-prose .article-diagram figcaption {
+  font-size: 0.8rem;
+  color: rgba(13, 46, 43, 0.55);
+  margin-top: 0.5rem;
+}
+.article-prose .article-note {
+  font-size: 0.85rem;
+  color: rgba(13, 46, 43, 0.55);
+  border-top: 1px solid rgba(13, 46, 43, 0.12);
+  padding-top: 1.25rem;
+  margin-top: 2.5rem;
+}
+.article-prose .faq-box {
+  margin: 3rem 0 2.5rem;
+  border: 1px solid rgba(13, 46, 43, 0.12);
+  border-radius: 2px;
+  background: #ffffff;
+  padding: 1.5rem 1.75rem;
+  scroll-margin-top: 6rem;
+}
+.article-prose .faq-box-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(13, 46, 43, 0.5);
+  margin-bottom: 0.5rem;
+}
+.article-prose .faq-box-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(13, 46, 43, 0.08);
+}
+.article-prose .faq-box-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0.25rem;
+}
+.article-prose .faq-box dt {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.35rem;
+}
+.article-prose .faq-box dd {
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: rgba(13, 46, 43, 0.7);
+  margin: 0;
+}
+
+*/
