@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+gates.seeded-extra-gate: the gate seeded-extra-gate was removed

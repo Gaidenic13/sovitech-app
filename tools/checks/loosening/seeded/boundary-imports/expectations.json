@@ -1,0 +1,56 @@
+{
+  "$comment": "Seeded imports for the gate boundaries in .dependency-cruiser.cjs: package-internals-only-through-exports (phase 0 review: a gate opened through a relative import of packages/registry/src/gates/source.ts), gate-test-utils-only-from-proposed (reachable through any chain since round 2 of the review), proposed-tests-only-from-proposed and no-tests-from-apps-or-packages (round 2: apps/api and an indexed case reached the test-utils entry through a tests/proposed/ helper). Same format as tools/eslint-rules/fixtures/seeded/depcruise/expectations.json: each file lists the rule names it must violate, [] means it must pass. The tree is laid over a workspace shaped like the real one (package.json files, entry stubs, node_modules/@sovitech links) and cruised with apps, packages and tests as roots. Everything here is synthetic and sits under a seeded/ path, so ESLint, TypeScript, Vitest, the checks and the real dependency-cruiser run never read it.",
+  "files": {
+    "apps/api/src/imports-gate-source-deep.ts": ["package-internals-only-through-exports"],
+    "apps/api/src/imports-registry-internal-type-only.ts": ["package-internals-only-through-exports"],
+    "apps/api/src/imports-test-utils-by-path.ts": ["gate-test-utils-only-from-proposed"],
+    "apps/api/src/reaches-test-utils-through-proposed.ts": [
+      "gate-test-utils-only-from-proposed",
+      "no-tests-from-apps-or-packages",
+      "proposed-tests-only-from-proposed"
+    ],
+    "apps/api/src/reaches-test-utils-two-hops.ts": ["gate-test-utils-only-from-proposed"],
+    "apps/api/src/imports-e2e-helper.ts": ["no-tests-from-apps-or-packages"],
+    "apps/api/src/good-imports-gates-entry.ts": [],
+    "apps/api/src/good-imports-entry-by-path.ts": [],
+    "tests/guardrails/_support/imports-gate-source-deep.ts": ["package-internals-only-through-exports"],
+    "tests/guardrails/_support/imports-test-utils.ts": ["gate-test-utils-only-from-proposed"],
+    "tests/guardrails/_support/reaches-test-utils-through-proposed.ts": [
+      "gate-test-utils-only-from-proposed",
+      "proposed-tests-only-from-proposed"
+    ],
+    "tests/proposed/good-imports-test-utils.test.ts": [],
+    "tests/proposed/open-gate.ts": [],
+    "tests/e2e/helper.ts": [],
+    "packages/engine/src/imports-registry-internal.ts": ["package-internals-only-through-exports"],
+    "packages/engine/src/imports-e2e-helper.ts": ["no-tests-from-apps-or-packages"],
+    "packages/registry/src/validation/good-imports-own-internal.ts": [],
+    "packages/registry/src/gates/source.ts": [],
+    "packages/registry/src/approvals/index.ts": []
+  },
+  "before": [
+    {
+      "$comment": "The configuration before the first review fix: without package-internals-only-through-exports, each deep import violates nothing.",
+      "removeRules": ["package-internals-only-through-exports"],
+      "directOnly": [],
+      "letThrough": [
+        "apps/api/src/imports-gate-source-deep.ts",
+        "apps/api/src/imports-registry-internal-type-only.ts",
+        "tests/guardrails/_support/imports-gate-source-deep.ts",
+        "packages/engine/src/imports-registry-internal.ts"
+      ]
+    },
+    {
+      "$comment": "The configuration before the round 2 fix: gate-test-utils-only-from-proposed saw direct imports only, and no rule covered tests/proposed/ or tests/ as a target. Each chain through a tests/proposed/ helper, and each import of test code from apps/ or packages/, violates nothing.",
+      "removeRules": ["proposed-tests-only-from-proposed", "no-tests-from-apps-or-packages"],
+      "directOnly": ["gate-test-utils-only-from-proposed"],
+      "letThrough": [
+        "apps/api/src/reaches-test-utils-through-proposed.ts",
+        "apps/api/src/reaches-test-utils-two-hops.ts",
+        "apps/api/src/imports-e2e-helper.ts",
+        "tests/guardrails/_support/reaches-test-utils-through-proposed.ts",
+        "packages/engine/src/imports-e2e-helper.ts"
+      ]
+    }
+  ]
+}

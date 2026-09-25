@@ -1,0 +1,17 @@
+{
+  "name": "@sovitech/engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@sovitech/domain": "workspace:*",
+    "@sovitech/registry": "workspace:*",
+    "decimal.js": "10.6.0"
+  }
+}

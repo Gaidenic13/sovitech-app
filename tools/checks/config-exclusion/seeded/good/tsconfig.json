@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@app/*": [
+        "apps/web/src/*"
+      ]
+    }
+  },
+  "include": [
+    "tools/**/*.ts",
+    "*.ts"
+  ],
+  "exclude": [
+    "company/**"
+  ]
+}

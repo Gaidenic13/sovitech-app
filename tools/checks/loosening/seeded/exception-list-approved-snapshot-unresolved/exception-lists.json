@@ -1,0 +1,32 @@
+{
+  "$comment": "Seeded bad input (synthetic): an approved exception-list snapshot that holds the added entry, with a reference that does not resolve (no approver is named). The addition stays a loosening against the baseline.",
+  "lists": {
+    "render.entries": {
+      "add": [
+        {
+          "key": "test-quantity-line",
+          "label": "test-quantity-line",
+          "content": {
+            "id": "test-quantity-line"
+          }
+        }
+      ]
+    }
+  },
+  "approved": [
+    {
+      "version": 1,
+      "approvalRef": "guardrails-changelog:9.1",
+      "add": {
+        "render.entries": [
+          {
+            "key": "test-quantity-line",
+            "content": {
+              "id": "test-quantity-line"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

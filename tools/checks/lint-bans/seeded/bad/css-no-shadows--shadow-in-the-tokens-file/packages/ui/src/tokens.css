@@ -1,0 +1,2 @@
+/* Seeded input for the lint-bans self-test (tools/checks/lint-bans/selftest.ts). Wrong on purpose. */
+:root { --sov-bg: #07201c; --sov-card-shadow: 0 1px 2px var(--sov-bg); }

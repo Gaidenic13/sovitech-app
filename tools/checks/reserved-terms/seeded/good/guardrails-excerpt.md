@@ -1,0 +1,12 @@
+**Reserved terms.**
+- **One shared list.** Reserved terms live in one list, used by both the copy check and the AI output validator.
+  - English: confirmed, verified, exact, precise, guaranteed, will save, will reduce, certified, compliant, complies, meets, conforms, in line with, achieves class, final, definitive, binding, firm price, quote, quotation, offer.
+  - Romanian: confirmat, verificat, exact, garantat, certificat, conform, conformitate, în conformitate cu, final, definitiv, ofertă, ofertă fermă, cotație, deviz.
+  - Matching is whole-word, and ignores case and diacritics ("oferta ferma" matches).
+- **Where they are allowed:**
+  - action labels, such as "Confirm";
+  - badges, status lines and generated sentences that the app builds from stored state, such as "Confirmed by you", "Verified by SOVITECH", "designed to provide the functions of BAC class B, verified by SOVITECH", and "Formal quotation" at stage 3;
+  - verbatim document text shown as a quotation, such as an evidence excerpt or original text;
+  - registry qualifier labels, such as "final energy".
+- **Where they are flagged:** everywhere else. That includes text describing a value, all AI-written text, and templates below the matching stage.
+- **Changing the list.** Adding a term tightens the rules. Removing one loosens them (section 10).

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: numbers written as words</title>
+    <!-- Render harness page for G2-1 (docs/adr/0006-render-test.md). The render check must FAIL here. A rule 7 count and a figure written as English words, a Romanian count in a Romanian block, and a number word in an aria-label, all outside any value element. Found by the phase 0 round 2 review (probe words.html). -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with numbers written as words</h1>
+      <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+      <p>Two things for you to check.</p>
+      <p>The TEST building has thirty floors.</p>
+      <p lang="ro">Două lucruri pentru dumneavoastră.</p>
+      <button type="button" aria-label="Show twelve more">More</button>
+    </main>
+  </body>
+</html>

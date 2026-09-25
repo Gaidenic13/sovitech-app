@@ -1,0 +1,10 @@
+{
+  "$comment": "Seeded bad input (synthetic): the reserved-term scan taken off apps/ in the scan-roots list.",
+  "lists": {
+    "scan-roots.scanned": {
+      "remove": [
+        "topLevel.apps reserved-terms"
+      ]
+    }
+  }
+}

@@ -1,0 +1,4191 @@
+{
+  "name": "unapproved baseline v0 (exception lists)",
+  "status": "unapproved",
+  "version": 0,
+  "recordedOn": "2026-09-25",
+  "approvalRef": "",
+  "note": "Not approved: no approver is named in docs/guardrails.md section 10 (D-05). Every exception list the checks use, recorded by key and SHA-256 (figure lists by hash only). Against it, an entry added to an allow list, changed in one, or removed from a deny list is a loosening that fails the loosening check. Written by tools/checks/loosening/write-baseline.ts, which refuses any loosening.",
+  "lists": {
+    "checks.default-ignores": {
+      "direction": "allow",
+      "source": "tools/checks/lib.ts: DEFAULT_IGNORES (paths every scanning check skips)",
+      "entries": {
+        ".git/**": {
+          "sha256": "6a43f278fe87a01278af05a02620d41543ca83ae63163ea03379206f278e9265",
+          "recordedOn": "2026-09-25"
+        },
+        "**/__pycache__/**": {
+          "sha256": "5eb5ec90736b0089c46958e8661ba866d0bd09656a96a8cb03581f774990051c",
+          "recordedOn": "2026-09-25"
+        },
+        "**/dist/**": {
+          "sha256": "b77c6b105283e2f9353dcd1bcf6795f48b8c7de2019bc40033bd91f5319bb15d",
+          "recordedOn": "2026-09-25"
+        },
+        "**/node_modules/**": {
+          "sha256": "bb537977dc4abb41091603dbc518f88be7c5e11ffde071d8661fff5cbb30957c",
+          "recordedOn": "2026-09-25"
+        },
+        "company/**": {
+          "sha256": "266b56960de80d06fc2e13ae45c39a8c89b6c2954a086d72a579f676db59443f",
+          "recordedOn": "2026-09-25"
+        },
+        "coverage/**": {
+          "sha256": "1ea8246ccc46a111797d366d27f86ce50044ce510c14da3165c649414853bb6e",
+          "recordedOn": "2026-09-25"
+        },
+        "fixtures/ifc/perf/**": {
+          "sha256": "7a433d97c85f9fdd90d9b7d7623f4683d088b41980ac305447da66bc945704e1",
+          "recordedOn": "2026-09-25"
+        },
+        "playwright-report/**": {
+          "sha256": "11954e42c808ed62393e25245c8a7bad16c41ed18921ab1b8a99d7a3d5efa272",
+          "recordedOn": "2026-09-25"
+        },
+        "services/extractor/.venv/**": {
+          "sha256": "81ef12c2dfed6e515699ba7a6702827d1740c142e2036acab9189dc9c3f2d310",
+          "recordedOn": "2026-09-25"
+        },
+        "test-results/**": {
+          "sha256": "aa16f78c330ec2ce7b42e0dabc34647948954b6964f0f00525042ba5fabf5aca",
+          "recordedOn": "2026-09-25"
+        },
+        "tools/**/seeded/**": {
+          "sha256": "24b0d63dae9661289dfe2d19eba979dc15ec127b652531961da0badc2fa18db6",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "company-figures": {
+      "direction": "deny",
+      "source": "tools/checks/company-figures.txt (company figures and SAUTER names; stored by hash)",
+      "entries": {
+        "number:sha256:46db5154e2ce1de0": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:57c28d2a3edfefe2": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:8f7e337c7e1b50f0": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:a3617bcccde4964f": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:be47917dab34a7b6": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:c21b47792a7440ff": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:c440627150e2d62e": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:d3ddc7828b75238e": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:d42038fc790e2823": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:eda2e10621fcbf34": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:f0cb0d517fc254eb": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:fefbdc80982d601d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:00008ae31b17eed8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:00a54354202ff9ac": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0155b842b9efa416": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:01b9511b1aafa832": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:01f4677f16bf648a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:020198df5a57679a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0299a4b0c9f9f171": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:029f161eb436f465": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:02ef01d4d95fa2f8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:034105cd9a72c6bd": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:03c475d55c28572b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:03cc0d6796328b6d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:03edc3ff50b1691e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:05353d1ac05af451": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:071816910e07c7d9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0719ffdfcae188cd": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:07467e1b0ca91c09": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:07990babbe83ad5b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0802b941adc39063": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:09082569514cd09c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:092f1df26603af7c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:095ca779eefff78c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0a3ce56a50606aa7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0a43acd45db9ca60": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0a732b7055adc00a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0a770371ade9f876": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0b051d02a5d96814": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0b6e9f5eab531ad1": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0b81bb1e3500a088": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0bd522566d429bdb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0bfac8788d4e5b2b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0c80707877961318": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0cbb9dba6415df0c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0d081fa0bac3d0c2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0d21123baab2bcc0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0d3ef312fdcdc1d5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0dcdac4c3c7cc605": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0de78309c31c9db6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0e24921c4536e8ae": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0e94721728bfca61": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0ef19ee6dc44a62f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0f191feeb7dff4ce": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0f4fd0416777b53a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0f504910477c6251": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:0f7af26f0d08ad1e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:10752aedf32159a7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:107ce9ea17ace37b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:10929116b7300992": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:10a1de7847f578ec": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:10e7e5288ba72fb8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:10ea192cce4c907e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:123ba22a9feabb5f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:12cd25e1ed5e0b79": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:135e379421b93fdf": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:13820c559cf6ca61": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:13eab9cfd8f27a1c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:15065d9d2fe4a3c1": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:160c43b98660a164": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:168db52191e93346": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:16a6402f423ceac7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:16af2c794b12cfcc": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:1740c88a44808887": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:17c45b9055064267": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:17dc31a0ecdb881d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:189616b1383dbe40": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:18c2b6580453002e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:18cc6bea6b6f743a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:19999c934b63dc6e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:19b73aa6df77353d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:1b3a6e98f41834d2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:1b96cf24c4970103": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:1be49a3f8f383bab": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:1be77ecf29567bb9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:1be8556e2d7f1d64": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:1d07adbe8f4ef6ef": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:1d7910c678333522": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:1d9f8c415b1d3ee1": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:1f35a5d8651b622d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:1f9f071c2ff67d4c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:200ba101c7b9024a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:201a8905ea87b2d5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2039747f1f83b982": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:20641be3707c0bde": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:20859c5c49435788": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:20879634fb6ca754": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:208ecc09e0620f19": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2092ff5dffe9c317": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:20fce2517f86527d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:211bbafd25f13437": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2136b09513f268ad": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:213f083737c151e0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:21d4b3bcdeeb67e5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:22143a356826af3b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:227d5c5093deb437": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:22dc601492f0978c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:22e5abba06b604c6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:231f7ab1d1574cdf": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2348876681273c99": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:240aa9eaec1ac52e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:240ce2b8ac69fa85": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:244e8ca51e6f5c76": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2474b537dd8fea38": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:24a86fd9b373c1a5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:24af290aa3217730": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:24b7fb605ee8e7d4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:24cca44500ffa218": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2545561296d28198": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:25526fa8d51c24ff": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2586b954bfe56f7d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:259715947402e747": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:26383f9b73b02d04": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:269ae5126367f759": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:26a97b8c4e8d8372": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2724216dcab9447c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:27a22a4ae46d1630": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:27c33908395a03a0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:27eb709c62ad672c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:283750e30545ec33": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:284ef4704a860244": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2872a7c5ffc90a07": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:292122b468af8599": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2928fca13a1be9a5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:294aa3f70a515045": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2acab26fe924a3fb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2ad6b40fc5fd4446": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2adc073b5ade9205": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2af7cdd0bd8c8293": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2b2496795c1548cc": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2b306f03b2746fc0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2b660b74dba33818": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2bbbae2d65c2ba34": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2c83661e8a1934f2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2cae34f9ba18f43c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2cbd9cff17ac59b7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2cd257c3d7b1767f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2d200637e431f9f7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2d264d255fcc40e5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2d43b929496a907d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2d5fca0731720c11": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2dc51cb4a6f7a637": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2df460957cda7d60": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2e16d3cb398c04db": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2e3144f59abe68ac": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2e55bc18cbdab035": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:2f973cb77bd4526a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:303d230acd9596dd": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:30b034623ecdef18": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3120f667ce6cf1b0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:318744747fa12516": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:31b88e28c9009dfe": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:31c20704f495f4e3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:31c428ef420bbcf6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:31e39857f86a5495": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:322d2d6295c2e375": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:32fa9539488e74f0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:344ee673efafffff": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:350534b2c431841d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:35434402aac5cf06": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:35b7bdc8f5b7a06a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:361f82fe0f3491be": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:364379498f61837d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3649c04c997f08b4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3673700d840e4854": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:36db70ac3ea784d9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:37252d5e062e882d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:378c2ac5e5370d2f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:37dd3fbbdf795fe8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:38000a9a60dc4b7e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3884e07aaa54b676": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:38bc4957a208e6d8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:39243a921acb3bf9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:39277c5398286d2d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:392d3e93ece23b27": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3a4de4ab35dc57a9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3a7a6dfbc3efa8d1": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3aa59bdc3c03d11a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3ae253b993577b8a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3b14d3df124af67a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3b1b5d326ec6556b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3b38e6d80cd374fd": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3b55922c7454d07e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3b903a7a52ecac46": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3ba798219ec3dbfb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3bf71d60591a42e1": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3bfcaa4061247139": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3c0da55d530f2045": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3c3c68ea37da70b0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3c404d411e2f9bf3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3c6101587cdbd20a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3d32ff50a5c8ecfb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3d40d7572792e4f9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3d56c6e586d9bec0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3d5e8dfc36ab2011": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3d7d4263cb90c358": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3d80439862ddba2a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3d85fcb93016b4be": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3e1599af8a71bc22": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3e58c203c7261c87": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3e6e1d8ee09738b1": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3f6bef25e70c679d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3f71e7ec9766fe96": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3f999f5832f556d6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3fa09b3d2a82eabe": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3fb2026e12ea006c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:3fdf66a30a71b96d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:402d672a67d5b509": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:40dac33d748d90ee": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:410e6afe443aa644": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:41746a7692beee28": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:41a491f3230dc48a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:41a9a14e361607ab": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:41b969a43576d15c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:41c3c9f9e8d70e39": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4330815247037e18": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:43a5db9c1f84053d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:43ab9f7e77ec7b49": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:440cf804faa343ec": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4426a909e97859e5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:44a45395634a307d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:454046ca69a4fdb6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:459e121b3dcc8f65": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4648a3b5ce6ed5f8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:468d13dee79e3d41": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:46ad4ada1c7598ac": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:46c54c26aa5a73bc": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:470d79c8323b51e8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4736d906902c4a07": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:473a18f027056238": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:47593b2207ecc392": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:47b858a246f11bab": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:480698b89ea51ccf": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:480f894821b719f3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4868649497fe139d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:48710c8da0a1c79c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:487798571099924a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:488be0c6661827ad": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:48e978046d207247": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:496d440b286a3534": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4971e4cdad429452": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4984bd67030df41f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4a4bccbabc99d2df": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4aa0b13de1068a97": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4abcf2218d3b4c4b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4ac75da1f01bef20": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4bc412ab7045ce0f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4bd4f51d4990881c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4c93f261810debe5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4cd4d43a95275322": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4cf5d18d0ffbd52e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4d345edf368e3ac9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4d581e10d2d0ea7e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4daba05dd74a4c73": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4e16d9dbeffa6d01": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4e5e35f050d5b76c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4e74d3de09438ffb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4ead93d63cf2dec4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4f0f4a47b449a699": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4f1c019c35de1678": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4f2d3d02a19181b5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4f6aac1094d2b65e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4fc434d6d1b93254": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4fc48b3e55168c49": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:4fcf44abc37a21e8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5002b1d2fe628e0c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5029f1f87e25d165": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:50e4074e66bc4fc4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:514cbd23a0602bcb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5170f0f25b42c354": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:51725e20af923329": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5185a90f90af622b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:51b1590860460bd7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:51e20bcf58d4c65e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5257eab87a910f7c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:528540b33061b7ab": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:52ab84757bd24e38": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:53ba7c269e875af9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5469a2386ba049d7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5474e0cb807cd98a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:547cc61a85df48ea": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:54cc7303f5414855": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:54e54460879406c8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:550019983d02187e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:550832959108174b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:55197fc6b80a047b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:562797aec6760cc3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5692a50852c393c4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:571618625a8b0c51": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5785718c7839fdee": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:579d90e6823f70bb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:583f0bdb4b130f2e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:583f39c195ba18b5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:58563ae17da3c013": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5867136cf161664a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:587588096d33ef0a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:58abb663df38aa9c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5934b36f52fce7cc": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5936b26c46add9a6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:595898325095f69c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5961db5e785d2b55": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5975aa0b2102fb0d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:59b740c669ca7b21": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:59d3f03083d7bebd": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5a829e13cf2cad3f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5ab321596c22829c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5b0178948c2c38b7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5bcd5fd7bfb58311": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5c4f32c1b7a0481e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5c734ce62a12e43c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5c842ddff590ed39": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5cf68f68420215fe": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5cf82b860982912b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5d23b313b3e5f2bc": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5d4c0e34a8dd4dd7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5d91ff8f1ae6290b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5e109207dbde6ef6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5e9687f6dd554e81": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5ed43d1a386c8b08": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5ed612d08803ce8f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5f1da87a969f0d48": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5f6ec97a7fb73d89": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5f71f3c6b348951d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5f9957ca035e6dd3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:5fcc2ee4b7217f48": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:601ef4eda9e4a011": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:603df47483f3327f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6080660675ef423c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:60b3576e8b55ab79": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:60f9c33ee7fdbb07": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:610685d620afd725": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:61ba3c1f46edb1d3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:61d43f210c51b062": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:61f2cf2b9b02b7c5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:62a748cef606952d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:62bf1b17a3fccc70": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:62df069dd97d57f1": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:632d82e5b5e203eb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6380fa03d5f8a187": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:63c64778828abcbb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6402152a62394518": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:64c6ac9d7bc6a35c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:65a23893ac93e465": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:65c594588efda808": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:65d329d7e6507b9a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:65f0eb8e0ce54b0e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:660b20acee802fa8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:661061886a7d3273": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:666ec7ca5afab1df": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:668a362760f4038c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6699a6b3095f2ce3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:67041b89679898fb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:675d67a80a760def": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:677e8e89c4dfe3a3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:679bad3fdf575288": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:67eec166333ec7fd": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:682098e613365498": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:687efceddcdfebf8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6891c59e71059e0d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:68cad3a7292bce1f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:68da90961b68a64f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:68e417ebb4df67d2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:68e453c97ff80dee": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:68e6706486da173f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:68f1bf7fd14a40b3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:68f441841672c825": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6924a050e2aa8190": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:694d4e40390dee09": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:69973aaf0dfe746b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:699a13c972564fdd": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:69eb7ab7c738a9ef": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6a5878b3d9b9bc7e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6aa5294aa9a8b9d7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6aad45ff614fc7b2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6ab8fb3752f0663d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6abb5c390f596108": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6afa5979eed40dc6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6b06b6a3d3c87598": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6b2c5e343a3b4145": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6b477bd28c80f58a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6b4d30b50f551e95": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6b6cd554aa27e659": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6bf4e589ec44a4b5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6c91749af83106a9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6ccd7f6acd323c30": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6cd780d782ef8853": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6d023838e6577f97": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6d4b6fb133cf1572": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6d955f7c73223774": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6e1645be181763d9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6e1d5b66f5422ed3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6e1f02cf90031352": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6f5e834977cfa295": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6f64d126e423db9f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6f8d2802b661e268": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6fc7103e1da2ba55": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:6fdd2051189af344": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7025e7c047fc519f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:709e4060ba491aab": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:70c0d567055624ff": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:70c38943f0b0c95e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:71c5ea0f90acfe5a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:71d1cfe4bb7c9268": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7295546e8c11fba5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:72d15ee7bd5fdf91": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7325788af47a8cc4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:73498a95c88ed7ff": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:735a994f06d04184": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:737b85f33796682a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:73a9fab97b4003d9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7431cdcb3f90d49c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:74c0b4c8676345fd": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:74cbc0545e7fb7e8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:74d62a0ed69ffae2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:753da9e94fde762d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:75e65375678f35be": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:761aeaf0dada39b8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:76b173a2693b2391": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:779e2d5b71b3e8dc": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:77a290402fc40250": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:77bbd7d97275d4fb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:77c0ff595d1fa1fb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:77d3e86f0f0d02dd": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7840eac173bf8665": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:78609fa6634a85bf": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7875b0686c1292c6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:79167b320146380b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:79bca413320f2d90": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7aa067390e796a96": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7ad0fd24f78b81dd": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7be0fbcb5a2355cb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7d0175ca541ba987": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7d28f10ae6e357c4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7d618229a85e5dc7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7d6369a6efdca22f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7d689d0e6f2c629a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7d98317d8fb63c04": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7da76120a62b8f33": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7db359b0f4903623": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7dc8d23c868eb8a2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7e8f96ed6ef3e6bb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7eedbdb852516199": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7eee0610fbb4d57b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7f31a04b8da5dc54": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7faf52ef079116a3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7fce7b1f15c22d42": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:7ff59aea2787e85d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:807beff279757f84": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:80c6548e5ce05a82": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:80f3de5d2fc80361": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:81834ff20f21cfaa": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8184b4d5bfbe5363": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:819f44507a25293a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:81d57b037a01de3b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:821aecfae49fb243": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8225064e90d4e7fe": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8229cc9ebf2e1228": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:823fdef902610338": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:829ffab5bc105d7e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:82d178bf89e56ff9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:82d7d40bdf70d7e4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:83621256b38dfd58": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:836c917d37931af2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:83dab95fe102c58b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:83dcdee30c1d7687": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:83e2ba58e0104edf": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:85105ad802fa0409": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8551761581e42831": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8569c3827bbab39f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:859b52ca3bc10511": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:85aaf992358eb135": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:85c4d88e0f111404": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:863258078e0745ee": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:863bd8393082cb74": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:869c27be7df4049d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:86d6d258c5c5fd73": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8723be6c9117980a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:873c7efb69bfd6ea": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8784c80586e3915b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8824b8b3ce3f58b9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:887462d0e2ddd366": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8897f7d1b22a2cc8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:88c1ec9a8bc33d40": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:890c546b6e829e28": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8a15a0e849cb55ec": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8a766b503bc13b68": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8a76ab7810b3590e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8aee8ed9106f770d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8b30213de2d03688": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8b44276518ef442b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8b59fc7e8bc2aa99": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8c8174ebeba55a65": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8d18cb320fa75e10": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8dc0309a35a672de": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8e51061fbf322b48": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8e8fc5f4ae89b043": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8ea9c7620a5d0b77": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8f03449ca7d80907": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8f3ca64643056e4a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8f5217e2d2917465": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:8f9d8edb4288094e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9049c7c6b2fb3c95": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:90c45a9d40c05ab4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:910aa020ed52e3b3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:910d1e09161b7b2b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9116ac7316df377f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9162698842b3407b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:91b8395e71dcab35": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:91fe39b2bff24b20": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:92bdd308e490c3f2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:93169c8549e0b7f5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:940bb51b6d46f1e3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:944163e7cfb8d42e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:94466da53e99a579": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:944c3f8a318bfda6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:944eb1ac056ddd41": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:94b7504b2c7331e5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:94f0a84740fee2fb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:955faff44088da9b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:957d446080584d16": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:95b03f2fe991db3c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:95c7c5f843826010": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:95c891766c17ebc2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:95e9e0cb7a5e1ab5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:95fd6f16dd995976": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:964ebcaf9f06d5e6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:966cc1049963e008": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9684e858c39b5abe": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:96eb0e582313497a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:97245d59af2ec2a4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:97e0a839008242df": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:980b70d8708b1759": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:98264d7e0ac5dab7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:983d0e3b57681843": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9896716f16fada07": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9908cde4a65af3e9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:992c13e7ba91c24a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9972005c5a17bdae": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9978361a278fbb0f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:99f15022fac7d3f5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9ad33244be5b6d7a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9aebf7969ee374d0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9be0fd11b27a3cb6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9bf3cf88588bc54b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9c405cf34d8f88bc": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9d2448da44a8b1da": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9da589d1ccae6330": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9e1bf7f346275a26": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9fa2d6d60248b5e9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:9ff76d11d1d6a1de": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a0a6ac6695c0c38a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a0ec457d141870dd": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a112e37ce8bfac31": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a1356c6cfa7d3eae": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a14084faed82fc59": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a16a786ae5bc052d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a1ad04a8f6b6fc90": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a1d611746f5407be": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a1e289436d4c02a6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a1fdb294576173c0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a2322a096424c85d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a2a360539bdbaf54": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a2ca604a4795212d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a30e7a9292ad2688": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a3364d3c6a75942e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a385be5321767bf0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a3d301b76c18b5c5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a4e5e2f46eb80183": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a50d002dcb12f4f6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a51e864b083ccd3f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a5e4dce4f27817b7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a6236765ac5dbc01": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a64bed12ebbe58a5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a75cabbe5663c2f4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a785cc3ffc51b0e6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a8212e8f7ffa584b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a8628d3aa2f6211e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a87d4ab924a3e850": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a8b7c314f7a0d659": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a8ba54344d7589a6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a8e6cd35be890b8d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a92d13aa04c5e010": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a988538d352dcd06": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a99e53518b694a23": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a9c7fdd7148e5847": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:a9c97770204d3839": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:aa0a9a764b7538d6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:aa388c9fd313240f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:aa4ae10fff889e77": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:aae06f3a56472269": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ab0ff45131b7f1e7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ab1d227f675f2084": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:aba18e6bfd1b3d9d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ac4ad9302d728c54": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ac8405c1b4a0025c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ac964e2dcfa4f44f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ad4df28d4a8b2a57": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:add3a597f0c4d5e4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ae5d37dc549f0afb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ae82bc6e287f139e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:af01fa8a2156419b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:af647736b97182fa": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:afb1d56fbd8d8a08": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:afc7b7f26c4a1883": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b03c1edafca201d3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b05b9bfdd7e19d2a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b0a9bcf4716a8346": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b11426379892b940": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b151168ed2118414": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b19792a50886f929": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b1b360dff0371943": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b1e251c47b67ddc4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b2089bcef1938a85": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b24438a45b294906": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b267670a3ec21755": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b290dccfe6aa522b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b2a0935315a03d39": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b2ec8b9c69966e5a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b320480ff41234b2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b3246031ccb5886c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b3457e90f8002823": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b353264fba89ca49": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b3652a54795d5ee4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b3682d0d2fa0515b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b3ab979de1507948": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b3d88f20376bb08a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b3f785bc39970d44": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b406a91bc0d9212e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b4078211460b1739": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b4177fe6a3da112d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b44ed15c4e84a633": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b4bc007fc86fe64d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b580507d57934ba2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b5d8baac08f53106": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b6c85771f5496017": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b6dc019c7b6644d3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b7860d26c425a489": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b7a7c41156384cd5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b7d0f519ea966b06": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b7d3e1847d5f3218": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b7d882599188798b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b804bae9a258b2b2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b82e9c0409969729": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b9843f66254a31a4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b9898a66c72c1c6c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:b99073fae5d01230": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ba0764d2a7c89966": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ba117517df5ea31a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ba1b692b63e6358c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ba1d361fdd5a10f2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ba549c25258b70be": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bab61a0da306f015": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bae5af1c1f2f3dfc": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bb234fc5704164db": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bb635a2db75dacba": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bbe94743333b8aa6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bc96701045800a46": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bc9888323181c0ea": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bc9b437c2aee9553": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bcd98c07e6fa036e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bd0622f4c87fdf59": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bd0d80c3f1b7948b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bd27f5a383c0e5a9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bdda8e0ca3b5d753": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bef8f7b4f391c4e6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bf011410b473a567": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bf09272400ec3d3d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bf45a1cdcb404e18": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bf595ca38d536fbb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bf939ac5e1e12929": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:bfdb810bd5d2a173": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c0036d38d6618d83": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c122234ad6185f06": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c13393e158c85171": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c1688d9392d23f3b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c23e9acc40b4af44": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c253a411a34adadc": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c256489ebefbeb11": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c27677084eda6680": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c296ec808dd9500f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c3891d10e85c405d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c3c0ffb620b3f745": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c4254fadfd3a244a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c451b091211ffac4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c4839af0c41df9eb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c49e9a9b9e2e8052": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c4dee66c680c4592": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c58b862f59e31581": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c590bf3a48ed6296": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c5b8d4dd55e59a7b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c6d50a2a780a4795": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c702101da7bad5df": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c771162997c354c0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c79c510632210ddd": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c805a77ef09d759f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c839a00660d084c2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c8c2a2fea16d7293": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c8cb120b3badd4df": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c8ccccb960f0c44b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c921cbeef34046a2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c930b2ee1e26ca29": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c992acb0e627763e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c9ba19ac18156eea": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:c9eba576e9781d4d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ca3a640f0ad3512b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cac21da6e10aa1ef": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cad707c08e0ec29d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:caf65b53f52ea5cc": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cb2528341be8eb91": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cba654cc815be114": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cc4475a7641e7941": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cc56a4fd058e3d9d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ccc0e8f594adeba1": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ccea09955bba3b3d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cd299220156c3fc0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cd32e2db2bf1a084": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cd605c0b943be511": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cdab2aaecf3630c2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cdd53e62fa5057ae": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cde691161c667110": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ce8de52fbfa058a0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cea2ed8637448609": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cef32ba4390ef682": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cf14b26cc92bd280": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cfa6339aba2db564": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:cfd1328fbd169f09": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d04941ead620e19c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d0c93d3be73d6841": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d1e2e6d550e1cca3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d20f3af5693bfa5f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d256eb54e60e1aa4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d26b5147882595eb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d2edbce1be5b888b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d3806d202cdac85c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d3ec70b2b214f3ef": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d3ef7d288809fc6b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d4173a25048cce2e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d48ae3e715f7f0f7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d48cf751b106f9e0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d57010b8812aee37": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d5a4d9fcc67701b7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d679139e8bf12f78": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d74ce44b679d2f24": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d75d828edae489f4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d76087851ad11200": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d78fcd79b16b19e2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d793d9074537ce7b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d7b70efb91d458c9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d7fb898d995ea8cf": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d7fc62ab8a5a27bd": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d8101851fc44408f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d81cd0b0932f9944": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d85459bfa18a95be": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d8a12b95c4a63d7a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d8d70df8fcc5ab8b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d8d741d4fc30216c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d8db84d5a1cb0b58": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d8ea7f03e672b747": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:d95b6b951f53f943": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:da13b68c5c6787e2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:da9dd759493fc2a6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:dad5e036c0f250ee": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:db2eafe28913c0b3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:db9a3848aa8d5ae5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:dba50b7f1fd3ce1a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:dbf4231e156170de": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:dc020f3fed5efdc0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:dc58aa067d84aa3d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:dcc077164ac3d53e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:dcedc10f404e6e21": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:dda84c60a8ac098f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ddbe658459c1a087": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:dde8b38b29b92e46": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:de9238aa38ae5a9d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:df038641681075f7": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:df17fddb4794ec83": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:dfae87f752bd70e4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e00e085a598b027c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e032a1042741a48d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e08193d014fafc3a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e0cdba6977160867": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e1661f5cd147a812": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e16c9641fd38c479": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e249669b925b427b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e28bc88712d3ee10": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e2bfeb0eb721cd96": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e3b1dc6e087becbe": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e4fde00a8a47369f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e53ee6003eafd4d8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e55648a9ad9bed48": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e576016295768351": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e5a105b2b5d15ae8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e5ad96c0c3a36756": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e5b03d9390447bb4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e5b2cdb19b40df48": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e6395ff37fb4324f": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e63d0b76dd27f256": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e70055eb9fd9c7ec": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e716d58b2544b915": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e722bdd00e09dbe2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e817315c117d0938": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e8970330d69d7501": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e89e14fd82dfe6e8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:e997ac31ce76de8d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ea7ccdf522a651a9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:eaad5c09f2e7ca4d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:eae7b8d74ed621ee": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:eb041870110d7768": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:eb62e7f02b1d6132": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ebcaea18956f6d73": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ebda876572241022": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ec09377f7265cccc": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ec0de602cf7020f8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ec67b3058cb8ffca": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ecdb6e1a25533d8c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ed4bfeaea002d003": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ed6cd88bbf5fba28": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:edd9785fe5bc6abb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ee084161907f9c2b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ee2f64d0ce39ff8e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ee59b6be0dc7a772": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ee65323d57c195b4": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:eeae2ee0c7d71be8": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ef680b7551d2e123": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:efd9de6469a1b5f5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f030cfeb819abbe9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f09adca804b586b9": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f0f25bbff165461a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f0f589f230014d1e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f1454e4fabc7f05d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f28d5ffa730acc83": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f296d8ab5cda2aa6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f2f2ecc65463e82b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f34e695efc0ab6b5": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f39b290617cf743d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f3fccfd682fcd93e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f57572efedb79d47": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f575abf0b1ba37eb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f62ebdb38e1e6164": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f65fe670b434b064": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f6b3f6b96ae0c1b3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f6bba9004418c180": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f77e11896757eddb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f7a68147fa1c9f7a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f7b5d6cbee67f236": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f7daf57ab7dc579c": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f7f06e5f3eaa780a": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f830d83f0581a798": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f8919298f4ac5230": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f8aed8d3081621d6": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f8daada4dda30898": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f8ea42fa003ffaff": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f8ef931df5b3fb1b": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f901d7ad8f584aec": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f90beec46605bddb": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f9130e0b7656a4a3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f93ac2225d1c99d0": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f970b8557f27d468": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:f990618ebff45d2e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fa211a8634fe6d40": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fa633c9cbedc0668": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fabdf6c740d4ac47": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fad5a8dda5613aa3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fae84cfc5c1d7a10": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fb5e3bb368de8213": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fb85386c53ca4da3": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fc4e0a45ad03d8de": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fcdd6f222695c654": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fce14dd673939721": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fd11177dd44cb109": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fd1f749ed9bd96c2": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fd5295bf0654f62e": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fd62a28182305d2d": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fdddbdd2eb5e5685": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fe36996cae502336": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fe793cefdc2344fc": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fedf79667a340b80": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ff35351615396e37": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:ff4acbbb07bb87df": {
+          "recordedOn": "2026-09-25"
+        },
+        "product:sha256:fff1f0e3b7cd9000": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:08d4fe331f32c560": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:08ebc7e59743f842": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:0c1446d01d3de204": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:1696cec74bb4f97f": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:18ec85a6d046f01a": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:1918285082f4866c": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:22d57cd7484e9962": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:2794ac9733607f09": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:369e130d3b81316b": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:43ed4150327b4383": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:461c159dded70d9f": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:57178e481c8e98f9": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:6192744bfe94727e": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:621935d6b52a3ed6": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:62a6c97fd478c993": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:6c353666fb68a943": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:6d2aa20b750d0c91": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:6dbfb100c19e9ca6": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:6f5f3ef1a6dd45a7": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:747fd87d2ffe1262": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:7786db71d66fe994": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:7a3f203f5a697fb6": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:83cd85506d21d7eb": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:884f58141a3fc4dd": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:96591fc2de2a2f55": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:966ebdb0c9a8ec78": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:9cdacb818118b708": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:a4b0215c65557267": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:a670b74e4522e712": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:a9766fbf5d85b146": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:ae7f5177636f32ab": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:af59c1f677ae3ab0": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:bc28f7aa065daafb": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:be7750a39a5d1828": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:bfd72cd0e8ff609b": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:c0003ba3b076a336": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:c21195e9f5ecead5": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:c31584a7ab2ac0d8": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:ca3edde8b184ca4f": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:d23b34193d645cfa": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:d622d25f63142302": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:d7469ebac377ee3c": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:d861f99e117d6017": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:da193601bc03960c": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:dc7bac69fde7e678": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:edd91cf59d4ad477": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:f1d44bef28d06fd7": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:f38a609d389081dc": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:f3ff4a1912db6b01": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:f4e9f25804ce475b": {
+          "recordedOn": "2026-09-25"
+        },
+        "text:sha256:37d5a4e7d3ec2468": {
+          "recordedOn": "2026-09-25"
+        },
+        "text:sha256:43a95fa157253854": {
+          "recordedOn": "2026-09-25"
+        },
+        "text:sha256:4f557ee57d36b721": {
+          "recordedOn": "2026-09-25"
+        },
+        "text:sha256:b677da4ff7b36c82": {
+          "recordedOn": "2026-09-25"
+        },
+        "text:sha256:ecdde13c163091f9": {
+          "recordedOn": "2026-09-25"
+        },
+        "text:sha256:ed8085134b68e4a7": {
+          "recordedOn": "2026-09-25"
+        },
+        "text:sha256:f950215c381ba3f4": {
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "depcruise.exclude": {
+      "direction": "allow",
+      "source": ".dependency-cruiser.cjs: options.exclude.path (modules the boundaries never see)",
+      "entries": {
+        "(^|/)dist/": {
+          "sha256": "fd45c747684c3b4f5c8067abed7854cf5dfe2dc58ee89f4a5856b2b45acf5dc4",
+          "recordedOn": "2026-09-25"
+        },
+        "(^|/)node_modules/(?!@sovitech/)": {
+          "sha256": "b576274548ab7e7e11a5a5776ee2484b205704d9b2468d463cc5ddc731112b40",
+          "recordedOn": "2026-09-25"
+        },
+        "^services/extractor/\\.venv/": {
+          "sha256": "76b8642e16d5ec5d6f93ff6972fdcb80b108fe8aea8bd40dbcef3382e2e7baa7",
+          "recordedOn": "2026-09-25"
+        },
+        "^tools/.*/seeded/": {
+          "sha256": "0dd5a1e30191d51e059e92c80cc878831e119133c28b2bf478c437d8fe298d81",
+          "recordedOn": "2026-09-25"
+        },
+        "^tools/eslint-rules/fixtures/": {
+          "sha256": "b9f8f03b323783e178c81e55dc1fd2a45f44bce9a4a06fe18b5d6726b5bc8215",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "eslint.allowlist": {
+      "direction": "allow",
+      "source": "tools/eslint-rules/allowlist.js: allowlist (files a lint ban does not apply to), one entry per rule and file pattern",
+      "entries": {
+        "css-no-colour-literals packages/ui/src/tokens.css": {
+          "sha256": "cdaabc08829f9ed2eec6ad7938793156fd8200f3c4de2b2af766abed422de8eb",
+          "recordedOn": "2026-09-25"
+        },
+        "no-number-coercion apps/api/src/port.ts": {
+          "sha256": "1fd7ecf64391fc30d3573b23314f622b45cf57b5d7895203168f4e1bb6130095",
+          "recordedOn": "2026-09-25"
+        },
+        "no-number-coercion packages/registry/src/number-parser/**": {
+          "sha256": "7293a81051609d25bad589e6e46b88ad88a83c006d10d13826f3e9ad9fdd5d38",
+          "recordedOn": "2026-09-25"
+        },
+        "no-number-coercion packages/view-model/src/formatting/**": {
+          "sha256": "ac2cb9b16745c662bb36e4d1a7d15dcf0eb6add3238aa9fb354364677c96018c",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "eslint.script-extensions": {
+      "direction": "deny",
+      "source": "tools/eslint-rules/index.js: SCRIPT_EXTENSIONS (script extensions the ESLint bans read under apps/ and packages/)",
+      "entries": {
+        "cjs": {
+          "recordedOn": "2026-09-25"
+        },
+        "cts": {
+          "recordedOn": "2026-09-25"
+        },
+        "js": {
+          "recordedOn": "2026-09-25"
+        },
+        "jsx": {
+          "recordedOn": "2026-09-25"
+        },
+        "mjs": {
+          "recordedOn": "2026-09-25"
+        },
+        "mts": {
+          "recordedOn": "2026-09-25"
+        },
+        "ts": {
+          "recordedOn": "2026-09-25"
+        },
+        "tsx": {
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "fixture-manifest.content-signatures": {
+      "direction": "deny",
+      "source": "tools/checks/fixture-manifest/manifest.ts: CONTENT_SIGNATURES (document types found by content)",
+      "entries": {
+        "7z": {
+          "recordedOn": "2026-09-25"
+        },
+        "AVI video": {
+          "recordedOn": "2026-09-25"
+        },
+        "AVIF": {
+          "recordedOn": "2026-09-25"
+        },
+        "BMP": {
+          "recordedOn": "2026-09-25"
+        },
+        "DWG": {
+          "recordedOn": "2026-09-25"
+        },
+        "DXF": {
+          "recordedOn": "2026-09-25"
+        },
+        "GIF": {
+          "recordedOn": "2026-09-25"
+        },
+        "gzip": {
+          "recordedOn": "2026-09-25"
+        },
+        "HEIC/HEIF": {
+          "recordedOn": "2026-09-25"
+        },
+        "IFC (STEP physical file)": {
+          "recordedOn": "2026-09-25"
+        },
+        "ISO media (MP4, M4V, 3GP)": {
+          "recordedOn": "2026-09-25"
+        },
+        "JPEG": {
+          "recordedOn": "2026-09-25"
+        },
+        "Matroska or WebM video": {
+          "recordedOn": "2026-09-25"
+        },
+        "OLE compound file (DOC, XLS, PPT, MSG, RVT)": {
+          "recordedOn": "2026-09-25"
+        },
+        "PDF": {
+          "recordedOn": "2026-09-25"
+        },
+        "PNG": {
+          "recordedOn": "2026-09-25"
+        },
+        "QuickTime movie (MOV)": {
+          "recordedOn": "2026-09-25"
+        },
+        "RAR": {
+          "recordedOn": "2026-09-25"
+        },
+        "RTF": {
+          "recordedOn": "2026-09-25"
+        },
+        "SVG image": {
+          "recordedOn": "2026-09-25"
+        },
+        "tar": {
+          "recordedOn": "2026-09-25"
+        },
+        "TIFF": {
+          "recordedOn": "2026-09-25"
+        },
+        "WebP": {
+          "recordedOn": "2026-09-25"
+        },
+        "ZIP container (ZIP, DOCX, XLSX, PPTX, ODF, IFCZIP)": {
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "fixture-manifest.document-extensions": {
+      "direction": "deny",
+      "source": "tools/checks/fixture-manifest/manifest.ts: DOCUMENT_EXTENSIONS (document types found by extension)",
+      "entries": {
+        "3gp": {
+          "recordedOn": "2026-09-25"
+        },
+        "7z": {
+          "recordedOn": "2026-09-25"
+        },
+        "avi": {
+          "recordedOn": "2026-09-25"
+        },
+        "avif": {
+          "recordedOn": "2026-09-25"
+        },
+        "bmp": {
+          "recordedOn": "2026-09-25"
+        },
+        "bz2": {
+          "recordedOn": "2026-09-25"
+        },
+        "csv": {
+          "recordedOn": "2026-09-25"
+        },
+        "dgn": {
+          "recordedOn": "2026-09-25"
+        },
+        "doc": {
+          "recordedOn": "2026-09-25"
+        },
+        "docx": {
+          "recordedOn": "2026-09-25"
+        },
+        "dwf": {
+          "recordedOn": "2026-09-25"
+        },
+        "dwfx": {
+          "recordedOn": "2026-09-25"
+        },
+        "dwg": {
+          "recordedOn": "2026-09-25"
+        },
+        "dxf": {
+          "recordedOn": "2026-09-25"
+        },
+        "eml": {
+          "recordedOn": "2026-09-25"
+        },
+        "gif": {
+          "recordedOn": "2026-09-25"
+        },
+        "gz": {
+          "recordedOn": "2026-09-25"
+        },
+        "heic": {
+          "recordedOn": "2026-09-25"
+        },
+        "heif": {
+          "recordedOn": "2026-09-25"
+        },
+        "ifc": {
+          "recordedOn": "2026-09-25"
+        },
+        "ifcxml": {
+          "recordedOn": "2026-09-25"
+        },
+        "ifczip": {
+          "recordedOn": "2026-09-25"
+        },
+        "jpeg": {
+          "recordedOn": "2026-09-25"
+        },
+        "jpg": {
+          "recordedOn": "2026-09-25"
+        },
+        "m4v": {
+          "recordedOn": "2026-09-25"
+        },
+        "mkv": {
+          "recordedOn": "2026-09-25"
+        },
+        "mov": {
+          "recordedOn": "2026-09-25"
+        },
+        "mp4": {
+          "recordedOn": "2026-09-25"
+        },
+        "msg": {
+          "recordedOn": "2026-09-25"
+        },
+        "nwc": {
+          "recordedOn": "2026-09-25"
+        },
+        "nwd": {
+          "recordedOn": "2026-09-25"
+        },
+        "odg": {
+          "recordedOn": "2026-09-25"
+        },
+        "odp": {
+          "recordedOn": "2026-09-25"
+        },
+        "ods": {
+          "recordedOn": "2026-09-25"
+        },
+        "odt": {
+          "recordedOn": "2026-09-25"
+        },
+        "pdf": {
+          "recordedOn": "2026-09-25"
+        },
+        "pln": {
+          "recordedOn": "2026-09-25"
+        },
+        "png": {
+          "recordedOn": "2026-09-25"
+        },
+        "ppt": {
+          "recordedOn": "2026-09-25"
+        },
+        "pptx": {
+          "recordedOn": "2026-09-25"
+        },
+        "rar": {
+          "recordedOn": "2026-09-25"
+        },
+        "rfa": {
+          "recordedOn": "2026-09-25"
+        },
+        "rtf": {
+          "recordedOn": "2026-09-25"
+        },
+        "rvt": {
+          "recordedOn": "2026-09-25"
+        },
+        "skp": {
+          "recordedOn": "2026-09-25"
+        },
+        "svg": {
+          "recordedOn": "2026-09-25"
+        },
+        "tar": {
+          "recordedOn": "2026-09-25"
+        },
+        "tgz": {
+          "recordedOn": "2026-09-25"
+        },
+        "tif": {
+          "recordedOn": "2026-09-25"
+        },
+        "tiff": {
+          "recordedOn": "2026-09-25"
+        },
+        "vsd": {
+          "recordedOn": "2026-09-25"
+        },
+        "vsdx": {
+          "recordedOn": "2026-09-25"
+        },
+        "webm": {
+          "recordedOn": "2026-09-25"
+        },
+        "webp": {
+          "recordedOn": "2026-09-25"
+        },
+        "xls": {
+          "recordedOn": "2026-09-25"
+        },
+        "xlsb": {
+          "recordedOn": "2026-09-25"
+        },
+        "xlsm": {
+          "recordedOn": "2026-09-25"
+        },
+        "xlsx": {
+          "recordedOn": "2026-09-25"
+        },
+        "xz": {
+          "recordedOn": "2026-09-25"
+        },
+        "zip": {
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "fixture-manifest.document-home-types": {
+      "direction": "allow",
+      "source": "tools/checks/fixture-manifest/manifest.ts: DOCUMENT_HOME_TYPES (the document types each home may hold)",
+      "entries": {
+        "design/reference/ jpg": {
+          "sha256": "4243ca2363ff228fb2d1aec4dc3e55d6974ff7197d08f94bda3e212f5a404afe",
+          "recordedOn": "2026-09-25"
+        },
+        "design/reference/ png": {
+          "sha256": "7d0b9f22bf8d85bddd6f82e4fef0422bd9bada598bdb8277e37ca94bb57e93d0",
+          "recordedOn": "2026-09-25"
+        },
+        "design/reference/ webp": {
+          "sha256": "e20a50f5d797501a3ea9381a8b08336eb32b2211dfb8269aff519802429d3f59",
+          "recordedOn": "2026-09-25"
+        },
+        "fixtures/ any": {
+          "sha256": "6af9e9213bc3ef8db620f97c4e9da2afc3d0f3f54d220955992527e01db74880",
+          "recordedOn": "2026-09-25"
+        },
+        "packages/ui/src/brand/ svg": {
+          "sha256": "4789642d9dbcc4f0bce10250e59c1211f18c0a3e8771ec07af718baf66ba9be3",
+          "recordedOn": "2026-09-25"
+        },
+        "packages/ui/src/brand/ woff": {
+          "sha256": "e05019681e8436074141423067b3e69cfe0ca1ea01ba1350916f44ec0afd8bfa",
+          "recordedOn": "2026-09-25"
+        },
+        "packages/ui/src/brand/ woff2": {
+          "sha256": "7617e92d24f2f268ba9e78b7e255327a2c93f83fdd050e91fedadf458d9c87cb",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "fixture-manifest.document-homes": {
+      "direction": "allow",
+      "source": "tools/checks/fixture-manifest/manifest.ts: DOCUMENT_HOMES (where document-type files may live)",
+      "entries": {
+        "design/reference/": {
+          "sha256": "48f90596d57731f5122d8a6bab15564eb69df68f390334c2cc287ab2364ab44a",
+          "recordedOn": "2026-09-25"
+        },
+        "fixtures/": {
+          "sha256": "507288dc0363002dcbd9254c487bb6242793134122fa491b35b3ace45a33e44b",
+          "recordedOn": "2026-09-25"
+        },
+        "packages/ui/src/brand/": {
+          "sha256": "9629af82e8ce2568da4d85f2009b190147702393905a164c85b25be6aad14473",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "fixture-manifest.never-read": {
+      "direction": "allow",
+      "source": "tools/checks/fixture-manifest/manifest.ts: NEVER_READ (paths the document scan never reads)",
+      "entries": {
+        "company/": {
+          "sha256": "2f852a55a2e93b31bb9f31468298036d986f26fdac4788578e529e740b52e311",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "index.reviewed-test-doubles": {
+      "direction": "allow",
+      "source": "tools/checks/index/reviewed-test-doubles.json: entries (test doubles a guardrail case file or support module may use)",
+      "entries": {}
+    },
+    "lint-bans.extensions-a-ban-must-read": {
+      "direction": "deny",
+      "source": "tools/checks/lint-bans/lint-bans.ts: EXTENSIONS_A_BAN_MUST_READ (a file of these types under apps/ or packages/ that no ban reads fails)",
+      "entries": {
+        "astro": {
+          "recordedOn": "2026-09-25"
+        },
+        "civet": {
+          "recordedOn": "2026-09-25"
+        },
+        "cjs": {
+          "recordedOn": "2026-09-25"
+        },
+        "coffee": {
+          "recordedOn": "2026-09-25"
+        },
+        "css": {
+          "recordedOn": "2026-09-25"
+        },
+        "cts": {
+          "recordedOn": "2026-09-25"
+        },
+        "elm": {
+          "recordedOn": "2026-09-25"
+        },
+        "es": {
+          "recordedOn": "2026-09-25"
+        },
+        "es6": {
+          "recordedOn": "2026-09-25"
+        },
+        "htm": {
+          "recordedOn": "2026-09-25"
+        },
+        "html": {
+          "recordedOn": "2026-09-25"
+        },
+        "js": {
+          "recordedOn": "2026-09-25"
+        },
+        "jsm": {
+          "recordedOn": "2026-09-25"
+        },
+        "jsx": {
+          "recordedOn": "2026-09-25"
+        },
+        "less": {
+          "recordedOn": "2026-09-25"
+        },
+        "litcoffee": {
+          "recordedOn": "2026-09-25"
+        },
+        "marko": {
+          "recordedOn": "2026-09-25"
+        },
+        "mdx": {
+          "recordedOn": "2026-09-25"
+        },
+        "mjs": {
+          "recordedOn": "2026-09-25"
+        },
+        "mts": {
+          "recordedOn": "2026-09-25"
+        },
+        "pcss": {
+          "recordedOn": "2026-09-25"
+        },
+        "postcss": {
+          "recordedOn": "2026-09-25"
+        },
+        "res": {
+          "recordedOn": "2026-09-25"
+        },
+        "resi": {
+          "recordedOn": "2026-09-25"
+        },
+        "sass": {
+          "recordedOn": "2026-09-25"
+        },
+        "scss": {
+          "recordedOn": "2026-09-25"
+        },
+        "sss": {
+          "recordedOn": "2026-09-25"
+        },
+        "styl": {
+          "recordedOn": "2026-09-25"
+        },
+        "stylus": {
+          "recordedOn": "2026-09-25"
+        },
+        "svelte": {
+          "recordedOn": "2026-09-25"
+        },
+        "ts": {
+          "recordedOn": "2026-09-25"
+        },
+        "tsx": {
+          "recordedOn": "2026-09-25"
+        },
+        "vue": {
+          "recordedOn": "2026-09-25"
+        },
+        "wat": {
+          "recordedOn": "2026-09-25"
+        },
+        "xhtml": {
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "lint-bans.shadow-free-values": {
+      "direction": "allow",
+      "source": "tools/eslint-rules/lib/patterns.js: SHADOW_FREE_VALUES (shadow values the shadow bans accept)",
+      "entries": {
+        "0": {
+          "sha256": "98089e6d36f78e9766c9ea34d5acb3611f3a92cd81c5eb102095d924ffc7d08b",
+          "recordedOn": "2026-09-25"
+        },
+        "initial": {
+          "sha256": "4f1cf8d86a66caf554db9ac662dfe98a531cc614c2c4309a5e04c5f74912d3fd",
+          "recordedOn": "2026-09-25"
+        },
+        "none": {
+          "sha256": "30a0924a3360be687d1df9fcbbfdff62c01bc0fd14036ab9076cf7f451568666",
+          "recordedOn": "2026-09-25"
+        },
+        "unset": {
+          "sha256": "ac66e3bc9621458d8b98a8ca6e320ef8828d5f8af56bdc50b2983f7bd0017e4a",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "lint-bans.theme-files": {
+      "direction": "allow",
+      "source": "tools/eslint-rules/lib/theme.js: THEME_FILES (files whose colour names count as tokens)",
+      "entries": {
+        "apps/web/src/styles.css": {
+          "sha256": "9cf12e6cf032a95ed439ac1d680345d9151ea07945b187e62d2baf2738573eeb",
+          "recordedOn": "2026-09-25"
+        },
+        "packages/ui/src/tokens.css": {
+          "sha256": "73a11bf2114b5beda465edbd4a5d937cce3293fbdbe3fa44a909a13ccdf236f0",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "lint-bans.total-outside-engine-exempt": {
+      "direction": "allow",
+      "source": "tools/eslint-rules/index.js: ENGINE (the folder no-total-outside-engine does not apply to)",
+      "entries": {
+        "packages/engine/**": {
+          "sha256": "a7d05b6a8573ed14849c426a589f8de6b9821e02f86b6bbc19def48b1097ad33",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "mockup-figures": {
+      "direction": "deny",
+      "source": "tools/checks/mockup-figures.txt (mockup figures and the mockups' hotel name; stored by hash)",
+      "entries": {
+        "number:sha256:00962de0caa56296": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:01e1a323c2b9c71d": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:02aee01c723a5c82": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:08a30281567744ee": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:0ab5c8c5ce87ffca": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:0bdeb08b34f93e25": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:0f3dd5f61d3988b1": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:10a14647f8521ad7": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:119c64dc269e9a84": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:11e5c7f93752b7d9": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:16d683c69a524ab3": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:1cd8069836d73c0e": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:1d75dc95f172a81f": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:1e0df7e033c9ecc1": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:221de3c0beb62aee": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:244b25799964350e": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:25ff0ff893711077": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:288a5da3662c4d31": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:31b3127cf541aac8": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:426df96ef92042c2": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:435490f77e76909f": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:437ecc219dc283d4": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:46afab523896bad7": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:470332fdbe77adc2": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:4b1050cdb58c01bb": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:54438a80869a7b11": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:551d26a5ad24893a": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:5b0f36463cfe2c6b": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:5d42031cd94cdbd1": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:648e2538e55dd8de": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:64d01df683ea6632": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:6acb789a458ff97a": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:6bd6e0ca5762422b": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:6ccb6786469cb287": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:7846e2f5cdc2f7e8": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:7ce25a2a4b7595d0": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:7d5a46ecf7cafa98": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:82f2e43f20672a45": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:84785574a5b16ffa": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:8a0aa4c4371da72c": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:8ab2e08e357eeb68": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:90b094630be7e39a": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:9559516f0e9591e8": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:9a4c2393e0a1b862": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:a107f7d488ba633d": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:a3819fab0ef39bd1": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:a660620d7bd3b150": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:a7d4241f783338f6": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:ac7a8cafb63854bf": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:ad8222a14913dde2": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:aefe19c5021ea804": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:b22b169ce60aa711": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:b95c71db3df4af69": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:ba78d737a31df9b4": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:ba79320dce379312": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:bb6d342738dfdf5c": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:bc9b6f2a4368d6cd": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:bcb9a4cf81f61eb0": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:c13d32700646a7ab": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:c21b47792a7440ff": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:c2ce290707ed994a": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:c319902c62d09d39": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:c3aafbffcd4f36db": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:c3ad53b76f26ee58": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:c590606f5a98b358": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:c78f5f961e274aa5": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:c8e11c10b6fd6cd0": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:d05e3e5c7e927298": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:d56b2ba3460e68d8": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:d88be0428962466e": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:d9a47c1241efacae": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:e5964727427614a4": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:e5c7aad901fd76f9": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:e81b905c265c2e68": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:e9335a10a44b29bd": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:ea713ed7c0e2672d": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:ea86c771b41a94a0": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:f19cd63133b91900": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:f1b6d746f3ea7915": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:f3fedb2d8eb18ef4": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:f935d7b10f29173c": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:fa6ef6ca9da3daec": {
+          "recordedOn": "2026-09-25"
+        },
+        "number:sha256:fe82ec7628ae675d": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:012822f9fb834dbc": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:034fc03f35167382": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:06c694cda2676a72": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:08ebc7e59743f842": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:09b9f041a4591216": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:0bc734f8b34f4008": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:0dc6df39bf86f6fc": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:112aeef28bd28f9e": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:18bb17ac63d2015f": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:2255cde4a7981430": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:29f0560675162280": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:2f1d598b2b7d0378": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:337a67b614665212": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:3f881f060815a03e": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:488ea387a4101389": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:50241ba1df5f6003": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:529a1be9932b3d5d": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:5385ac62702a0d95": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:569f5d84c0c9b812": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:5e7a9fe597b87b4c": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:621935d6b52a3ed6": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:66f7feb0c2c967ad": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:75fe8c310245c6aa": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:79fcc173d771e375": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:7d601aa872bbc4b8": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:7efe28ef642231b5": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:805cf09d943bf42f": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:99cc391c27a01edd": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:a73f85391038f6bd": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:a75f4d44cfadf87f": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:a959cdf93537fe63": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:b9c8eca51c045059": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:d2ce66f0db4dfc42": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:d3f1d87ea5ccd2c8": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:d834f335523765e4": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:db855d810b12a6b0": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:f3ea4371dcc9e4cd": {
+          "recordedOn": "2026-09-25"
+        },
+        "quantity:sha256:fe572d5bc1f6d9a9": {
+          "recordedOn": "2026-09-25"
+        },
+        "text:sha256:2055e5922c195d8d": {
+          "recordedOn": "2026-09-25"
+        },
+        "text:sha256:255999db1c5b8349": {
+          "recordedOn": "2026-09-25"
+        },
+        "text:sha256:6df013d8b735bfc4": {
+          "recordedOn": "2026-09-25"
+        },
+        "text:sha256:a50fed7387334de8": {
+          "recordedOn": "2026-09-25"
+        },
+        "text:sha256:ccf8baa22e058ee2": {
+          "recordedOn": "2026-09-25"
+        },
+        "text:sha256:faa3a23caff706fd": {
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "render.entries": {
+      "direction": "allow",
+      "source": "tests/e2e/render/allowlist.ts: RENDER_ALLOWLIST.entries (digits allowed outside a value element; rule 2)",
+      "entries": {
+        "character-counter": {
+          "sha256": "43484d99fc0844bc6518c733a6f5556ceceda8b3c6097cb48ac0ecafd5834eb2",
+          "recordedOn": "2026-09-25"
+        },
+        "date-day-month-year": {
+          "sha256": "0bc1d92ec7fa6c3780d272b298b1596f0384239a282fe930b2cda9bfe9a024bf",
+          "recordedOn": "2026-09-25"
+        },
+        "max-file-size": {
+          "sha256": "fddcbd55748a774b1f0fbc561444308d55708c1e3d092bdeb8657da45736fc4e",
+          "recordedOn": "2026-09-25"
+        },
+        "wizard-step-number": {
+          "sha256": "1823752f355d670294ad501c9b3a2fc248c7d69a2378257902ca2d640598ef45",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "render.unreadable": {
+      "direction": "allow",
+      "source": "tests/e2e/render/allowlist.ts: RENDER_ALLOWLIST.unreadable (elements whose pixels the render test cannot read)",
+      "entries": {
+        "brand-logo": {
+          "sha256": "599ea5b67be9dc77c0935d6da667ffb42a7722827b99b22c5ff7cd54fcdb7dce",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "reserved-terms.allowances": {
+      "direction": "allow",
+      "source": "packages/registry/src/reserved-terms.ts: REGISTERED_ALLOWANCE_ENTRIES (places 2.8 allows a reserved term)",
+      "entries": {}
+    },
+    "reserved-terms.machine-keys": {
+      "direction": "allow",
+      "source": "tools/checks/reserved-terms/machine-keys.ts: MACHINE_KEY_LISTS (lists whose strings the reserved-term check skips)",
+      "entries": {}
+    },
+    "reserved-terms.non-copy-files": {
+      "direction": "allow",
+      "source": "tools/checks/reserved-terms/non-copy.ts: NON_COPY_FILES (files in scope the reserved-term check does not read)",
+      "entries": {
+        "**/README.md": {
+          "sha256": "7e4ba60b64ddc7cd77fa2dd29b4ae209122c956e90e7fb681819e1ed1cca84cf",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "scan-roots.excluded": {
+      "direction": "allow",
+      "source": "tools/checks/scan-roots/roots.json: folders no scan reads (topLevel, packageSubfolders, serviceSubfolders \"excluded\")",
+      "entries": {
+        "packageSubfolders.dist": {
+          "sha256": "b04e07f1db4ba3f3188fa56b3b3799e10d5afad97450d14a0f425bcf34e218ea",
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.node_modules": {
+          "sha256": "5b1c6d55e58be980f507525d6d29eb8f60c542169bb921d01ab51b3437b003b1",
+          "recordedOn": "2026-09-25"
+        },
+        "serviceSubfolders.__pycache__": {
+          "sha256": "e3aa27c743463cb5062cd80951a0e9ecf4c8cc69d3790d0933dbb3dcd81edd2f",
+          "recordedOn": "2026-09-25"
+        },
+        "serviceSubfolders..pytest_cache": {
+          "sha256": "970feb279ca0ec44a27f70d063e4760972927a09b1d43866a434cf3d1892bbdb",
+          "recordedOn": "2026-09-25"
+        },
+        "serviceSubfolders..ruff_cache": {
+          "sha256": "0fdf1a8fda76811d03b1e6b701d575283f114aa124988081fe6f9edaedc34f90",
+          "recordedOn": "2026-09-25"
+        },
+        "serviceSubfolders..venv": {
+          "sha256": "3920bbf359fbc8576200066ff84b4c435d8433528ddc607584c574c923ca004e",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel..cache": {
+          "sha256": "4d5d80c9f844656bd8887435d30ed0716848ab5b5f4e5309c7832734dcbccecc",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel..claude": {
+          "sha256": "29afc77f1b2a0a67df8f637ac8980c747fbeb865a1e4a8bd55b97f9eb274758e",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel..git": {
+          "sha256": "f9951ab1857367922eccf82475609b622d2021b4725eb29a1d9ebf20f81cc65c",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel..idea": {
+          "sha256": "fb2d237fd2ba7353cfe74d4c06d999bc8cb0c9a475f25a9a8c8a054910609ce0",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel..pnpm-store": {
+          "sha256": "6c5c9866288654448487c5d9534dbbff2c5236c11ffa6442afaa961a91f72b8b",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel..venv": {
+          "sha256": "ba7a044a8736023835d532260f23c515bb76ede18e2af23a630d8647db06894d",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel..vscode": {
+          "sha256": "fb2d237fd2ba7353cfe74d4c06d999bc8cb0c9a475f25a9a8c8a054910609ce0",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.company": {
+          "sha256": "a42fa122b3e9886df668d367310129deb7940b796d8cc5071c6719b4aad0966a",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.coverage": {
+          "sha256": "d25f78aac3031470442a479a262606ffa62070d78c1b0ddd44a5e422474406dd",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.design": {
+          "sha256": "711e174cfb36ffccae902c4e660f5ab4d302603db0057d76bb4bb2dc844b30a2",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.docs": {
+          "sha256": "9d51189693ad1fd31103e6a6593443ccb7c42eb79256526087b00f57d12a55c7",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.node_modules": {
+          "sha256": "305d43611daceb541e5a09993033c1bc6329eb9745fe9c668ee4e2810579a907",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.playwright-report": {
+          "sha256": "fa19df5dfb668941c5b3ace1e1d6d4455294d3a1c71a1a26d02c3b3c6ad9f132",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.prompts": {
+          "sha256": "f97ba3b04ab12a61434172ac7bf725d56dfe04a951399c272e5205315bf45ff2",
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.test-results": {
+          "sha256": "b7c03d20268c75f5f727ba464572e8dd20ef13d7d10ceb28452a6490ff995ab1",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "scan-roots.scanned": {
+      "direction": "deny",
+      "source": "tools/checks/scan-roots/roots.json: the scans each folder is read by, and the top-level folders the CI path filter names (\"ci\": true)",
+      "entries": {
+        "packageSubfolders.gates lint-bans": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.gates lint:deps": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.migrations lint-bans": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.migrations lint:deps": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.migrations mockup-figures": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.migrations reserved-terms": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.seed lint-bans": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.seed lint:deps": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.seed mockup-figures": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.seed reserved-terms": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.seeds lint-bans": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.seeds lint:deps": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.seeds mockup-figures": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.seeds reserved-terms": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.src lint-bans": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.src lint:deps": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.src mockup-figures": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.src reserved-terms": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.templates lint-bans": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.templates lint:deps": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.templates mockup-figures": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.templates reserved-terms": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.test-formulas lint-bans": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.test-formulas lint:deps": {
+          "recordedOn": "2026-09-25"
+        },
+        "packageSubfolders.test-formulas mockup-figures": {
+          "recordedOn": "2026-09-25"
+        },
+        "serviceSubfolders.src mockup-figures": {
+          "recordedOn": "2026-09-25"
+        },
+        "serviceSubfolders.src python-bans": {
+          "recordedOn": "2026-09-25"
+        },
+        "serviceSubfolders.src ruff-pytest": {
+          "recordedOn": "2026-09-25"
+        },
+        "serviceSubfolders.tests ruff-pytest": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel..claude ci": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.apps ci": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.apps lint-bans": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.apps lint:deps": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.apps mockup-figures": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.apps reserved-terms": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.design ci": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.docs ci": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.evals ci": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.evals lint:deps": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.fixtures ci": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.fixtures lint:deps": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.fixtures mockup-figures": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.packages ci": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.packages lint-bans": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.packages lint:deps": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.packages mockup-figures": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.packages reserved-terms": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.prompts ci": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.services ci": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.services mockup-figures": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.services python-bans": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.services ruff-pytest": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.tests ci": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.tests lint:deps": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.tools ci": {
+          "recordedOn": "2026-09-25"
+        },
+        "topLevel.tools lint:deps": {
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "version-sync.third-party-skills": {
+      "direction": "allow",
+      "source": "skills-lock.json: skills (third-party skills the version-sync check exempts from the \"Checked against\" line)",
+      "entries": {
+        "frontend-design": {
+          "sha256": "3b8ce5326c2737f9520ff0d154494685ff63740312a6e85d9f820415de453434",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "vitest.allowed-test-script-flags": {
+      "direction": "allow",
+      "source": "tools/vitest/config-integrity.ts: ALLOWED_TEST_SCRIPT_FLAGS (flags the test script may add after \"vitest run\")",
+      "entries": {}
+    }
+  }
+}

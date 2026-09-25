@@ -1,0 +1,3 @@
+# Each line must appear in the check's details for this seed to count.
+docs/guardrails.md has no change-log row 9.6 at git merge-base main HEAD
+the build branch or the working tree adds a row whose "Approved by" cell "Seed Approver" names someone

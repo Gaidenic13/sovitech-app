@@ -1,0 +1,18 @@
+{
+  "$comment": "Seeded bad input (synthetic): a machine-key list registered after the baseline; its strings would pass the reserved-term check.",
+  "lists": {
+    "reserved-terms.machine-keys": {
+      "add": [
+        {
+          "key": "apps/web/src/test-labels.ts#TEST_LABELS",
+          "label": "apps/web/src/test-labels.ts#TEST_LABELS",
+          "content": {
+            "path": "apps/web/src/test-labels.ts",
+            "constant": "TEST_LABELS",
+            "reason": "Seeded bad entry (synthetic)."
+          }
+        }
+      ]
+    }
+  }
+}

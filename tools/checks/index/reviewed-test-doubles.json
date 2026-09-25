@@ -1,0 +1,4 @@
+{
+  "about": "The reviewed list of test doubles a guardrail case file (tests/guardrails/<ID>.test.ts) or support module (tests/guardrails/_support/) may use: vi.mock, vi.doMock, vi.stubGlobal, vi.stubEnv, vi.resetModules, vi.importActual, vi.importMock, and a vi.spyOn with an implementation of its own or on project code. The index check refuses every other use (tools/checks/index/README.md). Each entry names the file (root-relative), the call (for example \"vi.stubEnv\"), its target exactly as the index check reports it, and why the case needs it and still tests the code under test. Each entry added is listed in docs/build-log.md for the owner's review. An entry that matches no use fails the check. Empty since phase 0.",
+  "entries": []
+}

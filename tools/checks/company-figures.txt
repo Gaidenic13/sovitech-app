@@ -1,0 +1,990 @@
+# Company figures and SAUTER product names: a check list, not app data.
+#
+# Everything under company/ is website marketing copy and background, never an
+# app value (CLAUDE.md; company/README.md "Figures: no" and "Product
+# identifiers: not yet"; guardrails rule 1 and G1-12). Prompt 3 section 7:
+# "Never copy a figure ... from company/". Rule 1: SAUTER model numbers,
+# product names and product lines come only from reference data, and gate
+# dataset-sauter-catalogue is closed: "No SAUTER product line, product or model
+# name anywhere" (G1-3, G2-5). Imports from company/ are blocked by
+# dependency-cruiser; tools/checks/company-figures fails when an entry below is
+# typed by hand into apps/, packages/*/src, services/extractor/src, a seed or a
+# demo fixture (the mockup-figure scope). Nothing imports this file.
+#
+# One entry per line: kind | figure as written | company/<file>:<line>  # note
+#   number    the value in any number format (34,500 34.500 34500 34 500 34_500 34.5k)
+#   quantity  the value followed by its unit or word (6.1 years, 38%, 18 EUR/m²)
+#   text      the words, ignoring case, diacritics and spacing
+#   product   a product or model name as whole words, ignoring case, with up
+#             to three spaces, hyphens, dots, slashes, colons or underscores
+#             between its letter and digit groups, or none where letters meet
+#             digits (EY-RU 310 is also EY-RU310 and ey ru-310)
+# Figures are written in English number format; the cited line may use the
+# Romanian one. The check never reads company/ (build-readiness decision 12),
+# so the cited lines are not re-read at run time: they were checked once, on
+# 2026-09-25, when this list was built, by finding each entry on its cited
+# line with the check's own matcher. The self-test plants every entry in a
+# temporary tree and requires each to be found.
+#
+# Left out on purpose, as too common to find without flagging ordinary code:
+# round percentages and durations (20%, 35%, 40%, 2 ani, 24 months, 4 hours),
+# counts under 3 digits, bare 3- and 4-letter model families (DSA, VUL, BUS;
+# listed as "SAUTER <code>" instead, except the English words BUT, BUS, BUG,
+# DEF and BUN), generic product descriptions (room thermostat), people's
+# names, phone numbers and e-mail addresses, figures whose first source is a
+# public standard, statistic or law (EN ISO 52120-1 factors, Eurostat prices,
+# the 290 kW and 70 kW thresholds of Legea 372/2005 and Directive 2024/1275),
+# which reach the app only through an approved reference dataset, and the
+# unmerged branch's figures that repeat these. A removal lets more through and
+# is a loosening (guardrails section 10).
+
+# Figures: website statistics, reference projects, case studies, prices and price bands
+number | 250,000 | company/business/company-profile.md:251  # automated area in the portfolio, m², home statistics
+quantity | 38% | company/business/company-profile.md:252  # average energy consumption reduction, home statistics
+quantity | 6.1 years | company/business/company-profile.md:275  # average payback, home statistics
+text | 30+ proiecte | company/business/company-profile.md:67  # completed projects (RO)
+text | 30+ completed | company/business/company-profile.md:67  # completed projects (EN)
+quantity | 150+ projects | company/brand/voice-and-messaging.md:170  # projects implemented
+text | 50+ servicii | company/business/company-profile.md:259  # BMS services (RO)
+text | 15+ ani | company/brand/voice-and-messaging.md:171  # years of experience (RO)
+text | 25 reference projects | company/business/company-profile.md:442  # reference projects (EN)
+text | 25 de proiecte de referință | company/business/company-profile.md:442  # reference projects (RO)
+quantity | 92% | company/business/references.md:149  # clients from referrals
+quantity | 98% | company/business/references.md:156  # client satisfaction
+quantity | 42% | company/business/references.md:140  # energy savings, references page
+quantity | 28% | company/business/references.md:141  # CO₂ reduction, references page
+quantity | 34% | company/business/references.md:197  # office testimonial: lower electricity bill
+quantity | 31% | company/business/references.md:199  # retail testimonial: lower energy spend
+quantity | 27% | company/business/references.md:201  # education testimonial: lower energy bill
+quantity | 99.9% | company/business/references.md:216  # system uptime claim
+number | 38500895 | company/business/company-profile.md:357  # CUI as the website states it
+text | J40/19288/2017 | company/business/company-profile.md:358  # trade register number as the website states it
+quantity | 34,000 m² | company/business/references.md:26  # Therme built area
+quantity | 1,800 m² | company/business/references.md:27  # Radisson event space
+quantity | 15,900 m² | company/business/references.md:28  # hotel floor area
+number | 258 | company/business/references.md:28  # hotel rooms
+quantity | 164 rooms | company/business/references.md:29  # hotel rooms
+number | 598 | company/business/references.md:30  # hotel rooms
+quantity | 7,500 m² | company/business/references.md:31  # office building area
+quantity | 26,300 m² | company/business/references.md:32  # office building area
+quantity | 20,000 m² | company/business/references.md:33  # office and retail area
+quantity | 8,000 m² | company/business/references.md:34  # office building area; also the Therme implemented area
+quantity | 9,000 m² | company/business/references.md:36  # hospital area
+quantity | 119 beds | company/business/references.md:36  # hospital beds
+quantity | 303 beds | company/business/references.md:37  # hospital beds
+quantity | 16,000 m² | company/business/references.md:39  # industrial area
+quantity | 37,000 m² | company/business/references.md:40  # production floor area
+quantity | 24,800 m² | company/business/references.md:46  # retail leasable area
+quantity | 22,200 m² | company/business/references.md:47  # retail area
+quantity | 13,500 m² | company/business/references.md:49  # school built area
+quantity | 45,000 m² | company/business/references.md:202  # office park area, testimonial
+quantity | 80,000 m² | company/business/references.md:202  # mall area, testimonial
+number | 424 | company/business/case-studies/radisson-blu-bucuresti.md:9  # Radisson rooms, case study
+number | 428 | company/business/case-studies/radisson-blu-bucuresti.md:222  # Radisson rooms, testimonial
+quantity | 540 m² | company/business/case-studies/radisson-blu-bucuresti.md:69  # Radisson conference hall
+quantity | 82.6% | company/business/case-studies/radisson-blu-bucuresti.md:9  # Radisson case-study figure
+quantity | 75.4% | company/business/case-studies/radisson-blu-bucuresti.md:9  # Radisson case-study figure
+quantity | 2.8 years | company/business/case-studies/radisson-blu-bucuresti.md:222  # Radisson payback claim
+quantity | 200+ points | company/brand/voice-and-messaging.md:214  # Radisson monitored points
+quantity | 1,400 points | company/business/case-studies/therme-bucuresti.md:171  # Therme points
+number | €158K | company/business/pricing.md:165  # Therme annual savings
+quantity | 2.3 years | company/brand/voice-and-messaging.md:211  # Therme payback claim
+quantity | 3.1 years | company/brand/voice-and-messaging.md:215  # Rompharm payback claim
+quantity | 25 EUR/m² | company/business/pricing.md:161  # ROI calculator implementation cost
+quantity | 150 RON/m² | company/business/pricing.md:187  # BMS guide calculator investment rate
+quantity | 13 EUR/m² | company/business/pricing.md:226  # cost band, hotel without room control
+quantity | 18 EUR/m² | company/business/pricing.md:220  # cost band, class A offices
+quantity | 38 EUR/m² | company/business/pricing.md:227  # cost band, hotel with room control
+quantity | 80 EUR/m² | company/business/pricing.md:230  # cost band, pharma
+quantity | 320 EUR/point | company/business/pricing.md:231  # cost band per data point
+quantity | 10.8 EUR/m² | company/business/services.md:1799  # modernisation cost band
+number | 15,600 | company/business/services.md:1489  # maintenance cost band, EUR a year
+quantity | 1,350 points | company/business/services.md:602  # point count tied to a 10,000 m² office
+quantity | 50,000 EUR | company/business/pricing.md:163  # quote form budget bracket
+quantity | 500,000 EUR | company/business/pricing.md:163  # quote form budget bracket
+quantity | 130,000 EUR | company/business/pricing.md:245  # cost article scenario
+number | 62,575 | company/business/roi-methodology.md:351  # ROI calculator result, EUR
+number | 48,600 | company/business/roi-methodology.md:592  # ROI worked example, EUR a year
+number | 76,500 | company/business/roi-methodology.md:625  # ROI worked example, EUR a year
+quantity | 250,000 EUR | company/business/roi-methodology.md:184  # ROI calculator default energy cost
+number | 42,827 | company/website/history.md:128  # former home statistic, average first-year savings, EUR
+
+# SAUTER product lines, product and model names, and article codes (company/products/)
+product | TSHK 621 | company/products/catalogue.json:2420  # model tshk-621-643
+product | TSHK 643 | company/products/catalogue.json:2448  # model tshk-621-643
+product | TSHK621F001 | company/products/catalogue.json:2430  # article code in the model row of tshk-621-643
+product | TSHK642F001 | company/products/catalogue.json:2448  # article code of tshk-621-643
+product | TSHK643F001 | company/products/catalogue.json:2448  # article code of tshk-621-643
+product | TSHK 670 | company/products/catalogue.json:2469  # model tshk-670-672
+product | TSHK 672 | company/products/catalogue.json:2497  # model tshk-670-672
+product | TSHK670F001 | company/products/catalogue.json:2479  # article code in the model row of tshk-670-672
+product | TSHK672F001 | company/products/catalogue.json:2497  # article code of tshk-670-672
+product | TSHK 681 | company/products/catalogue.json:2517  # model tshk-681-682
+product | TSHK 682 | company/products/catalogue.json:2545  # model tshk-681-682
+product | TSHK681F001 | company/products/catalogue.json:2527  # article code in the model row of tshk-681-682
+product | TSHK682F001 | company/products/catalogue.json:2545  # article code of tshk-681-682
+product | SAUTER TUC | company/products/catalogue.json:2575  # model family TUC, written with SAUTER (the bare letters are too common)
+product | TUC105F001 | company/products/catalogue.json:2575  # article code in the model row of tuc
+product | TUC101F003 | company/products/catalogue.json:2594  # article code of tuc
+product | TUC107F001 | company/products/catalogue.json:2594  # article code of tuc
+product | TUC108F001 | company/products/catalogue.json:2594  # article code of tuc
+product | TUC303F001 | company/products/catalogue.json:2594  # article code of tuc
+product | TUC407F001 | company/products/catalogue.json:2594  # article code of tuc
+product | 0391022100 | company/products/catalogue.json:2627  # article code in the model row of 0391-0392-0393
+product | 0391011100 | company/products/catalogue.json:2641  # article code of 0391-0392-0393
+product | 0391022600 | company/products/catalogue.json:2641  # article code of 0391-0392-0393
+product | 0393022100 | company/products/catalogue.json:2641  # article code of 0391-0392-0393
+product | 0393012100 | company/products/catalogue.json:2641  # article code of 0391-0392-0393
+product | 0392022100 | company/products/catalogue.json:2641  # article code of 0391-0392-0393
+product | TFL 201 | company/products/catalogue.json:2667  # model tfl-201
+product | TFL201F002 | company/products/catalogue.json:2677  # article code in the model row of tfl-201
+product | TFL201F022 | company/products/catalogue.json:2696  # article code of tfl-201
+product | TFL201F102 | company/products/catalogue.json:2696  # article code of tfl-201
+product | TFL201F602 | company/products/catalogue.json:2696  # article code of tfl-201
+product | TFL201F622 | company/products/catalogue.json:2696  # article code of tfl-201
+product | TFL 611 | company/products/catalogue.json:2718  # model tfl-611
+product | TFL611F201 | company/products/catalogue.json:2728  # article code in the model row of tfl-611
+product | TFL611F601 | company/products/catalogue.json:2746  # article code of tfl-611
+product | SAUTER DSA | company/products/catalogue.json:2775  # model family DSA, written with SAUTER (the bare letters are too common)
+product | DSA143F002 | company/products/catalogue.json:2775  # article code in the model row of dsa
+product | DSA140F002 | company/products/catalogue.json:2794  # article code of dsa
+product | DSA146F002 | company/products/catalogue.json:2794  # article code of dsa
+product | SAUTER DSB | company/products/catalogue.json:2828  # model family DSB, written with SAUTER (the bare letters are too common)
+product | DSB143F001 | company/products/catalogue.json:2828  # article code in the model row of dsb-dsf
+product | DSB138F001 | company/products/catalogue.json:2847  # article code of dsb-dsf
+product | DSB146F001 | company/products/catalogue.json:2847  # article code of dsb-dsf
+product | DSB170F001 | company/products/catalogue.json:2847  # article code of dsb-dsf
+product | DSF135F001 | company/products/catalogue.json:2847  # article code of dsb-dsf
+product | DSF146F001 | company/products/catalogue.json:2847  # article code of dsb-dsf
+product | DSF170F001 | company/products/catalogue.json:2847  # article code of dsb-dsf
+product | SAUTER DSL | company/products/catalogue.json:2884  # model family DSL, written with SAUTER (the bare letters are too common)
+product | DSL143F001 | company/products/catalogue.json:2884  # article code in the model row of dsl-dsh
+product | DSL140F001 | company/products/catalogue.json:2903  # article code of dsl-dsh
+product | DSL152F001 | company/products/catalogue.json:2903  # article code of dsl-dsh
+product | DSH127F001 | company/products/catalogue.json:2903  # article code of dsl-dsh
+product | DSH146F001 | company/products/catalogue.json:2903  # article code of dsl-dsh
+product | DSH170F001 | company/products/catalogue.json:2903  # article code of dsl-dsh
+product | DFC 17B | company/products/catalogue.json:2930  # model dfc-17b-27b
+product | DFC 27B | company/products/catalogue.json:2959  # model dfc-17b-27b
+product | DFC17B76F001 | company/products/catalogue.json:2940  # article code in the model row of dfc-17b-27b
+product | DFC17B54F001 | company/products/catalogue.json:2959  # article code of dfc-17b-27b
+product | DFC17B96F001 | company/products/catalogue.json:2959  # article code of dfc-17b-27b
+product | DFC17B98F001 | company/products/catalogue.json:2959  # article code of dfc-17b-27b
+product | DFC27B26F002 | company/products/catalogue.json:2959  # article code of dfc-17b-27b
+product | DFC27B52F002 | company/products/catalogue.json:2959  # article code of dfc-17b-27b
+product | SAUTER DSD | company/products/catalogue.json:2996  # model family DSD, written with SAUTER (the bare letters are too common)
+product | DSD140F002 | company/products/catalogue.json:2996  # article code in the model row of dsd
+product | DSD134F102 | company/products/catalogue.json:3015  # article code of dsd
+product | DSD137F002 | company/products/catalogue.json:3015  # article code of dsd
+product | DSD143F002 | company/products/catalogue.json:3015  # article code of dsd
+product | SAUTER DDL | company/products/catalogue.json:3050  # model family DDL, written with SAUTER (the bare letters are too common)
+product | DDL110F001 | company/products/catalogue.json:3050  # article code in the model row of ddl
+product | DDL103F001 | company/products/catalogue.json:3068  # article code of ddl
+product | DDL105F001 | company/products/catalogue.json:3068  # article code of ddl
+product | DDL120F001 | company/products/catalogue.json:3068  # article code of ddl
+product | DDL150F001 | company/products/catalogue.json:3068  # article code of ddl
+product | HSC 120 | company/products/catalogue.json:3094  # model hsc-120
+product | HSC120F002 | company/products/catalogue.json:3104  # article code in the model row of hsc-120
+product | HSC120F012 | company/products/catalogue.json:3123  # article code of hsc-120
+product | HSC 101 | company/products/catalogue.json:3143  # model hsc-101
+product | HSC101F001 | company/products/catalogue.json:3153  # article code in the model row of hsc-101
+product | SAUTER HBC | company/products/catalogue.json:3201  # model family HBC, written with SAUTER (the bare letters are too common)
+product | HBC 111 | company/products/catalogue.json:3201  # model row of hbc
+product | HBC111F001 | company/products/catalogue.json:3201  # article code in the model row of hbc
+product | HBC112F001 | company/products/catalogue.json:3220  # article code of hbc
+product | EGT 130 | company/products/catalogue.json:3240  # model egt-130-430
+product | EGT 430 | company/products/catalogue.json:3269  # model egt-130-430
+product | EGT 330 | company/products/catalogue.json:3250  # model row of egt-130-430
+product | EGT330F103 | company/products/catalogue.json:3250  # article code in the model row of egt-130-430
+product | EGT330F053 | company/products/catalogue.json:3269  # article code of egt-130-430
+product | EGT332F103 | company/products/catalogue.json:3269  # article code of egt-130-430
+product | EGT335F103 | company/products/catalogue.json:3269  # article code of egt-130-430
+product | EGT430F013 | company/products/catalogue.json:3269  # article code of egt-130-430
+product | EGT130F032 | company/products/catalogue.json:3269  # article code of egt-130-430
+product | EGT 386 | company/products/catalogue.json:3298  # model egt-386-688
+product | EGT 688 | company/products/catalogue.json:3326  # model egt-386-688
+product | EGT386F101 | company/products/catalogue.json:3308  # article code in the model row of egt-386-688
+product | EGT388F101 | company/products/catalogue.json:3326  # article code of egt-386-688
+product | EGT388F102 | company/products/catalogue.json:3326  # article code of egt-386-688
+product | EGT486F101 | company/products/catalogue.json:3326  # article code of egt-386-688
+product | EGT686F101 | company/products/catalogue.json:3326  # article code of egt-386-688
+product | EGT688F101 | company/products/catalogue.json:3326  # article code of egt-386-688
+product | EGT 301 | company/products/catalogue.json:3357  # model egt-301
+product | EGT301F103 | company/products/catalogue.json:3367  # article code in the model row of egt-301
+product | EGT 353 | company/products/catalogue.json:3411  # model egt-353-654
+product | EGT 354 | company/products/catalogue.json:3421  # model row of egt-353-654
+product | EGT354F104 | company/products/catalogue.json:3421  # article code in the model row of egt-353-654
+product | EGT353F103 | company/products/catalogue.json:3439  # article code of egt-353-654
+product | EGT355F903 | company/products/catalogue.json:3439  # article code of egt-353-654
+product | EGT356F104 | company/products/catalogue.json:3439  # article code of egt-353-654
+product | EGT456F102 | company/products/catalogue.json:3439  # article code of egt-353-654
+product | EGT554F103 | company/products/catalogue.json:3439  # article code of egt-353-654
+product | EGT 346 | company/products/catalogue.json:3470  # model egt-346-447
+product | EGT346F103 | company/products/catalogue.json:3480  # article code in the model row of egt-346-447
+product | EGT346F203 | company/products/catalogue.json:3498  # article code of egt-346-447
+product | EGT347F103 | company/products/catalogue.json:3498  # article code of egt-346-447
+product | EGT348F103 | company/products/catalogue.json:3498  # article code of egt-346-447
+product | EGT446F103 | company/products/catalogue.json:3498  # article code of egt-346-447
+product | EGT392F102 | company/products/catalogue.json:3498  # article code of egt-346-447
+product | 0391022450 | company/products/catalogue.json:3553  # article code of 0391-0392-0393-2
+product | 0393022200 | company/products/catalogue.json:3553  # article code of 0391-0392-0393-2
+product | 0392022200 | company/products/catalogue.json:3553  # article code of 0391-0392-0393-2
+product | EGT 311 | company/products/catalogue.json:3585  # model egt-311
+product | EGT311F103 | company/products/catalogue.json:3595  # article code in the model row of egt-311
+product | EGS 100 | company/products/catalogue.json:3639  # model egs-100
+product | EGS100F715 | company/products/catalogue.json:3649  # article code in the model row of egs-100
+product | EGS100F717 | company/products/catalogue.json:3667  # article code of egs-100
+product | EGQ 220 | company/products/catalogue.json:3694  # model egq-220-222
+product | EGQ 222 | company/products/catalogue.json:3704  # model egq-220-222
+product | EGQ222F032 | company/products/catalogue.json:3704  # article code in the model row of egq-220-222
+product | EGQ220F032 | company/products/catalogue.json:3723  # article code of egq-220-222
+product | EGQ 120 | company/products/catalogue.json:3744  # model egq-120
+product | EGQ120F032 | company/products/catalogue.json:3754  # article code in the model row of egq-120
+product | EGQ 212 | company/products/catalogue.json:3793  # model egq-212
+product | EGQ212F032 | company/products/catalogue.json:3803  # article code in the model row of egq-212
+product | EGQ 110 | company/products/catalogue.json:3841  # model egq-110
+product | EGQ110F032 | company/products/catalogue.json:3851  # article code in the model row of egq-110
+product | EGH 120 | company/products/catalogue.json:3889  # model egh-120-130
+product | EGH 130 | company/products/catalogue.json:3899  # model egh-120-130
+product | EGH130F032 | company/products/catalogue.json:3899  # article code in the model row of egh-120-130
+product | EGH120F042 | company/products/catalogue.json:3917  # article code of egh-120-130
+product | EGH 601 | company/products/catalogue.json:3939  # model egh-601
+product | EGH601F702 | company/products/catalogue.json:3949  # article code in the model row of egh-601
+product | EGH 111 | company/products/catalogue.json:3989  # model egh-111-112
+product | EGH 112 | company/products/catalogue.json:4018  # model egh-111-112
+product | EGH111F032 | company/products/catalogue.json:3999  # article code in the model row of egh-111-112
+product | EGH112F032 | company/products/catalogue.json:4018  # article code of egh-111-112
+product | EGH 102 | company/products/catalogue.json:4040  # model egh-102
+product | EGH102F001 | company/products/catalogue.json:4050  # article code in the model row of egh-102
+product | EGH102F101 | company/products/catalogue.json:4068  # article code of egh-102
+product | EGH 103 | company/products/catalogue.json:4090  # model egh-103
+product | EGH103F002 | company/products/catalogue.json:4100  # article code in the model row of egh-103
+product | EGH103F102 | company/products/catalogue.json:4118  # article code of egh-103
+product | EGP 100 | company/products/catalogue.json:4140  # model egp-100
+product | EGP100F312 | company/products/catalogue.json:4150  # article code in the model row of egp-100
+product | EGP100F101 | company/products/catalogue.json:4167  # article code of egp-100
+product | EGP100F202 | company/products/catalogue.json:4167  # article code of egp-100
+product | EGP100F412 | company/products/catalogue.json:4167  # article code of egp-100
+product | EGP100F612 | company/products/catalogue.json:4167  # article code of egp-100
+product | XAFP 100 | company/products/catalogue.json:4191  # model xafp-100
+product | XAFP100F001 | company/products/catalogue.json:4201  # article code in the model row of xafp-100
+product | SVU 100 | company/products/catalogue.json:4240  # model svu-100
+product | SVU100F005 | company/products/catalogue.json:4250  # article code in the model row of svu-100
+product | SAUTER DSU | company/products/catalogue.json:4297  # model family DSU, written with SAUTER (the bare letters are too common)
+product | DSU210F002 | company/products/catalogue.json:4297  # article code in the model row of dsu-dsi
+product | DSU203F002 | company/products/catalogue.json:4315  # article code of dsu-dsi
+product | DSU225F002 | company/products/catalogue.json:4315  # article code of dsu-dsi
+product | DSI203F002 | company/products/catalogue.json:4315  # article code of dsu-dsi
+product | DSI210F002 | company/products/catalogue.json:4315  # article code of dsu-dsi
+product | DSI225F002 | company/products/catalogue.json:4315  # article code of dsu-dsi
+product | SAUTER DSDU | company/products/catalogue.json:4350  # model family DSDU, written with SAUTER (the bare letters are too common)
+product | DSDU103F021 | company/products/catalogue.json:4350  # article code in the model row of dsdu-dsdi
+product | DSDU101F021 | company/products/catalogue.json:4368  # article code of dsdu-dsdi
+product | DSDU106F021 | company/products/catalogue.json:4368  # article code of dsdu-dsdi
+product | DSDI101F021 | company/products/catalogue.json:4368  # article code of dsdu-dsdi
+product | DSDI103F021 | company/products/catalogue.json:4368  # article code of dsdu-dsdi
+product | DSDI106F021 | company/products/catalogue.json:4368  # article code of dsdu-dsdi
+product | SAUTER DDLU | company/products/catalogue.json:4403  # model family DDLU, written with SAUTER (the bare letters are too common)
+product | DDLU205F101 | company/products/catalogue.json:4403  # article code in the model row of ddlu
+product | DDLU205F001 | company/products/catalogue.json:4421  # article code of ddlu
+product | DDLU225F001 | company/products/catalogue.json:4421  # article code of ddlu
+product | DDLU225F101 | company/products/catalogue.json:4421  # article code of ddlu
+product | SGU 100 | company/products/catalogue.json:4444  # model sgu-100
+product | SGU100F010 | company/products/catalogue.json:4454  # article code in the model row of sgu-100
+product | SGU100F011 | company/products/catalogue.json:4472  # article code of sgu-100
+product | NRFC 413 | company/products/catalogue.json:4492  # model nrfc-413-422-424
+product | NRFC 422 | company/products/catalogue.json:4520  # model nrfc-413-422-424
+product | NRFC 424 | company/products/catalogue.json:4520  # model nrfc-413-422-424
+product | NRFC413MF111 | company/products/catalogue.json:4502  # article code in the model row of nrfc-413-422-424
+product | NRFC422MF111 | company/products/catalogue.json:4520  # article code of nrfc-413-422-424
+product | NRFC423MF111 | company/products/catalogue.json:4520  # article code of nrfc-413-422-424
+product | NRFC424MF112 | company/products/catalogue.json:4520  # article code of nrfc-413-422-424
+product | TRA 410 | company/products/catalogue.json:4539  # model tra-410-421
+product | TRA 421 | company/products/catalogue.json:4549  # model tra-410-421
+product | TRA421F212 | company/products/catalogue.json:4549  # article code in the model row of tra-410-421
+product | TRA410F210 | company/products/catalogue.json:4568  # article code of tra-410-421
+product | TRA410F212 | company/products/catalogue.json:4568  # article code of tra-410-421
+product | TRA421F210 | company/products/catalogue.json:4568  # article code of tra-410-421
+product | TRT 317 | company/products/catalogue.json:4589  # model trt-317-327
+product | TRT 327 | company/products/catalogue.json:4599  # model trt-317-327
+product | TRT327F212 | company/products/catalogue.json:4599  # article code in the model row of trt-317-327
+product | TRT317F210 | company/products/catalogue.json:4618  # article code of trt-317-327
+product | TRT317F212 | company/products/catalogue.json:4618  # article code of trt-317-327
+product | TRT327F210 | company/products/catalogue.json:4618  # article code of trt-317-327
+product | FXV 3210 | company/products/catalogue.json:4649  # model row of fxv-3
+product | FXV3210F002 | company/products/catalogue.json:4649  # article code in the model row of fxv-3
+product | FXV3006F001 | company/products/catalogue.json:4668  # article code of fxv-3
+product | FXV3110F001 | company/products/catalogue.json:4668  # article code of fxv-3
+product | FXV3110F002 | company/products/catalogue.json:4668  # article code of fxv-3
+product | FXV3210F001 | company/products/catalogue.json:4668  # article code of fxv-3
+product | FXV 3308 | company/products/catalogue.json:4700  # model row of fxv-33-easyswitch
+product | FXV3308F011 | company/products/catalogue.json:4700  # article code in the model row of fxv-33-easyswitch
+product | EQJW 126 | company/products/catalogue.json:4736  # model eqjw-126
+product | EQJW126F001 | company/products/catalogue.json:4746  # article code in the model row of eqjw-126
+product | EQJW 146 | company/products/catalogue.json:4782  # model eqjw-146
+product | EQJW146F002 | company/products/catalogue.json:4792  # article code in the model row of eqjw-146
+product | EQJW 246 | company/products/catalogue.json:4828  # model eqjw-246
+product | EQJW246F003 | company/products/catalogue.json:4838  # article code in the model row of eqjw-246
+product | RDT 405 | company/products/catalogue.json:4874  # model rdt-405-410
+product | RDT 410 | company/products/catalogue.json:4884  # model rdt-405-410
+product | RDT410F201 | company/products/catalogue.json:4884  # article code in the model row of rdt-405-410
+product | RDT405F201 | company/products/catalogue.json:4902  # article code of rdt-405-410
+product | RDT410F301 | company/products/catalogue.json:4902  # article code of rdt-405-410
+product | ASV215BF132E | company/products/catalogue.json:4930  # article code in the model row of asv205bf132-asv215bf132
+product | ASV205BF132E | company/products/catalogue.json:4948  # article code of asv205bf132-asv215bf132
+product | ASV 215 | company/products/catalogue.json:4977  # model row of asv215bf152
+product | ASV215BF152D | company/products/catalogue.json:4977  # article code in the model row of asv215bf152
+product | ASV215BF152E | company/products/catalogue.json:4995  # article code of asv215bf152
+product | FCCP 200 | company/products/catalogue.json:5014  # model fccp-200
+product | FCCP200F010 | company/products/catalogue.json:5024  # article code in the model row of fccp-200
+product | ASM 115SA | company/products/catalogue.json:5059  # model akm-avm-asm-115sa
+product | AKM115SAF232 | company/products/catalogue.json:5069  # article code in the model row of akm-avm-asm-115sa
+product | AKM115SAF332 | company/products/catalogue.json:5086  # article code of akm-avm-asm-115sa
+product | AVM115SAF232 | company/products/catalogue.json:5086  # article code of akm-avm-asm-115sa
+product | AVM115SAF332 | company/products/catalogue.json:5086  # article code of akm-avm-asm-115sa
+product | ASM115SAF232 | company/products/catalogue.json:5086  # article code of akm-avm-asm-115sa
+product | ASM115SAF332 | company/products/catalogue.json:5086  # article code of akm-avm-asm-115sa
+product | AKM 115SA | company/products/catalogue.json:5125  # model row of akm115saf232
+product | AVM 115SA | company/products/catalogue.json:5227  # model row of avm115saf232
+product | SAIO 100 | company/products/catalogue.json:5421  # model saio-100
+product | SAIO100F020 | company/products/catalogue.json:5431  # article code in the model row of saio-100
+product | 05306034000 | company/products/catalogue.json:5495  # article code of 05306034-05306053
+product | 05306034005 | company/products/catalogue.json:5495  # article code of 05306034-05306053
+product | 05306034105 | company/products/catalogue.json:5495  # article code of 05306034-05306053
+product | 05306053000 | company/products/catalogue.json:5495  # article code of 05306034-05306053
+product | 05306053005 | company/products/catalogue.json:5495  # article code of 05306034-05306053
+product | 05306053500 | company/products/catalogue.json:5495  # article code of 05306034-05306053
+product | SAUTER VUL | company/products/catalogue.json:5534  # model family VUL, written with SAUTER (the bare letters are too common)
+product | VUL015F310 | company/products/catalogue.json:5534  # article code in the model row of vul
+product | VUL010F340 | company/products/catalogue.json:5548  # article code of vul
+product | VUL010F310 | company/products/catalogue.json:5548  # article code of vul
+product | VUL010F300 | company/products/catalogue.json:5548  # article code of vul
+product | VUL015F300 | company/products/catalogue.json:5548  # article code of vul
+product | VUL020F300 | company/products/catalogue.json:5548  # article code of vul
+product | SAUTER BUL | company/products/catalogue.json:5587  # model family BUL, written with SAUTER (the bare letters are too common)
+product | BUL015F310 | company/products/catalogue.json:5587  # article code in the model row of bul
+product | BUL010F330 | company/products/catalogue.json:5601  # article code of bul
+product | BUL010F310 | company/products/catalogue.json:5601  # article code of bul
+product | BUL015F300 | company/products/catalogue.json:5601  # article code of bul
+product | BUL020F300 | company/products/catalogue.json:5601  # article code of bul
+product | BUL010F410 | company/products/catalogue.json:5601  # article code of bul
+product | SAUTER VUT | company/products/catalogue.json:5640  # model family VUT, written with SAUTER (the bare letters are too common)
+product | VUT015F200 | company/products/catalogue.json:5640  # article code in the model row of vut
+product | VUT010F200 | company/products/catalogue.json:5654  # article code of vut
+product | VUT010F210 | company/products/catalogue.json:5654  # article code of vut
+product | VUT010F220 | company/products/catalogue.json:5654  # article code of vut
+product | VUT015F210 | company/products/catalogue.json:5654  # article code of vut
+product | VUT020F200 | company/products/catalogue.json:5654  # article code of vut
+product | BUT010F200 | company/products/catalogue.json:5693  # article code in the model row of but
+product | BUT010F400 | company/products/catalogue.json:5707  # article code of but
+product | BUT010F420 | company/products/catalogue.json:5707  # article code of but
+product | BUT015F210 | company/products/catalogue.json:5707  # article code of but
+product | BUT015F400 | company/products/catalogue.json:5707  # article code of but
+product | BUT020F200 | company/products/catalogue.json:5707  # article code of but
+product | SAUTER BXL | company/products/catalogue.json:5746  # model family BXL, written with SAUTER (the bare letters are too common)
+product | BXL025F200 | company/products/catalogue.json:5746  # article code in the model row of bxl
+product | BXL040F200 | company/products/catalogue.json:5760  # article code of bxl
+product | AXT 301 | company/products/catalogue.json:5785  # model axt-301-311
+product | AXT 311 | company/products/catalogue.json:5814  # model axt-301-311
+product | AXT301F110 | company/products/catalogue.json:5795  # article code in the model row of axt-301-311
+product | AXT301F112 | company/products/catalogue.json:5814  # article code of axt-301-311
+product | AXT301F210 | company/products/catalogue.json:5814  # article code of axt-301-311
+product | AXT301F212 | company/products/catalogue.json:5814  # article code of axt-301-311
+product | AXT301HF110 | company/products/catalogue.json:5814  # article code of axt-301-311
+product | AXT311F110 | company/products/catalogue.json:5814  # article code of axt-301-311
+product | AXS 315S | company/products/catalogue.json:5840  # model axs-315s
+product | AXS315SF102 | company/products/catalogue.json:5850  # article code in the model row of axs-315s
+product | AXS315SF202 | company/products/catalogue.json:5868  # article code of axs-315s
+product | AXF 217S | company/products/catalogue.json:5890  # model axf-217s
+product | AXF217SF404 | company/products/catalogue.json:5900  # article code in the model row of axf-217s
+product | AXF217SF405 | company/products/catalogue.json:5918  # article code of axf-217s
+product | AXM 217 | company/products/catalogue.json:5940  # model axm-217
+product | AXM217F200 | company/products/catalogue.json:5950  # article code in the model row of axm-217
+product | AXM217F202 | company/products/catalogue.json:5969  # article code of axm-217
+product | AXM 217S | company/products/catalogue.json:5991  # model axm-217s
+product | AXM217SF402 | company/products/catalogue.json:6001  # article code in the model row of axm-217s
+product | AXM217SF404 | company/products/catalogue.json:6018  # article code of axm-217s
+product | SAUTER VUN | company/products/catalogue.json:6050  # model family VUN, written with SAUTER (the bare letters are too common)
+product | VUN032F300 | company/products/catalogue.json:6050  # article code in the model row of vun
+product | VUN015F350 | company/products/catalogue.json:6064  # article code of vun
+product | VUN015F300 | company/products/catalogue.json:6064  # article code of vun
+product | VUN020F300 | company/products/catalogue.json:6064  # article code of vun
+product | VUN025F300 | company/products/catalogue.json:6064  # article code of vun
+product | VUN050F200 | company/products/catalogue.json:6064  # article code of vun
+product | BUN032F300 | company/products/catalogue.json:6102  # article code in the model row of bun
+product | BUN015F330 | company/products/catalogue.json:6116  # article code of bun
+product | BUN015F300 | company/products/catalogue.json:6116  # article code of bun
+product | BUN020F300 | company/products/catalogue.json:6116  # article code of bun
+product | BUN025F300 | company/products/catalogue.json:6116  # article code of bun
+product | BUN050F200 | company/products/catalogue.json:6116  # article code of bun
+product | V6R | company/products/catalogue.json:6144  # model v6r
+product | V6R15F300 | company/products/catalogue.json:6154  # article code in the model row of v6r
+product | V6R15F350 | company/products/catalogue.json:6168  # article code of v6r
+product | V6R25F300 | company/products/catalogue.json:6168  # article code of v6r
+product | V6R40F310 | company/products/catalogue.json:6168  # article code of v6r
+product | V6R50F300 | company/products/catalogue.json:6168  # article code of v6r
+product | V6R50F200 | company/products/catalogue.json:6168  # article code of v6r
+product | B6R | company/products/catalogue.json:6196  # model b6r
+product | B6R25F300 | company/products/catalogue.json:6206  # article code in the model row of b6r
+product | B6R15F330 | company/products/catalogue.json:6220  # article code of b6r
+product | B6R15F300 | company/products/catalogue.json:6220  # article code of b6r
+product | B6R40F310 | company/products/catalogue.json:6220  # article code of b6r
+product | B6R50F300 | company/products/catalogue.json:6220  # article code of b6r
+product | B6R50F200 | company/products/catalogue.json:6220  # article code of b6r
+product | SAUTER VUD | company/products/catalogue.json:6258  # model family VUD, written with SAUTER (the bare letters are too common)
+product | VUD015F320 | company/products/catalogue.json:6258  # article code in the model row of vud
+product | VUD050F200 | company/products/catalogue.json:6258  # article code in the model row of vud
+product | VUD015F300 | company/products/catalogue.json:6272  # article code of vud
+product | VUD020F300 | company/products/catalogue.json:6272  # article code of vud
+product | VUD025F300 | company/products/catalogue.json:6272  # article code of vud
+product | VUD032F300 | company/products/catalogue.json:6272  # article code of vud
+product | SAUTER VQD | company/products/catalogue.json:6319  # model family VQD, written with SAUTER (the bare letters are too common)
+product | VQD065F300 | company/products/catalogue.json:6319  # article code in the model row of vqd
+product | VQD100F300 | company/products/catalogue.json:6319  # article code in the model row of vqd
+product | VQD080F300 | company/products/catalogue.json:6333  # article code of vqd
+product | SAUTER BUD | company/products/catalogue.json:6377  # model family BUD, written with SAUTER (the bare letters are too common)
+product | BUD015F320 | company/products/catalogue.json:6377  # article code in the model row of bud
+product | BUD050F200 | company/products/catalogue.json:6377  # article code in the model row of bud
+product | BUD015F300 | company/products/catalogue.json:6391  # article code of bud
+product | BUD020F300 | company/products/catalogue.json:6391  # article code of bud
+product | BUD025F300 | company/products/catalogue.json:6391  # article code of bud
+product | BUD032F300 | company/products/catalogue.json:6391  # article code of bud
+product | SAUTER BQD | company/products/catalogue.json:6438  # model family BQD, written with SAUTER (the bare letters are too common)
+product | BQD065F300 | company/products/catalogue.json:6438  # article code in the model row of bqd
+product | BQD100F300 | company/products/catalogue.json:6438  # article code in the model row of bqd
+product | BQD080F300 | company/products/catalogue.json:6452  # article code of bqd
+product | SAUTER VUE | company/products/catalogue.json:6496  # model family VUE, written with SAUTER (the bare letters are too common)
+product | VUE015F350 | company/products/catalogue.json:6496  # article code in the model row of vue
+product | VUE050F200 | company/products/catalogue.json:6496  # article code in the model row of vue
+product | VUE015F330 | company/products/catalogue.json:6510  # article code of vue
+product | VUE015F300 | company/products/catalogue.json:6510  # article code of vue
+product | VUE025F300 | company/products/catalogue.json:6510  # article code of vue
+product | VUE040F300 | company/products/catalogue.json:6510  # article code of vue
+product | SAUTER VQE | company/products/catalogue.json:6557  # model family VQE, written with SAUTER (the bare letters are too common)
+product | VQE065F300 | company/products/catalogue.json:6557  # article code in the model row of vqe
+product | VQE150F300 | company/products/catalogue.json:6557  # article code in the model row of vqe
+product | VQE080F300 | company/products/catalogue.json:6571  # article code of vqe
+product | VQE100F300 | company/products/catalogue.json:6571  # article code of vqe
+product | VQE125F300 | company/products/catalogue.json:6571  # article code of vqe
+product | SAUTER BUE | company/products/catalogue.json:6617  # model family BUE, written with SAUTER (the bare letters are too common)
+product | BUE015F330 | company/products/catalogue.json:6617  # article code in the model row of bue
+product | BUE050F200 | company/products/catalogue.json:6617  # article code in the model row of bue
+product | BUE015F300 | company/products/catalogue.json:6631  # article code of bue
+product | BUE020F300 | company/products/catalogue.json:6631  # article code of bue
+product | BUE025F300 | company/products/catalogue.json:6631  # article code of bue
+product | BUE040F300 | company/products/catalogue.json:6631  # article code of bue
+product | SAUTER BQE | company/products/catalogue.json:6678  # model family BQE, written with SAUTER (the bare letters are too common)
+product | BQE065F300 | company/products/catalogue.json:6678  # article code in the model row of bqe
+product | BQE150F300 | company/products/catalogue.json:6678  # article code in the model row of bqe
+product | BQE080F300 | company/products/catalogue.json:6692  # article code of bqe
+product | BQE100F300 | company/products/catalogue.json:6692  # article code of bqe
+product | BQE125F300 | company/products/catalogue.json:6692  # article code of bqe
+product | SAUTER VUG | company/products/catalogue.json:6738  # model family VUG, written with SAUTER (the bare letters are too common)
+product | VUG015F374 | company/products/catalogue.json:6738  # article code in the model row of vug
+product | VUG150F304 | company/products/catalogue.json:6738  # article code in the model row of vug
+product | VUG015F304 | company/products/catalogue.json:6752  # article code of vug
+product | VUG032F304 | company/products/catalogue.json:6752  # article code of vug
+product | VUG050F304 | company/products/catalogue.json:6752  # article code of vug
+product | VUG100F304 | company/products/catalogue.json:6752  # article code of vug
+product | BUG015F334 | company/products/catalogue.json:6799  # article code in the model row of bug
+product | BUG150F304 | company/products/catalogue.json:6799  # article code in the model row of bug
+product | BUG015F304 | company/products/catalogue.json:6813  # article code of bug
+product | BUG032F304 | company/products/catalogue.json:6813  # article code of bug
+product | BUG050F304 | company/products/catalogue.json:6813  # article code of bug
+product | BUG100F304 | company/products/catalogue.json:6813  # article code of bug
+product | SAUTER VUP | company/products/catalogue.json:6860  # model family VUP, written with SAUTER (the bare letters are too common)
+product | VUP040F304 | company/products/catalogue.json:6860  # article code in the model row of vup
+product | VUP150F304 | company/products/catalogue.json:6860  # article code in the model row of vup
+product | VUP050F304 | company/products/catalogue.json:6874  # article code of vup
+product | VUP065F304 | company/products/catalogue.json:6874  # article code of vup
+product | VUP080F304 | company/products/catalogue.json:6874  # article code of vup
+product | VUP100F304 | company/products/catalogue.json:6874  # article code of vup
+product | SAUTER VUS | company/products/catalogue.json:6921  # model family VUS, written with SAUTER (the bare letters are too common)
+product | VUS015F375 | company/products/catalogue.json:6921  # article code in the model row of vus
+product | VUS100F305 | company/products/catalogue.json:6921  # article code in the model row of vus
+product | VUS015F305 | company/products/catalogue.json:6935  # article code of vus
+product | VUS025F305 | company/products/catalogue.json:6935  # article code of vus
+product | VUS050F305 | company/products/catalogue.json:6935  # article code of vus
+product | VUS080F305 | company/products/catalogue.json:6935  # article code of vus
+product | BUS015F225 | company/products/catalogue.json:6982  # article code in the model row of bus
+product | BUS100F205 | company/products/catalogue.json:6982  # article code in the model row of bus
+product | BUS015F205 | company/products/catalogue.json:6996  # article code of bus
+product | BUS025F205 | company/products/catalogue.json:6996  # article code of bus
+product | BUS050F205 | company/products/catalogue.json:6996  # article code of bus
+product | BUS080F205 | company/products/catalogue.json:6996  # article code of bus
+product | AVM 105 | company/products/catalogue.json:7033  # model avm-105-115
+product | AVM 115 | company/products/catalogue.json:7062  # model avm-105-115
+product | AVM105F100 | company/products/catalogue.json:7043  # article code in the model row of avm-105-115
+product | AVM105F120 | company/products/catalogue.json:7062  # article code of avm-105-115
+product | AVM105F122 | company/products/catalogue.json:7062  # article code of avm-105-115
+product | AVM115F120 | company/products/catalogue.json:7062  # article code of avm-105-115
+product | AVM115F122 | company/products/catalogue.json:7062  # article code of avm-105-115
+product | AVM115F901 | company/products/catalogue.json:7062  # article code of avm-105-115
+product | AVM 105S | company/products/catalogue.json:7093  # model avm-105s-115s
+product | AVM105SF132 | company/products/catalogue.json:7103  # article code in the model row of avm-105s-115s
+product | AVM115SF132 | company/products/catalogue.json:7121  # article code of avm-105s-115s
+product | AVM115SF901 | company/products/catalogue.json:7121  # article code of avm-105s-115s
+product | AVM 215 | company/products/catalogue.json:7149  # model avm-215
+product | AVM215F120R | company/products/catalogue.json:7159  # article code in the model row of avm-215
+product | AVM 215S | company/products/catalogue.json:7203  # model avm-215s
+product | AVM215SF132R | company/products/catalogue.json:7213  # article code in the model row of avm-215s
+product | AVM215SF132-7 | company/products/catalogue.json:7231  # article code of avm-215s
+product | AVM 321 | company/products/catalogue.json:7258  # model avm-321-322
+product | AVM 322 | company/products/catalogue.json:7268  # model avm-321-322
+product | AVM322F120 | company/products/catalogue.json:7268  # article code in the model row of avm-321-322
+product | AVM321F110 | company/products/catalogue.json:7287  # article code of avm-321-322
+product | AVM321F112 | company/products/catalogue.json:7287  # article code of avm-321-322
+product | AVM322F122 | company/products/catalogue.json:7287  # article code of avm-321-322
+product | AVM 321S | company/products/catalogue.json:7316  # model avm-321s-322s
+product | AVM 322S | company/products/catalogue.json:7360  # model avm-321s-322s
+product | AVM322SF132 | company/products/catalogue.json:7326  # article code in the model row of avm-321s-322s
+product | AVM321SF132 | company/products/catalogue.json:7344  # article code of avm-321s-322s
+product | AVM 322-R | company/products/catalogue.json:7371  # model avm-322-r
+product | AVM322F120R | company/products/catalogue.json:7381  # article code in the model row of avm-322-r
+product | AVM322F122R | company/products/catalogue.json:7400  # article code of avm-322-r
+product | AVM 322S-R | company/products/catalogue.json:7427  # model avm-322s-r
+product | AVM322SF132R | company/products/catalogue.json:7437  # article code in the model row of avm-322s-r
+product | AVM 234S | company/products/catalogue.json:7481  # model avm-234s
+product | AVM234SF132 | company/products/catalogue.json:7491  # article code in the model row of avm-234s
+product | AVM234SF132-5 | company/products/catalogue.json:7509  # article code of avm-234s
+product | AVM234SF132-6 | company/products/catalogue.json:7509  # article code of avm-234s
+product | AVM234SF132-7 | company/products/catalogue.json:7509  # article code of avm-234s
+product | AVF 124 | company/products/catalogue.json:7538  # model avf-124
+product | AVF124F130 | company/products/catalogue.json:7548  # article code in the model row of avf-124
+product | AVF124F230 | company/products/catalogue.json:7566  # article code of avf-124
+product | AVF 125S | company/products/catalogue.json:7586  # model avf-125s
+product | AVF125SF132 | company/products/catalogue.json:7596  # article code in the model row of avf-125s
+product | AVF125SF232 | company/products/catalogue.json:7614  # article code of avf-125s
+product | AVF 234S | company/products/catalogue.json:7634  # model avf-234s
+product | AVF234SF132 | company/products/catalogue.json:7644  # article code in the model row of avf-234s
+product | AVF234SF132-5 | company/products/catalogue.json:7662  # article code of avf-234s
+product | AVF234SF232 | company/products/catalogue.json:7662  # article code of avf-234s
+product | AVN 224S | company/products/catalogue.json:7683  # model avn-224s
+product | AVN224SF132 | company/products/catalogue.json:7693  # article code in the model row of avn-224s
+product | AVN224SF132-5 | company/products/catalogue.json:7711  # article code of avn-224s
+product | AVN224SF132-6 | company/products/catalogue.json:7711  # article code of avn-224s
+product | AVN224SF232 | company/products/catalogue.json:7711  # article code of avn-224s
+product | UVC 116 | company/products/catalogue.json:7740  # model uvc-116
+product | UVC116MF015 | company/products/catalogue.json:7750  # article code in the model row of uvc-116
+product | UVC116MF025 | company/products/catalogue.json:7768  # article code of uvc-116
+product | UVC 106 | company/products/catalogue.json:7788  # model uvc-106
+product | UVC106MF015 | company/products/catalogue.json:7798  # article code in the model row of uvc-106
+product | UVC106BF015 | company/products/catalogue.json:7816  # article code of uvc-106
+product | UVC106MF025 | company/products/catalogue.json:7816  # article code of uvc-106
+product | UVC106BF025 | company/products/catalogue.json:7816  # article code of uvc-106
+product | UVC 102 | company/products/catalogue.json:7838  # model uvc-102
+product | UVC102MF065 | company/products/catalogue.json:7848  # article code in the model row of uvc-102
+product | UVC102MF080 | company/products/catalogue.json:7865  # article code of uvc-102
+product | UVC102MF100 | company/products/catalogue.json:7865  # article code of uvc-102
+product | VDL 010 | company/products/catalogue.json:7886  # model vdl-010-050
+product | VDL 050 | company/products/catalogue.json:7913  # model vdl-010-050
+product | VDL015F210 | company/products/catalogue.json:7896  # article code in the model row of vdl-010-050
+product | VDL010F200 | company/products/catalogue.json:7913  # article code of vdl-010-050
+product | VDL015F200 | company/products/catalogue.json:7913  # article code of vdl-010-050
+product | VDL020F200 | company/products/catalogue.json:7913  # article code of vdl-010-050
+product | VDL025F200 | company/products/catalogue.json:7913  # article code of vdl-010-050
+product | VDL040F201 | company/products/catalogue.json:7913  # article code of vdl-010-050
+product | VDL050F201 | company/products/catalogue.json:7913  # article code of vdl-010-050
+product | VDL 300 | company/products/catalogue.json:7966  # model vdl-050-300
+product | VDL050F601 | company/products/catalogue.json:7949  # article code in the model row of vdl-050-300
+product | VDL080F601 | company/products/catalogue.json:7966  # article code of vdl-050-300
+product | VDL100F601 | company/products/catalogue.json:7966  # article code of vdl-050-300
+product | VDL150F601 | company/products/catalogue.json:7966  # article code of vdl-050-300
+product | VDL200F601 | company/products/catalogue.json:7966  # article code of vdl-050-300
+product | VDL300F601 | company/products/catalogue.json:7966  # article code of vdl-050-300
+product | SAUTER VKR | company/products/catalogue.json:8002  # model family VKR, written with SAUTER (the bare letters are too common)
+product | VKR040F300 | company/products/catalogue.json:8002  # article code in the model row of vkr
+product | VKR015F350-FF | company/products/catalogue.json:8016  # article code of vkr
+product | VKR020F300-FF | company/products/catalogue.json:8016  # article code of vkr
+product | VKR025F300-FF | company/products/catalogue.json:8016  # article code of vkr
+product | VKR032F300-FF | company/products/catalogue.json:8016  # article code of vkr
+product | VKR040F300-FF | company/products/catalogue.json:8016  # article code of vkr
+product | VKR050F300-FF | company/products/catalogue.json:8016  # article code of vkr
+product | SAUTER VKRA | company/products/catalogue.json:8059  # model family VKRA, written with SAUTER (the bare letters are too common)
+product | VKRA040F300 | company/products/catalogue.json:8059  # article code in the model row of vkra
+product | VKRA015F350 | company/products/catalogue.json:8073  # article code of vkra
+product | VKRA020F300 | company/products/catalogue.json:8073  # article code of vkra
+product | VKRA025F300 | company/products/catalogue.json:8073  # article code of vkra
+product | VKRA032F300 | company/products/catalogue.json:8073  # article code of vkra
+product | VKRA050F300 | company/products/catalogue.json:8073  # article code of vkra
+product | SAUTER BKR | company/products/catalogue.json:8116  # model family BKR, written with SAUTER (the bare letters are too common)
+product | BKR025F310 | company/products/catalogue.json:8116  # article code in the model row of bkr
+product | BKR015F340-FF | company/products/catalogue.json:8130  # article code of bkr
+product | BKR020F320-FF | company/products/catalogue.json:8130  # article code of bkr
+product | BKR025F310-FF | company/products/catalogue.json:8130  # article code of bkr
+product | BKR032F310-FF | company/products/catalogue.json:8130  # article code of bkr
+product | BKR040F310-FF | company/products/catalogue.json:8130  # article code of bkr
+product | BKR050F310-FF | company/products/catalogue.json:8130  # article code of bkr
+product | SAUTER BKRA | company/products/catalogue.json:8173  # model family BKRA, written with SAUTER (the bare letters are too common)
+product | BKRA025F310 | company/products/catalogue.json:8173  # article code in the model row of bkra
+product | BKRA015F340 | company/products/catalogue.json:8187  # article code of bkra
+product | BKRA020F320 | company/products/catalogue.json:8187  # article code of bkra
+product | BKRA032F310 | company/products/catalogue.json:8187  # article code of bkra
+product | BKRA040F310 | company/products/catalogue.json:8187  # article code of bkra
+product | BKRA050F310 | company/products/catalogue.json:8187  # article code of bkra
+product | SAUTER VKAI | company/products/catalogue.json:8230  # model family VKAI, written with SAUTER (the bare letters are too common)
+product | VKAI040F300 | company/products/catalogue.json:8230  # article code in the model row of vkai
+product | VKAI015F300 | company/products/catalogue.json:8244  # article code of vkai
+product | VKAI020F300 | company/products/catalogue.json:8244  # article code of vkai
+product | VKAI025F300 | company/products/catalogue.json:8244  # article code of vkai
+product | VKAI032F300 | company/products/catalogue.json:8244  # article code of vkai
+product | VKAI050F300 | company/products/catalogue.json:8244  # article code of vkai
+product | SAUTER VKAA | company/products/catalogue.json:8287  # model family VKAA, written with SAUTER (the bare letters are too common)
+product | VKAA040F300 | company/products/catalogue.json:8287  # article code in the model row of vkaa
+product | VKAA015F300 | company/products/catalogue.json:8301  # article code of vkaa
+product | VKAA020F300 | company/products/catalogue.json:8301  # article code of vkaa
+product | VKAA025F300 | company/products/catalogue.json:8301  # article code of vkaa
+product | VKAA032F300 | company/products/catalogue.json:8301  # article code of vkaa
+product | VKAA050F300 | company/products/catalogue.json:8301  # article code of vkaa
+product | SAUTER BKLI | company/products/catalogue.json:8344  # model family BKLI, written with SAUTER (the bare letters are too common)
+product | BKLI025F300 | company/products/catalogue.json:8344  # article code in the model row of bkli
+product | BKLI015F300 | company/products/catalogue.json:8358  # article code of bkli
+product | BKLI020F300 | company/products/catalogue.json:8358  # article code of bkli
+product | BKLI032F300 | company/products/catalogue.json:8358  # article code of bkli
+product | BKLI040F300 | company/products/catalogue.json:8358  # article code of bkli
+product | BKLI050F300 | company/products/catalogue.json:8358  # article code of bkli
+product | SAUTER BKTI | company/products/catalogue.json:8401  # model family BKTI, written with SAUTER (the bare letters are too common)
+product | BKTI025F300 | company/products/catalogue.json:8401  # article code in the model row of bkti
+product | BKTI015F300 | company/products/catalogue.json:8415  # article code of bkti
+product | BKTI020F300 | company/products/catalogue.json:8415  # article code of bkti
+product | BKTI032F300 | company/products/catalogue.json:8415  # article code of bkti
+product | BKTI040F300 | company/products/catalogue.json:8415  # article code of bkti
+product | BKTI050F300 | company/products/catalogue.json:8415  # article code of bkti
+product | SAUTER BKTA | company/products/catalogue.json:8458  # model family BKTA, written with SAUTER (the bare letters are too common)
+product | BKTA025F300 | company/products/catalogue.json:8458  # article code in the model row of bkta
+product | BKTA015F300 | company/products/catalogue.json:8472  # article code of bkta
+product | BKTA020F300 | company/products/catalogue.json:8472  # article code of bkta
+product | BKTA032F300 | company/products/catalogue.json:8472  # article code of bkta
+product | BKTA040F300 | company/products/catalogue.json:8472  # article code of bkta
+product | BKTA050F300 | company/products/catalogue.json:8472  # article code of bkta
+product | B2KL | company/products/catalogue.json:8505  # model b2kl
+product | B2KL 015 | company/products/catalogue.json:8515  # model row of b2kl
+product | B2KL015F400 | company/products/catalogue.json:8515  # article code in the model row of b2kl
+product | B2KL015F401 | company/products/catalogue.json:8529  # article code of b2kl
+product | B2KL020F411 | company/products/catalogue.json:8529  # article code of b2kl
+product | AKM 105 | company/products/catalogue.json:8550  # model akm-105-115
+product | AKM 115 | company/products/catalogue.json:8560  # model akm-105-115
+product | AKM115F122 | company/products/catalogue.json:8560  # article code in the model row of akm-105-115
+product | AKM105F100 | company/products/catalogue.json:8579  # article code of akm-105-115
+product | AKM105F120 | company/products/catalogue.json:8579  # article code of akm-105-115
+product | AKM105F122 | company/products/catalogue.json:8579  # article code of akm-105-115
+product | AKM115F120 | company/products/catalogue.json:8579  # article code of akm-105-115
+product | AKM 105S | company/products/catalogue.json:8604  # model akm-105s-115s
+product | AKM 115S | company/products/catalogue.json:8643  # model akm-105s-115s
+product | AKM115SF132 | company/products/catalogue.json:8614  # article code in the model row of akm-105s-115s
+product | AKM105SF132 | company/products/catalogue.json:8632  # article code of akm-105s-115s
+product | AKM 115S F152 | company/products/catalogue.json:8654  # model akm-115s-f152
+product | AKF 112 | company/products/catalogue.json:8703  # model akf-112-113
+product | AKF 113 | company/products/catalogue.json:8713  # model akf-112-113
+product | AKF113F122 | company/products/catalogue.json:8713  # article code in the model row of akf-112-113
+product | AKF112F120 | company/products/catalogue.json:8732  # article code of akf-112-113
+product | AKF112F122 | company/products/catalogue.json:8732  # article code of akf-112-113
+product | AKF 113S | company/products/catalogue.json:8755  # model akf-113s
+product | AKF113SF122 | company/products/catalogue.json:8765  # article code in the model row of akf-113s
+product | M3R | company/products/catalogue.json:8804  # model m3r-m4r
+product | M4R | company/products/catalogue.json:8804  # model m3r-m4r
+product | M3R015F200 | company/products/catalogue.json:8814  # article code in the model row of m3r-m4r
+product | M3R025F200 | company/products/catalogue.json:8828  # article code of m3r-m4r
+product | M3R050F200 | company/products/catalogue.json:8828  # article code of m3r-m4r
+product | M4R020F200 | company/products/catalogue.json:8828  # article code of m3r-m4r
+product | M4R032F200 | company/products/catalogue.json:8828  # article code of m3r-m4r
+product | M4R050F200 | company/products/catalogue.json:8828  # article code of m3r-m4r
+product | MH32F | company/products/catalogue.json:8855  # model mh32f-mh42f
+product | MH42F | company/products/catalogue.json:8855  # model mh32f-mh42f
+product | MH32F40F200 | company/products/catalogue.json:8865  # article code in the model row of mh32f-mh42f
+product | MH32F20F200 | company/products/catalogue.json:8879  # article code of mh32f-mh42f
+product | MH32F50F200 | company/products/catalogue.json:8879  # article code of mh32f-mh42f
+product | MH32F100F200 | company/products/catalogue.json:8879  # article code of mh32f-mh42f
+product | MH32F150F200 | company/products/catalogue.json:8879  # article code of mh32f-mh42f
+product | MH42F32F200 | company/products/catalogue.json:8879  # article code of mh32f-mh42f
+product | MH42F50F200 | company/products/catalogue.json:8879  # article code of mh32f-mh42f
+product | DEF100F200 | company/products/catalogue.json:8916  # article code in the model row of def
+product | DEF025F200 | company/products/catalogue.json:8930  # article code of def
+product | DEF050F200 | company/products/catalogue.json:8930  # article code of def
+product | DEF080F200 | company/products/catalogue.json:8930  # article code of def
+product | DEF150F200 | company/products/catalogue.json:8930  # article code of def
+product | DEF200F200 | company/products/catalogue.json:8930  # article code of def
+product | ADM 333HF | company/products/catalogue.json:8957  # model adm-333hf
+product | ADM333HF120 | company/products/catalogue.json:8967  # article code in the model row of adm-333hf
+product | ADM333HF122 | company/products/catalogue.json:8986  # article code of adm-333hf
+product | ADM 333SF | company/products/catalogue.json:9017  # model adm-333sf
+product | ADM333SF122 | company/products/catalogue.json:9027  # article code in the model row of adm-333sf
+product | ADM 322 | company/products/catalogue.json:9074  # model adm-322
+product | ADM322F122 | company/products/catalogue.json:9084  # article code in the model row of adm-322
+product | ADM322F120 | company/products/catalogue.json:9103  # article code of adm-322
+product | ADM322HF120 | company/products/catalogue.json:9103  # article code of adm-322
+product | ADM322HF122 | company/products/catalogue.json:9103  # article code of adm-322
+product | ADM322PF120 | company/products/catalogue.json:9103  # article code of adm-322
+product | ADM322PF122 | company/products/catalogue.json:9103  # article code of adm-322
+product | ADM 322S | company/products/catalogue.json:9138  # model adm-322s
+product | ADM322SF122 | company/products/catalogue.json:9148  # article code in the model row of adm-322s
+product | ADM322SF152 | company/products/catalogue.json:9165  # article code of adm-322s
+product | ASM 105 | company/products/catalogue.json:9196  # model asm-105-115
+product | ASM 115 | company/products/catalogue.json:9225  # model asm-105-115
+product | ASM105F122 | company/products/catalogue.json:9206  # article code in the model row of asm-105-115
+product | ASM105F100 | company/products/catalogue.json:9225  # article code of asm-105-115
+product | ASM105F120 | company/products/catalogue.json:9225  # article code of asm-105-115
+product | ASM115F120 | company/products/catalogue.json:9225  # article code of asm-105-115
+product | ASM115F122 | company/products/catalogue.json:9225  # article code of asm-105-115
+product | ASM 105S | company/products/catalogue.json:9259  # model asm-105s-115s-f132
+product | ASM105SF132 | company/products/catalogue.json:9269  # article code in the model row of asm-105s-115s-f132
+product | ASM115SF132 | company/products/catalogue.json:9287  # article code of asm-105s-115s-f132
+product | ASM 115S F152 | company/products/catalogue.json:9328  # model asm-105s-115s-f152
+product | ASM105SF152 | company/products/catalogue.json:9346  # article code of asm-105s-115s-f152
+product | ASM105SF152U | company/products/catalogue.json:9346  # article code of asm-105s-115s-f152
+product | ASM 124 | company/products/catalogue.json:9378  # model asm-124
+product | ASM124F122 | company/products/catalogue.json:9388  # article code in the model row of asm-124
+product | ASM124F120 | company/products/catalogue.json:9407  # article code of asm-124
+product | ASM 134 | company/products/catalogue.json:9438  # model asm-134
+product | ASM134F130 | company/products/catalogue.json:9448  # article code in the model row of asm-134
+product | ASM 124S | company/products/catalogue.json:9496  # model asm-124s-134s
+product | ASM124SF132 | company/products/catalogue.json:9506  # article code in the model row of asm-124s-134s
+product | ASM134SF132 | company/products/catalogue.json:9524  # article code of asm-124s-134s
+product | ASF 112 | company/products/catalogue.json:9555  # model asf-112-113
+product | ASF 113 | company/products/catalogue.json:9584  # model asf-112-113
+product | ASF112F122 | company/products/catalogue.json:9565  # article code in the model row of asf-112-113
+product | ASF112F120 | company/products/catalogue.json:9584  # article code of asf-112-113
+product | ASF112F220 | company/products/catalogue.json:9584  # article code of asf-112-113
+product | ASF112F222 | company/products/catalogue.json:9584  # article code of asf-112-113
+product | ASF113F122 | company/products/catalogue.json:9584  # article code of asf-112-113
+product | ASF 113S | company/products/catalogue.json:9618  # model asf-113s
+product | ASF113SF122 | company/products/catalogue.json:9628  # article code in the model row of asf-113s
+product | ASF 122 | company/products/catalogue.json:9676  # model asf-122-123
+product | ASF 123 | company/products/catalogue.json:9705  # model asf-122-123
+product | ASF122F122 | company/products/catalogue.json:9686  # article code in the model row of asf-122-123
+product | ASF122F120 | company/products/catalogue.json:9705  # article code of asf-122-123
+product | ASF122F220 | company/products/catalogue.json:9705  # article code of asf-122-123
+product | ASF122F222 | company/products/catalogue.json:9705  # article code of asf-122-123
+product | ASF123F122 | company/products/catalogue.json:9705  # article code of asf-122-123
+product | ASF 123S | company/products/catalogue.json:9739  # model asf-123s
+product | ASF123SF122 | company/products/catalogue.json:9749  # article code in the model row of asf-123s
+product | EY6AS80 | company/products/catalogue.json:9797  # model ey6as80
+product | EY6AS80F021 | company/products/catalogue.json:9807  # article code in the model row of ey6as80
+product | EY6AS80F022 | company/products/catalogue.json:9825  # article code of ey6as80
+product | EY6AS60 | company/products/catalogue.json:9844  # model ey6as60
+product | EY6AS60F011 | company/products/catalogue.json:9854  # article code in the model row of ey6as60
+product | EY6AS60F012 | company/products/catalogue.json:9872  # article code of ey6as60
+product | EY6LC01 | company/products/catalogue.json:9891  # model ey6lc01
+product | EY6LC01F001 | company/products/catalogue.json:9901  # article code in the model row of ey6lc01
+product | EY6LC02 | company/products/catalogue.json:9940  # model ey6lc02
+product | EY6LC02F001 | company/products/catalogue.json:9950  # article code in the model row of ey6lc02
+product | EY6LC12 | company/products/catalogue.json:9989  # model ey6lc12
+product | EY6LC12F011 | company/products/catalogue.json:9999  # article code in the model row of ey6lc12
+product | EY6LC12F012 | company/products/catalogue.json:10017  # article code of ey6lc12
+product | EY6IO30 | company/products/catalogue.json:10037  # model ey6io30
+product | EY6IO30F001 | company/products/catalogue.json:10047  # article code in the model row of ey6io30
+product | EY6IO31 | company/products/catalogue.json:10086  # model ey6io31
+product | EY6IO31F001 | company/products/catalogue.json:10096  # article code in the model row of ey6io31
+product | EY6IO50 | company/products/catalogue.json:10134  # model ey6io50
+product | EY6IO50F001 | company/products/catalogue.json:10144  # article code in the model row of ey6io50
+product | EY6IO71 | company/products/catalogue.json:10183  # model ey6io71
+product | EY6IO71F001 | company/products/catalogue.json:10193  # article code in the model row of ey6io71
+product | EY6LO00 | company/products/catalogue.json:10232  # model ey6lo00
+product | EY6LO00F001 | company/products/catalogue.json:10242  # article code in the model row of ey6lo00
+product | EY6CM20 | company/products/catalogue.json:10277  # model ey6cm20
+product | EY6CM20F011 | company/products/catalogue.json:10287  # article code in the model row of ey6cm20
+product | EY6CM30 | company/products/catalogue.json:10324  # model ey6cm30
+product | EY6CM30F031 | company/products/catalogue.json:10334  # article code in the model row of ey6cm30
+product | EY6RT30 | company/products/catalogue.json:10370  # model ey6rt30
+product | EY6RT30F001 | company/products/catalogue.json:10380  # article code in the model row of ey6rt30
+product | EY6RT30F002 | company/products/catalogue.json:10397  # article code of ey6rt30
+product | EY-RC 504 | company/products/catalogue.json:10414  # model ey-rc-504-505
+product | EY-RC 505 | company/products/catalogue.json:10441  # model ey-rc-504-505
+product | ecos504 | company/products/catalogue.json:10424  # model row of ey-rc-504-505
+product | EY-RC504F001 | company/products/catalogue.json:10424  # article code in the model row of ey-rc-504-505
+product | EY-RC504F202 | company/products/catalogue.json:10441  # article code of ey-rc-504-505
+product | EY-RC504F021 | company/products/catalogue.json:10441  # article code of ey-rc-504-505
+product | EY-RC504F0D1 | company/products/catalogue.json:10441  # article code of ey-rc-504-505
+product | EY-RC505F031 | company/products/catalogue.json:10441  # article code of ey-rc-504-505
+product | EY-RC505F071 | company/products/catalogue.json:10441  # article code of ey-rc-504-505
+product | EY-RC 514 | company/products/catalogue.json:10465  # model ey-rc-514-515
+product | EY-RC 515 | company/products/catalogue.json:10493  # model ey-rc-514-515
+product | ecos514 | company/products/catalogue.json:10475  # model row of ey-rc-514-515
+product | EY-RC514F001 | company/products/catalogue.json:10475  # article code in the model row of ey-rc-514-515
+product | EY-RC514F011 | company/products/catalogue.json:10493  # article code of ey-rc-514-515
+product | EY-RC514F021 | company/products/catalogue.json:10493  # article code of ey-rc-514-515
+product | EY-RC514F0D1 | company/products/catalogue.json:10493  # article code of ey-rc-514-515
+product | EY-RC515F031 | company/products/catalogue.json:10493  # article code of ey-rc-514-515
+product | EY-RC515F0L1 | company/products/catalogue.json:10493  # article code of ey-rc-514-515
+product | EY-RC 311 | company/products/catalogue.json:10517  # model ey-rc-311
+product | ecos311 | company/products/catalogue.json:10527  # model row of ey-rc-311
+product | EY-RC311F001 | company/products/catalogue.json:10527  # article code in the model row of ey-rc-311
+product | EY-RU 310 | company/products/catalogue.json:10564  # model ey-ru-310-316
+product | EY-RU 316 | company/products/catalogue.json:10574  # model ey-ru-310-316
+product | ecoUnit316 | company/products/catalogue.json:10574  # model row of ey-ru-310-316
+product | EY-RU316F001 | company/products/catalogue.json:10574  # article code in the model row of ey-ru-310-316
+product | EY-RU310F001 | company/products/catalogue.json:10593  # article code of ey-ru-310-316
+product | EY-RU311F001 | company/products/catalogue.json:10593  # article code of ey-ru-310-316
+product | EY-RU314F001 | company/products/catalogue.json:10593  # article code of ey-ru-310-316
+product | EY-RU 365 | company/products/catalogue.json:10616  # model ey-ru-365
+product | ecoUnit365 | company/products/catalogue.json:10626  # model row of ey-ru-365
+product | EY-RU365F001 | company/products/catalogue.json:10626  # article code in the model row of ey-ru-365
+product | EY-RU365F002 | company/products/catalogue.json:10644  # article code of ey-ru-365
+product | EY-RU365F0A1 | company/products/catalogue.json:10644  # article code of ey-ru-365
+product | EY-RU365F0A2 | company/products/catalogue.json:10644  # article code of ey-ru-365
+product | EY-RU 355 | company/products/catalogue.json:10667  # model ey-ru-355
+product | ecoUnit355 | company/products/catalogue.json:10677  # model row of ey-ru-355
+product | EY-RU355F051 | company/products/catalogue.json:10677  # article code in the model row of ey-ru-355
+product | EY-RU355F002 | company/products/catalogue.json:10696  # article code of ey-ru-355
+product | EY-RU355F021 | company/products/catalogue.json:10696  # article code of ey-ru-355
+product | EY-RU355F031 | company/products/catalogue.json:10696  # article code of ey-ru-355
+product | EY-RU355F041 | company/products/catalogue.json:10696  # article code of ey-ru-355
+product | EY-RU355FA51 | company/products/catalogue.json:10696  # article code of ey-ru-355
+product | EY-SU 358 | company/products/catalogue.json:10721  # model ey-su-358
+product | ecoUnit358 | company/products/catalogue.json:10731  # model row of ey-su-358
+product | EY-SU358F081 | company/products/catalogue.json:10731  # article code in the model row of ey-su-358
+product | EY-SU358F021 | company/products/catalogue.json:10750  # article code of ey-su-358
+product | EY-SU358FA21 | company/products/catalogue.json:10750  # article code of ey-su-358
+product | EY-SU358F041 | company/products/catalogue.json:10750  # article code of ey-su-358
+product | EY-SU358FA41 | company/products/catalogue.json:10750  # article code of ey-su-358
+product | EY-SU358FA81 | company/products/catalogue.json:10750  # article code of ey-su-358
+product | EY-RU 110 | company/products/catalogue.json:10775  # model ey-ru-110
+product | ecoUnit110 | company/products/catalogue.json:10785  # model row of ey-ru-110
+product | EY-RU110F201 | company/products/catalogue.json:10785  # article code in the model row of ey-ru-110
+product | EY-RU 146 | company/products/catalogue.json:10822  # model ey-ru-146
+product | ecoUnit146 | company/products/catalogue.json:10832  # model row of ey-ru-146
+product | EY-RU146F201 | company/products/catalogue.json:10832  # article code in the model row of ey-ru-146
+product | EY-SU 106 | company/products/catalogue.json:10869  # model ey-su-106
+product | ecoUnit106 | company/products/catalogue.json:10879  # model row of ey-su-106
+product | EY-SU106F100 | company/products/catalogue.json:10879  # article code in the model row of ey-su-106
+product | EY-CM 581 | company/products/catalogue.json:10918  # model ey-cm-581
+product | ecosCom581 | company/products/catalogue.json:10928  # model row of ey-cm-581
+product | EY-CM581F081 | company/products/catalogue.json:10928  # article code in the model row of ey-cm-581
+product | FMS 116 | company/products/catalogue.json:10963  # model fms-116-117-196-197
+product | FMS 117 | company/products/catalogue.json:10973  # model fms-116-117-196-197
+product | FMS 196 | company/products/catalogue.json:10974  # model fms-116-117-196-197
+product | FMS 197 | company/products/catalogue.json:10992  # model fms-116-117-196-197
+product | viaSens117 | company/products/catalogue.json:10973  # model row of fms-116-117-196-197
+product | FMS117F121 | company/products/catalogue.json:10973  # article code in the model row of fms-116-117-196-197
+product | FMS116F121 | company/products/catalogue.json:10992  # article code of fms-116-117-196-197
+product | FMS116F121A | company/products/catalogue.json:10992  # article code of fms-116-117-196-197
+product | FMS196F121 | company/products/catalogue.json:10992  # article code of fms-116-117-196-197
+product | FMS197F121 | company/products/catalogue.json:10992  # article code of fms-116-117-196-197
+product | FMS197F121A | company/products/catalogue.json:10992  # article code of fms-116-117-196-197
+product | EY-EM 510 | company/products/catalogue.json:11013  # model ey-em-510-512
+product | EY-EM 512 | company/products/catalogue.json:11041  # model ey-em-510-512
+product | ecoLink510 | company/products/catalogue.json:11023  # model row of ey-em-510-512
+product | EY-EM510F001 | company/products/catalogue.json:11023  # article code in the model row of ey-em-510-512
+product | EY-EM511F001 | company/products/catalogue.json:11041  # article code of ey-em-510-512
+product | EY-EM512F001 | company/products/catalogue.json:11041  # article code of ey-em-510-512
+product | EY-EM 514 | company/products/catalogue.json:11063  # model ey-em-514-515
+product | EY-EM 515 | company/products/catalogue.json:11091  # model ey-em-514-515
+product | ecoLink514 | company/products/catalogue.json:11073  # model row of ey-em-514-515
+product | EY-EM514F001 | company/products/catalogue.json:11073  # article code in the model row of ey-em-514-515
+product | EY-EM515F001 | company/products/catalogue.json:11091  # article code of ey-em-514-515
+product | EY-EM 522 | company/products/catalogue.json:11112  # model ey-em-522-523
+product | EY-EM 523 | company/products/catalogue.json:11140  # model ey-em-522-523
+product | EY-EM522F001 | company/products/catalogue.json:11122  # article code in the model row of ey-em-522-523
+product | EY-EM523F001 | company/products/catalogue.json:11140  # article code of ey-em-522-523
+product | EY-EM 527 | company/products/catalogue.json:11161  # model ey-em-527
+product | EY-EM527F001 | company/products/catalogue.json:11171  # article code in the model row of ey-em-527
+product | EY-PS 031 | company/products/catalogue.json:11209  # model ey-ps-031
+product | EY-PS031F011 | company/products/catalogue.json:11219  # article code in the model row of ey-ps-031
+product | EY-PS031F021 | company/products/catalogue.json:11236  # article code of ey-ps-031
+product | EY-PS031F041 | company/products/catalogue.json:11236  # article code of ey-ps-031
+product | EY-BU 292 | company/products/catalogue.json:11256  # model ey-bu-292
+product | EY-BU292F001 | company/products/catalogue.json:11266  # article code in the model row of ey-bu-292
+product | EYZ 291 | company/products/catalogue.json:11298  # model eyz-291
+product | EYZ291F001 | company/products/catalogue.json:11308  # article code in the model row of eyz-291
+product | YZP 480 | company/products/catalogue.json:11343  # model yzp-480-495
+product | YZP480F200 | company/products/catalogue.json:11353  # article code in the model row of yzp-480-495
+product | YZP481F200 | company/products/catalogue.json:11370  # article code of yzp-480-495
+product | YZP481F210 | company/products/catalogue.json:11370  # article code of yzp-480-495
+product | YZP481F220 | company/products/catalogue.json:11370  # article code of yzp-480-495
+product | YZP481F230 | company/products/catalogue.json:11370  # article code of yzp-480-495
+product | YZP485F203 | company/products/catalogue.json:11370  # article code of yzp-480-495
+product | YCS 200 | company/products/catalogue.json:11393  # model ycs-200-210
+product | YCS 210 | company/products/catalogue.json:11421  # model ycs-200-210
+product | YCS200F200 | company/products/catalogue.json:11403  # article code in the model row of ycs-200-210
+product | YCS200F300 | company/products/catalogue.json:11421  # article code of ycs-200-210
+product | YCS200F320 | company/products/catalogue.json:11421  # article code of ycs-200-210
+product | YCS210F300 | company/products/catalogue.json:11421  # article code of ycs-200-210
+product | YCS210F200 | company/products/catalogue.json:11421  # article code of ycs-200-210
+product | YCS220F200 | company/products/catalogue.json:11421  # article code of ycs-200-210
+product | YCS 320 | company/products/catalogue.json:11444  # model ycs-320-325
+product | YCS320F200 | company/products/catalogue.json:11454  # article code in the model row of ycs-320-325
+product | YCS321F200 | company/products/catalogue.json:11472  # article code of ycs-320-325
+product | YCS321F210 | company/products/catalogue.json:11472  # article code of ycs-320-325
+product | YCS322F010 | company/products/catalogue.json:11472  # article code of ycs-320-325
+product | YCS322F020 | company/products/catalogue.json:11472  # article code of ycs-320-325
+product | YCS324F200 | company/products/catalogue.json:11472  # article code of ycs-320-325
+product | YCS 451 | company/products/catalogue.json:11495  # model ycs-451-453
+product | YCS 453 | company/products/catalogue.json:11523  # model ycs-451-453
+product | YCS452F200 | company/products/catalogue.json:11505  # article code in the model row of ycs-451-453
+product | YCS451F010 | company/products/catalogue.json:11523  # article code of ycs-451-453
+product | YCS452F210 | company/products/catalogue.json:11523  # article code of ycs-451-453
+product | YCS453F200 | company/products/catalogue.json:11523  # article code of ycs-451-453
+product | YCS453F210 | company/products/catalogue.json:11523  # article code of ycs-451-453
+product | YCS453F220 | company/products/catalogue.json:11523  # article code of ycs-451-453
+product | YCS451F001 | company/products/catalogue.json:11546  # model ycs451f001
+product | YCS451F020 | company/products/catalogue.json:11588  # model ycs451f020
+product | YCS455F312 | company/products/catalogue.json:11615  # article code of ycs451f020
+product | YCS455F314 | company/products/catalogue.json:11615  # article code of ycs451f020
+product | YCS455F301 | company/products/catalogue.json:11615  # article code of ycs451f020
+product | YCS455F302 | company/products/catalogue.json:11615  # article code of ycs451f020
+product | YCS455F307 | company/products/catalogue.json:11615  # article code of ycs451f020
+product | YCS 472 | company/products/catalogue.json:11638  # model ycs-472-474
+product | YCS 474 | company/products/catalogue.json:11665  # model ycs-472-474
+product | YCS472F200 | company/products/catalogue.json:11648  # article code in the model row of ycs-472-474
+product | YCS472F600 | company/products/catalogue.json:11665  # article code of ycs-472-474
+product | YCS474F200 | company/products/catalogue.json:11665  # article code of ycs-472-474
+product | GZS 100 | company/products/catalogue.json:11686  # model gzs-100-150
+product | GZS 150 | company/products/catalogue.json:11696  # model gzs-100-150
+product | GZS150F010 | company/products/catalogue.json:11696  # article code in the model row of gzs-100-150
+product | GZS150F011 | company/products/catalogue.json:11713  # article code of gzs-100-150
+product | GZS150F020 | company/products/catalogue.json:11713  # article code of gzs-100-150
+product | GZS150F021 | company/products/catalogue.json:11713  # article code of gzs-100-150
+product | GZS150F022 | company/products/catalogue.json:11713  # article code of gzs-100-150
+product | GZS100F699 | company/products/catalogue.json:11713  # article code of gzs-100-150
+product | ecoUnit | company/products/catalogue.json:938  # product line
+product | ecoLink | company/products/catalogue.json:1121  # product line
+product | ecosCom | company/products/catalogue.json:1114  # product line
+product | ecos | company/products/catalogue.json:1185  # product line
+product | equitherm | company/products/catalogue.json:1153  # product line
+product | flexotron | company/products/catalogue.json:1162  # product line
+product | Valveco | company/products/catalogue.json:1290  # product line
+product | viaSens | company/products/catalogue.json:1015  # product line
+product | moduNet | company/products/catalogue.json:1131  # product line
+product | moduWeb | company/products/catalogue.json:1936  # product line
+product | novaNet | company/products/catalogue.json:11257  # product line
+product | EasySwitch | company/products/catalogue.json:146  # product name
+product | modulo 6 | company/products/catalogue.json:931  # product line
+product | modulo 2 | company/products/catalogue.json:11263  # product line
+product | modu | company/products/catalogue.json:1511  # product-name prefix of the modulo lines (modu521, modu6**-AS)
+product | Vision Center | company/products/catalogue.json:1388  # platform
+product | Vision Services | company/products/catalogue.json:1402  # platform
+product | MBS Cloud | company/products/catalogue.json:11403  # platform
+product | Mobile Building Services | company/products/catalogue.json:1395  # platform family
+product | SAUTER CASE Suite | company/products/catalogue.json:1423  # software
+product | SAUTER Smart Actuator | company/products/catalogue.json:5067  # product line
+product | SAUTER Remote Management | company/products/catalogue.json:11505  # service
+product | SAUTER Customer Portal | company/products/catalogue.json:11648  # service
+product | Digital Services Remote Management | company/products/catalogue.json:1409  # service family
+product | Digital Services Customer Portal | company/products/catalogue.json:1416  # service family
+product | Building Data Integrity Manager | company/products/catalogue.json:1511  # device named on an unused image
+product | ecos500 | company/products/catalogue.json:2158  # station with no entry
+product | flexotron800 | company/products/catalogue.json:1967  # controller with no entry
+product | equiflex | company/products/catalogue.json:1845  # controller with no entry
+product | moduWeb500 | company/products/catalogue.json:1936  # web server with no entry
+product | ecomod | company/products/catalogue.json:2206  # wireless interface line
+product | ecomod580 | company/products/catalogue.json:2206  # wireless interface with no entry
+product | modu521 | company/products/catalogue.json:10575  # modulo station
+product | modu524 | company/products/catalogue.json:1689  # modulo station
+product | modu525 | company/products/README.md:267  # modulo station
+product | modu530 | company/products/catalogue.json:1704  # modulo I/O module
+product | modu600 | company/products/catalogue.json:10060  # modulo operating unit
+product | modu602 | company/products/catalogue.json:9962  # modulo connection module
+product | modu615 | company/products/catalogue.json:1511  # modulo device
+product | modu660 | company/products/README.md:270  # modulo 6 station name
+product | modu680 | company/products/README.md:270  # modulo 6 station name
+product | modu721 | company/products/catalogue.json:2065  # communication module
+product | modu731 | company/products/catalogue.json:2073  # communication module
+product | modu840 | company/products/catalogue.json:1719  # operating unit
+product | modulo 5 | company/products/README.md:26  # product line
+product | EY-modulo | company/products/README.md:267  # product line name
+product | EY-AS660 | company/products/README.md:270  # station
+product | EY-AS680 | company/products/README.md:270  # station
+product | EY-WS 500 | company/products/README.md:26  # supervision web server
+product | EMS 100 | company/products/README.md:26  # energy monitoring
+product | EMS 200 | company/products/README.md:26  # energy monitoring
+product | EY3600 | company/products/catalogue.json:11263  # novaNet device

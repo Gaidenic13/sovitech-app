@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Seeded bad harness page: declared twice</title>
+    <!-- Seeded bad input (TEST): two display-object declarations; the check cannot tell which the page stands for. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 12"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+  </body>
+</html>

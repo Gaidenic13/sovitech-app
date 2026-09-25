@@ -1,0 +1,27 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "*.ts",
+    "*.mts",
+    "*.cts",
+    "tools/**/*.ts",
+    "tools/**/*.mts",
+    "tools/**/*.cts",
+    "tests/**/*.ts",
+    "tests/**/*.mts",
+    "tests/**/*.cts",
+    "tests/**/*.tsx",
+    "evals/**/*.ts",
+    "evals/**/*.mts",
+    "evals/**/*.cts",
+    "fixtures/**/*.ts",
+    "fixtures/**/*.mts",
+    "fixtures/**/*.cts"
+  ],
+  "exclude": ["company/**", "node_modules", "**/node_modules/**", "tools/**/seeded/**", "services/**"]
+}

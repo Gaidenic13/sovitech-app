@@ -1,0 +1,14 @@
+# Control input (synthetic): the real gate, open with a reference to a change-log row that the
+# fictitious "Seed Approver" wrote on main of a temporary repository. Read from git at the
+# merge base of main and HEAD, it resolves: the git reading resolves approvals, it does not
+# merely refuse everything. A seed is never an approval.
+id: ifc-code-inference
+open: true
+waitsFor:
+  - item: 'ifc-input 6.2.9'
+    kind: guardrail-proposal
+    dId: D-42
+    approvalRef: 'guardrails-changelog:9.6'
+closedBehaviour: >-
+  No asset type, level type or zone category from IFC classes or names.
+source: docs/dev-prompts/03-build-interactive-app.md section 5.4, table of gates

@@ -1,0 +1,18 @@
+# Gate dataset-cost-ranges (prompt 3 section 5.4; docs/adr/0005-gates-mechanism.md).
+# Every gate starts closed. Code reads it only through readGate() in
+# @sovitech/registry/gates. It opens only when a person sets `open: true`
+# and every item below carries an approval reference that resolves, while an
+# approver is named in docs/guardrails.md section 10; the loosening check
+# (tools/checks/loosening) fails anything else. Claude never fills in an
+# approvalRef.
+id: dataset-cost-ranges
+open: false
+waitsFor:
+  - item: 'SOVITECH cost ranges and benchmarks'
+    kind: dataset
+    dId: D-92
+    dataset: sovitech-cost-ranges
+    approvalRef: ''
+closedBehaviour: >-
+  No investment figure at any stage; "Not available yet".
+source: docs/dev-prompts/03-build-interactive-app.md section 5.4, table of gates

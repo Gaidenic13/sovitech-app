@@ -1,0 +1,8 @@
+{
+  "name": "scan-roots-bad-seed",
+  "private": true,
+  "description": "Seeded input for the scan-roots self-test (TEST). Wrong on purpose: lint:deps names its own fixed roots, as it did before the phase 0 review round 2 (adversarial finding 13), so a new top-level folder escaped dependency-cruiser.",
+  "scripts": {
+    "lint:deps": "depcruise --config .dependency-cruiser.cjs apps packages tools tests evals fixtures"
+  }
+}

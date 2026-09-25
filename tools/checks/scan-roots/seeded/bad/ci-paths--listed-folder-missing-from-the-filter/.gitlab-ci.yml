@@ -1,0 +1,11 @@
+# Seeded input for the scan-roots self-test (TEST). Wrong on purpose: packages/ is
+# marked "ci": true in the list, but the path filter leaves it out, so a change
+# there starts no pipeline.
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        paths:
+          - "*"
+          - apps/**/*
+          - services/**/*

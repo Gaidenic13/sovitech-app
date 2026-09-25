@@ -1,0 +1,3 @@
+# Each line must appear in the check's details for this seed to count.
+approved exception lists v1 (seeded): its approval reference "guardrails-changelog:9.1" does not resolve
+exception list render.entries: entry added: test-quantity-line: a loosening against unapproved baseline v0 (exception lists) with no approval reference

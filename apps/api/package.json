@@ -1,0 +1,23 @@
+{
+  "name": "@sovitech/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./server": "./src/server.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@sovitech/ai": "workspace:*",
+    "@sovitech/db": "workspace:*",
+    "@sovitech/domain": "workspace:*",
+    "@sovitech/engine": "workspace:*",
+    "@sovitech/registry": "workspace:*",
+    "@sovitech/view-model": "workspace:*",
+    "fastify": "5.12.5"
+  }
+}

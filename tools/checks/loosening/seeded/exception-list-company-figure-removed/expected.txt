@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+exception list company-figures: entry removed from a deny list: 

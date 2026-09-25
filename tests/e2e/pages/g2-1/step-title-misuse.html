@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: a quantity inside a stepper item</title>
+    <!-- Render harness page for G2-1 (docs/adr/0006-render-test.md). The render check must FAIL here. A valid stepper of eight items, but item 6 shows its step number beside "TEST air handling units" instead of its step title: a stepper item shows its number and the registered title of its step only. Found by the phase 0 round 2 review (probe step-misuse-inside-item6.html). -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+    <style>
+      ol.steps {
+        list-style: none;
+      }
+    </style>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with one misused step number</h1>
+      <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+      <nav aria-label="Wizard steps">
+        <ol class="steps" data-render-stepper="wizard-step-number">
+          <li><span data-render-allow="wizard-step-number">1</span> Project</li>
+          <li><span data-render-allow="wizard-step-number">2</span> Documents</li>
+          <li><span data-render-allow="wizard-step-number">3</span> Building</li>
+          <li><span data-render-allow="wizard-step-number">4</span> Systems</li>
+          <li><span data-render-allow="wizard-step-number">5</span> Operations</li>
+          <li><span data-render-allow="wizard-step-number">6</span> TEST air handling units</li>
+          <li><span data-render-allow="wizard-step-number">7</span> Automation</li>
+          <li><span data-render-allow="wizard-step-number">8</span> Proposal</li>
+        </ol>
+      </nav>
+    </main>
+  </body>
+</html>

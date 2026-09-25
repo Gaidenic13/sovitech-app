@@ -1,0 +1,18 @@
+{
+  "$comment": "Seeded bad input (synthetic): a reserved-term allowance added after the baseline (prompt 3 section 13: adding a reserved-term exception is a loosening).",
+  "lists": {
+    "reserved-terms.allowances": {
+      "add": [
+        {
+          "key": "status_line:test-seed-line",
+          "label": "status_line:test-seed-line",
+          "content": {
+            "kind": "status_line",
+            "statusLineId": "test-seed-line",
+            "text": "TEST seeded status line"
+          }
+        }
+      ]
+    }
+  }
+}

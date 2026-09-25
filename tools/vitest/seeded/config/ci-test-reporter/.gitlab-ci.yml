@@ -1,0 +1,5 @@
+# Seeded (TEST): the CI test job adds a reporter, which replaces the run guard. Read as text only.
+test:vitest:
+  stage: test
+  script:
+    - pnpm run test --reporter=dot

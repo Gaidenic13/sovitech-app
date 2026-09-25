@@ -1,0 +1,45 @@
+{
+  "units": [
+    {
+      "code": "m2",
+      "symbol": "m²",
+      "dimension": "area"
+    }
+  ],
+  "fields": [
+    {
+      "key": "building.seedChoice",
+      "label": "Seed choice (synthetic)",
+      "subject": "building",
+      "kind": "enum",
+      "options": [
+        "alpha",
+        "beta"
+      ],
+      "estimation": "forbidden",
+      "criticality": "optional",
+      "impactRank": 1,
+      "confirmBy": "owner",
+      "confirmByBasis": "use_and_occupancy",
+      "affects": [
+        {
+          "output": "seed.output",
+          "via": "formula:missingFormula@1"
+        }
+      ]
+    }
+  ],
+  "questions": [],
+  "formulas": [
+    {
+      "id": "seedFormula",
+      "version": "1",
+      "inputs": [
+        "building.seedChoice"
+      ],
+      "outputs": [
+        "seed.output"
+      ]
+    }
+  ]
+}

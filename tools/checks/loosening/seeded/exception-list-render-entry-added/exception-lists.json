@@ -1,0 +1,20 @@
+{
+  "$comment": "Seeded bad input (synthetic): a render allowlist entry added after the baseline. Before round 2 of the phase 0 review, pnpm check accepted it at any size.",
+  "lists": {
+    "render.entries": {
+      "add": [
+        {
+          "key": "test-quantity-line",
+          "label": "test-quantity-line",
+          "content": {
+            "id": "test-quantity-line",
+            "category": "fixed_interface_copy",
+            "text": "TEST Rooms 123",
+            "reason": "Seeded bad entry (synthetic): a quantity line that fits the fixed-copy schema but states a building fact.",
+            "source": "seeded, synthetic"
+          }
+        }
+      ]
+    }
+  }
+}

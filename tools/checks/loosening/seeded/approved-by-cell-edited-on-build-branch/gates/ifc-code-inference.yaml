@@ -1,0 +1,12 @@
+# Seeded bad input (synthetic): the build branch rewrites a pending "Approved by" cell as the
+# approver's name, then opens the gate with a reference to that row.
+id: ifc-code-inference
+open: true
+waitsFor:
+  - item: 'ifc-input 6.2.9'
+    kind: guardrail-proposal
+    dId: D-42
+    approvalRef: 'guardrails-changelog:9.2'
+closedBehaviour: >-
+  No asset type, level type or zone category from IFC classes or names.
+source: docs/dev-prompts/03-build-interactive-app.md section 5.4, table of gates

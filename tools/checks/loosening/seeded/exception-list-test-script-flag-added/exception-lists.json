@@ -1,0 +1,14 @@
+{
+  "$comment": "Seeded bad input (synthetic): a flag allowed after \"vitest run\" in the test script, which would replace the run guard among the reporters.",
+  "lists": {
+    "vitest.allowed-test-script-flags": {
+      "add": [
+        {
+          "key": "--reporter=dot",
+          "label": "--reporter=dot",
+          "content": "--reporter=dot"
+        }
+      ]
+    }
+  }
+}

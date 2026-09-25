@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: odometer roll</title>
+    <!-- Render harness page for G2-8 (docs/adr/0006-render-test.md). The render check must FAIL here. A column of digits rolls past a window inside the value element; the DOM text never changes. -->
+    <style>
+      .window {
+        display: inline-block;
+        height: 1.2em;
+        line-height: 1.2em;
+        overflow: hidden;
+        vertical-align: bottom;
+      }
+      .column {
+        display: inline-flex;
+        flex-direction: column;
+        animation: roll 1.2s steps(9) forwards;
+      }
+      @keyframes roll {
+        to {
+          transform: translateY(-10.8em);
+        }
+      }
+    </style>
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.upperFloors": {"text": "TEST 1"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with an animated value</h1>
+      <p>
+        <span data-value-id="building:b-test.upperFloors"
+          >TEST <span class="window"
+            ><span class="column"
+              ><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span
+              ><span>7</span><span>8</span><span>9</span></span
+            ></span
+          ></span
+        >
+        upper floors
+      </p>
+    </main>
+  </body>
+</html>

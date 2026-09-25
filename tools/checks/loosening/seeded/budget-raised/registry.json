@@ -1,0 +1,114 @@
+{
+  "units": [
+    {
+      "code": "m2",
+      "symbol": "m²",
+      "dimension": "area"
+    }
+  ],
+  "fields": [
+    {
+      "key": "building.seedArea",
+      "label": "Seed area (synthetic)",
+      "subject": "building",
+      "kind": "quantity",
+      "unit": "m2",
+      "dimension": "area",
+      "qualifierRequired": true,
+      "estimation": "forbidden",
+      "criticality": "for_quotation",
+      "impactRank": 1,
+      "confirmBy": "engineer",
+      "affects": [
+        {
+          "output": "seed.output",
+          "via": "formula:seedFormula@1"
+        }
+      ]
+    }
+  ],
+  "questions": [],
+  "formulas": [
+    {
+      "id": "seedFormula",
+      "version": "1",
+      "inputs": [
+        "building.seedArea"
+      ],
+      "outputs": [
+        "seed.output"
+      ]
+    }
+  ],
+  "settings": {
+    "confirmationBudget": {
+      "value": 8,
+      "status": "proposed",
+      "source": "seeded: raised"
+    },
+    "calibrationThreshold": {
+      "correctionRatePercent": 10,
+      "window": 50,
+      "status": "proposed",
+      "source": "seeded"
+    },
+    "firstEstimateSet": {
+      "members": [
+        "building_type",
+        "gross_floor_area",
+        "systems_in_scope"
+      ],
+      "status": "proposed",
+      "source": "seeded"
+    },
+    "requiredSet": {
+      "members": [
+        "project_name",
+        "project_type",
+        "city",
+        "country"
+      ],
+      "status": "rule",
+      "source": "seeded"
+    },
+    "identityList": {
+      "members": [
+        "project_name"
+      ],
+      "status": "rule",
+      "source": "seeded"
+    },
+    "documentStageOrder": {
+      "tiers": [
+        [
+          "site_survey",
+          "as_built",
+          "nameplate_photo"
+        ],
+        [
+          "shop_drawing"
+        ],
+        [
+          "execution"
+        ],
+        [
+          "tender"
+        ],
+        [
+          "technical_design"
+        ],
+        [
+          "permit"
+        ],
+        [
+          "feasibility"
+        ],
+        [
+          "unknown"
+        ]
+      ],
+      "status": "proposed",
+      "source": "seeded"
+    }
+  }
+}

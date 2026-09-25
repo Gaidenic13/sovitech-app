@@ -1,0 +1,9 @@
+[
+  {
+    "name": "TEST screen with a look-alike API source",
+    "path": "/",
+    "displayObjects": {
+      "kind": "api-display-objects"
+    }
+  }
+]

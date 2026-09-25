@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+exception list fixture-manifest.document-home-types: entry added: design/reference/ pdf: a loosening against unapproved baseline v0 (exception lists) with no approval reference

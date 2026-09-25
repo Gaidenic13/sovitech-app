@@ -1,0 +1,5 @@
+{
+  "topLevel": {
+    "company": { "scans": ["lint-bans"], "ci": false }
+  }
+}

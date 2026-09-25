@@ -1,0 +1,19 @@
+{
+  "$comment": "Seeded bad input (synthetic): an unreadable-element entry for a canvas added after the baseline.",
+  "lists": {
+    "render.unreadable": {
+      "add": [
+        {
+          "key": "test-chart-canvas",
+          "label": "test-chart-canvas",
+          "content": {
+            "id": "test-chart-canvas",
+            "element": "canvas",
+            "reason": "Seeded bad entry (synthetic): one marker that would let any canvas through, numeric ticks included.",
+            "source": "seeded, synthetic"
+          }
+        }
+      ]
+    }
+  }
+}

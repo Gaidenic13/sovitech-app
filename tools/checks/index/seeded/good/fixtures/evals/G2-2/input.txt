@@ -1,0 +1,1 @@
+TEST synthetic fixture for the seeded eval G2-2. Not a document.

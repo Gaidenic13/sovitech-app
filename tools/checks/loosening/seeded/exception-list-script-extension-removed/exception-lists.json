@@ -1,0 +1,10 @@
+{
+  "$comment": "Seeded bad input (synthetic): .mts taken out of the script extensions the ESLint bans read.",
+  "lists": {
+    "eslint.script-extensions": {
+      "remove": [
+        "mts"
+      ]
+    }
+  }
+}

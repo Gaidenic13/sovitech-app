@@ -1,0 +1,8 @@
+{
+  "$comment": "Seeded bad input (synthetic): the first company-figure entry removed from the check list, which lets that figure or product name back into the app. The entry is named by its hash only.",
+  "lists": {
+    "company-figures": {
+      "removeFirst": 1
+    }
+  }
+}

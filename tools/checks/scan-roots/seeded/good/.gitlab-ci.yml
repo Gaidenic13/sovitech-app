@@ -1,0 +1,11 @@
+# Good seeded tree for the scan-roots self-test (TEST): the path filter names every
+# folder of this tree that the list marks "ci": true.
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        paths:
+          - "*"
+          - apps/**/*
+          - packages/**/*
+          - services/**/*

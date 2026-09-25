@@ -1,0 +1,7 @@
+id: G2-2
+status: pending
+fixture: fixtures/evals/G2-2/input.txt
+task: Seeded task for G2-2 (TEST, synthetic).
+assertions:
+  - Seeded assertion for G2-2 (TEST, synthetic).
+samples: 5

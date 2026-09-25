@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: video, embed, object, SVG image and image input</title>
+    <!-- Render harness page for G2-1 (docs/adr/0006-render-test.md). The render check must FAIL here. Five more elements whose pixels the render test cannot read: a video, an embed, an object, an SVG image and an image input. Each fails on its own. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with one unbound number</h1>
+      <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+      <video width="120" height="40"></video>
+      <embed type="image/svg+xml" width="120" height="40" />
+      <object type="image/svg+xml" width="120" height="40"></object>
+      <svg width="120" height="40" viewBox="0 0 120 40" role="img" aria-label="Test drawing">
+        <image width="120" height="40" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" />
+      </svg>
+      <input type="image" alt="Send" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" />
+    </main>
+  </body>
+</html>

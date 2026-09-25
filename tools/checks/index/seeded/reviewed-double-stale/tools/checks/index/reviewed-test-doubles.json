@@ -1,0 +1,11 @@
+{
+  "about": "Seeded reviewed list (TEST): one entry that matches no use in the seeded case files.",
+  "entries": [
+    {
+      "path": "tests/guardrails/G1-2.test.ts",
+      "call": "vi.stubEnv",
+      "target": "SOVITECH_TEST_FLAG",
+      "reason": "TEST: a seeded entry that no case file uses"
+    }
+  ]
+}

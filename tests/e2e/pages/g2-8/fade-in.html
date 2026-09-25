@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: value that fades in</title>
+    <!-- Render harness page for G2-8 (docs/adr/0006-render-test.md). The render check must FAIL here. The value text never changes, but the value element animates (prompt 3 section 11: no value animates). -->
+    <style>
+      .fade {
+        animation: appear 1.2s ease-in forwards;
+      }
+      @keyframes appear {
+        from {
+          opacity: 0.2;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+    </style>
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.grossFloorArea": {"text": "TEST 1,234 m²"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with an animated value</h1>
+      <p><span class="fade" data-value-id="building:b-test.grossFloorArea">TEST 1,234 m²</span> gross floor area</p>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,4 @@
+# Seeded bad input (synthetic): the check runs as if packages/registry/gates/ did not exist.
+# Before the phase 0 review fix the seed format could not say this, and the check had no
+# rule of its own for an empty scope.
+missing

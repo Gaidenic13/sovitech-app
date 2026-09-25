@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "id": "wizard-step-number",
+      "category": "step_number",
+      "pattern": "^[1-8]$",
+      "reason": "A seeded entry with a reason long enough to pass the length rule of the schema.",
+      "source": "seeded bad input for the render allowlist self-test"
+    }
+  ],
+  "unreadable": []
+}

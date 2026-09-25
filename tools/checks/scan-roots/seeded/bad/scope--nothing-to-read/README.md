@@ -1,0 +1,1 @@
+Seeded empty tree for the scan-roots self-test (TEST): no folder, no package.json and no CI configuration. The check must fail with `scan-roots/scope` rather than pass on nothing (phase 0 review, finding 17).

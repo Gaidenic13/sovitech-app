@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: a stepper short of its items</title>
+    <!-- Render harness page for G2-1 (docs/adr/0006-render-test.md). The render check must FAIL here. The registered stepper container holds six items, not the eight its allowlist entry registers. -->
+    <style>
+      ol.steps {
+        list-style: none;
+      }
+    </style>
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with one unbound number</h1>
+      <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+      <nav aria-label="Wizard steps">
+        <ol class="steps" data-render-stepper="wizard-step-number">
+          <li><span data-render-allow="wizard-step-number">1</span> Project</li>
+          <li><span data-render-allow="wizard-step-number">2</span> Documents</li>
+          <li><span data-render-allow="wizard-step-number">3</span> Building</li>
+          <li><span data-render-allow="wizard-step-number">4</span> Systems</li>
+          <li><span data-render-allow="wizard-step-number">5</span> Operations</li>
+          <li><span data-render-allow="wizard-step-number">6</span> Goals</li>
+        </ol>
+      </nav>
+    </main>
+  </body>
+</html>

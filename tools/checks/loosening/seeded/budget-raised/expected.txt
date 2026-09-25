@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+settings.confirmationBudget: confirmation budget 7 → 8: a loosening

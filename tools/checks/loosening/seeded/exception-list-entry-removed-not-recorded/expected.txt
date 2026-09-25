@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+exception list render.entries: entry removed from an allow list: max-file-size: unapproved baseline v0 (exception lists) does not hold this, and nothing approves it

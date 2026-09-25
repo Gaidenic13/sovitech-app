@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: numbers shown only on hover</title>
+    <!-- Render harness page for G2-1 (docs/adr/0006-render-test.md). The render check must FAIL here. A number shown only in :hover generated content, and a number a mouseenter handler writes into a tooltip; 2.8 lets hover add detail, but not unbound numbers. Found by the phase 0 round 2 review (probe hover.html). -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+    <style>
+      .tip:hover::after {
+        content: " TEST 123 rooms";
+      }
+    </style>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with hover details</h1>
+      <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+      <p class="tip">Rooms</p>
+      <button id="area-help" type="button" onmouseenter="document.getElementById('area-tip').textContent = 'TEST 12,345 m²'">Area</button>
+      <span id="area-tip"></span>
+    </main>
+  </body>
+</html>

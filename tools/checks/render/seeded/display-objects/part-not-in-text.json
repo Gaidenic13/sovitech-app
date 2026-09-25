@@ -1,0 +1,8 @@
+{
+  "building:b-test.guestRooms": {
+    "text": "TEST 123",
+    "parts": [
+      "TEST 12,345"
+    ]
+  }
+}

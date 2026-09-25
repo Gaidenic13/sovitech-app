@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+exception list render.unreadable: unapproved baseline v0 (exception lists) records it, and it is no longer read

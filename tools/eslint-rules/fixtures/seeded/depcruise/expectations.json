@@ -1,0 +1,94 @@
+{
+  "$comment": "Seeded inputs for the dependency-cruiser boundaries in .dependency-cruiser.cjs. Each file lists the rule names it must violate; [] means it must pass. tools/eslint-rules/depcruise-harness.ts adds package.json files, entry stubs and node_modules/@sovitech links shaped like the real workspace before cruising. This folder sits under a seeded/ path, so ESLint, TypeScript, Vitest, the checks and the real dependency-cruiser run never read it.",
+  "files": {
+    "apps/web/src/good-browser-entries.ts": [],
+    "apps/web/src/local-helper.ts": [],
+    "apps/web/src/imports-db.ts": [
+      "browser-code-reaches-no-server-code",
+      "db-only-from-api",
+      "web-imports-only-browser-entries"
+    ],
+    "apps/web/src/imports-view-model-server.ts": [
+      "browser-code-reaches-no-server-code",
+      "view-model-server-only-from-api",
+      "web-imports-only-browser-entries"
+    ],
+    "apps/web/src/imports-domain-type-only.ts": [
+      "browser-code-reaches-no-server-code",
+      "web-imports-only-browser-entries"
+    ],
+    "apps/web/src/imports-engine.ts": [
+      "browser-code-reaches-no-server-code",
+      "web-imports-only-browser-entries"
+    ],
+    "apps/web/src/imports-registry-deep.ts": [
+      "browser-code-reaches-no-server-code",
+      "web-imports-only-browser-entries"
+    ],
+    "apps/web/src/imports-ai.ts": [
+      "browser-code-reaches-no-server-code",
+      "web-imports-only-browser-entries"
+    ],
+    "apps/web/src/imports-api.ts": [
+      "browser-code-reaches-no-server-code",
+      "web-imports-only-browser-entries"
+    ],
+    "apps/web/src/imports-company.ts": [
+      "no-company-imports",
+      "web-imports-only-browser-entries"
+    ],
+    "apps/web/src/imports-unresolvable.ts": [
+      "not-to-unresolvable",
+      "web-imports-only-browser-entries"
+    ],
+    "apps/api/src/good-imports-db-and-view-model-server.ts": [],
+    "apps/api/src/imports-test-utils.ts": [
+      "gate-test-utils-only-from-proposed"
+    ],
+    "packages/ui/src/good-imports-view-model-browser.ts": [],
+    "packages/ui/src/imports-domain.ts": [
+      "browser-code-reaches-no-server-code",
+      "ui-viewer-no-domain-engine-registry"
+    ],
+    "packages/ui/src/imports-registry.ts": [
+      "browser-code-reaches-no-server-code",
+      "ui-viewer-no-domain-engine-registry"
+    ],
+    "packages/viewer/src/imports-engine.ts": [
+      "browser-code-reaches-no-server-code",
+      "ui-viewer-no-domain-engine-registry"
+    ],
+    "packages/viewer/src/imports-domain-deep.ts": [
+      "browser-code-reaches-no-server-code",
+      "ui-viewer-no-domain-engine-registry"
+    ],
+    "packages/view-model/src/browser/imports-server.ts": [
+      "browser-code-reaches-no-server-code",
+      "view-model-server-only-from-api"
+    ],
+    "packages/view-model/src/browser/imports-registry.ts": [
+      "browser-code-reaches-no-server-code"
+    ],
+    "packages/view-model/src/formatting/good-imports-browser.ts": [],
+    "packages/engine/src/imports-db.ts": [
+      "db-only-from-api"
+    ],
+    "packages/engine/src/imports-view-model-server.ts": [
+      "view-model-server-only-from-api"
+    ],
+    "packages/engine/src/imports-api.ts": [
+      "packages-do-not-import-apps"
+    ],
+    "packages/registry/src/gates/imports-test-utils.ts": [
+      "gate-test-utils-only-from-proposed"
+    ],
+    "tests/guardrails/good-imports-db.test.ts": [],
+    "tests/guardrails/imports-test-utils.test.ts": [
+      "gate-test-utils-only-from-proposed"
+    ],
+    "tests/proposed/good-imports-test-utils.test.ts": [],
+    "tests/e2e/imports-db.spec.ts": [
+      "db-only-from-api"
+    ]
+  }
+}

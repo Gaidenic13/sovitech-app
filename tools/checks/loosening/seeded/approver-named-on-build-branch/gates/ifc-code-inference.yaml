@@ -1,0 +1,12 @@
+# Seeded bad input (synthetic): the build branch fills the approver table and writes an
+# approving row. Before round 2 of the phase 0 review, both counted from the working tree.
+id: ifc-code-inference
+open: true
+waitsFor:
+  - item: 'ifc-input 6.2.9'
+    kind: guardrail-proposal
+    dId: D-42
+    approvalRef: 'guardrails-changelog:9.7'
+closedBehaviour: >-
+  No asset type, level type or zone category from IFC classes or names.
+source: docs/dev-prompts/03-build-interactive-app.md section 5.4, table of gates

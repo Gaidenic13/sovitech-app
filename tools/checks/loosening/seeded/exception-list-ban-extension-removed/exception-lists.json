@@ -1,0 +1,10 @@
+{
+  "$comment": "Seeded bad input (synthetic): .vue taken out of the extensions a lint ban must read, so an unread Vue component passes.",
+  "lists": {
+    "lint-bans.extensions-a-ban-must-read": {
+      "remove": [
+        "vue"
+      ]
+    }
+  }
+}

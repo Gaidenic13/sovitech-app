@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: a number drawn on a canvas</title>
+    <!-- Render harness page for G2-1 (docs/adr/0006-render-test.md). The render check must FAIL here. A canvas draws TEST 12,345 as pixels. The render test cannot read pixels, and the canvas is not on the reviewed unreadable list. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with one unbound number</h1>
+      <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+      <canvas id="drawing" width="240" height="40" aria-label="Drawing of a test value"></canvas>
+      <script>
+        const context = document.getElementById("drawing").getContext("2d");
+        context.font = "20px sans-serif";
+        context.fillText("TEST 12,345", 10, 28);
+      </script>
+    </main>
+  </body>
+</html>

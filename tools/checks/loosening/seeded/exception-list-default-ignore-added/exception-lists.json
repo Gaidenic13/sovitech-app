@@ -1,0 +1,14 @@
+{
+  "$comment": "Seeded bad input (synthetic): a path every scanning check would skip.",
+  "lists": {
+    "checks.default-ignores": {
+      "add": [
+        {
+          "key": "apps/**",
+          "label": "apps/**",
+          "content": "apps/**"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "$comment": "Seeded bad input (synthetic): a new home for document-type files.",
+  "lists": {
+    "fixture-manifest.document-homes": {
+      "add": [
+        {
+          "key": "docs/",
+          "label": "docs/",
+          "content": "docs/"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "skills": {
+    "frontend-design": {
+      "source": "seeded",
+      "sourceType": "seeded"
+    }
+  }
+}

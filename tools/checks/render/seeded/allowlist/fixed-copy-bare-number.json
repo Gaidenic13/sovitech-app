@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "id": "total",
+      "category": "fixed_interface_copy",
+      "text": "12,345",
+      "reason": "A seeded entry with a reason long enough to pass the length rule of the schema.",
+      "source": "seeded bad input for the render allowlist self-test"
+    }
+  ],
+  "unreadable": []
+}

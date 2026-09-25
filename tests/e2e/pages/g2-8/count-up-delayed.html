@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: delayed count-up</title>
+    <!-- Render harness page for G2-8 (docs/adr/0006-render-test.md). The render check must FAIL here. The count-up starts well after the load event. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with an animated value</h1>
+      <p><span id="rooms" data-value-id="building:b-test.guestRooms">TEST 0</span> guest rooms</p>
+      <script>
+        window.addEventListener("load", () => {
+          setTimeout(() => {
+            const element = document.getElementById("rooms");
+            let shown = 0;
+            const timer = setInterval(() => {
+              shown = Math.min(123, shown + 12);
+              element.textContent = `TEST ${shown}`;
+              if (shown === 123) clearInterval(timer);
+            }, 30);
+          }, 600);
+        });
+      </script>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+# Seeded input for the scan-roots self-test (TEST). Wrong on purpose: the path
+# filter names scripts/, which the list does not classify.
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        paths:
+          - "*"
+          - apps/**/*
+          - packages/**/*
+          - scripts/**/*
+          - services/**/*

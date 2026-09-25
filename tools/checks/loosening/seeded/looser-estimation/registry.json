@@ -1,0 +1,44 @@
+{
+  "units": [
+    {
+      "code": "m2",
+      "symbol": "m²",
+      "dimension": "area"
+    }
+  ],
+  "fields": [
+    {
+      "key": "building.seedArea",
+      "label": "Seed area (synthetic)",
+      "subject": "building",
+      "kind": "quantity",
+      "unit": "m2",
+      "dimension": "area",
+      "qualifierRequired": true,
+      "estimation": "allowed",
+      "criticality": "for_quotation",
+      "impactRank": 1,
+      "confirmBy": "engineer",
+      "affects": [
+        {
+          "output": "seed.output",
+          "via": "formula:seedFormula@1"
+        }
+      ],
+      "estimatedMethod": "points"
+    }
+  ],
+  "questions": [],
+  "formulas": [
+    {
+      "id": "seedFormula",
+      "version": "1",
+      "inputs": [
+        "building.seedArea"
+      ],
+      "outputs": [
+        "seed.output"
+      ]
+    }
+  ]
+}

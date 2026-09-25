@@ -1,0 +1,169 @@
+# Mockup figures: a check list, not app data.
+#
+# The distinctive figures of the specs' transcriptions of the approved mockups
+# (design/onboarding-spec.md, design/dashboards-spec.md), and the mockups' hotel
+# name. The mockups' figures are AI-generated demo content and never become app
+# data (prompt 3 sections 3 and 7); the demo is a fictional hotel (guardrails
+# rule 10, "Demo data"). tools/checks/mockup-figures fails when any figure below
+# appears in apps/, packages/*/src, a seed or a demo fixture (prompt 3 section
+# 14, item 3). Case files under tests/guardrails/ and fixtures/evals/<ID>/ are
+# not read: they may use their own case's numbers from guardrails section 7.
+# Nothing imports this file.
+#
+# One entry per line: kind | figure as the spec writes it | spec file:line  # note
+#   number    the value in any number format (34,500 34.500 34500 34 500 34_500 34.5k)
+#   quantity  the value followed by its unit or word (6.1 years, 18.7%, €37 / m²)
+#   text      the words, ignoring case, diacritics and spacing
+# The check fails when a figure is not on its spec line, so every entry is
+# traceable. A bare number needs at least 3 digits; a shorter or common one is
+# listed as a quantity with its unit. Small counts, generic engineering values
+# (setpoints, 800 ppm), tags such as AHU-01, people's names and the recomputed
+# figures of the specs' section 6 are left out: they are not distinctive enough
+# to find without flagging ordinary code.
+
+# The mockups' hotel name (never used by the demo: owner decision 2026-09-24)
+text | Radisson Blu Bucharest | design/onboarding-spec.md:238  # step 1 project name
+text | Radisson | design/onboarding-spec.md:11  # the brand alone, in any spelling (RADISSON BLU, radisson-blu-bucuresti)
+
+# Building facts: part 1 step 3 and step 8, and the project cards
+number | 34,500 | design/onboarding-spec.md:299  # total area, m²
+number | 18,500 | design/onboarding-spec.md:462  # step 8 building size, m²
+number | 424 | design/onboarding-spec.md:299  # rooms (also the real hotel's published room count)
+number | 218 | design/onboarding-spec.md:299  # zones
+number | 126 | design/onboarding-spec.md:299  # HVAC assets
+text | 28 + GF + 8 | design/onboarding-spec.md:299  # floor notation
+text | 2B + GF + 6 | design/dashboards-spec.md:848  # floor notation, screen 10
+text | 2B + GF + 8 | design/dashboards-spec.md:908  # floor notation, screen 11
+quantity | 37 levels | design/onboarding-spec.md:670  # level count read from the notation
+text | 17 SEP 2025 | design/onboarding-spec.md:630  # mockup header date
+
+# Areas: dashboards 03, 04 and 06
+number | 38,500 | design/dashboards-spec.md:743  # zones by system, total
+number | 28,800 | design/dashboards-spec.md:743  # guest rooms area
+quantity | 3,200 m² | design/dashboards-spec.md:743  # public areas
+quantity | 2,800 m² | design/dashboards-spec.md:743  # back of house
+quantity | 1,900 m² | design/dashboards-spec.md:743  # technical areas
+quantity | 1,800 m² | design/dashboards-spec.md:743  # parking and MEP
+quantity | 4,200 m² | design/dashboards-spec.md:643  # floor 05 area
+number | 2,680 | design/dashboards-spec.md:665  # floor 05 zones total
+
+# Equipment, points and devices: dashboards 03, 05, 06, 07, 17 and 22
+number | 1,240 | design/dashboards-spec.md:728  # HVAC points
+number | 1,020 | design/dashboards-spec.md:735  # room automation points
+number | 5,226 | design/dashboards-spec.md:742  # total points
+number | 186 | design/dashboards-spec.md:770  # devices, floor 05 and whole building
+number | 454 | design/dashboards-spec.md:643  # floor 05 equipment
+number | 522 | design/dashboards-spec.md:639  # floor 05 systems list sum
+quantity | 512 equipment | design/dashboards-spec.md:1296  # equipment register size, screen 17
+quantity | 68 equipment | design/dashboards-spec.md:1676  # equipment register size, screen 22
+number | 1,420 | design/dashboards-spec.md:1670  # LED fixtures
+quantity | 7,500 m³/h | design/dashboards-spec.md:707  # AHU airflow
+quantity | 420 kW | design/dashboards-spec.md:711  # AHU cooling capacity, and the current load on 09
+quantity | 380 kW | design/dashboards-spec.md:711  # AHU heating capacity
+
+# Live readings shown on the mockups (operations content, never built)
+number | 682 | design/dashboards-spec.md:574  # CO₂ ppm on 01 and 04; CO₂ tonnes per year on 13
+quantity | 22.1 °C | design/dashboards-spec.md:670  # zone temperature
+quantity | 22.4 °C | design/dashboards-spec.md:830  # average temperature
+
+# Investment, savings and returns: dashboards 02
+number | €1,280,000 | design/dashboards-spec.md:586  # total BMS investment
+quantity | €37 / m² | design/dashboards-spec.md:586  # cost per m²
+number | €210,000 | design/dashboards-spec.md:587  # annual savings
+quantity | 16.4% | design/dashboards-spec.md:587  # savings against the baseline
+quantity | 6.1 years | design/dashboards-spec.md:588  # payback
+number | €3,150,000 | design/dashboards-spec.md:589  # 15-year NPV
+quantity | 2.5x | design/dashboards-spec.md:589  # ROI multiple
+number | €397,000 | design/dashboards-spec.md:595  # HVAC control
+number | €282,000 | design/dashboards-spec.md:596  # room automation
+number | €154,000 | design/dashboards-spec.md:597  # lighting control
+number | €128,000 | design/dashboards-spec.md:598  # energy monitoring
+number | €85,000 | design/dashboards-spec.md:599  # access control
+number | €72,000 | design/dashboards-spec.md:600  # fire safety integration
+number | €163,000 | design/dashboards-spec.md:601  # other systems
+number | €220,000 | design/dashboards-spec.md:603  # floor 05 callout
+number | €180,000 | design/dashboards-spec.md:603  # floors 06-08 callout
+number | €420,000 | design/dashboards-spec.md:603  # floors 01-04 callout
+number | €260,000 | design/dashboards-spec.md:603  # basement and GF callout
+number | €38,000 | design/dashboards-spec.md:624  # annual BMS OPEX
+number | €150,000 | design/dashboards-spec.md:625  # energy savings per year
+quantity | 18.7% | design/dashboards-spec.md:630  # IRR
+
+# Phasing and OPEX: dashboards 11 and 12
+number | €320,000 | design/dashboards-spec.md:861  # phase 3
+number | €1,420,000 | design/dashboards-spec.md:933  # total annual OPEX
+number | €890,000 | design/dashboards-spec.md:934  # energy cost
+number | €160,000 | design/dashboards-spec.md:936  # operations staff
+quantity | €41 / m² / year | design/dashboards-spec.md:953  # OPEX intensity
+quantity | €52/m² | design/dashboards-spec.md:953  # market benchmark
+number | €520,000 | design/dashboards-spec.md:958  # HVAC OPEX
+number | €720,000 | design/dashboards-spec.md:958  # HVAC baseline
+number | €95,000 | design/dashboards-spec.md:960  # room automation OPEX
+number | €130,000 | design/dashboards-spec.md:960  # room automation baseline
+number | €110,000 | design/dashboards-spec.md:961  # water baseline
+number | €540,000 | design/dashboards-spec.md:963  # other systems OPEX
+number | €660,000 | design/dashboards-spec.md:963  # other systems baseline
+number | €90,000 | design/dashboards-spec.md:973  # HVAC optimisation per year
+
+# CAPEX packages: dashboards 13
+number | €620,000 | design/dashboards-spec.md:1025  # level 1 package
+quantity | €18 / m² | design/dashboards-spec.md:1025  # level 1 per m²
+quantity | €57 / m² | design/dashboards-spec.md:1027  # level 3 per m²
+number | €1,950,000 | design/dashboards-spec.md:1027  # level 3 package
+number | €2,850,000 | design/dashboards-spec.md:1028  # level 4 package
+quantity | €83 / m² | design/dashboards-spec.md:1028  # level 4 per m²
+number | €538,000 | design/dashboards-spec.md:1035  # HVAC share
+number | €230,000 | design/dashboards-spec.md:1036  # lighting share
+number | €102,000 | design/dashboards-spec.md:1038  # water systems share
+
+# Scenarios and payback: dashboards 19 and 21
+number | € 820,000 | design/dashboards-spec.md:1444  # scenario S2 investment
+number | € 1,240,000 | design/dashboards-spec.md:1444  # scenario S3 investment
+number | € 1,780,000 | design/dashboards-spec.md:1444  # scenario S4 investment
+number | € 310,000 | design/dashboards-spec.md:1445  # annual savings
+number | € 35,000 | design/dashboards-spec.md:1446  # O&M reduction
+number | € 75,000 | design/dashboards-spec.md:1446  # O&M reduction
+quantity | 3.9 years | design/dashboards-spec.md:1447  # payback
+quantity | 4.0 years | design/dashboards-spec.md:1447  # payback
+quantity | 4.2 years | design/dashboards-spec.md:1447  # payback
+quantity | 97% | design/dashboards-spec.md:1448  # 5-year ROI
+quantity | 125% | design/dashboards-spec.md:1448  # 5-year ROI
+quantity | 136% | design/dashboards-spec.md:1448  # 5-year ROI
+number | € 1,110,000 | design/dashboards-spec.md:1449  # 20-year net savings
+number | € 1,820,000 | design/dashboards-spec.md:1449  # 20-year net savings
+number | € 2,430,000 | design/dashboards-spec.md:1449  # 20-year net savings
+quantity | 280 tonnes | design/dashboards-spec.md:1450  # CO₂ reduction
+quantity | 410 tonnes | design/dashboards-spec.md:1450  # CO₂ reduction
+quantity | 560 tonnes | design/dashboards-spec.md:1450  # CO₂ reduction
+quantity | € 0.18 / kWh | design/dashboards-spec.md:1575  # energy price
+number | 1,450,000 | design/dashboards-spec.md:1576  # annual energy savings, kWh
+number | € 45,000 | design/dashboards-spec.md:1577  # O&M cost reduction
+number | € 155,000 | design/dashboards-spec.md:1586  # HVAC optimisation
+number | € 62,000 | design/dashboards-spec.md:1587  # lighting control
+number | € 46,000 | design/dashboards-spec.md:1588  # operational efficiency
+number | € 31,000 | design/dashboards-spec.md:1589  # demand management
+number | € 16,000 | design/dashboards-spec.md:1590  # other savings
+number | € 1,050,000 | design/dashboards-spec.md:1599  # custom scenario
+number | € 255,000 | design/dashboards-spec.md:1599  # custom scenario savings
+quantity | 4.1 years | design/dashboards-spec.md:1599  # custom scenario payback
+quantity | 115% | design/dashboards-spec.md:1599  # custom scenario ROI
+quantity | 320 tonnes | design/dashboards-spec.md:1606  # CO₂ reduction
+number | 14,500 | design/dashboards-spec.md:1607  # equivalent trees
+
+# Lifecycle: dashboards 22
+number | € 2,830,000 | design/dashboards-spec.md:1640  # total lifecycle cost
+number | € 1,920,000 | design/dashboards-spec.md:1641  # net savings
+quantity | 68% | design/dashboards-spec.md:1642  # lifecycle ROI
+quantity | 14.2 years | design/dashboards-spec.md:1643  # average equipment life
+number | € 3,750,000 | design/dashboards-spec.md:1647  # baseline lifecycle cost
+number | € 490,000 | design/dashboards-spec.md:1655  # maintenance
+number | € 1,120,000 | design/dashboards-spec.md:1661  # HVAC lifecycle
+number | € 190,000 | design/dashboards-spec.md:1661  # water lifecycle
+number | € 170,000 | design/dashboards-spec.md:1661  # CCTV lifecycle
+number | 1,020,000 | design/dashboards-spec.md:1667  # AHU lifecycle cost
+number | 559,000 | design/dashboards-spec.md:1668  # FCU lifecycle cost
+number | 192,000 | design/dashboards-spec.md:1669  # lighting panel lifecycle cost
+number | 497,000 | design/dashboards-spec.md:1670  # LED fixture lifecycle cost
+number | 201,600 | design/dashboards-spec.md:1671  # access controller lifecycle cost
+number | 153,600 | design/dashboards-spec.md:1672  # CCTV camera lifecycle cost
+number | 259,200 | design/dashboards-spec.md:1674  # BMS controller lifecycle cost

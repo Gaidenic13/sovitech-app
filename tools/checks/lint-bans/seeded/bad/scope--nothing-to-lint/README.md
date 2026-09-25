@@ -1,0 +1,1 @@
+Seeded empty scope (phase 0 review, finding 17): this tree has no `apps/` and no `packages/`, so the bans read nothing. Before the review the check passed it with 0 files; it must fail with `lint-bans/scope`. TEST seed only.

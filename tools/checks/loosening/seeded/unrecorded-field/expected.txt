@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+fields.building.seedArea: the field building.seedArea is new: unapproved baseline v0 does not hold this value

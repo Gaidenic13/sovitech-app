@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: reserved terms in shown attributes</title>
+    <!-- Render harness page for guardrails 2.8 "Reserved terms" (docs/adr/0006-render-test.md, decision 8). The render check must FAIL here. Reserved terms in an aria-label, a title, a placeholder, the value of a submit button and ::after content. -->
+    <script type="application/json" data-render-display-objects>
+      {}
+    </script>
+    <style>
+      .stamp::after {
+        content: " (certified)";
+      }
+    </style>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>TEST attributes</h1>
+      <button type="button" aria-label="Guaranteed savings">Savings</button>
+      <span title="Binding offer">Terms</span>
+      <label>Note <input type="text" placeholder="Firm price" /></label>
+      <input type="submit" value="Get a quote" />
+      <p class="stamp">Status</p>
+    </main>
+  </body>
+</html>

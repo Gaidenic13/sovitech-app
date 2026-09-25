@@ -1,0 +1,3 @@
+// Seeded input for the lint-bans self-test (tools/checks/lint-bans/selftest.ts). Wrong on purpose.
+// No ban reads .scss files, so the colour literal and the shadow below would pass unread.
+.panel { color: #07201c; box-shadow: 0 1px 2px black; }

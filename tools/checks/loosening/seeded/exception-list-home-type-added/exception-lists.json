@@ -1,0 +1,14 @@
+{
+  "$comment": "Seeded bad input (synthetic): PDF allowed in the design reference folder, where an owner document could then sit.",
+  "lists": {
+    "fixture-manifest.document-home-types": {
+      "add": [
+        {
+          "key": "design/reference/ pdf",
+          "label": "design/reference/ pdf",
+          "content": "design/reference/ pdf"
+        }
+      ]
+    }
+  }
+}

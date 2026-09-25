@@ -1,0 +1,350 @@
+{
+  "name": "unapproved baseline v0",
+  "status": "unapproved",
+  "version": 0,
+  "guardrailsVersion": "1.5",
+  "recordedOn": "2026-09-25",
+  "approvalRef": "",
+  "note": "Not approved: no approver is named in docs/guardrails.md section 10 (D-05), so no value here is approved. It holds only the strictest values prompt 3 section 5.2 allows (\"Registry values\") and every gate closed. Written by tools/checks/loosening/write-baseline.ts, which refuses any loosening.",
+  "settings": {
+    "confirmationBudget": 7,
+    "calibrationThreshold": {
+      "correctionRatePercent": 10,
+      "window": 50
+    },
+    "firstEstimateSet": [
+      "building_type",
+      "gross_floor_area",
+      "systems_in_scope"
+    ],
+    "requiredSet": [
+      "project_name",
+      "project_type",
+      "city",
+      "country"
+    ],
+    "identityList": [
+      "project_name"
+    ],
+    "documentStageOrder": [
+      [
+        "site_survey",
+        "as_built",
+        "nameplate_photo"
+      ],
+      [
+        "shop_drawing"
+      ],
+      [
+        "execution"
+      ],
+      [
+        "tender"
+      ],
+      [
+        "technical_design"
+      ],
+      [
+        "permit"
+      ],
+      [
+        "feasibility"
+      ],
+      [
+        "unknown"
+      ]
+    ]
+  },
+  "fields": {},
+  "impactRankOrder": [],
+  "gates": {
+    "ai-processor-route": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "build-readiness decision 2",
+          "kind": "owner-decision",
+          "dId": "D-09",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "The AI boundary sends only fixture content: documents whose content hash is in `fixtures/manifest.json`, and, for drafting and every other task, values and text from the demo project only. Everything else is refused before the call and logged."
+    },
+    "dataset-asset-taxonomy": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "SOVITECH asset taxonomy with lifeSafety flags",
+          "kind": "dataset",
+          "dId": "D-92",
+          "dataset": "sovitech-asset-taxonomy"
+        }
+      ],
+      "closedBehaviour": "Asset types stay Unknown, and the assets are listed for the engineer under \"SOVITECH will check\"; counts by type read \"Not available yet\". Evals use a test-only taxonomy."
+    },
+    "dataset-cost-ranges": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "SOVITECH cost ranges and benchmarks",
+          "kind": "dataset",
+          "dId": "D-92",
+          "dataset": "sovitech-cost-ranges"
+        }
+      ],
+      "closedBehaviour": "No investment figure at any stage; \"Not available yet\"."
+    },
+    "dataset-glossary": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "Romanian glossary, engineer-reviewed",
+          "kind": "dataset",
+          "dId": "D-92",
+          "dataset": "romanian-glossary"
+        }
+      ],
+      "closedBehaviour": "Abbreviations are not expanded; the glossary tag-prefix tier of rule 3 is not used."
+    },
+    "dataset-point-templates": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "SOVITECH point templates",
+          "kind": "dataset",
+          "dId": "D-92",
+          "dataset": "sovitech-point-templates"
+        }
+      ],
+      "closedBehaviour": "Points read \"Not available yet\", naming the missing templates."
+    },
+    "dataset-sauter-catalogue": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "SAUTER catalogue",
+          "kind": "dataset",
+          "dId": "D-92",
+          "dataset": "sauter-catalogue"
+        }
+      ],
+      "closedBehaviour": "No SAUTER product line, product or model name anywhere (G1-3, G2-5). The company description \"SAUTER-based\" is not a product name."
+    },
+    "financial-indicators": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "dashboards 8.6",
+          "kind": "owner-decision",
+          "dId": "D-07",
+          "dataset": null
+        },
+        {
+          "item": "proposal 7.2.12",
+          "kind": "guardrail-proposal",
+          "dId": "D-48",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "OPEX, payback, NPV, IRR and ROI read \"Not available yet\"."
+    },
+    "ifc-areas": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "ifc-input 6.2.6",
+          "kind": "guardrail-proposal",
+          "dId": "D-49",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "No area candidate from quantity sets."
+    },
+    "ifc-code-inference": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "ifc-input 6.2.9",
+          "kind": "guardrail-proposal",
+          "dId": "D-42",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "No asset type, level type or zone category from IFC classes or names."
+    },
+    "ifc-geometry": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "ifc-input 6.2.7",
+          "kind": "guardrail-proposal",
+          "dId": "D-50",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "No candidate computed from a model's shapes: areas, volumes, elevations, containment found by geometry, connectivity traced through ports."
+    },
+    "ifc-hidden-content": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "ifc-input 6.2.13",
+          "kind": "guardrail-proposal",
+          "dId": "D-59",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "Elements on a switched-off presentation layer, or placed outside the site's extent, give no candidate and a hidden-content finding for the engineer (rule 14, hidden layers). No release action."
+    },
+    "ifc-identity": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "ifc-input 6.2.4",
+          "kind": "guardrail-proposal",
+          "dId": "D-41",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "No automatic matching of storeys or spaces across models. GlobalId is not an identity. No tag source."
+    },
+    "ifc-units": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "ifc-input 6.2.11",
+          "kind": "guardrail-proposal",
+          "dId": "D-63",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "Values declared in m³/s or J, temperatures declared in absolute kelvin, and 0-1 ratios for fields registered in % are refused, and recorded in coverage."
+    },
+    "ifc-untagged-count": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "ifc-input 6.2.5",
+          "kind": "guardrail-proposal",
+          "dId": "D-74",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "Untagged objects are listed as possible duplicates; their count reads \"Not available yet\"."
+    },
+    "ifc-values": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "ifc-input 6.2.1",
+          "kind": "guardrail-proposal",
+          "dId": "D-38",
+          "dataset": null
+        },
+        {
+          "item": "ifc-input 6.2.2",
+          "kind": "guardrail-proposal",
+          "dId": "D-39",
+          "dataset": null
+        },
+        {
+          "item": "ifc-input 6.2.3",
+          "kind": "guardrail-proposal",
+          "dId": "D-40",
+          "dataset": null
+        },
+        {
+          "item": "ifc-input 6.2.10",
+          "kind": "guardrail-proposal",
+          "dId": "D-37",
+          "dataset": null
+        },
+        {
+          "item": "IFC mapping tables (GAP-I)",
+          "kind": "dataset",
+          "dId": "D-37",
+          "dataset": "ifc-mapping-tables"
+        },
+        {
+          "item": "build-readiness decision 4",
+          "kind": "owner-decision",
+          "dId": "D-01",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "The IFC file is stored and hashed, with the status line \"Not analysed: IFC model stored, not analysed\", because its values are not read. It never counts as analysed coverage in a \"Not found in the analysed documents\" statement (rule 12; new case G12-5). Schema errors and IDS results are stored with the document as engineer items, shown on the engineer's view only, and never shown as coverage lines (a stricter choice; results as coverage are ifc-input 6.2.14). The model's stage stays `unknown` (ifc-input 6.2.2). The model is shown as a document with its source (prompt 3 section 8). No candidate comes from IFC."
+    },
+    "operations": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "dashboards 8.1",
+          "kind": "owner-decision",
+          "dId": "D-28",
+          "dataset": null
+        },
+        {
+          "item": "proposal 7.2.1",
+          "kind": "guardrail-proposal",
+          "dId": "D-76",
+          "dataset": null
+        },
+        {
+          "item": "proposal 7.2.2",
+          "kind": "guardrail-proposal",
+          "dId": "D-80",
+          "dataset": null
+        },
+        {
+          "item": "proposal 7.2.11",
+          "kind": "guardrail-proposal",
+          "dId": "D-75",
+          "dataset": null
+        },
+        {
+          "item": "proposal 7.2.16",
+          "kind": "guardrail-proposal",
+          "dId": "D-79",
+          "dataset": null
+        },
+        {
+          "item": "proposal 7.2.33",
+          "kind": "guardrail-proposal",
+          "dId": "D-85",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "The OPERATIONS group is not rendered and no live content is built."
+    },
+    "units-7.2.22": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "proposal 7.2.22",
+          "kind": "guardrail-proposal",
+          "dId": "D-44",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "Durations, currency ratios and CO₂ read \"Not available yet\" (dashboards 7.1.1 \"Missing units come first\")."
+    },
+    "view-provenance": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "proposal 7.2.8",
+          "kind": "guardrail-proposal",
+          "dId": "D-45",
+          "dataset": null
+        },
+        {
+          "item": "ifc-input 6.2.15",
+          "kind": "guardrail-proposal",
+          "dId": "D-46",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "On every model and plan view: no pins or highlights from location evidence, no scale bar, no north arrow or orientation words, no \"From a superseded revision\" line, no illustrative model. The view names its model with its stage and revision as recorded (2.3)."
+    }
+  }
+}

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: count-up after the readiness marker</title>
+    <!-- Render harness page for G2-8 (docs/adr/0006-render-test.md). The render check must FAIL here. With no timer at all, a frame loop marks the page ready after 2 s and starts a count-up 0.3 s later; the check observes for its minimum window after the readiness marker. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>Harness page with an animated value</h1>
+      <p><span id="rooms" data-value-id="building:b-test.guestRooms">TEST 0</span> guest rooms</p>
+      <script>
+        const element = document.getElementById("rooms");
+        const start = performance.now();
+        let shown = 0;
+        function frame(now) {
+          const elapsed = now - start;
+          if (elapsed > 2000 && !document.body.hasAttribute("data-render-ready")) document.body.setAttribute("data-render-ready", "");
+          if (elapsed > 2300 && shown < 123) {
+            shown = Math.min(123, shown + 12);
+            element.textContent = `TEST ${shown}`;
+          }
+          if (shown < 123) requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      </script>
+    </main>
+  </body>
+</html>

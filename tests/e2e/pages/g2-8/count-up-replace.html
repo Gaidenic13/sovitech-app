@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: count-up by replacement</title>
+    <!-- Render harness page for G2-8 (docs/adr/0006-render-test.md). The render check must FAIL here. Each step replaces the value element with a new one carrying the same value id. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with an animated value</h1>
+      <p id="slot"><span data-value-id="building:b-test.guestRooms">TEST 0</span></p>
+      <script>
+        const slot = document.getElementById("slot");
+        let shown = 0;
+        const timer = setInterval(() => {
+          shown = Math.min(123, shown + 12);
+          const next = document.createElement("span");
+          next.setAttribute("data-value-id", "building:b-test.guestRooms");
+          next.textContent = `TEST ${shown}`;
+          slot.replaceChildren(next);
+          if (shown === 123) clearInterval(timer);
+        }, 40);
+      </script>
+    </main>
+  </body>
+</html>

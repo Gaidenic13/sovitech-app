@@ -1,0 +1,13 @@
+# Seeded bad input (synthetic): the real gate, set open on an owner decision the PRD does not record.
+id: ai-processor-route
+open: true
+waitsFor:
+  - item: 'build-readiness decision 2'
+    kind: owner-decision
+    dId: D-09
+    approvalRef: 'owner-decision:D-09'
+closedBehaviour: >-
+  The AI boundary sends only fixture content: documents whose content hash is in
+  `fixtures/manifest.json`, and, for drafting and every other task, values and text from the demo
+  project only. Everything else is refused before the call and logged.
+source: docs/dev-prompts/03-build-interactive-app.md section 5.4, table of gates

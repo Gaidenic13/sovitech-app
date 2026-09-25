@@ -1,0 +1,10 @@
+{
+  "$comment": "Seeded bad input (synthetic): the PDF extension removed from the document types the fixture-manifest check finds.",
+  "lists": {
+    "fixture-manifest.document-extensions": {
+      "remove": [
+        "pdf"
+      ]
+    }
+  }
+}

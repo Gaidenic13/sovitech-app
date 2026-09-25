@@ -1,0 +1,38 @@
+# Seeded bad input (synthetic): the real gate, set open while no approver is named.
+id: ifc-values
+open: true
+waitsFor:
+  - item: 'ifc-input 6.2.1'
+    kind: guardrail-proposal
+    dId: D-38
+    approvalRef: ''
+  - item: 'ifc-input 6.2.2'
+    kind: guardrail-proposal
+    dId: D-39
+    approvalRef: ''
+  - item: 'ifc-input 6.2.3'
+    kind: guardrail-proposal
+    dId: D-40
+    approvalRef: ''
+  - item: 'ifc-input 6.2.10'
+    kind: guardrail-proposal
+    dId: D-37
+    approvalRef: ''
+  - item: 'IFC mapping tables (GAP-I)'
+    kind: dataset
+    dId: D-37
+    dataset: ifc-mapping-tables
+    approvalRef: ''
+  - item: 'build-readiness decision 4'
+    kind: owner-decision
+    dId: D-01
+    approvalRef: ''
+closedBehaviour: >-
+  The IFC file is stored and hashed, with the status line "Not analysed: IFC model stored, not
+  analysed", because its values are not read. It never counts as analysed coverage in a "Not found
+  in the analysed documents" statement (rule 12; new case G12-5). Schema errors and IDS results
+  are stored with the document as engineer items, shown on the engineer's view only, and never
+  shown as coverage lines (a stricter choice; results as coverage are ifc-input 6.2.14). The
+  model's stage stays `unknown` (ifc-input 6.2.2). The model is shown as a document with its
+  source (prompt 3 section 8). No candidate comes from IFC.
+source: docs/dev-prompts/03-build-interactive-app.md section 5.4, table of gates

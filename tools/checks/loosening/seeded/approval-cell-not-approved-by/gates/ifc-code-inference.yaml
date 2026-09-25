@@ -1,0 +1,14 @@
+# Seeded bad input (synthetic): the real gate, set open with a reference to a
+# change-log row whose "Approved by" cell is a cell that names the approver in a refusal.
+# Before the phase 0 review fix, the reference resolved because the cell named
+# the approver somewhere, and the check let the open gate through.
+id: ifc-code-inference
+open: true
+waitsFor:
+  - item: 'ifc-input 6.2.9'
+    kind: guardrail-proposal
+    dId: D-42
+    approvalRef: 'guardrails-changelog:9.4'
+closedBehaviour: >-
+  No asset type, level type or zone category from IFC classes or names.
+source: docs/dev-prompts/03-build-interactive-app.md section 5.4, table of gates

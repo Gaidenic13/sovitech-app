@@ -1,0 +1,10 @@
+/* Good seeded input for the lint-bans self-test: it must pass. */
+@import 'tailwindcss' source(none);
+@theme {
+  --color-*: initial;
+  --shadow-*: initial;
+}
+@theme inline {
+  --color-surface: var(--sov-surface);
+}
+.skip-link:focus-visible { outline: 2px solid var(--sov-accent); outline-offset: 2px; box-shadow: none; }

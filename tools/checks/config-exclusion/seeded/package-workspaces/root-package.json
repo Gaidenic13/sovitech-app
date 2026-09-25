@@ -1,0 +1,7 @@
+{
+  "name": "seeded-bad",
+  "private": true,
+  "workspaces": [
+    "**"
+  ]
+}

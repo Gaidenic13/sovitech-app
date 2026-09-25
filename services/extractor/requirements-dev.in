@@ -1,0 +1,7 @@
+# Development tools for services/extractor: the top-level pins (prompt 3 section 12).
+# This is the input. The installable file is requirements-dev.lock, compiled from
+# it with every transitive dependency pinned and hashed. After changing a pin here,
+# regenerate the lock as docs/adr/0001-toolchain-and-monorepo.md describes, and
+# install only from the lock, with --require-hashes.
+ruff==0.16.9
+pytest==9.1.1

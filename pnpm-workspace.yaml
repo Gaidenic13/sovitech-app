@@ -1,0 +1,12 @@
+# Workspace packages are listed by explicit roots only, so company/** is never a
+# workspace package (build-readiness decision 12; prompt 3 section 6).
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Dependency build scripts that may run on install. esbuild's install script
+# checks its platform binary (used by tsx and Vite).
+allowBuilds:
+  esbuild: true
+
+engineStrict: true

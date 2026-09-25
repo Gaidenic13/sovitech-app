@@ -1,0 +1,28 @@
+[project]
+name = "sovitech-extractor"
+version = "0.0.0"
+description = "SOVITECH document and IFC extractor (prompt 3 sections 6 and 8)."
+requires-python = ">=3.12,<3.13"
+# Runtime dependencies (IfcOpenShell, IfcTester, pypdfium2, openpyxl) arrive in
+# phase 2, pinned. Development tools: top-level pins in requirements-dev.in, the
+# full hashed set in requirements-dev.lock, installed with --require-hashes.
+dependencies = []
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+# company/** is never an input (build-readiness decision 12).
+extend-exclude = ["company", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+norecursedirs = ["company", ".venv", "__pycache__"]
+addopts = "-ra --strict-markers"

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: numbers shown only on focus</title>
+    <!-- Render harness page for G2-1 (docs/adr/0006-render-test.md). The render check must FAIL here. A number shown only in :focus-within generated content, and a number a focus listener (added with addEventListener) writes into a hint. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+    <style>
+      .field:focus-within::after {
+        content: "TEST 12 characters left";
+      }
+    </style>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with focus details</h1>
+      <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+      <div class="field"><label for="name-field">Project name</label> <input id="name-field" type="text" /></div>
+      <button id="rooms-more" type="button">Rooms</button>
+      <p id="rooms-hint"></p>
+      <script>
+        document.getElementById("rooms-more").addEventListener("focus", () => {
+          document.getElementById("rooms-hint").textContent = "TEST 123 guest rooms in the schedule";
+        });
+      </script>
+    </main>
+  </body>
+</html>

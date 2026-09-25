@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+exception list index.reviewed-test-doubles: entry added: tests/guardrails/G8-4.test.ts vi.mock @sovitech/domain: a loosening against unapproved baseline v0 (exception lists) with no approval reference

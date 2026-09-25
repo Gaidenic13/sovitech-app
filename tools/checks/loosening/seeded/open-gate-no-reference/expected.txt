@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+the gate is open, but this item has no approval reference

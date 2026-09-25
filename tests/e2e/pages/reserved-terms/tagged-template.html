@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: reserved terms from tagged templates</title>
+    <!-- Render harness page for guardrails 2.8 "Reserved terms" (docs/adr/0006-render-test.md, decision 8). The render check must FAIL here. Copy built with tagged templates (a translation-style tag and String.raw), in English and Romanian: the source scan did not read tagged templates; the rendered-page scan reads what is shown. Found by the phase 0 round 2 review (probe Tagged.tsx). -->
+    <script type="application/json" data-render-display-objects>
+      {}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>TEST copy from templates</h1>
+      <p id="english"></p>
+      <p id="raw"></p>
+      <p id="romanian" lang="ro"></p>
+      <script>
+        const t = (strings, ...values) =>
+          strings.raw.reduce((text, part, index) => text + part + (index < values.length ? String(values[index]) : ""), "");
+        const stage = "TEST";
+        document.getElementById("english").textContent = t`Final price, verified`;
+        document.getElementById("raw").textContent = String.raw`Certified compliant`;
+        document.getElementById("romanian").textContent = t`Ofertă fermă ${stage}, preț garantat`;
+      </script>
+    </main>
+  </body>
+</html>

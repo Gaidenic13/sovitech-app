@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: count-up by showing hidden elements in turn</title>
+    <!-- Render harness page for G2-8 (docs/adr/0006-render-test.md). The render check must FAIL here. Pre-rendered value elements with one value id are shown one after another. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with an animated value</h1>
+      <p id="flip">
+        <span data-value-id="building:b-test.guestRooms">TEST 0</span>
+        <span data-value-id="building:b-test.guestRooms" hidden>TEST 1</span>
+        <span data-value-id="building:b-test.guestRooms" hidden>TEST 12</span>
+        <span data-value-id="building:b-test.guestRooms" hidden>TEST 123</span>
+      </p>
+      <script>
+        const spans = [...document.querySelectorAll("#flip span")];
+        let index = 0;
+        const timer = setInterval(() => {
+          spans[index].hidden = true;
+          index += 1;
+          spans[index].hidden = false;
+          if (index === spans.length - 1) clearInterval(timer);
+        }, 80);
+      </script>
+    </main>
+  </body>
+</html>

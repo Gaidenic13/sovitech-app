@@ -1,0 +1,68 @@
+{
+  "MIT": [
+    {
+      "name": "seeded-permissive",
+      "versions": [
+        "1.0.0"
+      ],
+      "license": "MIT",
+      "paths": [],
+      "description": "Seeded package for the licence self-test."
+    }
+  ],
+  "MPL-2.0": [
+    {
+      "name": "seeded-weak-copyleft",
+      "versions": [
+        "2.0.0"
+      ],
+      "license": "MPL-2.0",
+      "paths": [],
+      "description": "Seeded package for the licence self-test."
+    }
+  ],
+  "LGPL-3.0-or-later": [
+    {
+      "name": "seeded-lesser",
+      "versions": [
+        "3.0.0"
+      ],
+      "license": "LGPL-3.0-or-later",
+      "paths": [],
+      "description": "Seeded package for the licence self-test."
+    }
+  ],
+  "(MIT OR GPL-3.0-only)": [
+    {
+      "name": "seeded-dual",
+      "versions": [
+        "1.2.0"
+      ],
+      "license": "(MIT OR GPL-3.0-only)",
+      "paths": [],
+      "description": "Seeded package for the licence self-test."
+    }
+  ],
+  "Apache-2.0 WITH LLVM-exception": [
+    {
+      "name": "seeded-exception",
+      "versions": [
+        "4.0.0"
+      ],
+      "license": "Apache-2.0 WITH LLVM-exception",
+      "paths": [],
+      "description": "Seeded package for the licence self-test."
+    }
+  ],
+  "EPL-2.0": [
+    {
+      "name": "seeded-eclipse",
+      "versions": [
+        "5.0.0"
+      ],
+      "license": "EPL-2.0",
+      "paths": [],
+      "description": "Seeded package for the licence self-test."
+    }
+  ]
+}

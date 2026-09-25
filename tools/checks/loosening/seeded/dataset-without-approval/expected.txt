@@ -1,0 +1,4 @@
+# Each line must appear in the check's details for this seed to count.
+the dataset website-product-list has no approval record
+G1-12
+fields.building.seedArea.referenceDatasets: reference datasets [] → [website-product-list]: a loosening

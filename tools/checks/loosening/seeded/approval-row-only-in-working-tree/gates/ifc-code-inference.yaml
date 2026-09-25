@@ -1,0 +1,13 @@
+# Seeded bad input (synthetic): the gate opened with a reference to a change-log row that
+# names the approver but exists only in the working tree (not committed). Before round 2 of
+# the phase 0 review, approvals were read from the working tree, and the gate opened.
+id: ifc-code-inference
+open: true
+waitsFor:
+  - item: 'ifc-input 6.2.9'
+    kind: guardrail-proposal
+    dId: D-42
+    approvalRef: 'guardrails-changelog:9.6'
+closedBehaviour: >-
+  No asset type, level type or zone category from IFC classes or names.
+source: docs/dev-prompts/03-build-interactive-app.md section 5.4, table of gates

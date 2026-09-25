@@ -1,0 +1,6 @@
+[tool.ruff]
+extend-exclude = ["company"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["company", ".venv"]

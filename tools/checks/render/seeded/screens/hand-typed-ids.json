@@ -1,0 +1,11 @@
+[
+  {
+    "name": "TEST screen with a hand-typed map",
+    "path": "/",
+    "displayObjects": {
+      "building:b-test.guestRooms": {
+        "text": "TEST 123"
+      }
+    }
+  }
+]

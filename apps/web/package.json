@@ -1,0 +1,26 @@
+{
+  "name": "@sovitech/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "preview:e2e": "vite build && vite preview --host 127.0.0.1 --port 4173 --strictPort",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json"
+  },
+  "dependencies": {
+    "@sovitech/ui": "workspace:*",
+    "@sovitech/view-model": "workspace:*",
+    "@sovitech/viewer": "workspace:*",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "@vitejs/plugin-react": "6.1.1",
+    "tailwindcss": "4.3.3",
+    "vite": "8.3.0"
+  }
+}

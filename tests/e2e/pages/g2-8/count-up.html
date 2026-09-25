@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: count-up</title>
+    <!-- Render harness page for G2-8 (docs/adr/0006-render-test.md). The render check must FAIL here. A value element counts up from zero to its value, frame by frame, as the page loads. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 12,345"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with an animated value</h1>
+      <p><span id="rooms" data-value-id="building:b-test.guestRooms">TEST 0</span> guest rooms</p>
+      <script>
+        const element = document.getElementById("rooms");
+        const target = 12345;
+        const start = performance.now();
+        function tick(now) {
+          const progress = Math.min(1, Math.max(0, now - start) / 700);
+          element.textContent = `TEST ${Math.round(target * progress).toLocaleString("en-US")}`;
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      </script>
+    </main>
+  </body>
+</html>

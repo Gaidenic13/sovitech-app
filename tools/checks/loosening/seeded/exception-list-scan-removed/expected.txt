@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+exception list scan-roots.scanned: entry removed from a deny list: topLevel.apps reserved-terms: a loosening against unapproved baseline v0 (exception lists) with no approval reference

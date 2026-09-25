@@ -1,0 +1,11 @@
+# Seeded bad input (synthetic): the real gate, waiting for one item only.
+id: operations
+open: false
+waitsFor:
+  - item: 'dashboards 8.1'
+    kind: owner-decision
+    dId: D-28
+    approvalRef: ''
+closedBehaviour: >-
+  The OPERATIONS group is not rendered and no live content is built.
+source: docs/dev-prompts/03-build-interactive-app.md section 5.4, table of gates

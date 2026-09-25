@@ -1,0 +1,6 @@
+{
+  "$comment": "Seeded bad input (synthetic): a list the baseline records whose reader was removed from the check.",
+  "dropFromCurrent": [
+    "render.unreadable"
+  ]
+}

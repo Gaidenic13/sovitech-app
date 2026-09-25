@@ -1,0 +1,18 @@
+workflow:
+  rules:
+    - changes:
+        - company/**/*
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        paths:
+          - apps/**/*
+          - packages/**/*
+
+test:extractor:
+  script:
+    - cd services/extractor
+    - .venv/bin/ruff check .
+  except:
+    changes:
+      - company/**/*

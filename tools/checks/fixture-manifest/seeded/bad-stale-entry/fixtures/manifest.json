@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "path": "fixtures/generators/make-sample.ts",
+      "role": "generator"
+    }
+  ],
+  "files": [
+    {
+      "path": "fixtures/data.txt",
+      "sha256": "838636fa8f57c37c9d9180bc12931a414440905a165b1869b512c7dbf813bf17",
+      "generator": "fixtures/generators/make-sample.ts"
+    },
+    {
+      "path": "fixtures/gone.txt",
+      "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "generator": "fixtures/generators/make-sample.ts"
+    }
+  ]
+}

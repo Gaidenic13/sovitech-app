@@ -1,0 +1,27 @@
+{
+  "fields": {
+    "building.seedArea": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": {
+        "absolute": null,
+        "relative": 0.01,
+        "reason": "seeded, invented"
+      },
+      "plausible": null,
+      "criticality": "for_quotation",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "engineer",
+      "confirmByBasis": null,
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 1,
+      "minorForTotals": false,
+      "qualifierRequired": true
+    }
+  },
+  "impactRankOrder": [
+    "building.seedArea"
+  ]
+}

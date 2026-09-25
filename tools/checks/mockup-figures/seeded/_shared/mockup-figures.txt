@@ -1,0 +1,12 @@
+# TEST list for the mockup-figures self-test: synthetic figures only.
+text | Hotel Nowhere Testville | design/test-spec.md:2  # TEST hotel name
+number | 98,765 | design/test-spec.md:3  # TEST area
+text | 7Q + GF + 3 | design/test-spec.md:3  # TEST floor notation
+number | 739 | design/test-spec.md:3  # TEST rooms
+number | €4,321,987 | design/test-spec.md:4  # TEST investment
+quantity | 13.7% | design/test-spec.md:4  # TEST savings share
+quantity | 8.3 years | design/test-spec.md:4  # TEST payback
+quantity | 612 kW | design/test-spec.md:5  # TEST load
+quantity | 9,876 m³/h | design/test-spec.md:5  # TEST airflow
+quantity | €47 / m² | design/test-spec.md:5  # TEST cost per m²
+number | €2,750,000 | design/test-spec.md:6  # TEST scenario

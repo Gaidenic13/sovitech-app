@@ -1,0 +1,3 @@
+# Seeded bad input (TEST): a seed inside a package, outside src.
+answers:
+  - label: Definitive layout

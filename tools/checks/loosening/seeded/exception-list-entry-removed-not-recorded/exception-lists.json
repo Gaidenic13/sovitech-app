@@ -1,0 +1,10 @@
+{
+  "$comment": "Seeded input (synthetic): an allowlist entry removed (a tightening). Against the unapproved baseline it fails until the writer records it.",
+  "lists": {
+    "render.entries": {
+      "remove": [
+        "max-file-size"
+      ]
+    }
+  }
+}

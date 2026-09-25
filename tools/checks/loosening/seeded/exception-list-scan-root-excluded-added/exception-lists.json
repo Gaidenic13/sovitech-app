@@ -1,0 +1,14 @@
+{
+  "$comment": "Seeded bad input (synthetic): a scripts/ folder added to the scan-roots list as excluded, so no scan reads a demo seed kept there.",
+  "lists": {
+    "scan-roots.excluded": {
+      "add": [
+        {
+          "key": "topLevel.scripts",
+          "label": "topLevel.scripts",
+          "content": "Seeded bad entry (synthetic): TEST."
+        }
+      ]
+    }
+  }
+}

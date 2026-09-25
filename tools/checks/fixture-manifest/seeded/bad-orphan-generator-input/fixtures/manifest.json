@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "path": "fixtures/generators/spec.yaml",
+      "role": "generator-input"
+    }
+  ],
+  "files": []
+}

@@ -1,0 +1,9 @@
+{
+  "id": "G2-1",
+  "promptHash": "sha256:TEST-a-prompt-from-before-the-last-change",
+  "modelId": "TEST-model",
+  "schemaHash": "sha256:TEST-a-schema-from-before-the-last-change",
+  "samples": 5,
+  "passed": 5,
+  "ranAt": "2026-09-25T10:00:00.000Z"
+}

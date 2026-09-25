@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+exception list reserved-terms.machine-keys: entry added: apps/web/src/test-labels.ts#TEST_LABELS: a loosening against unapproved baseline v0 (exception lists) with no approval reference

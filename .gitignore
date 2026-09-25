@@ -43,3 +43,8 @@ playwright-report/
 # Restore them from the website repo: see company/products/tools/README.md.
 /company/products/images/
 /company/products/images-unreferenced/
+
+# Generated output (build harness, prompt 3 section 12)
+/fixtures/ifc/perf/
+.pnpm-store/
+.cache/

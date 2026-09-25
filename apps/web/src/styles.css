@@ -1,0 +1,36 @@
+/*
+ * Tailwind v4 with automatic source detection switched off: every source is
+ * listed, so nothing under company/ is scanned (prompt 3 section 6).
+ */
+@import 'tailwindcss' source(none);
+@import '@sovitech/ui/tokens.css';
+
+@source './';
+@source '../../../packages/ui/src';
+@source '../../../packages/viewer/src';
+
+/*
+ * The default palette and every shadow scale are switched off, so no colour or
+ * shadow enters through a class name. Colours come only from the tokens file.
+ */
+@theme {
+  --color-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+}
+
+@theme inline {
+  --color-bg: var(--sov-bg);
+  --color-surface: var(--sov-surface);
+  --color-accent: var(--sov-accent);
+  --color-text-primary: var(--sov-text-primary);
+}
+
+html,
+body {
+  background-color: var(--sov-bg);
+  color: var(--sov-text-primary);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}

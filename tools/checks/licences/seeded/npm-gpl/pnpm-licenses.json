@@ -1,0 +1,13 @@
+{
+  "GPL-3.0-only": [
+    {
+      "name": "seeded-copyleft",
+      "versions": [
+        "1.0.0"
+      ],
+      "license": "GPL-3.0-only",
+      "paths": [],
+      "description": "Seeded package for the licence self-test."
+    }
+  ]
+}

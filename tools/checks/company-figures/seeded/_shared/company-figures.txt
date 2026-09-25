@@ -1,0 +1,10 @@
+# TEST list for the company-figures self-test: synthetic figures and synthetic product names only.
+# Its company/ sources do not exist and are never read, as for the real list.
+product | ZQX 987 | company/products/TEST-catalogue.json:3  # TEST model
+product | QZT987F001 | company/products/TEST-catalogue.json:4  # TEST article code
+product | zetaLine | company/products/TEST-catalogue.json:5  # TEST product line
+product | TESTLINE 5 | company/products/TEST-catalogue.json:6  # TEST product line with a generation number
+number | 97,531 | company/business/TEST-profile.md:2  # TEST area
+quantity | 7.9 years | company/business/TEST-profile.md:3  # TEST payback
+quantity | 17 EUR/m² | company/business/TEST-pricing.md:2  # TEST price band
+text | 40+ TEST proiecte | company/business/TEST-profile.md:4  # TEST project count

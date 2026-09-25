@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: bare digit in a closed shadow root</title>
+    <!-- Render harness page for G2-1 (docs/adr/0006-render-test.md). The render check must FAIL here. A digit outside any value element, inside a closed shadow root. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with one unbound number</h1>
+      <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+      <room-card></room-card>
+      <script>
+        customElements.define(
+          "room-card",
+          class extends HTMLElement {
+            constructor() {
+              super();
+              this.attachShadow({ mode: "closed" }).innerHTML = "<p>Rooms TEST 12</p>";
+            }
+          },
+        );
+      </script>
+    </main>
+  </body>
+</html>

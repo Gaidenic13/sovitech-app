@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: clean page</title>
+    <!--
+      Render harness page (docs/adr/0006-render-test.md). The render check must PASS here.
+      Every number on this page sits in a value element and is made of what that value's
+      display object declares (below), or fits one entry of tests/e2e/render/allowlist.ts, and
+      no value element shows more than one number over time. Every value is a visibly synthetic
+      TEST value in a digit pattern (1, 12, 123, 1,234, 12,345); none comes from the mockups,
+      the specs or company/. The stepper is the one registered stepper container: an ordered
+      list of eight items, each showing its position and its registered step title. The logo
+      is an image on the reviewed unreadable list; the small icon is an inline SVG of icon size.
+      The evidence excerpt holds a reserved term and passes as verbatim document text, because
+      the display objects serve it with its document id and content hash. The page sets its
+      readiness marker once its pending value has arrived. A hover shows a tooltip whose number
+      is bound. Each allowlist entry is used here at least once (G2-1 asserts it).
+    -->
+    <script type="application/json" data-render-display-objects>
+      {
+        "building:b-test.grossFloorArea": {
+          "text": "TEST 12,345 m²",
+          "lines": ["From document", "Found in TEST Area Schedule.pdf, page 1"],
+          "parts": ["TEST 12,345", "m²"],
+          "evidence": [{ "documentId": "d-test-area", "contentHash": "sha256-TEST-area", "excerpt": "Scd TEST 12.345 mp, conform TEST" }]
+        },
+        "building:b-test.guestRooms": { "text": "TEST 123", "lines": ["Calculated"] },
+        "asset:a-test.coolingCapacity": { "text": "TEST 123 kW", "lines": ["From document"] },
+        "project:p-test.openItems.owner": { "text": "TEST 12" },
+        "building:b-test.usableArea": { "text": "TEST 1,234" },
+        "asset:a-test.airflow": { "text": "TEST 1,234 m³/h" },
+        "project:p-test.openItems.engineer": { "text": "TEST 12" },
+        "zone:z-test.name": { "text": "TEST Zone 12" },
+        "building:b-test.upperFloors": { "text": "TEST 1" }
+      }
+    </script>
+    <style>
+      ol.steps {
+        list-style: none;
+        display: flex;
+        gap: 1rem;
+        margin: 0;
+        padding: 0;
+      }
+      .compact {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <nav aria-label="Wizard steps">
+      <ol class="steps" data-render-stepper="wizard-step-number">
+        <li><span data-render-allow="wizard-step-number">1</span> Project</li>
+        <li><span data-render-allow="wizard-step-number">2</span> Documents</li>
+        <li><span data-render-allow="wizard-step-number">3</span> Building</li>
+        <li><span data-render-allow="wizard-step-number">4</span> Systems</li>
+        <li><span data-render-allow="wizard-step-number">5</span> Operations</li>
+        <li><span data-render-allow="wizard-step-number">6</span> Goals</li>
+        <li><span data-render-allow="wizard-step-number">7</span> Automation</li>
+        <li><span data-render-allow="wizard-step-number">8</span> Proposal</li>
+      </ol>
+    </nav>
+
+    <main>
+      <h1>Harness page with every number tied to a value id</h1>
+      <p>
+        <img src="../../../packages/ui/src/brand/logo-white.svg" alt="SOVITECH Control" height="32" data-render-unreadable="brand-logo" />
+        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M12 4v16" stroke="currentColor" fill="none" /></svg>
+      </p>
+
+      <section>
+        <h2>Gross floor area</h2>
+        <div data-value-id="building:b-test.grossFloorArea">
+          <span>TEST 12,345 m²</span> <span>From document</span>
+          <p>Found in TEST Area Schedule.pdf, page 1</p>
+          <q data-copy-kind="evidence-excerpt" data-document-id="d-test-area" data-content-hash="sha256-TEST-area">Scd TEST 12.345 mp, conform TEST</q>
+        </div>
+        <!-- The same value id shown a second time, in a compact form that stays hidden, its figure and unit in separate elements (declared parts). -->
+        <div class="compact" data-value-id="building:b-test.grossFloorArea"><span>TEST 12,345</span> <span>m²</span></div>
+      </section>
+
+      <section>
+        <h2>Guest rooms</h2>
+        <p>
+          <span data-value-id="building:b-test.guestRooms" aria-label="TEST 123 guest rooms" title="TEST 123 guest rooms">TEST 123 <span>Calculated</span></span>
+        </p>
+        <button id="rooms-help" type="button">Rooms help</button>
+        <span id="rooms-tip"></span>
+      </section>
+
+      <section>
+        <h2>Cooling capacity</h2>
+        <!-- Pending first, then one value: a single number over time is not a count-up. -->
+        <div id="pending-value" data-value-id="asset:a-test.coolingCapacity">Reading documents…</div>
+      </section>
+
+      <section>
+        <h2>Open items</h2>
+        <p><span data-value-id="project:p-test.openItems.owner">TEST 12</span> things for you to check</p>
+      </section>
+
+      <section>
+        <h2>Uploads</h2>
+        <p>Last upload <time datetime="2026-09-25">25 Sep 2026</time></p>
+        <p>Max file size 500 MB</p>
+      </section>
+
+      <section>
+        <h2>Notes</h2>
+        <label for="notes">Notes for the engineer</label>
+        <textarea id="notes" maxlength="200"></textarea>
+        <span data-render-allow="character-counter" data-counter-for="notes">0 / 200</span>
+      </section>
+
+      <section>
+        <h2>Usable area</h2>
+        <label>Usable area <input type="text" data-value-id="building:b-test.usableArea" value="TEST 1,234" /></label>
+      </section>
+
+      <section>
+        <h2>Values inside components</h2>
+        <value-card></value-card>
+        <slot-value>TEST 12</slot-value>
+      </section>
+
+      <section>
+        <h2>Plan</h2>
+        <svg role="img" aria-label="Plan of a test level" width="200" height="60" viewBox="0 0 200 60">
+          <text x="10" y="30" data-value-id="zone:z-test.name">TEST Zone 12</text>
+        </svg>
+      </section>
+
+      <details>
+        <summary>More values</summary>
+        <p><span data-value-id="building:b-test.upperFloors">TEST 1</span> upper floors</p>
+      </details>
+    </main>
+
+    <script>
+      customElements.define(
+        'value-card',
+        class extends HTMLElement {
+          constructor() {
+            super();
+            const root = this.attachShadow({ mode: 'open' });
+            root.innerHTML = '<span data-value-id="asset:a-test.airflow">TEST 1,234 m³/h</span>';
+          }
+        },
+      );
+      customElements.define(
+        'slot-value',
+        class extends HTMLElement {
+          constructor() {
+            super();
+            const root = this.attachShadow({ mode: 'open' });
+            root.innerHTML =
+              '<span data-value-id="project:p-test.openItems.engineer"><slot></slot></span> equipment classifications';
+          }
+        },
+      );
+      // A hover shows a tooltip; its number is the served value, bound.
+      document.getElementById('rooms-help').addEventListener('mouseenter', () => {
+        document.getElementById('rooms-tip').innerHTML =
+          '<span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms in TEST Room Schedule';
+      });
+      setTimeout(() => {
+        const element = document.getElementById('pending-value');
+        const value = document.createElement('span');
+        value.textContent = 'TEST 123 kW';
+        const badge = document.createElement('span');
+        badge.textContent = ' From document';
+        element.replaceChildren(value, badge);
+        // The screen has rendered the data it asked for.
+        document.body.setAttribute('data-render-ready', '');
+      }, 300);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: a number in an image</title>
+    <!-- Render harness page for G2-1 (docs/adr/0006-render-test.md). The render check must FAIL here. An image whose pixels show TEST 12,345 (an SVG drawn as an img). The render test cannot read pixels, and the image is not on the reviewed unreadable list. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with one unbound number</h1>
+      <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+      <img
+        alt="Plan of a test level"
+        width="240"
+        height="40"
+        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='40'%3E%3Ctext x='10' y='28'%3ETEST 12,345%3C/text%3E%3C/svg%3E"
+      />
+    </main>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+# Seeded bad input (TEST): malformed entries.
+brand | ZQX 987 | company/products/TEST-catalogue.json:3
+product | ZQX 987 | design/test-spec.md:4
+product | Q7 | company/products/TEST-catalogue.json:3
+product | ZQX | company/products/TEST-catalogue.json:3
+product | ZQX 987
+product | ZQX 987 | company/products/TEST-catalogue.json:3
+product | zqx-987 | company/products/TEST-catalogue.json:3

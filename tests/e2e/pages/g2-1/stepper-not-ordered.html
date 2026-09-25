@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: a stepper that is not an ordered list</title>
+    <!-- Render harness page for G2-1 (docs/adr/0006-render-test.md). The render check must FAIL here. The registered stepper container is a div of eight divs, not an ordered list of eight items. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with one unbound number</h1>
+      <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+      <nav aria-label="Wizard steps">
+        <div class="steps" data-render-stepper="wizard-step-number">
+          <div><span data-render-allow="wizard-step-number">1</span> Project</div>
+          <div><span data-render-allow="wizard-step-number">2</span> Documents</div>
+          <div><span data-render-allow="wizard-step-number">3</span> Building</div>
+          <div><span data-render-allow="wizard-step-number">4</span> Systems</div>
+          <div><span data-render-allow="wizard-step-number">5</span> Operations</div>
+          <div><span data-render-allow="wizard-step-number">6</span> Goals</div>
+          <div><span data-render-allow="wizard-step-number">7</span> Automation</div>
+          <div><span data-render-allow="wizard-step-number">8</span> Proposal</div>
+        </div>
+      </nav>
+    </main>
+  </body>
+</html>

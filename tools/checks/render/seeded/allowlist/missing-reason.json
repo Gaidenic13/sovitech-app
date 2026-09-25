@@ -1,0 +1,11 @@
+{
+  "entries": [
+    {
+      "id": "max-file-size",
+      "category": "fixed_interface_copy",
+      "text": "Max file size 500 MB",
+      "source": "seeded bad input for the render allowlist self-test"
+    }
+  ],
+  "unreadable": []
+}

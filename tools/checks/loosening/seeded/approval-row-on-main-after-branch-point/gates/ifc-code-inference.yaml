@@ -1,0 +1,13 @@
+# Seeded input (synthetic): the approving row is committed on main after the build branch was
+# cut, and not merged into it. It counts only once it is in the merge base (main merged into
+# the branch); until then the gate stays refused, a safe failure.
+id: ifc-code-inference
+open: true
+waitsFor:
+  - item: 'ifc-input 6.2.9'
+    kind: guardrail-proposal
+    dId: D-42
+    approvalRef: 'guardrails-changelog:9.6'
+closedBehaviour: >-
+  No asset type, level type or zone category from IFC classes or names.
+source: docs/dev-prompts/03-build-interactive-app.md section 5.4, table of gates

@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+exception list lint-bans.extensions-a-ban-must-read: entry removed from a deny list: vue: a loosening against unapproved baseline v0 (exception lists) with no approval reference

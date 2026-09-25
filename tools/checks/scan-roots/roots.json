@@ -1,0 +1,83 @@
+{
+  "about": "The one list of scan roots (phase 0 review round 2, adversarial finding 13). Every folder at the top of the repository, under packages/<pkg>/ and under services/<service>/ is either scanned (with the scans that read it) or excluded (with the reason). The scan-roots check fails on a folder that is neither, and pnpm lint:deps cruises the lint:deps roots named here. See tools/checks/scan-roots/README.md.",
+  "scans": {
+    "lint:deps": "dependency-cruiser with .dependency-cruiser.cjs: pnpm lint:deps (tools/checks/scan-roots/lint-deps.ts) and the boundary run of the lint-bans check",
+    "lint-bans": "the SOVITECH ESLint bans with inline disables off, and the HTML scan (tools/checks/lint-bans/)",
+    "reserved-terms": "the reserved-term check (tools/checks/reserved-terms/; guardrails 2.8: UI strings, templates, seeds)",
+    "mockup-figures": "the mockup-figure check (tools/checks/mockup-figures/; prompt 3 section 14 item 3)",
+    "python-bans": "the extractor's number and zero bans (services/extractor/tests/test_bans.py, run by pnpm test:py)",
+    "ruff-pytest": "ruff check, ruff format and pytest on the service folder (pnpm test:py)"
+  },
+  "topLevel": {
+    "apps": { "scans": ["lint:deps", "lint-bans", "reserved-terms", "mockup-figures"], "ci": true },
+    "packages": {
+      "scans": ["lint:deps", "lint-bans", "reserved-terms", "mockup-figures"],
+      "ci": true,
+      "note": "Each packages/<pkg>/ subfolder is classified under packageSubfolders."
+    },
+    "tools": { "scans": ["lint:deps"], "ci": true },
+    "tests": { "scans": ["lint:deps"], "ci": true },
+    "evals": { "scans": ["lint:deps"], "ci": true },
+    "fixtures": { "scans": ["lint:deps", "mockup-figures"], "ci": true },
+    "services": {
+      "scans": ["python-bans", "ruff-pytest", "mockup-figures"],
+      "ci": true,
+      "note": "Each services/<service>/ subfolder is classified under serviceSubfolders."
+    },
+    ".claude": {
+      "excluded": "Claude Code settings, project skills and agents: not app code. The version-sync check reads each SKILL.md and the config-exclusion check reads the configs, file by file.",
+      "ci": true
+    },
+    "design": {
+      "excluded": "Approved design screenshots and the specs: the brief for people, not code or copy the app ships (CLAUDE.md, \"Where things are\").",
+      "ci": true
+    },
+    "docs": {
+      "excluded": "Guardrails, product documents, ADRs and the build log: rules and records, not code or copy the app ships. The index, version-sync and loosening checks read the files they need.",
+      "ci": true
+    },
+    "prompts": {
+      "excluded": "The in-app AI prompt: the version-sync check reads its header, and the guardrail evals cover its behaviour (CLAUDE.md, definition of done item 2).",
+      "ci": true
+    },
+    "company": {
+      "excluded": "Company knowledge imported from the website: never an input to the app, any config or any scan (build-readiness decision 12; prompt 3 section 6).",
+      "ci": false
+    },
+    "node_modules": { "excluded": "Installed npm packages, not the repository's own content.", "ci": false },
+    ".git": { "excluded": "Git's own store.", "ci": false },
+    ".venv": { "excluded": "A Python virtual environment: installed packages, not the repository's own content.", "ci": false },
+    ".pnpm-store": { "excluded": "The pnpm package store CI caches (.gitlab-ci.yml): installed packages.", "ci": false },
+    ".cache": { "excluded": "Caches, such as the Playwright browsers CI keeps (.gitlab-ci.yml): installed files.", "ci": false },
+    "test-results": { "excluded": "Generated output of the Playwright and render runs (git-ignored).", "ci": false },
+    "playwright-report": { "excluded": "Generated output of the Playwright runs (git-ignored).", "ci": false },
+    "coverage": { "excluded": "Generated coverage reports (git-ignored).", "ci": false },
+    ".vscode": { "excluded": "Editor settings on a developer's machine: not part of the repository's content.", "ci": false },
+    ".idea": { "excluded": "Editor settings on a developer's machine: not part of the repository's content.", "ci": false }
+  },
+  "packageSubfolders": {
+    "src": { "scans": ["lint:deps", "lint-bans", "reserved-terms", "mockup-figures"] },
+    "gates": {
+      "scans": ["lint:deps", "lint-bans"],
+      "note": "Gate records (prompt 3 section 5.4): data read by the registry and the loosening check."
+    },
+    "test-formulas": {
+      "scans": ["lint:deps", "lint-bans", "mockup-figures"],
+      "note": "The engine's TEST formulas (prompt 3 section 6; phase 5)."
+    },
+    "seed": { "scans": ["lint:deps", "lint-bans", "reserved-terms", "mockup-figures"] },
+    "seeds": { "scans": ["lint:deps", "lint-bans", "reserved-terms", "mockup-figures"] },
+    "migrations": { "scans": ["lint:deps", "lint-bans", "reserved-terms", "mockup-figures"] },
+    "templates": { "scans": ["lint:deps", "lint-bans", "reserved-terms", "mockup-figures"] },
+    "node_modules": { "excluded": "Installed npm packages and pnpm's links to the workspace packages." },
+    "dist": { "excluded": "Generated build output (git-ignored)." }
+  },
+  "serviceSubfolders": {
+    "src": { "scans": ["python-bans", "ruff-pytest", "mockup-figures"] },
+    "tests": { "scans": ["ruff-pytest"] },
+    ".venv": { "excluded": "The service's Python virtual environment, installed from the hashed lock: not the repository's own content." },
+    ".pytest_cache": { "excluded": "pytest's cache (git-ignored)." },
+    ".ruff_cache": { "excluded": "ruff's cache (git-ignored)." },
+    "__pycache__": { "excluded": "Python bytecode (git-ignored)." }
+  }
+}

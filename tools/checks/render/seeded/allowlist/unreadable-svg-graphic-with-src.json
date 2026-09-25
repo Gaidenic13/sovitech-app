@@ -1,0 +1,12 @@
+{
+  "entries": [],
+  "unreadable": [
+    {
+      "id": "test-drawing",
+      "element": "svg-graphic",
+      "src": "(?:^|/)test\\.svg$",
+      "reason": "A seeded entry with a reason long enough to pass the length rule of the schema.",
+      "source": "seeded bad input for the render allowlist self-test"
+    }
+  ]
+}

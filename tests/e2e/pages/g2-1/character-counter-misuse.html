@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: a counter that does not count its field</title>
+    <!-- Render harness page for G2-1 (docs/adr/0006-render-test.md). The render check must FAIL here. A character-counter marker whose text is not the field length and maxlength. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with one unbound number</h1>
+      <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+      <label for="notes">Notes</label>
+      <textarea id="notes" maxlength="200"></textarea>
+      <span data-render-allow="character-counter" data-counter-for="notes">150 / 200</span>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "Unknown": [
+    {
+      "name": "seeded-unstated",
+      "versions": [
+        "0.1.0"
+      ],
+      "license": "Unknown",
+      "paths": [],
+      "description": "Seeded package for the licence self-test."
+    }
+  ]
+}

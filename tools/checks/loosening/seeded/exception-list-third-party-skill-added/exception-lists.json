@@ -1,0 +1,17 @@
+{
+  "$comment": "Seeded bad input (synthetic): a project skill listed in skills-lock.json, which would escape the \"Checked against\" line.",
+  "lists": {
+    "version-sync.third-party-skills": {
+      "add": [
+        {
+          "key": "test-project-skill",
+          "label": "test-project-skill",
+          "content": {
+            "source": "seeded",
+            "skillPath": "skills/test-project-skill/SKILL.md"
+          }
+        }
+      ]
+    }
+  }
+}

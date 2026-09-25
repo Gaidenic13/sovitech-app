@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: evidence excerpts the screen was not served</title>
+    <!-- Render harness page for guardrails 2.8 "Reserved terms" (docs/adr/0006-render-test.md, decision 8). The render check must FAIL here. Three excerpts marked as evidence: one names a document the display objects do not cite, one has no content hash, and one is text no display object serves. Verbatim document text passes only when it is an excerpt the screen was served, with its document id and content hash. The TEST excerpts are synthetic. -->
+    <script type="application/json" data-render-display-objects>
+      {"document:d-test.stage": {"text": "TEST Tender", "evidence": [{"documentId": "d-test-1", "contentHash": "sha256-TEST-1", "excerpt": "TEST faza conform TEST"}]}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>TEST evidence</h1>
+      <p><span data-value-id="document:d-test.stage">TEST Tender</span></p>
+      <blockquote data-copy-kind="evidence-excerpt" data-document-id="d-test-2" data-content-hash="sha256-TEST-2">TEST faza conform TEST</blockquote>
+      <blockquote data-copy-kind="evidence-excerpt" data-document-id="d-test-1">TEST faza conform TEST</blockquote>
+      <blockquote data-copy-kind="evidence-excerpt" data-document-id="d-test-1" data-content-hash="sha256-TEST-1">TEST ofertă TEST</blockquote>
+    </main>
+  </body>
+</html>

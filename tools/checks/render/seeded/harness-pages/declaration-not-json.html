@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Seeded bad harness page: declaration not JSON</title>
+    <!-- Seeded bad input (TEST): the declaration is a script, not JSON. -->
+    <script type="application/json" data-render-display-objects>
+      { building: { text: 'TEST 123' } }
+    </script>
+  </head>
+  <body data-render-ready>
+    <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+  </body>
+</html>

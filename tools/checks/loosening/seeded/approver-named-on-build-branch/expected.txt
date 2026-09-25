@@ -1,0 +1,3 @@
+# Each line must appear in the check's details for this seed to count.
+no approver is named in docs/guardrails.md section 10
+the build branch or the working tree adds or edits the approver-table row "Seed Approver | Product owner | 2026-01-01"

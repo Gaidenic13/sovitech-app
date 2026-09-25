@@ -1,0 +1,187 @@
+# GitLab CI for the SOVITECH App. It mirrors `pnpm check` (tools/check.ts) job by
+# job: lint, typecheck, unit and guardrail tests, the extractor's tests, the
+# render test, then every check in tools/checks/. The proposed-behaviour suite
+# runs in its own job, which never blocks. There is no deploy stage (hosting is
+# local only; prompt 3 section 5.2).
+#
+# No GitLab project exists yet: creating one is build-readiness decision 11 (D-33).
+# Base images are pinned by digest (Docker Hub, looked up on 2026-09-25).
+# company/** never triggers a pipeline and is never scanned (build-readiness decision 12).
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: &source_paths
+        # GitLab matches these with Ruby's File.fnmatch and the flags FNM_PATHNAME,
+        # FNM_DOTMATCH and FNM_EXTGLOB: "*" matches every file at the repository
+        # root, dotfiles included (.prettierrc, .env.example, skills-lock.json, ...),
+        # and stops at the first slash, so it never reaches company/. Every
+        # top-level folder except company/ follows; a new top-level folder is added
+        # here. (Phase 0 review, finding 20: the list named single root files and
+        # left out .claude/skills/, .claude/agents/, skills-lock.json and root
+        # dotfiles, which the version-sync and config-exclusion checks read.)
+        paths:
+          - "*"
+          - .claude/**/*
+          - apps/**/*
+          - design/**/*
+          - docs/**/*
+          - evals/**/*
+          - fixtures/**/*
+          - packages/**/*
+          - prompts/**/*
+          - services/**/*
+          - tests/**/*
+          - tools/**/*
+    - if: $CI_COMMIT_BRANCH
+      changes: *source_paths
+
+stages:
+  - lint
+  - typecheck
+  - test
+  - render
+  - checks
+
+variables:
+  PNPM_VERSION: "12.6.0"
+  PNPM_STORE_DIR: "$CI_PROJECT_DIR/.pnpm-store"
+  PLAYWRIGHT_BROWSERS_PATH: "$CI_PROJECT_DIR/.cache/ms-playwright"
+
+.node:
+  image: node:22.17.1-bookworm@sha256:37ff334612f77d8f999c10af8797727b731629c26f2e83caa6af390998bdc49c
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - .pnpm-store/
+  before_script:
+    - npm install --global "pnpm@${PNPM_VERSION}"
+    - pnpm config set store-dir "$PNPM_STORE_DIR"
+    - pnpm install --frozen-lockfile
+
+.python:
+  image: python:3.12.14-bookworm@sha256:dbbe4ceb97851e2e5fa83798b239811f871cb743b259ba3563737349f6bcfaa0
+  before_script:
+    # Every distribution is pinned and hashed in the lock (docs/adr/0001-toolchain-and-monorepo.md);
+    # pip refuses any file whose hash differs and any dependency the lock does not list.
+    - python3.12 -m venv services/extractor/.venv
+    - services/extractor/.venv/bin/python -m pip install --disable-pip-version-check --require-hashes -r services/extractor/requirements-dev.lock
+
+lint:eslint:
+  extends: .node
+  stage: lint
+  script:
+    - pnpm run lint:eslint
+
+lint:deps:
+  extends: .node
+  stage: lint
+  script:
+    - pnpm run lint:deps
+
+typecheck:
+  extends: .node
+  stage: typecheck
+  script:
+    - pnpm run typecheck:packages
+    - pnpm run typecheck:root
+
+test:vitest:
+  extends: .node
+  stage: test
+  variables:
+    # The run guard writes its report here; the checks job confirms the case
+    # counts against it, as pnpm check does (tools/checks/index/run-counts.ts).
+    SOVITECH_RUN_GUARD_OUTPUT: "$CI_PROJECT_DIR/guardrail-run-guard.json"
+  script:
+    - pnpm exec playwright install --with-deps chromium
+    - pnpm run test
+  artifacts:
+    when: always
+    paths:
+      - guardrail-run-guard.json
+    expire_in: 1 day
+
+test:extractor:
+  extends: .python
+  stage: test
+  script:
+    - cd services/extractor
+    - .venv/bin/ruff check .
+    - .venv/bin/ruff format --check .
+    - .venv/bin/pytest -q
+  artifacts:
+    # The licence check reads the installed wheels' metadata files from here.
+    paths:
+      - services/extractor/.venv/
+    expire_in: 1 day
+
+test:proposed:
+  extends: .node
+  stage: test
+  allow_failure: true
+  script:
+    - pnpm run test:proposed
+
+render:
+  extends: .node
+  stage: render
+  script:
+    - pnpm exec playwright install --with-deps chromium
+    - pnpm run test:render
+  artifacts:
+    when: on_failure
+    paths:
+      - test-results/
+    expire_in: 7 days
+
+# The checks, their self-tests and the run reconciliation are separate jobs, as
+# they are separate steps of pnpm check: the index check fails by design while
+# D-33 is open (docs/adr/0003), and that must not stop the self-tests from running.
+.checks:
+  extends: .node
+  stage: checks
+  variables:
+    # The loosening check reads approvals at the merge base of main and HEAD
+    # (packages/registry/src/approvals/git.ts), so it needs the full history and a
+    # local main branch; without them it fails closed and names the reason.
+    GIT_DEPTH: "0"
+  needs:
+    - job: test:extractor
+      artifacts: true
+
+checks:
+  extends: .checks
+  script:
+    - git show-ref --verify --quiet refs/heads/main || git fetch --no-tags origin +refs/heads/main:refs/heads/main
+    # The licence check reads the extractor's wheels with a Python of 3.10 or
+    # later. The venv artifact links to the python image's interpreter, which this
+    # node image lacks, so the check falls back to python3 on PATH. Install it in
+    # the CI container only when the image does not already carry it (not yet run
+    # while no GitLab project exists; build-readiness decision 11).
+    - command -v python3 >/dev/null 2>&1 || (apt-get update && apt-get install -y --no-install-recommends python3)
+    - python3 -c 'import sys; assert sys.version_info >= (3, 10), sys.version'
+    - pnpm run checks
+
+checks:selftest:
+  extends: .checks
+  script:
+    - git show-ref --verify --quiet refs/heads/main || git fetch --no-tags origin +refs/heads/main:refs/heads/main
+    - command -v python3 >/dev/null 2>&1 || (apt-get update && apt-get install -y --no-install-recommends python3)
+    - python3 -c 'import sys; assert sys.version_info >= (3, 10), sys.version'
+    # The render self-test runs its harness-page seeds in Chromium, as pnpm check does.
+    - pnpm exec playwright install --with-deps chromium
+    - pnpm run check:selftest
+
+checks:run-evidence:
+  extends: .node
+  stage: checks
+  needs:
+    - job: test:vitest
+      artifacts: true
+  script:
+    # "Real" guardrail cases are the ones the Vitest run passed, not only the ones
+    # whose file reads as real (phase 0 review, round 2; tools/checks/index/run-counts.ts).
+    - pnpm exec tsx tools/checks/index/reconcile-run.ts guardrail-run-guard.json

@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+problem: fields.building.seedArea.estimation: estimation forbidden → allowed: a loosening against unapproved baseline v0 with no approval reference

@@ -1,0 +1,18 @@
+{
+  "$comment": "Seeded bad input (synthetic): an ESLint allowlist entry that needed only a README line before round 2 of the phase 0 review.",
+  "lists": {
+    "eslint.allowlist": {
+      "add": [
+        {
+          "key": "no-zero-fallback apps/web/src/**",
+          "label": "no-zero-fallback apps/web/src/**",
+          "content": {
+            "rule": "no-zero-fallback",
+            "file": "apps/web/src/**",
+            "reason": "Seeded bad entry (synthetic): exempts the whole web app from the zero ban."
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "packageSubfolders": {
+    "src": { "scans": ["lint-bans", "spellcheck"] }
+  }
+}

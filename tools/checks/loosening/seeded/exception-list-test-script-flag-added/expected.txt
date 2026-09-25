@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+exception list vitest.allowed-test-script-flags: entry added: --reporter=dot: a loosening against unapproved baseline v0 (exception lists) with no approval reference

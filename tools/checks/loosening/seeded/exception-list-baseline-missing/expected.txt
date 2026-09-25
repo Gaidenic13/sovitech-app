@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+packages/registry/src/snapshots/exception-lists/unapproved-baseline-v0.json is missing: every exception list is recorded

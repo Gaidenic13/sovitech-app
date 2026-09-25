@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: reserved terms held as object keys</title>
+    <!-- Render harness page for guardrails 2.8 "Reserved terms" (docs/adr/0006-render-test.md, decision 8). The render check must FAIL here. Capitalised reserved terms held as object keys and rendered through Object.keys: the source scan skipped them as keys; the rendered-page scan reads what is shown. Found by the phase 0 round 2 review (probe Keys.tsx). -->
+    <script type="application/json" data-render-display-objects>
+      {}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>TEST pricing stages</h1>
+      <ul id="stages"></ul>
+      <script>
+        const STAGES = { "Formal quotation": "a", "Firm price": "b", ["Guaranteed savings"]: "c" };
+        const list = document.getElementById("stages");
+        for (const label of Object.keys(STAGES)) {
+          const item = document.createElement("li");
+          item.textContent = label;
+          list.append(item);
+        }
+      </script>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+exception list lint-bans.total-outside-engine-exempt: entry added: packages/view-model/**: a loosening against unapproved baseline v0 (exception lists) with no approval reference

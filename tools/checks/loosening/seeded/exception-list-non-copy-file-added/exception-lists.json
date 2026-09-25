@@ -1,0 +1,17 @@
+{
+  "$comment": "Seeded bad input (synthetic): a copy catalogue put on the reserved-term check's non-copy list, so its strings go unread.",
+  "lists": {
+    "reserved-terms.non-copy-files": {
+      "add": [
+        {
+          "key": "apps/web/src/copy/**/*.json",
+          "label": "apps/web/src/copy/**/*.json",
+          "content": {
+            "files": "apps/web/src/copy/**/*.json",
+            "reason": "Seeded bad entry (synthetic): TEST."
+          }
+        }
+      ]
+    }
+  }
+}

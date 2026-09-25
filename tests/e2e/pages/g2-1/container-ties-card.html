@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: a served value id around a whole card</title>
+    <!-- Render harness page for G2-1 (docs/adr/0006-render-test.md). The render check must FAIL here. One served value id (the TEST project name) wraps a whole card, and the card shows three numbers that display object does not declare: a value element ties only what its display object serves. Found by the phase 0 round 2 review (probe wrapper.html). -->
+    <script type="application/json" data-render-display-objects>
+      {"project:p-test.name": {"text": "TEST Project"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main data-value-id="project:p-test.name">
+      <h1>TEST Project</h1>
+      <p>Total area TEST 12,345 m²</p>
+      <p>Guest rooms TEST 123</p>
+      <p>TEST 12 things for you to check</p>
+    </main>
+  </body>
+</html>

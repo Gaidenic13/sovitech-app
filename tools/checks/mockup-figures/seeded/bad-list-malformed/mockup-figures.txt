@@ -1,0 +1,12 @@
+# TEST list with malformed entries.
+number | 98,765
+colour | 98,765 | design/test-spec.md:3
+number | 98,765 | design/test-spec.md:4
+number | 98,765 | design/missing-spec.md:3
+number | 98,765 | design/test-spec.md
+number | 12 | design/test-spec.md:3
+quantity | 739 | design/test-spec.md:3
+number | 8.3 years | design/test-spec.md:4
+text | 739 | design/test-spec.md:3
+number | 739 | design/test-spec.md:3
+number | 739 | design/test-spec.md:3

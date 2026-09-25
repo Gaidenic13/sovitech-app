@@ -1,0 +1,16 @@
+{
+  "gates": {
+    "seeded-extra-gate": {
+      "open": false,
+      "waitsFor": [
+        {
+          "item": "proposal 7.2.99",
+          "kind": "guardrail-proposal",
+          "dId": "D-99",
+          "dataset": null
+        }
+      ],
+      "closedBehaviour": "Seeded: a gate the baseline holds and the registry lost."
+    }
+  }
+}

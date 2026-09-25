@@ -1,0 +1,11 @@
+{
+  "building:b-test.guestRooms": {
+    "text": "TEST 123",
+    "evidence": [
+      {
+        "documentId": "d-test-1",
+        "excerpt": "TEST 123 camere"
+      }
+    ]
+  }
+}

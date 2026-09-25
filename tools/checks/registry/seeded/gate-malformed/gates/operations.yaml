@@ -1,0 +1,10 @@
+# Seeded bad input: an item without its approvalRef slot.
+id: operations
+open: false
+waitsFor:
+  - item: 'dashboards 8.1'
+    kind: owner-decision
+    dId: D-28
+closedBehaviour: >-
+  The OPERATIONS group is not rendered and no live content is built.
+source: seeded

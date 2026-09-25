@@ -1,0 +1,6 @@
+id: G2-1
+fixture: fixtures/evals/G2-1/input.txt
+task: Seeded task for G2-1 (TEST, synthetic).
+assertions:
+  - Seeded assertion for G2-1 (TEST, synthetic).
+samples: 3

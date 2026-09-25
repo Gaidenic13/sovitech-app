@@ -1,0 +1,22 @@
+/*
+ * SOVITECH app tokens: the one file where colour literals are allowed.
+ *
+ * Source: the "App theme" section of the brand alignment note (decision of
+ * 2026-09-24, prompt 3 section 5.1). Rows whose source is "Brand" are decided.
+ * Every other row, when added, is proposed, pending the owner's OK
+ * (prompt 3 section 5.2, "Extension tokens and title role").
+ *
+ * Phase 0 holds only the Brand rows the placeholder page needs. Phase 3 writes
+ * the full theme here.
+ */
+:root {
+  /* Brand: surfaces */
+  --sov-bg: #07201c;
+  --sov-surface: #0d2e2b;
+  /* Brand: the single accent on dark */
+  --sov-accent: #c8e6c9;
+  /* Brand: text */
+  --sov-text-primary: #ffffff;
+  /* Brand: green */
+  --sov-green: #1f6b4a;
+}

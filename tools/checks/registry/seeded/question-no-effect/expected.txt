@@ -1,0 +1,3 @@
+# Each line must appear in the check's details for this seed to count.
+changed no declared output
+G6-1

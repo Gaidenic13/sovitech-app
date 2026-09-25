@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+scope: 1 gate files read, fewer than the 18 of prompt 3 section 5.4's starting set

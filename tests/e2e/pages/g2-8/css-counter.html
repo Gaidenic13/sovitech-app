@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: count-up drawn by a CSS counter</title>
+    <!-- Render harness page for G2-8 (docs/adr/0006-render-test.md). The render check must FAIL here. A CSS custom-property animation drives a counter in generated content; no DOM text changes. -->
+    <style>
+      @property --shown {
+        syntax: "<integer>";
+        inherits: false;
+        initial-value: 0;
+      }
+      @keyframes count {
+        to {
+          --shown: 123;
+        }
+      }
+      .stat {
+        animation: count 1.2s ease-out forwards;
+        counter-reset: shown var(--shown);
+      }
+      .stat::after {
+        content: "TEST " counter(shown);
+      }
+    </style>
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with an animated value</h1>
+      <p><span class="stat" data-value-id="building:b-test.guestRooms"></span> guest rooms</p>
+    </main>
+  </body>
+</html>

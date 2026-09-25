@@ -1,0 +1,13 @@
+{
+  "(MIT AND GPL-2.0-only)": [
+    {
+      "name": "seeded-combined",
+      "versions": [
+        "1.0.0"
+      ],
+      "license": "(MIT AND GPL-2.0-only)",
+      "paths": [],
+      "description": "Seeded package for the licence self-test."
+    }
+  ]
+}

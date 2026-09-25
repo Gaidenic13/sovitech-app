@@ -1,0 +1,14 @@
+{
+  "$comment": "Seeded bad input (synthetic): the view-model exempted from the ban on totals outside the engine.",
+  "lists": {
+    "lint-bans.total-outside-engine-exempt": {
+      "add": [
+        {
+          "key": "packages/view-model/**",
+          "label": "packages/view-model/**",
+          "content": "packages/view-model/**"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,3 @@
+lint:site:
+  script:
+    - pnpm exec eslint company

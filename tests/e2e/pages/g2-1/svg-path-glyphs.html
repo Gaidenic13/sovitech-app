@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: shapes drawn in inline SVG</title>
+    <!-- Render harness page for G2-1 (docs/adr/0006-render-test.md). The render check must FAIL here. Two inline SVG drawings larger than an icon and with no text: one draws digit-like strokes as a path, one draws a symbol through <use>. The test cannot read what their shapes spell. The 24px icon beside them passes. Found by the phase 0 round 2 review (probes svgpath.html and svg-use.html). -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123"}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with drawings</h1>
+      <p><span data-value-id="building:b-test.guestRooms">TEST 123</span> guest rooms</p>
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16" stroke="currentColor" fill="none" /></svg>
+      <svg width="200" height="60" viewBox="0 0 200 60" role="img" aria-labelledby="chart-title">
+        <title id="chart-title">chart</title>
+        <path d="M10 10 L20 10 L20 50 M30 10 L40 10 L40 30 L30 30 L30 50 L40 50" stroke="currentColor" fill="none" />
+      </svg>
+      <svg width="120" height="40" viewBox="0 0 120 40">
+        <defs><symbol id="glyph"><path d="M0 0 L10 10" stroke="currentColor" /></symbol></defs>
+        <use href="#glyph" />
+      </svg>
+    </main>
+  </body>
+</html>

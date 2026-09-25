@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: count-up in an accessible value</title>
+    <!-- Render harness page for G2-8 (docs/adr/0006-render-test.md). The render check must FAIL here. The visible text stays still while the announced value counts up. -->
+    <script type="application/json" data-render-display-objects>
+      {"building:b-test.guestRooms": {"text": "TEST 123", "lines": ["TEST 0 to TEST 1234"], "parts": ["123", "0", "1234"]}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>Harness page with an animated value</h1>
+      <div id="meter" role="meter" aria-label="Guest rooms" data-value-id="building:b-test.guestRooms" aria-valuemin="0" aria-valuemax="1234" aria-valuenow="0">TEST 123 guest rooms</div>
+      <script>
+        const meter = document.getElementById("meter");
+        let shown = 0;
+        const timer = setInterval(() => {
+          shown = Math.min(123, shown + 12);
+          meter.setAttribute("aria-valuenow", String(shown));
+          if (shown === 123) clearInterval(timer);
+        }, 30);
+      </script>
+    </main>
+  </body>
+</html>

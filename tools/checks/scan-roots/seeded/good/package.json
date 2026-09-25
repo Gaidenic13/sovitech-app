@@ -1,0 +1,8 @@
+{
+  "name": "scan-roots-good-seed",
+  "private": true,
+  "description": "Good seeded tree for the scan-roots self-test (TEST): it must pass.",
+  "scripts": {
+    "lint:deps": "tsx tools/checks/scan-roots/lint-deps.ts"
+  }
+}

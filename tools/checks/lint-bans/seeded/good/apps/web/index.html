@@ -1,0 +1,18 @@
+<!doctype html>
+<!-- Good seeded input for the lint-bans self-test: it must pass. A comment may say #07201c or box-shadow: 0. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
+    <title>Seeded page</title>
+    <style>
+      .skip-link:focus-visible { outline: 2px solid var(--sov-accent); box-shadow: none; }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link bg-surface text-text-primary" href="#root">Skip to content</a>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

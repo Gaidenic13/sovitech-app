@@ -1,0 +1,19 @@
+{
+  "$comment": "Seeded bad input (synthetic): a test double added to the reviewed list, which would let a guardrail case replace the code it tests.",
+  "lists": {
+    "index.reviewed-test-doubles": {
+      "add": [
+        {
+          "key": "tests/guardrails/G8-4.test.ts vi.mock @sovitech/domain",
+          "label": "tests/guardrails/G8-4.test.ts vi.mock @sovitech/domain",
+          "content": {
+            "path": "tests/guardrails/G8-4.test.ts",
+            "call": "vi.mock",
+            "target": "@sovitech/domain",
+            "reason": "Seeded bad entry (synthetic): TEST."
+          }
+        }
+      ]
+    }
+  }
+}
