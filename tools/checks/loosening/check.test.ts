@@ -5,7 +5,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { PRODUCTION_GATES_DIR, loadGateDefinitions } from '@sovitech/registry/gates';
-import { BASELINE_PATH, PROPOSED_SETTINGS } from '@sovitech/registry/validation';
+import { BASELINE_PATH, PROPOSED_SETTINGS, currentRegistryLists } from '@sovitech/registry/validation';
 import { describe, expect, it } from 'vitest';
 import check from './check';
 import { EXCEPTION_LISTS_BASELINE_PATH, readCurrentLists } from './exception-lists';
@@ -60,6 +60,35 @@ describe('the loosening check', { timeout: 60_000 }, () => {
     );
   });
 
+  it('holds the phase 1 review seeds: a new allow list of an existing check, the roster, and the stage 3 label unbound', () => {
+    expect(badSeeds()).toEqual(
+      expect.arrayContaining([
+        'exception-list-new-allow-list-widens-existing-check',
+        'exception-list-check-removed-from-roster',
+        'exception-list-allowance-2-8-stage-3-unbound',
+      ]),
+    );
+  });
+
+  it('holds the phase 1 review, round 3 seeds: the allow lists derive reads from the registry (adversarial finding 4)', () => {
+    expect(badSeeds()).toEqual(
+      expect.arrayContaining([
+        'field-qualifier-added',
+        'field-kind-away-from-decision',
+        'field-option-added',
+        'field-unit-other-dimension',
+        'field-basis-away-from-owner-choice',
+        'field-count-shape-dropped',
+        'field-formula-writes-field',
+        'formula-signature-changed',
+        'unit-written-form-added',
+        'unit-dimensions-merged',
+        'unit-added',
+        'floor-letter-added',
+      ]),
+    );
+  });
+
   it.each(badSeeds())('fails seeded/%s for its own reason', { timeout: 60_000 }, async (name) => {
     const result = await runSeed(name);
     expect(result.ok).toBe(false);
@@ -86,7 +115,11 @@ describe('the baseline writer', () => {
     const plan = await planExceptionLists(await repoExceptionListPlanInputs('2099-01-01'));
     expect(plan.problems).toEqual([]);
     expect(plan.changed).toBe(false);
-    expect(plan.newEntries).toEqual([]);
+    // A reserved-term allowance that is a 2.8 text is never recorded (ADR 0011, decision 5), so the
+    // writer names it on every run as not recorded; nothing else is new.
+    const acceptedAs2_8 = plan.newEntries.filter((line) => line.includes('not recorded: it is the 2.8 text') && line.endsWith('accepted at run time (ADR 0011)'));
+    expect(plan.newEntries.filter((line) => !acceptedAs2_8.includes(line))).toEqual([]);
+    expect(acceptedAs2_8.every((line) => line.startsWith('reserved-terms.allowances: '))).toBe(true);
     expect(plan.text).toBe(readFileSync(EXCEPTION_LISTS_BASELINE_PATH, 'utf8'));
   });
 
@@ -131,7 +164,7 @@ describe('the baseline writer', () => {
   it('refuses a list it cannot read', async () => {
     const inputs = await repoExceptionListPlanInputs('2099-01-01');
     const current = await readCurrentLists(undefined, [
-      { id: 'broken', direction: 'allow', source: 'nowhere', read: async () => Promise.reject(new Error('gone')) },
+      { id: 'broken', direction: 'allow', check: 'render', source: 'nowhere', read: async () => Promise.reject(new Error('gone')) },
     ]);
     const plan = await planExceptionLists({ ...inputs, current });
     expect(plan.ok).toBe(false);
@@ -140,11 +173,15 @@ describe('the baseline writer', () => {
 
   it('records a new strict field', () => {
     const inputs = repoPlanInputs('2099-01-01');
+    // The field is added to the production fields (since phase 1 the registry holds fields, and
+    // replacing them would read as removing them: a loosening the writer refuses).
+    const production = inputs.registry as { fields: Array<{ impactRank: number }>; formulas: unknown[] } & Record<string, unknown>;
+    const nextRank = Math.max(...production.fields.map((field) => field.impactRank)) + 1;
     const registry = {
-      ...(inputs.registry as Record<string, unknown>),
-      units: [{ code: 'm2', symbol: 'm²', dimension: 'area' }],
-      formulas: [{ id: 'writerFormula', version: '1', inputs: ['building.writerArea'], outputs: ['writer.output'] }],
+      ...production,
+      formulas: [...production.formulas, { id: 'writerFormula', version: '1', inputs: ['building.writerArea'], outputs: ['writer.output'] }],
       fields: [
+        ...production.fields,
         {
           key: 'building.writerArea',
           label: 'Writer area (synthetic)',
@@ -154,7 +191,7 @@ describe('the baseline writer', () => {
           dimension: 'area',
           estimation: 'forbidden',
           criticality: 'for_quotation',
-          impactRank: 1,
+          impactRank: nextRank,
           confirmBy: 'engineer',
           affects: [{ output: 'writer.output', via: 'formula:writerFormula@1' }],
         },
@@ -165,6 +202,48 @@ describe('the baseline writer', () => {
     expect(plan.changed).toBe(true);
     expect(plan.text).toContain('"recordedOn": "2099-01-01"');
     expect(plan.text).toContain('building.writerArea');
+  });
+
+  it('refuses a qualifier added, a kind moved away from decision, a unit form added and a floor letter added (phase 1 review, round 3)', () => {
+    const inputs = repoPlanInputs('2099-01-01');
+    const production = inputs.registry as { fields: Array<Record<string, unknown>> } & Record<string, unknown>;
+    const fields = production.fields.map((field) =>
+      field['key'] === 'building.grossFloorArea'
+        ? { ...field, qualifiers: ['gross_total', 'Gross_Total'] }
+        : field['key'] === 'project.scope.fire_safety'
+          ? { ...field, kind: 'enum' }
+          : field,
+    );
+    const lists = currentRegistryLists();
+    const registryLists = {
+      units: lists.units.map((unit) => (unit.code === 'm2' ? { ...unit, written: [...unit.written, 'TEST-mp'] } : unit)),
+      floorNotationLetters: { ...lists.floorNotationLetters, D: 'semi_basement' },
+    };
+    const plan = planBaseline({ ...inputs, registry: { ...production, fields }, registryLists });
+    expect(plan.ok).toBe(false);
+    const text = plan.problems.join('\n');
+    expect(text).toContain('fields.building.grossFloorArea.qualifiers: qualifiers [gross_total] → [Gross_Total, gross_total] (added Gross_Total;');
+    expect(text).toContain('fields.project.scope.fire_safety.kind: kind decision → enum');
+    expect(text).toContain('units.m2.written: the written forms of m2: added TEST-mp');
+    expect(text).toContain('floorNotationLetters.D: the floor-notation letter D (semi_basement) is new');
+    expect(text).toContain('a loosening; only the approver can allow it');
+  });
+
+  it('records a qualifier, an option, a written form and a floor letter removed, as tightenings with the day they were recorded', () => {
+    const inputs = repoPlanInputs('2099-01-01');
+    const production = inputs.registry as { fields: Array<Record<string, unknown>> } & Record<string, unknown>;
+    const fields = production.fields.map((field) =>
+      field['key'] === 'building.rooms' ? { ...field, qualifiers: ['guest_rooms', 'keys'] } : field['key'] === 'project.type' ? { ...field, options: ['new_construction', 'renovation', 'existing_building'] } : field,
+    );
+    const lists = currentRegistryLists();
+    const letters = Object.fromEntries(Object.entries(lists.floorNotationLetters).filter(([letter]) => letter !== 'Mz'));
+    const registryLists = { units: lists.units.map((unit) => (unit.code === 'm2' ? { ...unit, written: ['mp'] } : unit)), floorNotationLetters: letters };
+    const plan = planBaseline({ ...inputs, registry: { ...production, fields }, registryLists });
+    expect(plan.problems).toEqual([]);
+    expect(plan.changed).toBe(true);
+    expect(plan.text).toContain('"recordedOn": "2099-01-01"');
+    expect(plan.text).toContain('"qualifiers": [\n        "guest_rooms",\n        "keys"\n      ]');
+    expect(plan.text).not.toContain('"Mz"');
   });
 
   it('refuses a looser setting', () => {

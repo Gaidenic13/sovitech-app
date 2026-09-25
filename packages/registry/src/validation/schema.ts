@@ -5,6 +5,7 @@
  * approver settings. Phase 1 fills the production registry; phase 0 defines
  * the shape and its validation.
  */
+import { FIELD_KINDS, SUBJECT_KINDS, type FieldDefinition } from '@sovitech/domain';
 import { z } from 'zod';
 import {
   DOCUMENT_STAGES,
@@ -14,8 +15,17 @@ import {
   REQUIRED_SLOTS,
 } from './policy';
 
-export const SUBJECTS = ['project', 'building', 'level', 'zone', 'asset', 'document', 'metering_point'] as const;
-export const FIELD_KINDS = ['quantity', 'count', 'enum', 'text', 'decision'] as const;
+/**
+ * 2.6's FieldDefinition is declared once, in @sovitech/domain, which the derive
+ * function and the verifier read; the registry implements it and re-exports it
+ * from there rather than declaring it again. The registry's own extras live on
+ * `RegistryFieldDefinition` below.
+ */
+export type { FieldDefinition } from '@sovitech/domain';
+
+/** 2.2's subject kinds and 2.6's field kinds, as the domain declares them. */
+export const SUBJECTS = SUBJECT_KINDS;
+export { FIELD_KINDS };
 export const CRITICALITIES = ['required', 'first_estimate', 'for_quotation', 'optional'] as const;
 export const CONFIRM_BY = ['owner', 'engineer', 'either'] as const;
 export const UNKNOWN_POLICIES = ['refuse', 'exclude_and_count', 'range_over_options'] as const;
@@ -25,6 +35,14 @@ export const UNKNOWN_POLICIES = ['refuse', 'exclude_and_count', 'range_over_opti
  * values through in its sense ("Any change that lets more values through,
  * shows fewer labels, or involves fewer people"). A field approves a looser
  * value only through a reference under `approvals`.
+ *
+ * Since the phase 1 review (round 3, adversarial finding 4) the list also holds
+ * the allow lists derive and the verifier read from a field: its kind (a
+ * `decision` refuses every source but the owner's, rule 3), its unit and
+ * dimension (the dimension check, 2.7), the qualifiers it registers (rule 8;
+ * G8-14), the options of an enum or decision, the value shape of a count, and
+ * the formulas that write it (`formulas`: the declared formulas whose outputs
+ * name the field, 2.1 `calculated` and `estimated`).
  */
 export const SENSITIVE_FIELD_PROPERTIES = [
   'estimation',
@@ -41,8 +59,25 @@ export const SENSITIVE_FIELD_PROPERTIES = [
   'impactRank',
   'minorForTotals',
   'qualifierRequired',
+  'kind',
+  'unit',
+  'dimension',
+  'qualifiers',
+  'options',
+  'valueShape',
+  'formulas',
 ] as const;
 export type SensitiveFieldProperty = (typeof SENSITIVE_FIELD_PROPERTIES)[number];
+
+/**
+ * The value shapes a numeric field may declare. `non_negative_integer`: a whole
+ * number, zero or more, the shape of every count (2.6 kind `count`; rule 8,
+ * "Counts state what they count"; rule 1, "Zero is a value"). Registry
+ * validation requires it on every count field, so a fractional or negative
+ * count has a declared shape to be refused against.
+ */
+export const VALUE_SHAPES = ['non_negative_integer'] as const;
+export type ValueShape = (typeof VALUE_SHAPES)[number];
 
 const text = z.string().min(1);
 const approvalRef = z.string().min(1);
@@ -99,8 +134,29 @@ export const fieldSchema = z.strictObject({
   minorForTotals: z.boolean().optional(),
   /** Approval references for values looser than the strict default, by property. */
   approvals: z.partialRecord(z.enum(SENSITIVE_FIELD_PROPERTIES), approvalRef).optional(),
+  /**
+   * The qualifier keys a candidate of this field may carry (rule 8: the area
+   * basis, what a count counts, the level type), besides the unknown qualifier.
+   * A registry extra: 2.6 names only `qualifierRequired`.
+   */
+  qualifiers: z.array(text).optional(),
+  /**
+   * The shape every value of the field must have (VALUE_SHAPES). A registry
+   * extra: every count declares `non_negative_integer` (registry validation).
+   */
+  valueShape: z.enum(VALUE_SHAPES).optional(),
 });
-export type FieldDefinition = z.infer<typeof fieldSchema>;
+
+/**
+ * A field as the registry holds it: 2.6's FieldDefinition (from @sovitech/domain)
+ * with the registry's extras (`dimension`, `options`, `qualifiers`, the rule 7
+ * and rule 3 slots and bases, reference datasets, approvals).
+ */
+export type RegistryFieldDefinition = z.infer<typeof fieldSchema>;
+
+/** Compile-time proof that a registry field is a 2.6 FieldDefinition: the domain reads registry fields as they are. */
+type Extends<T extends U, U> = T;
+export type RegistryFieldIsFieldDefinition = Extends<RegistryFieldDefinition, FieldDefinition>;
 
 export const questionSchema = z.strictObject({
   id: z.string().regex(/^[a-z][A-Za-z0-9_.-]*$/),
@@ -192,6 +248,21 @@ export function parseVia(via: string): Consumer | undefined {
 
 export function formulaRef(formula: Pick<FormulaSignature, 'id' | 'version'>): string {
   return `formula:${formula.id}@${formula.version}`;
+}
+
+/**
+ * The declared formulas that write a field: those whose `outputs` name the
+ * field's key, as `formula:<id>@<version>`, sorted. A `calculated` or
+ * `estimated` candidate of the field comes from one of these (2.1: "The
+ * calculation engine only"), so the list is loosening-sensitive: a formula
+ * that starts writing a field lets more values into it (section 10). None of
+ * the phase 1 formulas writes a field (their outputs are the proposal's).
+ */
+export function formulasWritingField(formulas: readonly Pick<FormulaSignature, 'id' | 'version' | 'outputs'>[], fieldKey: string): string[] {
+  return formulas
+    .filter((formula) => formula.outputs.includes(fieldKey))
+    .map((formula) => formulaRef(formula))
+    .sort();
 }
 
 export function templateRef(slot: Pick<TemplateSlot, 'id'>): string {

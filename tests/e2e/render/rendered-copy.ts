@@ -13,7 +13,13 @@
  * The places 2.8 allows are honoured only through the markers the app sets:
  * - `data-copy-kind="badge" | "status-line" | "action-label" | "registry-qualifier" |
  *   "generated-sentence"`: the unit passes only when a registered allowance of that same kind
- *   covers the whole unit (packages/registry, REGISTERED_ALLOWANCE_ENTRIES; none at phase 0);
+ *   covers the whole unit (packages/registry, REGISTERED_ALLOWANCE_ENTRIES);
+ * - and, since the phase 1 review (adversarial finding 12), a `badge`, `status-line` or
+ *   `generated-sentence` unit only when a display object the screen was served carries that
+ *   text among its `lines` (2.8: "badges, status lines and generated sentences that the app
+ *   builds from stored state"), its slots filled as their types allow; an allowance bound to a
+ *   stored record (the stage 3 label "Formal quotation", rule 10) only when that display object
+ *   names the record (`quotationRecordId`);
  * - `data-copy-kind="evidence-excerpt"` with `data-document-id` and `data-content-hash`: the
  *   unit passes only when the display objects the screen was served declare that excerpt, with
  *   that document id and content hash; it is then verbatim document text.
@@ -50,6 +56,15 @@ export interface CopyFinding {
 
 function isCopyKind(value: string): value is CopyKind {
   return (COPY_KINDS as readonly string[]).includes(value);
+}
+
+/** The markers whose text the app builds from stored state, so the screen must have been served it. */
+const SERVED_MARKERS: ReadonlySet<CopyKind> = new Set(['badge', 'status-line', 'generated-sentence']);
+
+/** The served display objects that carry the unit's text among their lines. */
+function servingDisplays(displayObjects: Readonly<Record<string, ServedDisplay>>, unit: CopyUnit): ServedDisplay[] {
+  const text = normaliseShown(unit.text);
+  return Object.values(displayObjects).filter((display) => (display.lines ?? []).some((line) => normaliseShown(line) === text));
 }
 
 /** Registered allowances of one kind only, so a marker cannot borrow another kind's entry. */
@@ -115,6 +130,23 @@ export function reservedTermFindings(
           unit.documentId === null || unit.contentHash === null
             ? 'marked as an evidence excerpt without data-document-id and data-content-hash'
             : `marked as an evidence excerpt of ${unit.documentId} (${unit.contentHash}), but no display object the screen was served declares this excerpt`;
+      }
+    } else if (SERVED_MARKERS.has(marker)) {
+      const kind = ALLOWANCE_KIND[marker];
+      const serving = servingDisplays(displayObjects, unit);
+      if (serving.length === 0) {
+        matches = scanCopy(unit.text, { allowances: NO_ALLOWANCES });
+        why = `marked data-copy-kind="${marker}", but no display object the screen was served carries this text among its lines (2.8: built from stored state)`;
+      } else {
+        const covered = serving.some(
+          (display) =>
+            scanCopy(unit.text, {
+              allowances: kindSet(kind),
+              ...(display.quotationRecordId === undefined ? {} : { quotationRecordId: display.quotationRecordId }),
+            }).length === 0,
+        );
+        matches = covered ? [] : scanCopy(unit.text, { allowances: kindSet(kind) });
+        why = `marked data-copy-kind="${marker}" and served, but no registered ${kind} allowance covers this whole text as served (a typed slot filled with what its type refuses, or the stage 3 label without its stored quotation record)`;
       }
     } else {
       const kind = ALLOWANCE_KIND[marker];

@@ -1,4 +1,3 @@
-// @pending-until: phase 1 derive
 /**
  * G4-14 (docs/guardrails.md section 7; 2.3 "Revisions and removal"; rule 4 "Routing").
  * Situation: Rev B changes an engineer_verified chiller capacity.
@@ -6,22 +5,21 @@
  *
  * Rev B is declared a revision of Rev A through `supersedes` and a
  * `declared_revision_of` document event (2.3). The engineer's event is built in
- * memory for this derive test only.
+ * memory for this derive test only, by the one builder file that may
+ * (tests/guardrails/_support/builders.ts).
  */
 import fc from 'fast-check';
-import { expect } from 'vitest';
+import { expect, test } from 'vitest';
+import { unitByCode } from '@sovitech/registry';
 import {
   derive,
   type Candidate,
-  type CandidateEvent,
   type DeriveContext,
   type DeriveEvents,
   type DocumentRecord,
   type FieldDefinition,
 } from '@sovitech/domain';
-import { pendingCase } from './_support/pending';
-
-const pending = pendingCase(import.meta.url);
+import { engineerVerificationInMemory } from './_support/builders';
 
 const PROJECT = 'test-project-g4-14';
 const CHILLER = 'test-asset-g4-14-chiller';
@@ -33,6 +31,7 @@ const capacityField: FieldDefinition = {
   kind: 'quantity',
   unit: 'kW',
   qualifierRequired: true,
+  qualifiers: ['cooling_output'],
   estimation: 'forbidden',
   criticality: 'optional',
   affects: [],
@@ -62,7 +61,9 @@ const revB: DocumentRecord = {
 };
 
 const context: DeriveContext = {
+  subjectId: CHILLER,
   document: (id) => [revA, revB].find((document) => document.id === id),
+  unit: unitByCode,
   inputState: () => undefined,
   datasetApproved: () => false,
 };
@@ -91,13 +92,8 @@ function capacityReading(id: string, document: DocumentRecord, value: number, at
 function scenario(revAValue: number, revBValue: number): { candidates: Candidate[]; events: DeriveEvents } {
   const fromRevA = capacityReading('test-cand-g4-14-rev-a', revA, revAValue, '2026-09-25T09:00:00.000Z');
   const fromRevB = capacityReading('test-cand-g4-14-rev-b', revB, revBValue, '2026-09-25T13:00:00.000Z');
-  const verification: CandidateEvent = {
-    candidateId: fromRevA.id,
-    type: 'engineer_verified',
-    by: 'test-engineer',
-    role: 'sovitech_engineer',
-    at: '2026-09-25T10:00:00.000Z',
-  };
+  // 2026-09-25T10:00Z, after Rev A was read and before Rev B was declared.
+  const verification = engineerVerificationInMemory(fromRevA.id, 60);
   return {
     candidates: [fromRevA, fromRevB],
     events: {
@@ -117,7 +113,7 @@ function expectConflictForEngineer(revAValue: number, revBValue: number): void {
   expect(state.conflict?.routedTo).toBe('engineer');
 }
 
-pending('F-VALUE-04 · F-VALUE-07 · G4-14: Rev B changes an engineer_verified chiller capacity: conflict, routed to the engineer', () => {
+test('F-VALUE-04 · F-VALUE-07 · G4-14: Rev B changes an engineer_verified chiller capacity: conflict, routed to the engineer', () => {
   expectConflictForEngineer(640, 700);
 
   // Property: any change Rev B makes to the capacity.

@@ -1,0 +1,14 @@
+{
+  "$comment": "Seeded bad input (synthetic): the allowance for the badge the working tree alone added to 2.8.",
+  "lists": {
+    "reserved-terms.allowances": {
+      "add": [
+        {
+          "key": "badge:branch-only",
+          "label": "badge:branch-only",
+          "content": { "kind": "badge", "badgeId": "branch-only", "label": "Firm price agreed" }
+        }
+      ]
+    }
+  }
+}

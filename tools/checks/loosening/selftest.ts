@@ -1,12 +1,14 @@
 /**
  * Self-test of the loosening check (`pnpm check:selftest`).
  *
- * 1. The control inputs must pass: seeded/good/, and
+ * 1. The control inputs must pass: seeded/good/,
  *    seeded/good-git-approval-on-main/ (a synthetic approver and an approving
  *    row committed on main, read from git, so the git reading is shown to
- *    resolve a real approval and not merely to refuse everything). If one does
- *    not pass, the self-test throws: a check that fails on good input proves
- *    nothing.
+ *    resolve a real approval and not merely to refuse everything), and
+ *    seeded/good-2-8-badge-allowance/ (reserved-term allowances that are word
+ *    for word texts of docs/guardrails.md 2.8, of their kinds: 2.8 itself, ADR
+ *    0011). If one does not pass, the self-test throws: a check that fails on
+ *    good input proves nothing.
  * 2. Each seeded bad input must fail, and for its own seeded reason: every
  *    line of its `expected.txt` must appear in the details. A seed that fails
  *    for another reason throws too.
@@ -29,7 +31,7 @@ import { NAME, runLoosening, seededInputs } from './core';
 const SEEDED = join(dirname(fileURLToPath(import.meta.url)), 'seeded');
 
 /** Control inputs: each must pass. */
-export const CONTROL_SEEDS: readonly string[] = ['good', 'good-git-approval-on-main'];
+export const CONTROL_SEEDS: readonly string[] = ['good', 'good-git-approval-on-main', 'good-2-8-badge-allowance'];
 
 /**
  * Folders under seeded/ that are not bad inputs of this check: the controls,

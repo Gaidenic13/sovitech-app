@@ -12,6 +12,7 @@ import {
   type PathExists,
   type ReadFile,
 } from './case-files';
+import { contentHash, loadSupportPin } from './support-pin';
 
 const noFiles: ReadFile = () => undefined;
 const fixtureOf =
@@ -151,7 +152,7 @@ describe('case files: T case content', () => {
 
   it('classifies a case that imports the pending wrapper and starts with the marker as pending', () => {
     const text =
-      "// @pending-until: phase 2 verify-proposal, derive\nimport { pendingCase } from './_support/pending';\npendingCase(import.meta.url)('G1-4 · pending', () => {});\n";
+      "// @pending-until: phase 2 verify-proposal\nimport { pendingCase } from './_support/pending';\npendingCase(import.meta.url)('G1-4 · pending', () => {});\n";
     expect(classifyTestCase('G1-4', 'tests/guardrails/G1-4.test.ts', text, noFiles)).toEqual({
       status: 'pending',
       problems: [],
@@ -160,7 +161,7 @@ describe('case files: T case content', () => {
 
   it('reports the wrapper without the marker on the first line, and still counts the case as pending', () => {
     const noMarker = "import { pendingCase } from './_support/pending';\npendingCase(import.meta.url)('G1-4 · pending', () => {});\n";
-    const lateMarker = `import { x } from 'vitest';\n// @pending-until: phase 1 derive\n${noMarker}`;
+    const lateMarker = `import { x } from 'vitest';\n// @pending-until: phase 2 verify-proposal\n${noMarker}`;
     for (const text of [noMarker, lateMarker]) {
       const outcome = classifyTestCase('G1-4', 'tests/guardrails/G1-4.test.ts', text, noFiles);
       expect(outcome.status).toBe('pending');
@@ -170,7 +171,7 @@ describe('case files: T case content', () => {
   });
 
   it('reports a malformed marker, and still counts the case as pending', () => {
-    for (const marker of ['// @pending-until: phase 9 derive', '// @pending-until: phase 1 someday', '// @pending-until: phase 1 derive, derive']) {
+    for (const marker of ['// @pending-until: phase 9 verify-proposal', '// @pending-until: phase 1 someday', '// @pending-until: phase 2 verify-proposal, verify-proposal']) {
       const text = `${marker}\nimport { pendingCase } from './_support/pending';\npendingCase(import.meta.url)('G1-4 · pending', () => {});\n`;
       const outcome = classifyTestCase('G1-4', 'tests/guardrails/G1-4.test.ts', text, noFiles);
       expect(outcome.status).toBe('pending');
@@ -180,7 +181,7 @@ describe('case files: T case content', () => {
   });
 
   it('reports a marker without the wrapper, and never counts that file as real', () => {
-    const text = `// @pending-until: phase 1 derive\n${realCase('G1-4')}`;
+    const text = `// @pending-until: phase 2 verify-proposal\n${realCase('G1-4')}`;
     const outcome = classifyTestCase('G1-4', 'tests/guardrails/G1-4.test.ts', text, noFiles);
     expect(outcome.status).toBe('pending');
     expect(outcome.problems).toHaveLength(1);
@@ -276,7 +277,7 @@ describe('case files: T case content', () => {
 
   it('reports a case file that names NotImplementedError: only a domain stub throws it', () => {
     const text = [
-      '// @pending-until: phase 1 derive',
+      '// @pending-until: phase 2 verify-proposal',
       "import { NotImplementedError } from '@sovitech/domain';",
       "import { pendingCase } from './_support/pending';",
       "pendingCase(import.meta.url)('G1-4 · x', () => { throw new NotImplementedError('derive'); });",
@@ -293,7 +294,7 @@ describe('case files: T case content', () => {
 
   it('checks a pending case for held-out tests too', () => {
     const text =
-      "// @pending-until: phase 1 derive\nimport { test } from 'vitest';\nimport { pendingCase } from './_support/pending';\ntest.skip('G1-4 · x', () => { expect(1).toBe(1); });\n";
+      "// @pending-until: phase 2 verify-proposal\nimport { test } from 'vitest';\nimport { pendingCase } from './_support/pending';\ntest.skip('G1-4 · x', () => { expect(1).toBe(1); });\n";
     const outcome = classifyTestCase('G1-4', 'tests/guardrails/G1-4.test.ts', text, noFiles);
     expect(outcome.status).toBe('malformed');
     expect(outcome.problems.some((problem) => problem.includes('[held out]'))).toBe(true);
@@ -511,10 +512,91 @@ describe('case files: support modules (phase 0 review, round 2)', () => {
     expect(problems.some((problem) => problem.startsWith('tests/guardrails/_support/helper.ts:') && problem.includes(reason)), problems.join('\n')).toBe(true);
   });
 
-  it('lets the pending wrapper catch and skip, and nothing else', () => {
-    const wrapper = 'export async function run(body: () => unknown, context: { skip: (note: string) => never }) {\n  try { await body(); } catch { return context.skip("TEST"); }\n}\n';
-    expect(supportModuleFaults('tests/guardrails/_support/pending.ts', wrapper).problems).toEqual([]);
-    expect(supportModuleFaults('tests/guardrails/_support/other.ts', wrapper).problems.length).toBe(2);
+  it('lets the pending wrapper catch and skip only through the reviewed list, with its reviewed content', () => {
+    const wrapper =
+      "import { notImplementedFeature } from '@sovitech/domain';\n" +
+      'export async function run(body: () => unknown, context: { skip: (note: string) => never }) {\n' +
+      '  try { await body(); } catch (error) { if (notImplementedFeature(error) === undefined) throw error; return context.skip("TEST"); }\n}\n';
+    const pinned = [{ path: 'tests/guardrails/_support/pending.ts', role: 'pending-wrapper' as const, sha256: contentHash(wrapper), reason: 'TEST' }];
+    expect(supportModuleFaults('tests/guardrails/_support/pending.ts', wrapper, [], pinned).problems).toEqual([]);
+    // Not on the list (or no list): the wrapper is held to the full rule, like any module.
+    expect(supportModuleFaults('tests/guardrails/_support/pending.ts', wrapper).problems.length).toBe(2);
+    // On the list, but its content changed since it was reviewed.
+    const changed = supportModuleFaults('tests/guardrails/_support/pending.ts', `${wrapper}// TEST edit\n`, [], pinned).problems;
+    expect(changed.some((problem) => problem.includes('its content changed since it was reviewed')), changed.join('\n')).toBe(true);
+    expect(changed.some((problem) => problem.includes('swallows errors'))).toBe(true);
+    // The pending-wrapper role belongs to the wrapper's path only.
+    const elsewhere = [{ ...pinned[0]!, path: 'tests/guardrails/_support/other.ts' }];
+    const other = supportModuleFaults('tests/guardrails/_support/other.ts', wrapper, [], elsewhere).problems;
+    expect(other.some((problem) => problem.includes('the role pending-wrapper belongs to'))).toBe(true);
+    expect(other.some((problem) => problem.includes('keeps a test out of the run'))).toBe(true);
+  });
+
+  it('lets a stub-aware module on the reviewed list catch, but not skip, and only through notImplementedFeature', () => {
+    const helper =
+      "import { notImplementedFeature } from '@sovitech/domain';\n" +
+      'export function check(run: () => void): void {\n  try { run(); } catch (error) { if (notImplementedFeature(error) === undefined) throw error; }\n}\n';
+    const pinned = (text: string) => [{ path: 'tests/guardrails/_support/property.ts', role: 'stub-aware' as const, sha256: contentHash(text), reason: 'TEST' }];
+    expect(supportModuleFaults('tests/guardrails/_support/property.ts', helper, [], pinned(helper)).problems).toEqual([]);
+    const skipping = `${helper}export function hold(context: { skip: () => void }): void { context.skip(); }\n`;
+    expect(supportModuleFaults('tests/guardrails/_support/property.ts', skipping, [], pinned(skipping)).problems.some((problem) => problem.includes('keeps a test out'))).toBe(true);
+    const blind = 'export function check(run: () => void): void {\n  try { run(); } catch { /* TEST */ }\n}\n';
+    expect(
+      supportModuleFaults('tests/guardrails/_support/property.ts', blind, [], pinned(blind)).problems.some((problem) => problem.includes('through notImplementedFeature')),
+    ).toBe(true);
+  });
+
+  it.each([
+    ['return', 'try { run(); } finally { return; }'],
+    ['throw', "try { run(); } finally { throw new Error('TEST'); }"],
+    ['break', 'for (;;) { try { run(); } finally { break; } }'],
+    ['continue', 'for (const x of [1]) { try { run(); } finally { continue; } }'],
+    ['labelled break', 'outer: for (;;) { try { run(); } finally { for (;;) { break outer; } } }'],
+  ])('flags a finally block that leaves by %s (round 2 residual: try/finally return passed the [support] rule)', (_name, body) => {
+    const text = `export function helper(run: () => void): void {\n  ${body}\n}\n`;
+    const { problems } = supportModuleFaults('tests/guardrails/_support/helper.ts', text);
+    expect(problems.some((problem) => problem.includes('[support]') && problem.includes('in a finally block replaces whatever the try block threw')), problems.join('\n')).toBe(true);
+  });
+
+  it('passes a finally block that only cleans up, and jumps that stay inside it', () => {
+    const text =
+      'export function helper(run: () => void, close: () => void): void {\n' +
+      '  try { run(); } finally { close(); for (const x of [1]) { if (x) break; } const f = () => { return 1; }; void f; }\n}\n';
+    expect(supportModuleFaults('tests/guardrails/_support/helper.ts', text).problems).toEqual([]);
+  });
+
+  it.each([
+    ['child_process', "import { spawnSync } from 'node:child_process';"],
+    ['worker_threads', "import { Worker } from 'worker_threads';"],
+    ['cluster', "import cluster from 'node:cluster';"],
+    ['vm', "import vm from 'node:vm';"],
+    ['a re-export', "export { execFileSync } from 'child_process';"],
+    ['a dynamic import', "const cp = await import('node:child_process');"],
+    ['require', "const cp = require('child_process');"],
+    ['a computed import', "const cp = await import('node:child' + '_process');"],
+    ['createRequire', "import { createRequire } from 'node:module';\nconst load = createRequire(import.meta.url);"],
+    ['new Worker', "const w = new Worker(new URL('./x.js', import.meta.url));"],
+    ['execa', "import { execa } from 'execa';"],
+  ])('marks a case file that runs code in another process or context (%s) as malformed', (_name, line) => {
+    const text = `${line}\nimport { expect, test } from 'vitest';\ntest('G1-4 · a case', () => { expect(1).toBe(1); });\n`;
+    const outcome = classifyTestCase('G1-4', 'tests/guardrails/G1-4.test.ts', text, noFiles);
+    expect(outcome.status).toBe('malformed');
+    expect(outcome.problems.some((problem) => problem.includes('[process]')), outcome.problems.join('\n')).toBe(true);
+    expect(supportModuleFaults('tests/guardrails/_support/helper.ts', text).problems.some((problem) => problem.includes('[support]') && problem.includes('another process'))).toBe(true);
+  });
+
+  it('marks a case file with a finally block that returns as malformed ([swallow])', () => {
+    const text = "import { expect, test } from 'vitest';\ntest('G1-4 · a case', () => { try { expect(1).toBe(2); } finally { return; } });\n";
+    const outcome = classifyTestCase('G1-4', 'tests/guardrails/G1-4.test.ts', text, noFiles);
+    expect(outcome.status).toBe('malformed');
+    expect(outcome.problems.some((problem) => problem.includes('[swallow]'))).toBe(true);
+  });
+
+  it('passes imports that start no process: node:fs, node:path, a literal import of project code', () => {
+    const text =
+      "import { readFileSync } from 'node:fs';\nimport { join } from 'node:path';\nimport { expect, test } from 'vitest';\n" +
+      "test('G1-4 · a case', async () => { const m = await import('./_support/x'); expect(m).toBeDefined(); expect(readFileSync).toBeDefined(); expect(join).toBeDefined(); });\n";
+    expect(classifyTestCase('G1-4', 'tests/guardrails/G1-4.test.ts', text, noFiles).status).toBe('real');
   });
 
   it('marks a case that imports a faulty support module, directly or through another, as malformed', () => {
@@ -537,12 +619,16 @@ describe('case files: support modules (phase 0 review, round 2)', () => {
     expect(classifyTestCase('G1-4', 'tests/guardrails/G1-4.test.ts', text, readFile, { supportFaults: new Map() }).status).toBe('real');
   });
 
-  it('passes the repository\'s own support modules', async () => {
-    const { readFileSync } = await import('node:fs');
+  it('passes the repository\'s own support modules, with the repository\'s reviewed list', async () => {
+    const { readFileSync, readdirSync } = await import('node:fs');
     const { join } = await import('node:path');
     const root = join(import.meta.dirname, '..', '..', '..');
-    for (const path of ['tests/guardrails/_support/pending.ts', 'tests/guardrails/_support/pending-note.ts']) {
-      expect(supportModuleFaults(path, readFileSync(join(root, path), 'utf8')).problems, path).toEqual([]);
+    const pin = loadSupportPin(root);
+    expect(pin.problems).toEqual([]);
+    expect(pin.entries.map((entry) => entry.path).sort()).toEqual(['tests/guardrails/_support/pending.ts', 'tests/guardrails/_support/property.ts']);
+    for (const name of readdirSync(join(root, 'tests/guardrails/_support')).filter((file) => file.endsWith('.ts'))) {
+      const path = `tests/guardrails/_support/${name}`;
+      expect(supportModuleFaults(path, readFileSync(join(root, path), 'utf8'), [], pin.entries).problems, path).toEqual([]);
     }
   });
 });

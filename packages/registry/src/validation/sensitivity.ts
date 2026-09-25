@@ -11,8 +11,14 @@
  * at least one declared output differs between answers. Each consumer sees
  * only its declared inputs, so an answer can reach an output only through a
  * declared path. Datasets passed in must be TEST datasets (prompt 3 5.4).
+ *
+ * Each formula runs as its signature's `unknownPolicy` plans it
+ * (../formulas/unknown-policy.ts; rule 1; G1-9): a run with an unknown input
+ * under `refuse` (the default) never reaches the body, and a field whose every
+ * run of a consumer was refused fails, naming the missing input.
  */
-import { formulaRef, parseVia, templateRef, type FieldDefinition, type RegistryBundle } from './schema';
+import { planFormulaRun } from '../formulas/unknown-policy';
+import { formulaRef, parseVia, templateRef, type RegistryFieldDefinition, type RegistryBundle } from './schema';
 import { isTestId } from './validate';
 
 export type SensitivityValues = Readonly<Record<string, unknown>>;
@@ -87,7 +93,7 @@ function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function answersFor(field: FieldDefinition, suite: SensitivitySuite): readonly unknown[] {
+function answersFor(field: RegistryFieldDefinition, suite: SensitivitySuite): readonly unknown[] {
   if (field.options !== undefined && field.options.length > 0) return field.options;
   return suite.fixture.probes?.[field.key] ?? [];
 }
@@ -139,6 +145,9 @@ export function runSensitivityTest(registry: RegistryBundle, suite: SensitivityS
       }
 
       const observed = new Map<string, Set<string>>();
+      /** Consumers whose run was refused or deferred by their unknownPolicy, with the plan's missing inputs. */
+      const notRun = new Map<string, { policy: string; missing: readonly string[] }>();
+      const ran = new Set<string>();
       let problem: string | undefined;
       for (const answer of answers) {
         if (problem !== undefined) break;
@@ -159,12 +168,21 @@ export function runSensitivityTest(registry: RegistryBundle, suite: SensitivityS
                 problem = `no TEST implementation for ${consumer.ref}; the sensitivity test cannot show that ${fieldKey} changes it`;
                 break;
               }
-              const result = implementation(pick(values, signature.inputs), { datasets });
-              if (!Object.prototype.hasOwnProperty.call(result, entry.output)) {
-                problem = `${consumer.ref} returned no ${entry.output}`;
-                break;
+              const plan = planFormulaRun(signature, (key) => values[key] !== undefined, (key) => fields.get(key));
+              if (plan.action !== 'run') {
+                // The body is never called on a partial input set; the engine applies ranges and exclusions (phase 5).
+                const missing = plan.action === 'refuse' ? plan.missing : plan.action === 'exclude_and_count' ? plan.excluded : plan.over.map((item) => item.fieldKey);
+                notRun.set(consumer.ref, { policy: plan.policy, missing });
+                output = { notRun: plan.action, missing };
+              } else {
+                ran.add(consumer.ref);
+                const result = implementation(pick(values, signature.inputs), { datasets });
+                if (!Object.prototype.hasOwnProperty.call(result, entry.output)) {
+                  problem = `${consumer.ref} returned no ${entry.output}`;
+                  break;
+                }
+                output = result[entry.output];
               }
-              output = result[entry.output];
             } else if (consumer?.kind === 'template') {
               const slot = slots.get(consumer.ref);
               const implementation = suite.templates?.[consumer.ref];
@@ -195,6 +213,16 @@ export function runSensitivityTest(registry: RegistryBundle, suite: SensitivityS
         continue;
       }
       const changed = [...observed.entries()].filter(([, seen]) => seen.size > 1).map(([label]) => label);
+      const neverRan = [...notRun.entries()].filter(([ref]) => !ran.has(ref));
+      if (changed.length === 0 && neverRan.length > 0) {
+        fail(
+          neverRan
+            .map(([ref, plan]) => `${ref} refused every run: its unknownPolicy is ${plan.policy} and ${plan.missing.join(', ')} is unknown on the fixture project`)
+            .join('; ') + `, so no answer to ${fieldKey} can be shown to change it (rule 1; rule 6)`,
+          answers.length,
+        );
+        continue;
+      }
       if (changed.length === 0) {
         fail(
           `changing ${fieldKey} across ${answers.length} answers changed no declared output (${[...observed.keys()].join(', ')}): ` +

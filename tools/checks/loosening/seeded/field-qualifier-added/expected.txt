@@ -1,0 +1,4 @@
+# Each line must appear in the check's details for this seed to count.
+# Phase 1 review, round 3 (adversarial finding 4, L1): a misspelt basis and a second basis added to the list G8-14 reads.
+problem: fields.building.grossFloorArea.qualifiers: qualifiers [gross_total] → [Gross_Total, gross_total, usable] (added Gross_Total, usable;
+: a loosening against unapproved baseline v0 with no approval reference

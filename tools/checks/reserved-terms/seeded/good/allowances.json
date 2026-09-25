@@ -1,9 +1,21 @@
 [
-  { "kind": "badge", "badgeId": "engineer-verified", "label": "Verified by SOVITECH" },
+  {
+    "kind": "badge",
+    "badgeId": "engineer-verified",
+    "label": "Verified by SOVITECH"
+  },
   {
     "kind": "generated_sentence",
     "templateId": "source-line.ai-inference.engineer",
     "template": "AI inference, verified by SOVITECH on {date}",
-    "readsStoredState": ["candidateEvent.engineer_verified.at"]
+    "readsStoredState": [
+      "candidateEvent.engineer_verified.at"
+    ]
+  },
+  {
+    "kind": "status_line",
+    "statusLineId": "stage-3",
+    "text": "Formal quotation",
+    "requiresRecord": "quotation_record"
   }
 ]

@@ -25,7 +25,7 @@ import {
   unmetExpectations,
 } from './run-seeded';
 
-const NOTE = 'pending: no automated check yet (derive is not implemented; phase 1)';
+const NOTE = 'pending: no automated check yet (verify-proposal is not implemented; phase 2)';
 
 /** The stub guard's record on a test that reached no stub. */
 const NO_STUB = { inTest: {}, outsideTests: {} };
@@ -46,8 +46,8 @@ const wrapperSkip = (fullName: string, caseId: string): GuardedTest => ({
   fails: false,
   state: 'skipped',
   note: NOTE,
-  record: { caseId, feature: 'derive', phase: 1 },
-  stubGuard: { inTest: { derive: 1 }, outsideTests: {} },
+  record: { caseId, feature: 'verify-proposal', phase: 2 },
+  stubGuard: { inTest: { 'verify-proposal': 1 }, outsideTests: {} },
 });
 
 const realModule = (caseId: string, tests: GuardedTest[] = [passing(`${caseId} · a case`)]): GuardedModule => ({
@@ -61,7 +61,7 @@ const realModule = (caseId: string, tests: GuardedTest[] = [passing(`${caseId} �
 
 const pendingModule = (caseId: string, tests: GuardedTest[] = [wrapperSkip(`${caseId} · a case`, caseId)]): GuardedModule => ({
   ...realModule(caseId, tests),
-  marker: { phase: 1, features: ['derive'] },
+  marker: { phase: 2, features: ['verify-proposal'] },
   importsWrapper: true,
 });
 
@@ -121,7 +121,7 @@ describe('run guard: the audit', () => {
 
   it('fails a passing test whose stub guard record shows an unbuilt stub, during the test or outside any test', () => {
     for (const stubGuard of [
-      { inTest: { derive: 1 }, outsideTests: {} },
+      { inTest: { 'verify-proposal': 1 }, outsideTests: {} },
       { inTest: {}, outsideTests: { 'verify-proposal': 2 } },
     ]) {
       const report = audit([realModule('G8-4', [{ ...passing('G8-4 · x'), stubGuard }])]);
@@ -139,7 +139,7 @@ describe('run guard: the audit', () => {
       [pendingModule('G4-2', [wrapperSkip('G4-2 · x', 'G4-9')]), 'does not name this case file'],
       [pendingModule('G4-2', [{ ...wrapperSkip('G4-2 · x', 'G4-2'), record: { caseId: 'G4-2', feature: 'verify-proposal', phase: 1 } }]), 'which the file'],
       [pendingModule('G4-2', [{ ...wrapperSkip('G4-2 · x', 'G4-2'), note: 'pending: no automated check yet' }]), 'note is not'],
-      [{ ...pendingModule('G4-2'), marker: { phase: 2, features: ['derive'] } }, 'which the file'],
+      [{ ...pendingModule('G4-2'), marker: { phase: 2, features: ['derive' as never] } }, 'which the file'],
     ];
     for (const [module, reason] of cases) {
       const report = audit([module]);

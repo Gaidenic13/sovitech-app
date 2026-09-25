@@ -5,12 +5,12 @@
  */
 import { describe, expect, it } from 'vitest';
 import { PROPOSED_SETTINGS } from './policy';
-import type { FieldDefinition, RegistryBundle } from './schema';
+import type { RegistryFieldDefinition, RegistryBundle } from './schema';
 import { validateRegistry } from './validate';
 
-type FieldInput = Omit<FieldDefinition, 'affects'> & { affects?: FieldDefinition['affects'] };
+type FieldInput = Omit<RegistryFieldDefinition, 'affects'> & { affects?: RegistryFieldDefinition['affects'] };
 
-function field(overrides: Partial<FieldInput> & { key: string }): FieldDefinition {
+function field(overrides: Partial<FieldInput> & { key: string }): RegistryFieldDefinition {
   return {
     label: `Label of ${overrides.key}`,
     subject: 'building',
@@ -42,16 +42,73 @@ function bundle(overrides: Partial<RegistryBundle> = {}): RegistryBundle {
   };
 }
 
-function codes(input: unknown, scope: 'production' | 'test' = 'production'): string[] {
-  return validateRegistry(input, { scope }).problems.map((problem) => problem.code);
+/** Rule 7's four required fields, each named by a synthetic template slot, so a production-scope bundle meets the floor. */
+const REQUIRED_FIELDS: RegistryFieldDefinition[] = (
+  [
+    ['project.unitName', 'project_name'],
+    ['project.unitType', 'project_type'],
+    ['project.unitCity', 'city'],
+    ['project.unitCountry', 'country'],
+  ] as const
+).map(([key, slot], position) => ({
+  key,
+  label: `Label of ${key}`,
+  subject: 'project',
+  kind: 'text',
+  estimation: 'forbidden',
+  criticality: 'required',
+  requiredSlot: slot,
+  ...(slot === 'project_name' ? { identity: true } : {}),
+  impactRank: 90 + position,
+  confirmBy: 'owner',
+  confirmByBasis: 'identity',
+  affects: [{ output: 'unit.required', via: 'template:unit.required' }],
+}));
+
+/** The bundle with each required slot it does not hold added, so each test reads only its own problem. */
+function withRequired(input: unknown): unknown {
+  if (typeof input !== 'object' || input === null) return input;
+  const record = input as Partial<RegistryBundle>;
+  if (!Array.isArray(record.fields)) return input;
+  const held = new Set(record.fields.map((item) => item.requiredSlot));
+  const missing = REQUIRED_FIELDS.filter((item) => !held.has(item.requiredSlot));
+  if (missing.length === 0) return input;
+  return {
+    ...record,
+    fields: [...record.fields, ...missing],
+    templateSlots: [...(record.templateSlots ?? []), { id: 'unit.required', reads: missing.map((item) => item.key) }],
+  };
 }
+
+function codes(input: unknown, scope: 'production' | 'test' = 'production'): string[] {
+  return validateRegistry(withRequired(input), { scope }).problems.map((problem) => problem.code);
+}
+
+describe('the registry floor (phase 0 review, finding 17)', () => {
+  it('fails a production registry that lacks any of rule 7\'s four required fields, and passes the test scope', () => {
+    const input = bundle();
+    const found = validateRegistry(input, { scope: 'production' }).problems.filter((problem) => problem.code === 'required-field-missing');
+    expect(found.map((problem) => /required slot (\w+)/.exec(problem.message)?.[1])).toEqual(['project_name', 'project_type', 'city', 'country']);
+    expect(validateRegistry(input, { scope: 'test' }).problems.map((problem) => problem.code)).not.toContain('required-field-missing');
+    expect(codes(input)).not.toContain('required-field-missing');
+  });
+
+  it('fails qualifiers that list the unknown qualifier, repeat one, or sit on a field that requires none', () => {
+    const area = (overrides: Partial<FieldInput>): RegistryFieldDefinition =>
+      field({ key: 'building.choice', kind: 'quantity', options: undefined, unit: 'm2', dimension: 'area', qualifierRequired: true, ...overrides });
+    expect(codes(bundle({ fields: [area({ qualifiers: ['gross_total'] })] }))).toEqual([]);
+    expect(codes(bundle({ fields: [area({ qualifiers: ['gross_total', 'unknown'] })] }))).toContain('qualifiers-invalid');
+    expect(codes(bundle({ fields: [area({ qualifiers: ['gross_total', 'gross_total'] })] }))).toContain('qualifiers-invalid');
+    expect(codes(bundle({ fields: [area({ qualifiers: ['gross_total'], qualifierRequired: false })] }))).toContain('qualifiers-invalid');
+  });
+});
 
 describe('validateRegistry', () => {
   it('passes a registry whose every affects entry names a declared consumer that reads the field', () => {
-    const result = validateRegistry(bundle(), { scope: 'production' });
+    const result = validateRegistry(withRequired(bundle()), { scope: 'production' });
     expect(result.problems).toEqual([]);
     expect(result.ok).toBe(true);
-    expect(result.registry?.fields).toHaveLength(1);
+    expect(result.registry?.fields).toHaveLength(5);
   });
 
   it('passes an affects entry that names a template slot reading the field', () => {
@@ -133,7 +190,7 @@ describe('validateRegistry', () => {
 
     it('rejects a method the guardrails do not name', () => {
       const input = bundle({
-        fields: [{ ...field({ key: 'building.choice', estimation: 'allowed' }), estimatedMethod: 'benchmark' } as unknown as FieldDefinition],
+        fields: [{ ...field({ key: 'building.choice', estimation: 'allowed' }), estimatedMethod: 'benchmark' } as unknown as RegistryFieldDefinition],
       });
       expect(codes(input)).toContain('schema');
     });
@@ -211,7 +268,7 @@ describe('validateRegistry', () => {
     });
 
     it('allows systems_in_scope on several decision fields, one per option', () => {
-      const system = (key: string, rank: number): FieldDefinition =>
+      const system = (key: string, rank: number): RegistryFieldDefinition =>
         field({ key, subject: 'project', kind: 'decision', options: ['include', 'exclude'], criticality: 'first_estimate', firstEstimateSlot: 'systems_in_scope', confirmBy: 'owner', confirmByBasis: 'owner_choice', impactRank: rank });
       const input = bundle({
         fields: [system('project.system.a', 1), system('project.system.b', 2)],
@@ -243,6 +300,31 @@ describe('validateRegistry', () => {
     it('fails an identity field that is not the project name', () => {
       expect(codes(bundle({ fields: [field({ key: 'building.choice', identity: true })] }))).toContain('identity-outside-list');
     });
+
+    // Phase 1 review, round 3: a decision is an owner choice (2.6), and choices belong to the owner (rule 3).
+    const decision = (overrides: Partial<FieldInput>): RegistryFieldDefinition =>
+      field({ key: 'building.choice', kind: 'decision', options: ['include', 'exclude'], confirmBy: 'owner', confirmByBasis: 'owner_choice', ...overrides });
+
+    it('passes a decision the owner confirms as their own choice', () => {
+      expect(codes(bundle({ fields: [decision({})] }))).toEqual([]);
+    });
+
+    it.each([
+      ['engineer', { confirmBy: 'engineer' as const, confirmByBasis: undefined }],
+      ['either', { confirmBy: 'either' as const }],
+    ])('fails a decision whose confirmBy is %s', (_label, overrides) => {
+      expect(codes(bundle({ fields: [decision(overrides)] }))).toContain('owner-choice-not-owner');
+    });
+
+    it('fails a decision resting on another rule 3 fact than the owner\'s own choice', () => {
+      expect(codes(bundle({ fields: [decision({ confirmByBasis: 'use_and_occupancy' })] }))).toContain('owner-choice-not-owner');
+    });
+
+    it('fails an owner_choice field that an engineer or either may settle, whatever its kind', () => {
+      expect(codes(bundle({ fields: [field({ key: 'building.choice', confirmBy: 'either', confirmByBasis: 'owner_choice' })] }))).toContain('owner-choice-not-owner');
+      expect(codes(bundle({ fields: [field({ key: 'building.choice', confirmBy: 'engineer', confirmByBasis: 'owner_choice' })] }))).toContain('owner-choice-not-owner');
+      expect(codes(bundle({ fields: [field({ key: 'building.choice', confirmBy: 'owner', confirmByBasis: 'owner_choice' })] }))).toEqual([]);
+    });
   });
 
   describe('reference datasets and TEST entries (rule 1, 2.1; prompt 3 5.4)', () => {
@@ -259,7 +341,7 @@ describe('validateRegistry', () => {
         fields: [field({ key: 'building.choice', affects: [{ output: 'unit.output', via: 'formula:unitFormulaTEST@1' }] })],
         datasets: [{ id: 'TEST-dataset', version: '1' }],
       });
-      const found = validateRegistry(input, { scope: 'production' }).problems.filter((p) => p.code === 'test-id-in-production');
+      const found = validateRegistry(withRequired(input), { scope: 'production' }).problems.filter((p) => p.code === 'test-id-in-production');
       expect(found.map((p) => p.at).sort()).toEqual(['datasets[0].id', 'formulas[0].id', 'id']);
     });
 
@@ -274,7 +356,7 @@ describe('validateRegistry', () => {
   });
 
   describe('units (rule 8, 2.7)', () => {
-    const quantity = (overrides: Partial<FieldInput>): FieldDefinition =>
+    const quantity = (overrides: Partial<FieldInput>): RegistryFieldDefinition =>
       field({ key: 'building.choice', kind: 'quantity', options: undefined, unit: 'm2', dimension: 'area', ...overrides });
 
     it('passes a quantity whose unit exists with the declared dimension', () => {
@@ -291,6 +373,34 @@ describe('validateRegistry', () => {
 
     it('fails a dimension that differs from the unit dimension', () => {
       expect(codes(bundle({ fields: [quantity({ dimension: 'energy' })], questions: [] }))).toContain('unit-dimension-mismatch');
+    });
+
+    // Phase 1 review, round 3: the bundle carries the closed unit registry as it is (2.7; ADR 0017).
+    it('fails, in the production scope, a bundle unit that departs from the closed registry', () => {
+      const units = [{ code: 'm2', symbol: 'm²', dimension: 'area' }, { code: 'kVA', symbol: 'kVA', dimension: 'power' }];
+      expect(codes(bundle({ units, fields: [quantity({})], questions: [] }))).toContain('unit-not-in-closed-registry');
+      expect(codes(bundle({ units: [{ code: 'TEST-unit', symbol: 'TEST', dimension: 'area' }, ...units.slice(0, 1)], fields: [quantity({})], questions: [] }))).toContain(
+        'unit-not-in-closed-registry',
+      );
+      expect(codes(bundle({ units, fields: [quantity({})], questions: [] }), 'test')).not.toContain('unit-not-in-closed-registry');
+    });
+
+    // Phase 1 review, round 3: a count is a whole number, zero or more (2.6 kind count; rule 8).
+    const count = (overrides: Partial<FieldInput>): RegistryFieldDefinition =>
+      field({ key: 'building.choice', kind: 'count', options: undefined, unit: 'count', dimension: 'count', valueShape: 'non_negative_integer', ...overrides });
+    const countUnits = [{ code: 'count', symbol: 'count', dimension: 'count' }];
+
+    it('passes a count that declares its whole-number shape', () => {
+      expect(codes(bundle({ units: countUnits, fields: [count({})], questions: [] }))).toEqual([]);
+    });
+
+    it('fails a count that declares no value shape, in every scope', () => {
+      expect(codes(bundle({ units: countUnits, fields: [count({ valueShape: undefined })], questions: [] }))).toContain('value-shape-missing');
+      expect(codes(bundle({ units: countUnits, fields: [count({ valueShape: undefined })], questions: [] }), 'test')).toContain('value-shape-missing');
+    });
+
+    it('fails a value shape on a field that is not a count', () => {
+      expect(codes(bundle({ fields: [quantity({ valueShape: 'non_negative_integer' })], questions: [] }))).toContain('value-shape-invalid');
     });
   });
 

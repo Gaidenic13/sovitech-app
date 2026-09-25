@@ -12,7 +12,9 @@
  * - tests/e2e/render/screens.ts: every screen takes its display objects from the API through
  *   the registered adapter, or shows no value (see screens-schema.ts);
  * - tests/e2e/pages/: every harness page is listed in harness-pages.ts, and declares valid
- *   display objects in one JSON tag (see display-objects.ts).
+ *   display objects in one JSON tag (see display-objects.ts);
+ * - apps/ and packages/: each unreadable marker is set with a literal entry id, and an entry
+ *   that names its component only in that component (see unreadable-markers.ts; phase 1).
  * It lists every allowlist entry and every screen in its details, for the owner's review in
  * docs/build-log.md.
  */
@@ -23,8 +25,10 @@ import { readDeclaredDisplayObjects, validateDisplayObjects } from '../../../tes
 import { ALL_HARNESS_PAGES, harnessPageDisplayObjects, harnessPageFiles } from '../../../tests/e2e/render/harness-pages';
 import { RENDER_SCREENS } from '../../../tests/e2e/render/screens';
 import { screenProblems } from '../../../tests/e2e/render/screens-schema';
-import { fail, pass } from '../lib';
+import type { UnreadableEntry } from '../../../tests/e2e/render/contract';
+import { fail, pass, repoRoot } from '../lib';
 import type { Check, CheckResult } from '../types';
+import { unreadableMarkerProblems } from './unreadable-markers';
 
 export const NAME = 'render';
 export const ALLOWLIST_FILE = 'tests/e2e/render/allowlist.ts';
@@ -141,6 +145,26 @@ export function checkRender(allowlist: unknown, screens: unknown): CheckResult {
   );
 }
 
-const check: Check = async () => checkRender(RENDER_ALLOWLIST, RENDER_SCREENS);
+/**
+ * Where the unreadable markers are set, under `root` (unreadable-markers.ts): an entry that
+ * names its component is accepted only there. `label` names where the list came from.
+ */
+export async function checkUnreadableMarkers(root: string, unreadable: readonly UnreadableEntry[], label = ALLOWLIST_FILE): Promise<CheckResult> {
+  const problems = await unreadableMarkerProblems(root, unreadable);
+  return problems.length > 0
+    ? fail(NAME, `${label}: ${problems.length} problem(s) with where the unreadable markers are set`, problems)
+    : pass(NAME, `${label}: every unreadable marker is set with a literal entry id, each entry that names its component only there`, []);
+}
+
+/** The repository: the allowlist, the screen list, the harness pages and where the unreadable markers are set. */
+export async function checkRepository(root: string = repoRoot): Promise<CheckResult> {
+  const results = [checkRender(RENDER_ALLOWLIST, RENDER_SCREENS), await checkUnreadableMarkers(root, RENDER_ALLOWLIST.unreadable)];
+  const failed = results.filter((result) => !result.ok);
+  return failed.length > 0
+    ? fail(NAME, failed.map((result) => result.summary).join('; '), failed.flatMap((result) => result.details))
+    : pass(NAME, results.map((result) => result.summary).join('; '), results.flatMap((result) => result.details));
+}
+
+const check: Check = async () => checkRepository();
 
 export default check;

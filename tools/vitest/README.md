@@ -26,7 +26,7 @@ The index check (`tools/checks/index/`) reads the case files' source; the guard 
 
 `guardrail-stub-guard.ts` is a setup file of the `guardrails` project (`setupFiles` in `vitest.config.ts`); `stub-guard.ts` holds its record and verdict. It exists because a case written without the pending wrapper passed against the unbuilt domain stubs when it only asserted that the call throws, `expect(() => derive(...)).toThrow()` or `await expect(...verifyProposal(...)).rejects.toThrow()`, and counted as real (phase 0 review, round 2). Every case whose Expected cell is "Rejected" is naturally written that way.
 
-- The domain counts every NotImplementedError its stubs throw, caught or not (`stubErrorCounts` in `packages/domain/src/not-implemented.ts`, a module-private record next to the branded-error WeakMap; only the throwers raise it).
+- The domain counts every NotImplementedError its stubs throw, caught or not (`stubErrorCounts` in `packages/domain/src/not-implemented.ts`, a module-private record next to the branded-error WeakMap; only the throwers raise it). Since phase 1 `countsSince` reads a feature with no count as one that threw nothing, so the domain may keep its counts sparse (`sovitech/no-zero-tally` bans a tally started at zero for every key in `packages/`).
 - Around each test the guard reads the count. A test that reached a stub fails with `[stub] case exercises an unbuilt stub`, unless the pending wrapper held it out (its skip, with its record and note word for word). Stub errors thrown in the file outside any test (at load, in a describe body, in a beforeAll hook) count against every later test of the file.
 - It writes its record (`sovitechStubGuard`) into every test's meta, so the run guard can tell that it ran (`[unguarded]`).
 
@@ -51,6 +51,10 @@ It runs three ways: `config-integrity.test.ts` in the unit project; the index ch
 - A `--reporter` flag on the command line replaces the configured reporters, the guard included. The config-integrity check refuses one in the `test` script, in `pnpm check` and in CI; a developer's own command line is out of reach.
 - The guard runs in Vitest's main process and reads what the test workers report. A case file written to forge the wrapper's record and note, in a file that also carries the marker and imports the wrapper, would pass it; the index check fails such a file on its `.skip` call, and review is the last line.
 - Vitest reads a `.only` test itself back as mode `run`. The tests it leaves out in the same file are marked skip and fail the run; a lone `.only` holds nothing out. The index check flags `.only` in the source.
+
+## Which stub the harness's own tests reach
+
+Phase 1 built `derive`, so its stub and its place in `DOMAIN_FEATURES` went (ADR 0004). The seeded runs (`seeded/run/`), the pending-wrapper and stub-guard unit tests and the index check's seeds that need an unbuilt stub now reach `verify-proposal`: `verifyProposal()` with no proposal reaches its stub past check 1, which phase 1 built. `G2-7` is now a stale marker (a pending case still naming `derive`), which must fail to load. `stub-probe.ts` finds whichever stub still throws for tests that need one and do not care which; when phase 2 builds the last one, those tests say so and skip, and the pending wrapper can go.
 
 ## Proof
 

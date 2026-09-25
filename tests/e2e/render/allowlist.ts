@@ -24,7 +24,11 @@
  *   `data-render-unreadable="<id>"` naming an entry here. Each entry says why its pixels hold
  *   no number. At phase 0 it holds the brand logo, which the placeholder page shows; the
  *   model viewer's canvas is added by the phase that builds it. Each entry is listed in
- *   docs/build-log.md for the owner.
+ *   docs/build-log.md for the owner. An entry for an element that loads no file (a canvas,
+ *   a CSS image, an inline SVG drawing) names its one `component` file, and the render
+ *   check accepts its marker only there (phase 1).
+ * - Fixed interface copy never reads as a quantity: a number next to a unit of rule 8 or to
+ *   a word that names what a count counts is refused (phase 1).
  * - tools/checks/render validates this file (`pnpm checks`), and G2-1 checks that every
  *   entry is used by the clean harness page.
  *

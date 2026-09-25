@@ -18,8 +18,10 @@
  *   counts as pending at most; once the runner exists, only with a current 5-of-5
  *   results record (eval-runs.ts);
  * - modules under tests/guardrails/_support/ are read like case files: one that
- *   swallows errors, asserts vacuously or uses an unreviewed test double is a
- *   `[support]` problem, and a case file that imports it is malformed;
+ *   swallows errors, asserts vacuously, uses an unreviewed test double or runs code
+ *   in another process is a `[support]` problem, and a case file that imports it is
+ *   malformed; only the modules on the reviewed list stub-aware-support.json, with
+ *   their reviewed content, may catch the stub's error (support-pin.ts);
  * - the reviewed list of test doubles (reviewed-test-doubles.json) must be well
  *   formed, and an entry that matches no use is a problem, so the list never
  *   carries an allowance nobody needs;
@@ -48,6 +50,7 @@ import {
   type ReviewedTestDouble,
 } from './case-files';
 import { readEvalRunEvidence } from './eval-runs';
+import { SUPPORT_PIN_FILE, loadSupportPin } from './support-pin';
 import {
   CASE_DIRS,
   GUARDRAILS_PATH,
@@ -143,12 +146,24 @@ export async function buildIndexReport(root: string, guardrailsPath: string = GU
   problems.push(...reviewedList.problems);
   const reviewed = reviewedList.entries;
   const reviewedUsed = new Set<string>();
+  // The reviewed list of support modules that may catch the stub's error (support-pin.ts).
+  const supportPin = loadSupportPin(root);
+  problems.push(...supportPin.problems);
+  const pin = supportPin.entries;
   const supportFaults = new Map<string, readonly string[]>();
-  for (const path of await listFiles([`${T_SUPPORT_DIR}/**/*.ts`, `${T_SUPPORT_DIR}/**/*.tsx`], { cwd: root })) {
-    const faults = supportModuleFaults(path, readFile(path) ?? '', reviewed);
+  const supportPaths = await listFiles([`${T_SUPPORT_DIR}/**/*.ts`, `${T_SUPPORT_DIR}/**/*.tsx`], { cwd: root });
+  for (const path of supportPaths) {
+    const faults = supportModuleFaults(path, readFile(path) ?? '', reviewed, pin);
     supportFaults.set(path, faults.problems);
     problems.push(...faults.problems);
     for (const key of faults.reviewedUsed) reviewedUsed.add(key);
+  }
+  for (const entry of pin) {
+    if (!supportPaths.includes(entry.path)) {
+      problems.push(
+        `${SUPPORT_PIN_FILE}:1: [support] the reviewed entry for ${entry.path} matches no support module; remove it, so the list never allows more than the modules that exist`,
+      );
+    }
   }
   const lowerCaseIds = new Map(index.cases.map((entry) => [entry.id.toLowerCase(), entry.id]));
 
@@ -177,7 +192,7 @@ export async function buildIndexReport(root: string, guardrailsPath: string = GU
     const text = readFile(file.path) ?? '';
     const classified =
       file.type === 'T'
-        ? classifyTestCase(file.id, file.path, text, readFile, { reviewed, supportFaults })
+        ? classifyTestCase(file.id, file.path, text, readFile, { reviewed, supportFaults, pin })
         : classifyEvalCase(file.id, file.path, text, exists, evalRuns);
     problems.push(...classified.problems);
     for (const key of classified.reviewedUsed ?? []) reviewedUsed.add(key);

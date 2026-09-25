@@ -1,0 +1,215 @@
+{
+  "id": "TEST-sovitech-cost-ranges",
+  "version": "TEST-2",
+  "description": "TEST cost ranges: synthetic whole numbers for the sensitivity test and engine cases. Not SOVITECH data, not a price.",
+  "entries": {
+    "perM2ByBuildingTypeAndSystem": {
+      "hotel": {
+        "hvac": {
+          "low": 9001,
+          "high": 9002
+        },
+        "lighting": {
+          "low": 9002,
+          "high": 9003
+        },
+        "energy": {
+          "low": 9003,
+          "high": 9004
+        },
+        "access_control": {
+          "low": 9004,
+          "high": 9005
+        },
+        "fire_safety": {
+          "low": 9005,
+          "high": 9006
+        },
+        "water": {
+          "low": 9006,
+          "high": 9007
+        },
+        "elevators": {
+          "low": 9007,
+          "high": 9008
+        },
+        "cctv": {
+          "low": 9008,
+          "high": 9009
+        }
+      },
+      "office": {
+        "hvac": {
+          "low": 9002,
+          "high": 9003
+        },
+        "lighting": {
+          "low": 9003,
+          "high": 9004
+        },
+        "energy": {
+          "low": 9004,
+          "high": 9005
+        },
+        "access_control": {
+          "low": 9005,
+          "high": 9006
+        },
+        "fire_safety": {
+          "low": 9006,
+          "high": 9007
+        },
+        "water": {
+          "low": 9007,
+          "high": 9008
+        },
+        "elevators": {
+          "low": 9008,
+          "high": 9009
+        },
+        "cctv": {
+          "low": 9009,
+          "high": 9010
+        }
+      },
+      "retail": {
+        "hvac": {
+          "low": 9003,
+          "high": 9004
+        },
+        "lighting": {
+          "low": 9004,
+          "high": 9005
+        },
+        "energy": {
+          "low": 9005,
+          "high": 9006
+        },
+        "access_control": {
+          "low": 9006,
+          "high": 9007
+        },
+        "fire_safety": {
+          "low": 9007,
+          "high": 9008
+        },
+        "water": {
+          "low": 9008,
+          "high": 9009
+        },
+        "elevators": {
+          "low": 9009,
+          "high": 9010
+        },
+        "cctv": {
+          "low": 9010,
+          "high": 9011
+        }
+      },
+      "hospital": {
+        "hvac": {
+          "low": 9004,
+          "high": 9005
+        },
+        "lighting": {
+          "low": 9005,
+          "high": 9006
+        },
+        "energy": {
+          "low": 9006,
+          "high": 9007
+        },
+        "access_control": {
+          "low": 9007,
+          "high": 9008
+        },
+        "fire_safety": {
+          "low": 9008,
+          "high": 9009
+        },
+        "water": {
+          "low": 9009,
+          "high": 9010
+        },
+        "elevators": {
+          "low": 9010,
+          "high": 9011
+        },
+        "cctv": {
+          "low": 9011,
+          "high": 9012
+        }
+      },
+      "residential": {
+        "hvac": {
+          "low": 9005,
+          "high": 9006
+        },
+        "lighting": {
+          "low": 9006,
+          "high": 9007
+        },
+        "energy": {
+          "low": 9007,
+          "high": 9008
+        },
+        "access_control": {
+          "low": 9008,
+          "high": 9009
+        },
+        "fire_safety": {
+          "low": 9009,
+          "high": 9010
+        },
+        "water": {
+          "low": 9010,
+          "high": 9011
+        },
+        "elevators": {
+          "low": 9011,
+          "high": 9012
+        },
+        "cctv": {
+          "low": 9012,
+          "high": 9013
+        }
+      }
+    },
+    "perPoint": {
+      "hardwareIo": {
+        "low": 9025,
+        "high": 9026
+      },
+      "integration": {
+        "low": 9023,
+        "high": 9024
+      },
+      "virtual": {
+        "low": 9021,
+        "high": 9022
+      }
+    },
+    "countryPercent": {
+      "TEST-XA": 9031,
+      "TEST-XB": 9032
+    },
+    "projectTypePercent": {
+      "new_construction": {
+        "low": 9044,
+        "high": 9044
+      },
+      "renovation": {
+        "low": 9043,
+        "high": 9045
+      },
+      "existing_building": {
+        "low": 9042,
+        "high": 9046
+      },
+      "bms_modernization": {
+        "low": 9041,
+        "high": 9047
+      }
+    }
+  }
+}

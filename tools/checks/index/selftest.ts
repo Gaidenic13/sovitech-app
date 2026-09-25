@@ -98,6 +98,26 @@ const BAD_INPUTS: ReadonlyArray<{ name: string; reason: (result: CheckResult) =>
       malformedFor('[support]', 'imports tests/guardrails/_support/lenient.ts')(result),
   },
   { name: 'reviewed-double-stale', reason: problemWith('tools/checks/index/reviewed-test-doubles.json', 'matches no use') },
+  // Phase 1, from the round 2 residuals: a stub reached from a child process or a worker thread,
+  // where the stub guard cannot count it; a finally block that returns (in a support helper and
+  // in a case file); and the reviewed list of modules that may catch the stub's error.
+  { name: 'process-child-process', reason: malformedFor('[process]', 'an import of "node:child_process"') },
+  { name: 'process-worker-threads', reason: malformedFor('[process]', 'an import of "node:worker_threads"') },
+  {
+    name: 'support-finally-return',
+    reason: (result) =>
+      problemWith('tests/guardrails/_support/lenient.ts', '[support] "return" in a finally block replaces whatever the try block threw')(result) &&
+      malformedFor('[support]', 'imports tests/guardrails/_support/lenient.ts')(result),
+  },
+  { name: 'swallow-finally-in-case', reason: malformedFor('[swallow]', '"return" in a finally block') },
+  {
+    name: 'support-pin-changed',
+    reason: (result) =>
+      problemWith('tests/guardrails/_support/property.ts', 'its content changed since it was reviewed')(result) &&
+      problemWith('tests/guardrails/_support/property.ts', 'a catch clause swallows errors')(result) &&
+      malformedFor('[support]', 'imports tests/guardrails/_support/property.ts')(result),
+  },
+  { name: 'support-pin-stale', reason: problemWith('tools/checks/index/stub-aware-support.json', 'matches no support module') },
   // The eval switch is no longer a hand-set flag: with the runner present, an eval counts only with a current 5-of-5 record.
   { name: 'eval-runner-no-results', reason: evalNotReal('no results record at evals/guardrails/_results/G2-1.json') },
   { name: 'eval-runner-stale-results', reason: evalNotReal('ran against another prompt: prompts/ changed since') },

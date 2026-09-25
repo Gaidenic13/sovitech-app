@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
-import { derive } from '@sovitech/domain';
+import { verifyProposal } from '@sovitech/domain';
 
 // Seeded: the stub is reached while the file loads, its error swallowed, and a test
 // asserts on what the file made of it. The stub guard must fail the test.
 let outcome = 'TEST not reached';
 try {
-  (derive as unknown as () => unknown)();
-  outcome = 'TEST derived';
+  (verifyProposal as unknown as () => unknown)();
+  outcome = 'TEST verified';
 } catch {
   outcome = 'TEST rejected';
 }

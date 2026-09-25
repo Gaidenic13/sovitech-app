@@ -1,0 +1,11 @@
+{
+  "$comment": "Seeded reviewed list: the hash is of the helper before its edit (synthetic).",
+  "modules": [
+    {
+      "path": "tests/guardrails/_support/property.ts",
+      "role": "stub-aware",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "reason": "TEST seeded entry: the reviewed content of a stand-in property helper."
+    }
+  ]
+}

@@ -18,7 +18,7 @@ import type { CheckResult, SelfTest } from '../types';
 import { BAD_CASES, asSeededResult, runCase, runGood, seededFiles } from './cases';
 
 const selfTest: SelfTest = async () => {
-  const good = runGood();
+  const good = await runGood();
   if (!good.ok) {
     throw new Error(`The render check did not pass its control input (the real allowlist, screen list and harness pages):\n${good.details.join('\n')}`);
   }

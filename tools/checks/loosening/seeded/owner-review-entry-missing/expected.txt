@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+the allow-list entry `max-file-size` of `render.entries` is not listed for the owner

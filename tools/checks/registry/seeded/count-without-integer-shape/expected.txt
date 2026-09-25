@@ -1,0 +1,3 @@
+# Each line must appear in the check's details for this seed to count.
+# Phase 1 review, round 3 (adversarial finding 10): a count with no whole-number shape declared, so a count of 2.5 or -3 has nothing to be refused against.
+[value-shape-missing] building.seedCount is a count and declares no whole-number shape

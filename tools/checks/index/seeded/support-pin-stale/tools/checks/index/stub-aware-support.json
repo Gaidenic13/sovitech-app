@@ -1,0 +1,11 @@
+{
+  "$comment": "Seeded reviewed list: it names a support module that does not exist (synthetic).",
+  "modules": [
+    {
+      "path": "tests/guardrails/_support/gone.ts",
+      "role": "stub-aware",
+      "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "reason": "TEST seeded entry for a module that was removed."
+    }
+  ]
+}

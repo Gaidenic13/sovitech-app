@@ -30,6 +30,8 @@ Write the check so it can run against another root (for example a function takin
 - A check never passes on an empty scope: when a scan root matches no file, or nothing was read, it fails (phase 0 review, finding 17).
 - A check that scans folders takes its roots from `scan-roots/roots.json` (phase 0 review, round 2), so a folder added there for its scan is read without a change in the check; `scan-roots/wiring.test.ts` pins that for the checks that take globs.
 - A list that lets something past a check, or names what a check must catch, is recorded in the loosening check's exception-list snapshot (`loosening/exception-lists.ts`; phase 0 review, round 2): add one entry there, then run `tsx tools/checks/loosening/write-baseline.ts`.
+- Every entry of an allow list is listed for the owner in `docs/build-log.md`, under "For the owner's review" (phase 1): the loosening check reads that list (`loosening/owner-review.ts`) and fails on an entry missing there or a line naming an entry that is not there. The integrator keeps it.
+- A reserved-term allowance that is word for word a text of `docs/guardrails.md` 2.8, of the kind 2.8 gives it, is 2.8 itself and passes the loosening check without an approval reference (`loosening/guardrails-2-8.ts`; ADR 0011). Every other allowance waits for the approver.
 
 ## Expected checks
 

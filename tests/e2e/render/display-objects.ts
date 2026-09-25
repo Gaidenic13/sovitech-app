@@ -5,7 +5,8 @@
  * A display object is what the screen was served for one value id: the formatted value or
  * range (`text`), the badge, source and status lines it carries (`lines`), the pieces a
  * component may render in separate elements (`parts`, each inside `text` or a line), and the
- * evidence excerpts shown with it (`evidence`). Inside a value element, every text holding a
+ * evidence excerpts shown with it (`evidence`), and, for a stage 3 price only, the stored
+ * quotation record it was derived from (`quotationRecordId`). Inside a value element, every text holding a
  * number must be made of these strings; nothing else with a number is tied by the element.
  *
  * Where they come from:
@@ -35,6 +36,7 @@ const displaySchema = z.strictObject({
   lines: z.array(shownText).optional(),
   parts: z.array(shownText).optional(),
   evidence: z.array(evidenceSchema).optional(),
+  quotationRecordId: shownText.optional(),
 });
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -51,8 +53,8 @@ export interface DisplayObjectValidation {
 
 /**
  * Validates display objects: a plain object from value ids to displays, each with a non-empty
- * text, optional lines, parts and evidence, no other field, and every part found in the text
- * or in one line. Texts come back with whitespace collapsed.
+ * text, optional lines, parts, evidence and stage 3 quotation record id, no other field, and
+ * every part found in the text or in one line. Texts come back with whitespace collapsed.
  */
 export function validateDisplayObjects(input: unknown): DisplayObjectValidation {
   if (!isPlainObject(input)) {

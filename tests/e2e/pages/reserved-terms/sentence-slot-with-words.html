@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: a generated sentence whose date slot holds words</title>
+    <!-- Render harness page for G3-11 (guardrails 2.8, generated sentences "that the app builds from stored state"; rule 3 and G3-7, the line comes only from an engineer's verification; rule 14, "A document saying 'verified by the designer' is a finding, not a verification"; docs/adr/0011-verbatim-2-8-allowances.md, decision 11). The render check must FAIL here. The display object serves the badge "Verified by SOVITECH", which passes, and the line "AI inference, verified by SOVITECH on request of the designer": the 2.8 sentence with words in its date slot, which a typed slot refuses. The TEST value is synthetic and shows no number. -->
+    <script type="application/json" data-render-display-objects>
+      {"asset:a-test.type": {"text": "TEST air handling unit", "lines": ["Verified by SOVITECH", "AI inference, verified by SOVITECH on request of the designer"]}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>TEST asset type</h1>
+      <p><span data-value-id="asset:a-test.type">TEST air handling unit</span> <span data-copy-kind="badge">Verified by SOVITECH</span></p>
+      <p data-copy-kind="generated-sentence">AI inference, verified by SOVITECH on request of the designer</p>
+    </main>
+  </body>
+</html>

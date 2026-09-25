@@ -5,8 +5,14 @@ packages:
   - "packages/*"
 
 # Dependency build scripts that may run on install. esbuild's install script
-# checks its platform binary (used by tsx and Vite).
+# checks its platform binary (used by tsx and Vite). cpu-features, protobufjs
+# and ssh2 come with testcontainers (a development dependency of @sovitech/db,
+# phase 1): optional native add-ons for Docker over SSH, which the tests do not
+# use, so their scripts do not run.
 allowBuilds:
+  cpu-features: false
   esbuild: true
+  protobufjs: false
+  ssh2: false
 
 engineStrict: true

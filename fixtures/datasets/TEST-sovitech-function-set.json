@@ -1,0 +1,100 @@
+{
+  "id": "TEST-sovitech-function-set",
+  "version": "TEST-1",
+  "description": "TEST function set: synthetic measures for the sensitivity test. Not SOVITECH function set v1.",
+  "entries": {
+    "measures": [
+      {
+        "id": "TEST-M01",
+        "systems": [
+          "hvac"
+        ],
+        "areas": [
+          "hvac"
+        ],
+        "goals": [
+          "reduce_energy",
+          "reduce_operating_costs",
+          "occupant_comfort"
+        ]
+      },
+      {
+        "id": "TEST-M02",
+        "systems": [
+          "lighting"
+        ],
+        "areas": [
+          "lighting"
+        ],
+        "goals": [
+          "reduce_energy",
+          "lower_carbon"
+        ]
+      },
+      {
+        "id": "TEST-M03",
+        "systems": [
+          "energy"
+        ],
+        "areas": [
+          "energy_management"
+        ],
+        "goals": [
+          "lower_carbon",
+          "compliance",
+          "reduce_operating_costs"
+        ]
+      },
+      {
+        "id": "TEST-M04",
+        "systems": [
+          "hvac",
+          "energy"
+        ],
+        "areas": [
+          "predictive_maintenance"
+        ],
+        "goals": [
+          "asset_lifespan",
+          "operational_efficiency"
+        ]
+      },
+      {
+        "id": "TEST-M05",
+        "systems": [
+          "water"
+        ],
+        "areas": [
+          "water_management"
+        ],
+        "goals": [
+          "reduce_operating_costs"
+        ]
+      },
+      {
+        "id": "TEST-M06",
+        "systems": [
+          "access_control",
+          "cctv"
+        ],
+        "areas": [
+          "security_access"
+        ],
+        "goals": [
+          "operational_efficiency"
+        ]
+      },
+      {
+        "id": "TEST-M07",
+        "systems": [
+          "fire_safety",
+          "elevators"
+        ],
+        "areas": [],
+        "goals": [
+          "operational_efficiency"
+        ]
+      }
+    ]
+  }
+}

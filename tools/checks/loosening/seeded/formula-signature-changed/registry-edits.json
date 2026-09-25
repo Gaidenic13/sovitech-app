@@ -1,0 +1,9 @@
+{
+  "formulas": {
+    "change": {
+      "formula:capexIndicativeRange@1": {
+        "estimated": false
+      }
+    }
+  }
+}

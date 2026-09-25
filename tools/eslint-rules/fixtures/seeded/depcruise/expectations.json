@@ -89,6 +89,24 @@
     "tests/proposed/good-imports-test-utils.test.ts": [],
     "tests/e2e/imports-db.spec.ts": [
       "db-only-from-api"
-    ]
+    ],
+    "packages/engine/src/imports-test-formulas.ts": [
+      "test-formulas-and-fixtures-only-from-tests"
+    ],
+    "apps/api/src/imports-fixture-dataset.ts": [
+      "test-formulas-and-fixtures-only-from-tests"
+    ],
+    "apps/api/src/imports-db-testing.ts": [
+      "db-testing-only-from-tests"
+    ],
+    "packages/engine/src/imports-db-testing.ts": [
+      "db-only-from-api",
+      "db-testing-only-from-tests"
+    ],
+    "packages/db/src/imports-testing-outside-a-test.ts": [
+      "db-testing-only-from-tests"
+    ],
+    "packages/db/src/good-imports-testing.test.ts": [],
+    "tests/guardrails/good-imports-db-testing.test.ts": []
   }
 }

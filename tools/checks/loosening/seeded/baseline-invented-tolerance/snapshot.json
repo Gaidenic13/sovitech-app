@@ -18,7 +18,14 @@
       "referenceDatasets": [],
       "impactRank": 1,
       "minorForTotals": false,
-      "qualifierRequired": true
+      "qualifierRequired": true,
+      "kind": "quantity",
+      "unit": "m2",
+      "dimension": "area",
+      "qualifiers": [],
+      "options": [],
+      "valueShape": null,
+      "formulas": []
     }
   },
   "impactRankOrder": [

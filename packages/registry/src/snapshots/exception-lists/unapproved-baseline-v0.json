@@ -56,6 +56,102 @@
         }
       }
     },
+    "checks.roster": {
+      "direction": "deny",
+      "source": "the checks an exception list can belong to: tools/checks/runner.ts EXPECTED_CHECKS, the tools eslint, depcruise, vitest, checks, and each rule of tools/eslint-rules/index.js as eslint:<rule>",
+      "entries": {
+        "checks": {
+          "recordedOn": "2026-09-25"
+        },
+        "company-figures": {
+          "recordedOn": "2026-09-25"
+        },
+        "config-exclusion": {
+          "recordedOn": "2026-09-25"
+        },
+        "depcruise": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint:css-no-colour-literals": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint:css-no-shadows": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint:no-colour-literals": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint:no-computed-import": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint:no-decimal-from-text": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint:no-filtered-sum": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint:no-json-parse": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint:no-number-coercion": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint:no-rounding-outside-formatting": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint:no-shadows": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint:no-total-outside-engine": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint:no-zero-fallback": {
+          "recordedOn": "2026-09-25"
+        },
+        "eslint:no-zero-tally": {
+          "recordedOn": "2026-09-25"
+        },
+        "fixture-manifest": {
+          "recordedOn": "2026-09-25"
+        },
+        "index": {
+          "recordedOn": "2026-09-25"
+        },
+        "licences": {
+          "recordedOn": "2026-09-25"
+        },
+        "lint-bans": {
+          "recordedOn": "2026-09-25"
+        },
+        "loosening": {
+          "recordedOn": "2026-09-25"
+        },
+        "mockup-figures": {
+          "recordedOn": "2026-09-25"
+        },
+        "registry": {
+          "recordedOn": "2026-09-25"
+        },
+        "render": {
+          "recordedOn": "2026-09-25"
+        },
+        "reserved-terms": {
+          "recordedOn": "2026-09-25"
+        },
+        "scan-roots": {
+          "recordedOn": "2026-09-25"
+        },
+        "version-sync": {
+          "recordedOn": "2026-09-25"
+        },
+        "vitest": {
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
     "company-figures": {
       "direction": "deny",
       "source": "tools/checks/company-figures.txt (company figures and SAUTER names; stored by hash)",
@@ -3312,6 +3408,31 @@
       "source": "tools/checks/index/reviewed-test-doubles.json: entries (test doubles a guardrail case file or support module may use)",
       "entries": {}
     },
+    "index.stub-aware-support-modules": {
+      "direction": "allow",
+      "source": "tools/checks/index/stub-aware-support.json: modules (support modules that may catch the stub's error, each pinned by the SHA-256 of its reviewed content)",
+      "entries": {
+        "tests/guardrails/_support/pending.ts": {
+          "sha256": "5cc603d6a26a64467ad276d1fb6d4fc53cf807581d448da6a6a90152e2336b53",
+          "recordedOn": "2026-09-25"
+        },
+        "tests/guardrails/_support/property.ts": {
+          "sha256": "5aaf20bdd71270cf5dff87907ed9338a722b631bf5f5b7972fb128d2b38dd5fc",
+          "recordedOn": "2026-09-25",
+          "widening": "Recorded in phase 1 inside a new allow list, which the writer then counted as a tightening. At 135d74d only the pending wrapper could catch the stub's error, so this exemption from the index check's [support] rule widens a check the phase 0 baseline already had (phase 1 review, verifier finding 3). Re-recorded as a widening waiting for the approver; nothing approves it (D-05)."
+        }
+      }
+    },
+    "lint-bans.decimal-from-text-exempt": {
+      "direction": "allow",
+      "source": "tools/eslint-rules/index.js: NUMBER_PARSER (the folder no-decimal-from-text does not apply to: the rule 8 number parser)",
+      "entries": {
+        "packages/registry/src/number-parser/**": {
+          "sha256": "a6d7f79267260f78fa61cb4f162daefda61cc1234514c133d688e17a7f9ccafb",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
     "lint-bans.extensions-a-ban-must-read": {
       "direction": "deny",
       "source": "tools/checks/lint-bans/lint-bans.ts: EXTENSIONS_A_BAN_MUST_READ (a file of these types under apps/ or packages/ that no ban reads fails)",
@@ -3419,6 +3540,30 @@
           "recordedOn": "2026-09-25"
         },
         "xhtml": {
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "lint-bans.json-parse-reviewed": {
+      "direction": "allow",
+      "source": "tools/eslint-rules/index.js: JSON_PARSE_REVIEWED (the reviewed readers no-json-parse does not apply to), one entry per file",
+      "entries": {
+        "packages/registry/src/test-utils/test-utils.test.ts": {
+          "sha256": "9299ccb8d506667d1b3164cb60174e9b29c8737ad4aec3c1c9206a21a03d542c",
+          "recordedOn": "2026-09-25"
+        },
+        "packages/registry/src/validation/snapshot.ts": {
+          "sha256": "035feebcf6de927b2d2faf3f5a82b5218fcf9d7cf96708f45034e4d3eca00522",
+          "recordedOn": "2026-09-25"
+        }
+      }
+    },
+    "lint-bans.rounding-exempt": {
+      "direction": "allow",
+      "source": "tools/eslint-rules/index.js: FORMATTING_MODULE (the folder no-rounding-outside-formatting does not apply to: the formatting module)",
+      "entries": {
+        "packages/view-model/src/formatting/**": {
+          "sha256": "135ab5964fcee2b68d53dc713aba3d77f4f3e9b3ac42e7d6a5b1243ec3f5ff2d",
           "recordedOn": "2026-09-25"
         }
       }

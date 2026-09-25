@@ -6,7 +6,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 import {
+  ASSET_CONFIGURATIONS,
+  ASSET_EVENT_TYPES,
   CANDIDATE_EVENT_TYPES,
+  EVENT_ROLES,
+  FIELD_KINDS,
+  SUBJECT_KINDS,
   DOCUMENT_EVENT_TYPES,
   DOCUMENT_KINDS,
   DOCUMENT_STAGES,
@@ -69,6 +74,8 @@ const sources21 = section('### 2.1 Sources and verification: two separate axes')
 const documents23 = section('### 2.3 Documents');
 const candidates24 = section('### 2.4 Candidates, evidence and events');
 const rule1 = section('### Rule 1. Never invent engineering data');
+const assets25 = section('### 2.5 Assets and identity');
+const registry26 = section('### 2.6 Field registry');
 const events8 = section('## 8. Guardrail events');
 
 describe('domain lists follow docs/guardrails.md', () => {
@@ -115,6 +122,23 @@ describe('domain lists follow docs/guardrails.md', () => {
     const bySource = /2\. source: ([a-z_, ]+);/.exec(candidates24)?.[1]?.split(', ');
     expect([...VERIFICATION_PRECEDENCE]).toEqual(byVerification);
     expect([...SOURCE_PRECEDENCE]).toEqual(bySource);
+  });
+
+  test('2.2, 2.3 and 2.6: the subject kinds, the event roles and the field kinds', () => {
+    const definition = interfaceBody(registry26, 'FieldDefinition');
+    expect([...SUBJECT_KINDS]).toEqual(unionOf(definition, 'subject'));
+    expect([...FIELD_KINDS]).toEqual(unionOf(definition, 'kind'));
+    expect([...EVENT_ROLES]).toEqual(unionOf(interfaceBody(documents23, 'DocumentEvent'), 'role'));
+    expect([...EVENT_ROLES]).toEqual(unionOf(interfaceBody(candidates24, 'CandidateEvent'), 'role'));
+  });
+
+  test('2.5: the asset event types, written only by an engineer, and the configurations', () => {
+    const event = /interface AssetEvent \{([\s\S]*?)\}/.exec(assets25)?.[1] ?? '';
+    expect([...ASSET_EVENT_TYPES]).toEqual(unionOf(event, 'type'));
+    expect(unionOf(event, 'role')).toEqual(['sovitech_engineer']);
+    const configuration = /configuration\?: FieldRef;\s*\/\/ ([^\n]*)/.exec(assets25)?.[1] ?? '';
+    const listed = configuration.split(',')[0]?.split('|').map((part) => part.trim().split(' ')[0]);
+    expect([...ASSET_CONFIGURATIONS]).toEqual(listed);
   });
 
   test('rule 1: the verifier runs five evidence checks', () => {

@@ -1,0 +1,43 @@
+{
+  "units": [
+    {
+      "code": "kVA",
+      "symbol": "kVA",
+      "dimension": "power"
+    }
+  ],
+  "fields": [
+    {
+      "key": "building.seedPower",
+      "label": "Seed power (synthetic)",
+      "subject": "building",
+      "kind": "quantity",
+      "unit": "kVA",
+      "dimension": "power",
+      "qualifierRequired": true,
+      "estimation": "forbidden",
+      "criticality": "for_quotation",
+      "impactRank": 1,
+      "confirmBy": "engineer",
+      "affects": [
+        {
+          "output": "seed.output",
+          "via": "formula:seedFormula@1"
+        }
+      ]
+    }
+  ],
+  "questions": [],
+  "formulas": [
+    {
+      "id": "seedFormula",
+      "version": "1",
+      "inputs": [
+        "building.seedPower"
+      ],
+      "outputs": [
+        "seed.output"
+      ]
+    }
+  ]
+}

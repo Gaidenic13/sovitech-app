@@ -1,11 +1,11 @@
-// @pending-until: phase 1 derive
 /**
  * G4-1 (docs/guardrails.md section 7; rule 4; 2.4).
  * Situation: the owner entered 28 floors, and a document analysed later says 30.
  * Expected: both are kept. The field is in conflict, and it appears on the review step.
  */
 import fc from 'fast-check';
-import { expect } from 'vitest';
+import { expect, test } from 'vitest';
+import { unitByCode } from '@sovitech/registry';
 import {
   NO_EVENTS,
   derive,
@@ -16,9 +16,6 @@ import {
   type DocumentRecord,
   type FieldDefinition,
 } from '@sovitech/domain';
-import { pendingCase } from './_support/pending';
-
-const pending = pendingCase(import.meta.url);
 
 const BUILDING = 'test-building-g4-1';
 
@@ -29,6 +26,7 @@ const floorsField = (confirmBy: FieldDefinition['confirmBy']): FieldDefinition =
   kind: 'count',
   unit: 'count',
   qualifierRequired: true,
+  qualifiers: ['upper_floors'],
   estimation: 'forbidden',
   criticality: 'optional',
   affects: [],
@@ -88,7 +86,9 @@ function ownerEvents(field: FieldDefinition, owner: Candidate): DeriveEvents {
 }
 
 const context: DeriveContext = {
+  subjectId: BUILDING,
   document: (id) => (id === memoriu.id ? memoriu : undefined),
+  unit: unitByCode,
   inputState: () => undefined,
   datasetApproved: () => false,
 };
@@ -125,7 +125,7 @@ function expectBothKeptInConflictOnReview(field: FieldDefinition, ownerValue: nu
   expect(state.review?.reason).toBe('conflict');
 }
 
-pending('F-VALUE-02 · F-VALUE-03 · G4-1: owner 28 floors, document later 30: both kept, conflict, on the review step', () => {
+test('F-VALUE-02 · F-VALUE-03 · G4-1: owner 28 floors, document later 30: both kept, conflict, on the review step', () => {
   expectBothKeptInConflictOnReview(floorsField('owner'), 28, 30);
 
   // Property: any two different floor counts, whoever confirms the field.

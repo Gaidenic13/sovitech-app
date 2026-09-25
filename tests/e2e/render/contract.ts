@@ -53,8 +53,11 @@ export const COPY_KIND_ATTRIBUTE = 'data-copy-kind';
 /**
  * The places 2.8 allows a reserved term, as markers. Each but `evidence-excerpt` is honoured
  * only when a registered allowance of the matching kind (packages/registry reserved terms)
- * covers the whole unit; `evidence-excerpt` only when the unit is an excerpt the served
- * display objects declare, with its document id and content hash.
+ * covers the whole unit; since the phase 1 review, a `badge`, `status-line` or
+ * `generated-sentence` unit also only when a served display object carries that text among its
+ * lines (2.8: built from stored state), and the stage 3 label only when that display object
+ * names its stored quotation record. `evidence-excerpt` is honoured only when the unit is an
+ * excerpt the served display objects declare, with its document id and content hash.
  */
 export const COPY_KINDS = [
   'badge',
@@ -95,6 +98,12 @@ export interface ServedDisplay {
   parts?: readonly string[];
   /** Evidence excerpts shown with the value; each may be shown verbatim, marked `evidence-excerpt`. */
   evidence?: readonly ServedEvidence[];
+  /**
+   * For a stage 3 price only: the id of the stored quotation record it was derived from
+   * (guardrails rule 10, "Stage 3 is derived, not passed"). Only a display object carrying it
+   * may show the stage 3 label "Formal quotation", which 2.8 allows at stage 3 only.
+   */
+  quotationRecordId?: string;
 }
 
 /** Value id to what the screen was served for it. */
@@ -271,6 +280,14 @@ export interface UnreadableEntry {
    * covers that one file and not every element of its kind. Not allowed on the other kinds.
    */
   src?: string;
+  /**
+   * The one component file that draws the element, a path under apps/ or packages/. Required
+   * for the kinds that load no file (`canvas`, `css-image`, `svg-graphic`), which `src` cannot
+   * tie to one image; optional for the others. The render check's source scan accepts the
+   * marker `data-render-unreadable="<id>"` of such an entry only in that file (phase 1; phase 0
+   * review round 2, adversarial finding 10, remainder).
+   */
+  component?: string;
   /** Why its pixels carry no number and no engineering value. */
   reason: string;
   source: string;

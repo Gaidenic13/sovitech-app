@@ -1,26 +1,24 @@
-// @pending-until: phase 1 derive
 /**
  * G4-18 (docs/guardrails.md section 7; rule 4 "Routing").
  * Situation: a document disagrees with an engineer_verified area.
  * Expected: the conflict goes to the engineer queue. The owner is not asked.
  *
- * The engineer's event is built in memory for this derive test only; nothing here
+ * The engineer's event is built in memory for this derive test only, by the one
+ * builder file that may (tests/guardrails/_support/builders.ts); nothing here
  * writes it anywhere (rule 10; prompt 3 section 14 item 3).
  */
 import fc from 'fast-check';
-import { expect } from 'vitest';
+import { expect, test } from 'vitest';
+import { unitByCode } from '@sovitech/registry';
 import {
   derive,
   type Candidate,
-  type CandidateEvent,
   type DeriveContext,
   type DeriveEvents,
   type DocumentRecord,
   type FieldDefinition,
 } from '@sovitech/domain';
-import { pendingCase } from './_support/pending';
-
-const pending = pendingCase(import.meta.url);
+import { engineerVerificationInMemory } from './_support/builders';
 
 const PROJECT = 'test-project-g4-18';
 const BUILDING = 'test-building-g4-18';
@@ -32,6 +30,7 @@ const areaField = (confirmBy: FieldDefinition['confirmBy']): FieldDefinition => 
   kind: 'quantity',
   unit: 'm2',
   qualifierRequired: true,
+  qualifiers: ['gross_total'],
   estimation: 'forbidden',
   criticality: 'optional',
   affects: [],
@@ -49,7 +48,9 @@ const documents: readonly DocumentRecord[] = ['survey', 'tender'].map((name) => 
 }));
 
 const context: DeriveContext = {
+  subjectId: BUILDING,
   document: (id) => documents.find((document) => document.id === id),
+  unit: unitByCode,
   inputState: () => undefined,
   datasetApproved: () => false,
 };
@@ -83,13 +84,8 @@ function scenario(checkedValue: number, disagreeingValue: number, arrival: Arriv
   const [checkedMinute, disagreeingMinute] = arrival === 'engineer-checked-first' ? [0, 30] : [30, 0];
   const checked = areaReading('test-cand-g4-18-engineer-checked', 0, checkedValue, checkedMinute);
   const disagreeing = areaReading('test-cand-g4-18-disagreeing', 1, disagreeingValue, disagreeingMinute);
-  const verification: CandidateEvent = {
-    candidateId: checked.id,
-    type: 'engineer_verified',
-    by: 'test-engineer',
-    role: 'sovitech_engineer',
-    at: '2026-09-25T11:00:00.000Z',
-  };
+  // 2026-09-25T11:00Z, after both readings arrived.
+  const verification = engineerVerificationInMemory(checked.id, 120);
   const events: DeriveEvents = { candidate: [verification], field: [], document: [] };
   return { candidates: [checked, disagreeing], events };
 }
@@ -105,11 +101,12 @@ function expectEngineerQueueOwnerNotAsked(
   expect(state.state).toBe('conflict');
   // The conflict goes to the engineer queue.
   expect(state.conflict?.routedTo).toBe('engineer');
-  // The owner is not asked.
-  expect(state.review?.list).not.toBe('for_you');
+  expect(state.conflicts.map((conflict) => conflict.routedTo)).toEqual(['engineer']);
+  // The owner is not asked: the review step lists it under "SOVITECH will check", never under "For you".
+  expect(state.review).toEqual({ list: 'sovitech_will_check', reason: 'conflict' });
 }
 
-pending('F-VALUE-04 · G4-18: a document disagrees with an engineer_verified area: engineer queue, owner not asked', () => {
+test('F-VALUE-04 · G4-18: a document disagrees with an engineer_verified area: engineer queue, owner not asked', () => {
   expectEngineerQueueOwnerNotAsked('owner', 2000, 2400, 'engineer-checked-first');
 
   // Property: whatever the field's confirmBy and whichever candidate arrived first.

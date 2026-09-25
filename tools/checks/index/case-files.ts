@@ -22,8 +22,11 @@
  *   `expect.assertions(0)`, `.toThrow()` naming no error), uses an unreviewed test
  *   double (`[test double]`: `vi.mock`, `vi.doMock`, `vi.stubGlobal`, `vi.stubEnv`,
  *   `vi.resetModules`, `vi.importActual`, `vi.importMock`, a spy with an
- *   implementation of its own or on project code) or imports a faulty support
- *   module (`[support]`); an E file that does not parse, names another id,
+ *   implementation of its own or on project code), runs code in another process,
+ *   thread or context (`[process]`: child_process, worker_threads, cluster, vm, a
+ *   computed module path; phase 1, from the round 2 residuals), has a `finally`
+ *   block that returns, throws, breaks or continues (`[swallow]`), or imports a
+ *   faulty support module (`[support]`); an E file that does not parse, names another id,
  *   carries an unknown status or lacks the full eval body (`[eval]`).
  * A stub or a malformed file is never a case: the index check lists its id as
  * "no automated check yet" (docs/adr/0003-index-check-convention.md).
@@ -45,6 +48,7 @@ import { parseDocument } from 'yaml';
 import { listFiles } from '../lib';
 import { NO_EVAL_RUNNER, evalResultGaps, type EvalRunEvidence } from './eval-runs';
 import { CASE_DIRS, type CaseType } from './guardrail-index';
+import { SUPPORT_PIN_FILE, pinnedRole, type PinnedSupportModule } from './support-pin';
 import {
   PENDING_WRAPPER,
   T_SUPPORT_DIR,
@@ -258,6 +262,64 @@ export interface CaseSourceFacts {
   testDoubles: TestDoubleFinding[];
   /** Code that swallows errors: a catch clause, `.catch(...)`, a two-argument `.then`, `Promise.allSettled`. */
   swallows: SourceFinding[];
+  /**
+   * Code that runs outside this process or context, where the stub guard cannot see what
+   * it reaches (phase 0 review, round 2 residual: a stub reached from a child process): an
+   * import of child_process, worker_threads, cluster or vm (with or without `node:`), or of a
+   * package that starts processes or threads; `new Worker(...)`; a module loaded by a path
+   * computed from code (`import(x)`, `require(x)`), or through `createRequire`.
+   */
+  processes: SourceFinding[];
+  /**
+   * A `finally` block that leaves by `return`, `throw`, `break` or `continue`: it replaces
+   * whatever the `try` threw, a failed assertion included (phase 0 review, round 2 residual:
+   * `try { ... } finally { return; }` passed the `[support]` rule).
+   */
+  finallyExits: SourceFinding[];
+}
+
+/**
+ * Modules that run code in another process, thread or context. A case or support module
+ * that imports one could reach an unbuilt stub where the stub guard cannot count it, and
+ * assert only on an exit status.
+ */
+const PROCESS_MODULES: ReadonlySet<string> = new Set(
+  ['child_process', 'worker_threads', 'cluster', 'vm'].flatMap((name) => [name, `node:${name}`]).concat([
+    'execa',
+    'tinyexec',
+    'cross-spawn',
+    'tinypool',
+    'piscina',
+  ]),
+);
+
+/** Whether a module specifier names one of PROCESS_MODULES, or a subpath of one. */
+function isProcessModule(specifier: string): boolean {
+  return [...PROCESS_MODULES].some((name) => specifier === name || specifier.startsWith(`${name}/`));
+}
+
+/**
+ * The statements in a `finally` block that leave it, so that it replaces what the `try`
+ * threw: `return` and `throw` anywhere in it outside a nested function; `break` and
+ * `continue` that jump out of it (no loop or switch of the block encloses them, or their
+ * label is declared outside it).
+ */
+function finallyExitStatements(block: ts.Block): ts.Statement[] {
+  const exits: ts.Statement[] = [];
+  const walk = (node: ts.Node, innerLoops: number, labels: ReadonlySet<string>): void => {
+    if (ts.isFunctionLike(node) || ts.isClassLike(node)) return;
+    if (ts.isReturnStatement(node) || ts.isThrowStatement(node)) exits.push(node);
+    if (ts.isBreakStatement(node) || ts.isContinueStatement(node)) {
+      const label = node.label?.text;
+      const leaves = label === undefined ? innerLoops === 0 : !labels.has(label);
+      if (leaves) exits.push(node);
+    }
+    const loopLike = ts.isIterationStatement(node, false) || ts.isSwitchStatement(node);
+    const nextLabels = ts.isLabeledStatement(node) ? new Set([...labels, node.label.text]) : labels;
+    ts.forEachChild(node, (child) => walk(child, innerLoops + (loopLike ? 1 : 0), nextLabels));
+  };
+  for (const statement of block.statements) walk(statement, 0, new Set());
+  return exits;
 }
 
 /** The text of a literal the parser can read without running code, or undefined. */
@@ -561,8 +623,13 @@ export function analyseCaseSource(path: string, text: string): CaseSourceFacts {
     vacuous: [],
     testDoubles: [],
     swallows: [],
+    processes: [],
+    finallyExits: [],
   };
   const lineOf = (node: ts.Node): number => file.getLineAndCharacterOfPosition(node.getStart(file)).line + 1;
+  const startsProcess = (node: ts.Node, what: string): void => {
+    facts.processes.push({ line: lineOf(node), what });
+  };
   const holdOut = (node: ts.Node, what: string): void => {
     facts.heldOut.push({ line: lineOf(node), what });
   };
@@ -650,6 +717,46 @@ export function analyseCaseSource(path: string, text: string): CaseSourceFacts {
 
     if (ts.isTryStatement(node) && node.catchClause !== undefined) {
       facts.swallows.push({ line: lineOf(node.catchClause), what: 'a catch clause' });
+    }
+    if (ts.isTryStatement(node) && node.finallyBlock !== undefined) {
+      for (const exit of finallyExitStatements(node.finallyBlock)) {
+        const keyword = snippet(exit).split(/[\s;(]/, 1)[0] ?? 'an exit';
+        facts.finallyExits.push({ line: lineOf(exit), what: `"${keyword}" in a finally block` });
+      }
+    }
+
+    // Code that runs in another process, thread or context (see PROCESS_MODULES).
+    if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier !== undefined) {
+      const specifier = literalText(node.moduleSpecifier);
+      if (specifier !== undefined && isProcessModule(specifier)) startsProcess(node, `an import of "${specifier}"`);
+    }
+    if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) {
+      const specifier = literalText(node.moduleReference.expression);
+      if (specifier === undefined) startsProcess(node, 'a module loaded by a path computed from code');
+      else if (isProcessModule(specifier)) startsProcess(node, `an import of "${specifier}"`);
+    }
+    if (ts.isCallExpression(node)) {
+      const callee = unwrap(node.expression);
+      const loads =
+        node.expression.kind === ts.SyntaxKind.ImportKeyword
+          ? 'import()'
+          : ts.isIdentifier(callee) && callee.text === 'require'
+            ? 'require()'
+            : undefined;
+      if (loads !== undefined) {
+        const first = node.arguments[0];
+        const specifier = first === undefined ? undefined : literalText(first);
+        if (specifier === undefined) startsProcess(node, `a module loaded by ${loads} with a path computed from code`);
+        else if (isProcessModule(specifier)) startsProcess(node, `a load of "${specifier}"`);
+      }
+    }
+    if (ts.isIdentifier(node) && node.text === 'createRequire') {
+      startsProcess(node, 'createRequire, which loads modules this check cannot read');
+    }
+    if (ts.isNewExpression(node)) {
+      const constructor = unwrap(node.expression);
+      const name = ts.isIdentifier(constructor) ? constructor.text : memberName(constructor);
+      if (name === 'Worker' || name === 'SharedWorker') startsProcess(node, `"new ${name}(...)"`);
     }
 
     ts.forEachChild(node, visit);
@@ -759,6 +866,8 @@ export interface TestCaseOptions {
    * through `readFile` and checked here.
    */
   supportFaults?: ReadonlyMap<string, readonly string[]>;
+  /** The reviewed list of support modules that may catch the stub's error (support-pin.ts); empty when absent. */
+  pin?: readonly PinnedSupportModule[];
 }
 
 const VACUOUS_ADVICE = 'a case proves its Expected cell with a matcher on the code under test\'s result';
@@ -793,33 +902,70 @@ function reviewTestDoubles(
   return { unreviewed, used };
 }
 
+function processProblem(path: string, finding: SourceFinding, kind: string): string {
+  return (
+    `${path}:${finding.line}: [${kind}] ${finding.what}: code run in another process, thread or context can reach an unbuilt ` +
+    'domain stub where the stub guard cannot count it, and a case that asserts only on what comes back proves nothing about ' +
+    'the code under test; call the code under test in the case itself'
+  );
+}
+
+function finallyExitProblem(path: string, finding: SourceFinding, kind: string): string {
+  return (
+    `${path}:${finding.line}: [${kind}] ${finding.what} replaces whatever the try block threw, a failed assertion included, ` +
+    'so the case passes, or reads as pending, whatever the code under test does; keep cleanup in finally free of return, throw, break and continue'
+  );
+}
+
 /**
  * The faults of one module under tests/guardrails/_support/, each a `[support]`
  * problem: a support helper runs inside a case, so what disqualifies a case file
  * disqualifies it too. It may not swallow errors (a catch clause, `.catch`, a
- * rejection handler, `Promise.allSettled`), hold a test out, register an empty
- * test, assert vacuously, use an unreviewed test double, or name the domain's
- * NotImplementedError. The pending wrapper itself is the one module that catches
- * (only to tell the stub's error from any other) and skips (only with its record
- * and note), so those two rules do not apply to it.
+ * rejection handler, `Promise.allSettled`, a `finally` block that returns,
+ * throws, breaks or continues), hold a test out, register an empty test, assert
+ * vacuously, use an unreviewed test double, run code in another process, thread
+ * or context, or name the domain's NotImplementedError.
+ *
+ * Two modules must catch the stub's error to tell it apart from every other
+ * error, and they pass only through the reviewed list `pin`
+ * (tools/checks/index/stub-aware-support.json, support-pin.ts), with the content
+ * that was reviewed: the pending wrapper (role `pending-wrapper`: it may catch and
+ * skip, only at tests/guardrails/_support/pending.ts) and the property helper
+ * (role `stub-aware`: it may catch). Each must read the stub's error the way the
+ * domain gives it, through `notImplementedFeature`. A listed module whose content
+ * changed is held to the full rule, with a problem.
  */
 export function supportModuleFaults(
   path: string,
   text: string,
   reviewed: readonly ReviewedTestDouble[] = [],
+  pin: readonly PinnedSupportModule[] = [],
 ): { problems: string[]; reviewedUsed: string[] } {
   const facts = analyseCaseSource(path, text);
-  const isWrapper = path.replace(/\.[cm]?[jt]sx?$/, '') === PENDING_WRAPPER;
+  const pinned = pinnedRole(path, text, pin);
+  const isWrapperPath = path.replace(/\.[cm]?[jt]sx?$/, '') === PENDING_WRAPPER;
+  const mayCatch = pinned.role === 'stub-aware' || (pinned.role === 'pending-wrapper' && isWrapperPath);
+  const mayHoldOut = pinned.role === 'pending-wrapper' && isWrapperPath;
   const { unreviewed, used } = reviewTestDoubles(path, facts.testDoubles, reviewed);
   const problems = [
-    ...(isWrapper ? [] : facts.swallows).map(
+    ...(pinned.problem === undefined ? [] : [pinned.problem]),
+    ...(pinned.role === 'pending-wrapper' && !isWrapperPath
+      ? [`${path}:1: [support] the role pending-wrapper belongs to ${PENDING_WRAPPER}.ts only; this module is held to the full [support] rule`]
+      : []),
+    ...(mayCatch && !text.includes('notImplementedFeature')
+      ? [`${path}:1: [support] may catch the stub's error only to tell it from any other, through notImplementedFeature from @sovitech/domain, and it does not use it`]
+      : []),
+    ...(mayCatch ? [] : facts.swallows).map(
       (finding) =>
         `${path}:${finding.line}: [support] ${finding.what} swallows errors: a helper that catches a case body's failure ` +
-        'lets the case pass whatever the code under test does; only the pending wrapper catches, and only to tell the stub\'s error from any other',
+        'lets the case pass whatever the code under test does; only the modules on the reviewed list ' +
+        `${SUPPORT_PIN_FILE} catch, and only to tell the stub's error from any other`,
     ),
-    ...(isWrapper ? [] : facts.heldOut).map(
+    ...(mayHoldOut ? [] : facts.heldOut).map(
       (finding) => `${path}:${finding.line}: [support] ${finding.what} keeps a test out of the run or inverts it; only the pending wrapper may hold a case out`,
     ),
+    ...facts.finallyExits.map((finding) => finallyExitProblem(path, finding, 'support')),
+    ...facts.processes.map((finding) => processProblem(path, finding, 'support')),
     ...facts.empty.map((finding) => `${path}:${finding.line}: [support] ${finding.what} has an empty body, so it proves nothing`),
     ...facts.vacuous.map((finding) => vacuousProblem(path, finding, 'support')),
     ...unreviewed.map((finding) => testDoubleProblem(path, finding, 'support')),
@@ -878,7 +1024,7 @@ export function classifyTestCase(
   const isFaulty = (module: string): boolean =>
     options.supportFaults !== undefined
       ? (options.supportFaults.get(module) ?? []).length > 0
-      : supportModuleFaults(module, readFile(module) ?? '', options.reviewed ?? []).problems.length > 0;
+      : supportModuleFaults(module, readFile(module) ?? '', options.reviewed ?? [], options.pin ?? []).problems.length > 0;
   const faultySupport = supportModulesReached(path, text, readFile).filter(isFaulty);
 
   // Faults that decide whether the file runs as a check: the file is never
@@ -900,6 +1046,8 @@ export function classifyTestCase(
     ),
     ...facts.vacuous.map((finding) => vacuousProblem(path, finding, 'vacuous')),
     ...unreviewed.map((finding) => testDoubleProblem(path, finding, 'test double')),
+    ...facts.processes.map((finding) => processProblem(path, finding, 'process')),
+    ...facts.finallyExits.map((finding) => finallyExitProblem(path, finding, 'swallow')),
     ...faultySupport.map(
       (module) =>
         `${path}:1: [support] imports ${module}, whose faults (listed as its own problems) make it unfit to run a case`,

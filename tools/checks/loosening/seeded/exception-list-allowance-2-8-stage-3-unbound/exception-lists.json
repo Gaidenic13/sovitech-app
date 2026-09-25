@@ -1,0 +1,10 @@
+{
+  "$comment": "Seeded bad input (synthetic; phase 1 review, adversarial finding 12): the stage 3 label 'Formal quotation' registered without its binding to the stored quotation record. 2.8 allows it 'at stage 3' only, and rule 10 derives stage 3 from a stored quotation record, so unbound it is not word for word 2.8's text and waits for the approver (ADR 0011).",
+  "lists": {
+    "reserved-terms.allowances": {
+      "change": {
+        "status_line:formal_quotation": { "kind": "status_line", "statusLineId": "formal_quotation", "text": "Formal quotation" }
+      }
+    }
+  }
+}

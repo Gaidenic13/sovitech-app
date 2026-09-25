@@ -6,10 +6,10 @@
  */
 import { describe, expect, it } from 'vitest';
 import { PROPOSED_SETTINGS } from './policy';
-import type { FieldDefinition, RegistryBundle } from './schema';
+import type { RegistryFieldDefinition, RegistryBundle } from './schema';
 import { runSensitivityTest, type SensitivitySuite } from './sensitivity';
 
-const choiceField: FieldDefinition = {
+const choiceField: RegistryFieldDefinition = {
   key: 'building.testChoice',
   label: 'Test choice',
   subject: 'building',
@@ -130,7 +130,7 @@ describe('runSensitivityTest', () => {
   });
 
   it('takes answers for a quantity question from the fixture probes', () => {
-    const quantityField: FieldDefinition = {
+    const quantityField: RegistryFieldDefinition = {
       ...choiceField,
       kind: 'quantity',
       options: undefined,
@@ -152,7 +152,7 @@ describe('runSensitivityTest', () => {
   });
 
   it('proves each field of a multi-select question on its own', () => {
-    const optionField = (key: string, rank: number): FieldDefinition => ({
+    const optionField = (key: string, rank: number): RegistryFieldDefinition => ({
       ...choiceField,
       key,
       kind: 'decision',

@@ -1,0 +1,15 @@
+{
+  "units": {
+    "change": {
+      "m2": {
+        "written": [
+          "mp",
+          "m.p.",
+          "mp.",
+          "sqm",
+          "TEST-mp"
+        ]
+      }
+    }
+  }
+}

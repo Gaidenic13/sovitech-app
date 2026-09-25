@@ -1,15 +1,18 @@
-// @pending-until: phase 1 derive
 /**
  * G4-15 (docs/guardrails.md section 7; 2.3 "Deleting a document"; 2.8 status lines).
  * Situation: the only source document of a field is deleted.
  * Expected: the field is unknown and listed as "Source document removed".
  *
  * The deletion appends a `withdrawn` document event and, for each candidate whose
- * evidence comes only from that document, a `withdrawn` candidate event (2.3).
+ * evidence comes only from that document, a `withdrawn` candidate event by the
+ * system with the reason `document_deleted` (2.3). The listed line is the 2.8
+ * text, read from the status-line registry by the key derive returns.
  */
 import fc from 'fast-check';
-import { expect } from 'vitest';
+import { expect, test } from 'vitest';
+import { STATUS_LINE_IDS, statusLineById, unitByCode, type StatusLineId } from '@sovitech/registry';
 import {
+  FIELD_STATUS_LINES,
   derive,
   type Candidate,
   type CandidateEvent,
@@ -19,9 +22,6 @@ import {
   type DocumentRecord,
   type FieldDefinition,
 } from '@sovitech/domain';
-import { pendingCase } from './_support/pending';
-
-const pending = pendingCase(import.meta.url);
 
 const BUILDING = 'test-building-g4-15';
 
@@ -32,6 +32,7 @@ const areaField = (confirmBy: FieldDefinition['confirmBy']): FieldDefinition => 
   kind: 'quantity',
   unit: 'm2',
   qualifierRequired: true,
+  qualifiers: ['gross_total'],
   estimation: 'forbidden',
   criticality: 'optional',
   affects: [],
@@ -49,7 +50,9 @@ const deleted: DocumentRecord = {
 };
 
 const context: DeriveContext = {
+  subjectId: BUILDING,
   document: (id) => (id === deleted.id ? deleted : undefined),
+  unit: unitByCode,
   inputState: () => undefined,
   datasetApproved: () => false,
 };
@@ -93,6 +96,7 @@ function deletionEvents(candidates: readonly Candidate[]): DeriveEvents {
       by: 'test-deletion-job',
       role: 'system',
       at,
+      reason: 'document_deleted',
     }),
   );
   return { candidate: withdrawals, field: [], document: [documentEvent] };
@@ -102,11 +106,14 @@ function expectUnknownAndListed(field: FieldDefinition, values: readonly number[
   const candidates = readingsFromDeletedDocument(field, values);
   const state = derive(field, candidates, deletionEvents(candidates), context);
   expect(state.state).toBe('unknown');
-  expect(state.statusLines).toContain('source_document_removed');
+  expect(state.statusLines).toEqual(['source_document_removed']);
+  expect(state.statusLines.map((key) => statusLineById(key).text)).toEqual(['Source document removed']);
   expect(state.review).toEqual({ list: 'for_you', reason: 'source_document_removed' });
+  // The deletion's own events all hold: nothing is refused.
+  expect(state.refusedEvents).toEqual([]);
 }
 
-pending('F-VALUE-02 · G4-15: the only source document is deleted: unknown, listed as "Source document removed"', () => {
+test('F-VALUE-02 · G4-15: the only source document is deleted: unknown, listed as "Source document removed"', () => {
   expectUnknownAndListed(areaField('owner'), [2345]);
 
   // Property: however many readings the document gave, and whoever confirms the field.
@@ -119,4 +126,12 @@ pending('F-VALUE-02 · G4-15: the only source document is deleted: unknown, list
       },
     ),
   );
+});
+
+test('F-VALUE-02 · G4-15: every status line derive names is a 2.8 status line of the registry, "Source document removed" among them', () => {
+  // At compile time: every key derive returns is a registry id.
+  const keys: readonly StatusLineId[] = FIELD_STATUS_LINES;
+  const registered: readonly string[] = STATUS_LINE_IDS;
+  for (const key of keys) expect(registered).toContain(key);
+  expect(statusLineById('source_document_removed')).toMatchObject({ text: 'Source document removed', kind: 'status_line', slots: [] });
 });

@@ -1,0 +1,4 @@
+# Each line must appear in the check's details for this seed to count.
+# Phase 1 review, round 3: a declared formula signature changed under the same version; estimated to calculated lets its values past estimation: forbidden (rule 1).
+problem: formulas.formula:capexIndicativeRange@1: the formula signature formula:capexIndicativeRange@1 changed from
+(2.4: "Formula versions are immutable"; a change is a new version): a loosening against unapproved baseline v0 with no approval reference

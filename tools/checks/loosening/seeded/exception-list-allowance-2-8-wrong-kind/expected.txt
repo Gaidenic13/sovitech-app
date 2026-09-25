@@ -1,0 +1,3 @@
+# Each line must appear in the check's details for this seed to count.
+exception list reserved-terms.allowances: entry added: status_line:verified-line: a loosening against unapproved baseline v0 (exception lists) with no approval reference
+not word for word a text docs/guardrails.md 2.8 lists for its kind (ADR 0011)

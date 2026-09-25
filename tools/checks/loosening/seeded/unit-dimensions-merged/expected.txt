@@ -1,0 +1,3 @@
+# Each line must appear in the check's details for this seed to count.
+# Phase 1 review, round 3 (adversarial finding 4, L4): apparent power merged into power, so kVA values pass the dimension check into kW fields.
+problem: units.kVA.dimension: the unit kVA moved from dimension apparent_power to power

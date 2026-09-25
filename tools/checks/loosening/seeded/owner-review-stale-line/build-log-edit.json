@@ -1,0 +1,4 @@
+{
+  "$comment": "Seeded bad input (synthetic): the owner's list names a render entry the allowlist does not hold.",
+  "edits": [{ "find": "`max-file-size`\n", "replace": "`max-file-size`, `retired-seed-entry`\n" }]
+}

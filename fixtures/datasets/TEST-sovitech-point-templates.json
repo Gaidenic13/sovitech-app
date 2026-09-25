@@ -1,0 +1,243 @@
+{
+  "id": "TEST-sovitech-point-templates",
+  "version": "TEST-2",
+  "description": "TEST point templates: synthetic whole numbers for the sensitivity test and engine cases. Not SOVITECH data.",
+  "entries": {
+    "base": {
+      "hotel": {
+        "hvac": {
+          "hardwareIo": 9001,
+          "integration": 9021,
+          "virtual": 9031
+        },
+        "lighting": {
+          "hardwareIo": 9002,
+          "integration": 9022,
+          "virtual": 9031
+        },
+        "energy": {
+          "hardwareIo": 9003,
+          "integration": 9023,
+          "virtual": 9031
+        },
+        "access_control": {
+          "hardwareIo": 9004,
+          "integration": 9024,
+          "virtual": 9031
+        },
+        "fire_safety": {
+          "hardwareIo": 9005,
+          "integration": 9025,
+          "virtual": 9031
+        },
+        "water": {
+          "hardwareIo": 9006,
+          "integration": 9026,
+          "virtual": 9031
+        },
+        "elevators": {
+          "hardwareIo": 9007,
+          "integration": 9027,
+          "virtual": 9031
+        },
+        "cctv": {
+          "hardwareIo": 9008,
+          "integration": 9028,
+          "virtual": 9031
+        }
+      },
+      "office": {
+        "hvac": {
+          "hardwareIo": 9002,
+          "integration": 9021,
+          "virtual": 9032
+        },
+        "lighting": {
+          "hardwareIo": 9003,
+          "integration": 9022,
+          "virtual": 9032
+        },
+        "energy": {
+          "hardwareIo": 9004,
+          "integration": 9023,
+          "virtual": 9032
+        },
+        "access_control": {
+          "hardwareIo": 9005,
+          "integration": 9024,
+          "virtual": 9032
+        },
+        "fire_safety": {
+          "hardwareIo": 9006,
+          "integration": 9025,
+          "virtual": 9032
+        },
+        "water": {
+          "hardwareIo": 9007,
+          "integration": 9026,
+          "virtual": 9032
+        },
+        "elevators": {
+          "hardwareIo": 9008,
+          "integration": 9027,
+          "virtual": 9032
+        },
+        "cctv": {
+          "hardwareIo": 9009,
+          "integration": 9028,
+          "virtual": 9032
+        }
+      },
+      "retail": {
+        "hvac": {
+          "hardwareIo": 9003,
+          "integration": 9021,
+          "virtual": 9033
+        },
+        "lighting": {
+          "hardwareIo": 9004,
+          "integration": 9022,
+          "virtual": 9033
+        },
+        "energy": {
+          "hardwareIo": 9005,
+          "integration": 9023,
+          "virtual": 9033
+        },
+        "access_control": {
+          "hardwareIo": 9006,
+          "integration": 9024,
+          "virtual": 9033
+        },
+        "fire_safety": {
+          "hardwareIo": 9007,
+          "integration": 9025,
+          "virtual": 9033
+        },
+        "water": {
+          "hardwareIo": 9008,
+          "integration": 9026,
+          "virtual": 9033
+        },
+        "elevators": {
+          "hardwareIo": 9009,
+          "integration": 9027,
+          "virtual": 9033
+        },
+        "cctv": {
+          "hardwareIo": 9010,
+          "integration": 9028,
+          "virtual": 9033
+        }
+      },
+      "hospital": {
+        "hvac": {
+          "hardwareIo": 9004,
+          "integration": 9021,
+          "virtual": 9034
+        },
+        "lighting": {
+          "hardwareIo": 9005,
+          "integration": 9022,
+          "virtual": 9034
+        },
+        "energy": {
+          "hardwareIo": 9006,
+          "integration": 9023,
+          "virtual": 9034
+        },
+        "access_control": {
+          "hardwareIo": 9007,
+          "integration": 9024,
+          "virtual": 9034
+        },
+        "fire_safety": {
+          "hardwareIo": 9008,
+          "integration": 9025,
+          "virtual": 9034
+        },
+        "water": {
+          "hardwareIo": 9009,
+          "integration": 9026,
+          "virtual": 9034
+        },
+        "elevators": {
+          "hardwareIo": 9010,
+          "integration": 9027,
+          "virtual": 9034
+        },
+        "cctv": {
+          "hardwareIo": 9011,
+          "integration": 9028,
+          "virtual": 9034
+        }
+      },
+      "residential": {
+        "hvac": {
+          "hardwareIo": 9005,
+          "integration": 9021,
+          "virtual": 9035
+        },
+        "lighting": {
+          "hardwareIo": 9006,
+          "integration": 9022,
+          "virtual": 9035
+        },
+        "energy": {
+          "hardwareIo": 9007,
+          "integration": 9023,
+          "virtual": 9035
+        },
+        "access_control": {
+          "hardwareIo": 9008,
+          "integration": 9024,
+          "virtual": 9035
+        },
+        "fire_safety": {
+          "hardwareIo": 9009,
+          "integration": 9025,
+          "virtual": 9035
+        },
+        "water": {
+          "hardwareIo": 9010,
+          "integration": 9026,
+          "virtual": 9035
+        },
+        "elevators": {
+          "hardwareIo": 9011,
+          "integration": 9027,
+          "virtual": 9035
+        },
+        "cctv": {
+          "hardwareIo": 9012,
+          "integration": 9028,
+          "virtual": 9035
+        }
+      }
+    },
+    "perUpperFloor": {
+      "hvac": 9041,
+      "lighting": 9042,
+      "energy": 9043,
+      "access_control": 9044,
+      "fire_safety": 9045,
+      "water": 9046,
+      "elevators": 9047,
+      "cctv": 9048
+    },
+    "perHvacZone": 9051,
+    "perGuestRoom": 9052,
+    "perArea": {
+      "hvac": 9061,
+      "lighting": 9062,
+      "energy_management": 9063,
+      "water_management": 9064,
+      "security_access": 9065,
+      "predictive_maintenance": 9066
+    },
+    "spreadPercent": {
+      "low": 9071,
+      "high": 9072
+    }
+  }
+}

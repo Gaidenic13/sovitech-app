@@ -1,0 +1,3 @@
+# Each line must appear in the check's details for this seed to count.
+# Phase 1 review, round 3 (adversarial finding 4, L2): Fire Safety in scope turned from an owner decision into an enum, so G3-9's refusal no longer applies.
+problem: fields.project.scope.fire_safety.kind: kind decision → enum: away from an owner decision, so a document or an inference may set it (rule 3, "Choices belong to the owner"): a loosening against unapproved baseline v0 with no approval reference

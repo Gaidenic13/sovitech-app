@@ -1,0 +1,3 @@
+# Each line must appear in the check's details for this seed to count.
+# Phase 1 review, round 3: an owner choice (confirmByBasis owner_choice) that either the owner or an engineer may settle.
+[owner-choice-not-owner] project.seedKind is an owner choice (confirmByBasis owner_choice) with confirmBy either

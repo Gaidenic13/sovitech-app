@@ -2,7 +2,7 @@
   "name": "unapproved baseline v0",
   "status": "unapproved",
   "version": 0,
-  "guardrailsVersion": "1.5",
+  "guardrailsVersion": "1.6",
   "recordedOn": "2026-09-25",
   "approvalRef": "",
   "note": "Not approved: no approver is named in docs/guardrails.md section 10 (D-05), so no value here is approved. It holds only the strictest values prompt 3 section 5.2 allows (\"Registry values\") and every gate closed. Written by tools/checks/loosening/write-baseline.ts, which refuses any loosening.",
@@ -55,8 +55,881 @@
       ]
     ]
   },
-  "fields": {},
-  "impactRankOrder": [],
+  "fields": {
+    "building.floors": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "for_quotation",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "engineer",
+      "confirmByBasis": null,
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 15,
+      "minorForTotals": false,
+      "qualifierRequired": true,
+      "kind": "count",
+      "unit": "count",
+      "dimension": "count",
+      "qualifiers": [
+        "attic",
+        "below_ground",
+        "ground",
+        "mezzanine",
+        "roof_plant",
+        "semi_basement",
+        "setback_or_technical",
+        "upper"
+      ],
+      "options": [],
+      "valueShape": "non_negative_integer",
+      "formulas": []
+    },
+    "building.grossFloorArea": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "first_estimate",
+      "requiredSlot": null,
+      "firstEstimateSlot": "gross_floor_area",
+      "confirmBy": "engineer",
+      "confirmByBasis": null,
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 5,
+      "minorForTotals": false,
+      "qualifierRequired": true,
+      "kind": "quantity",
+      "unit": "m2",
+      "dimension": "area",
+      "qualifiers": [
+        "gross_total"
+      ],
+      "options": [],
+      "valueShape": null,
+      "formulas": []
+    },
+    "building.rooms": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "for_quotation",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "engineer",
+      "confirmByBasis": null,
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 16,
+      "minorForTotals": false,
+      "qualifierRequired": true,
+      "kind": "count",
+      "unit": "count",
+      "dimension": "count",
+      "qualifiers": [
+        "all_spaces",
+        "guest_rooms",
+        "keys"
+      ],
+      "options": [],
+      "valueShape": "non_negative_integer",
+      "formulas": []
+    },
+    "building.type": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "first_estimate",
+      "requiredSlot": null,
+      "firstEstimateSlot": "building_type",
+      "confirmBy": "owner",
+      "confirmByBasis": "use_and_occupancy",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 6,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "enum",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "hospital",
+        "hotel",
+        "office",
+        "other",
+        "residential",
+        "retail"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "building.zones": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "for_quotation",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "engineer",
+      "confirmByBasis": null,
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 17,
+      "minorForTotals": false,
+      "qualifierRequired": true,
+      "kind": "count",
+      "unit": "count",
+      "dimension": "count",
+      "qualifiers": [
+        "fire_compartment",
+        "hvac_control",
+        "lighting"
+      ],
+      "options": [],
+      "valueShape": "non_negative_integer",
+      "formulas": []
+    },
+    "project.automation.energy_management": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 20,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "not_selected",
+        "selected"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.automation.hvac": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 18,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "not_selected",
+        "selected"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.automation.lighting": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 19,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "not_selected",
+        "selected"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.automation.predictive_maintenance": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 23,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "not_selected",
+        "selected"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.automation.security_access": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 22,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "not_selected",
+        "selected"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.automation.water_management": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 21,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "not_selected",
+        "selected"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.city": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "required",
+      "requiredSlot": "city",
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "identity",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 3,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "text",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.country": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "required",
+      "requiredSlot": "country",
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "identity",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 2,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "text",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.goal.asset_lifespan": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 31,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "not_selected",
+        "selected"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.goal.compliance": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 30,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "not_selected",
+        "selected"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.goal.lower_carbon": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 27,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "not_selected",
+        "selected"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.goal.occupant_comfort": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 28,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "not_selected",
+        "selected"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.goal.operational_efficiency": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 29,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "not_selected",
+        "selected"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.goal.reduce_energy": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 26,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "not_selected",
+        "selected"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.goal.reduce_operating_costs": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 32,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "not_selected",
+        "selected"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.name": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "required",
+      "requiredSlot": "project_name",
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "identity",
+      "identity": true,
+      "referenceDatasets": [],
+      "impactRank": 4,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "text",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.occupancy": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "use_and_occupancy",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 25,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "enum",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "low",
+        "mixed",
+        "mostly_occupied"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.operatingSchedule": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "optional",
+      "requiredSlot": null,
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "use_and_occupancy",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 24,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "enum",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "24_7",
+        "business_hours",
+        "extended_hours",
+        "seasonal"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.scope.access_control": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "first_estimate",
+      "requiredSlot": null,
+      "firstEstimateSlot": "systems_in_scope",
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 10,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "exclude",
+        "include"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.scope.cctv": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "first_estimate",
+      "requiredSlot": null,
+      "firstEstimateSlot": "systems_in_scope",
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 14,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "exclude",
+        "include"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.scope.elevators": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "first_estimate",
+      "requiredSlot": null,
+      "firstEstimateSlot": "systems_in_scope",
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 13,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "exclude",
+        "include"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.scope.energy": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "first_estimate",
+      "requiredSlot": null,
+      "firstEstimateSlot": "systems_in_scope",
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 9,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "exclude",
+        "include"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.scope.fire_safety": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "first_estimate",
+      "requiredSlot": null,
+      "firstEstimateSlot": "systems_in_scope",
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 11,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "exclude",
+        "include"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.scope.hvac": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "first_estimate",
+      "requiredSlot": null,
+      "firstEstimateSlot": "systems_in_scope",
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 7,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "exclude",
+        "include"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.scope.lighting": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "first_estimate",
+      "requiredSlot": null,
+      "firstEstimateSlot": "systems_in_scope",
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 8,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "exclude",
+        "include"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.scope.water": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "first_estimate",
+      "requiredSlot": null,
+      "firstEstimateSlot": "systems_in_scope",
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 12,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "decision",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "exclude",
+        "include"
+      ],
+      "valueShape": null,
+      "formulas": []
+    },
+    "project.type": {
+      "estimation": "forbidden",
+      "estimatedMethod": null,
+      "tolerance": null,
+      "plausible": null,
+      "criticality": "required",
+      "requiredSlot": "project_type",
+      "firstEstimateSlot": null,
+      "confirmBy": "owner",
+      "confirmByBasis": "owner_choice",
+      "identity": false,
+      "referenceDatasets": [],
+      "impactRank": 1,
+      "minorForTotals": false,
+      "qualifierRequired": false,
+      "kind": "enum",
+      "unit": null,
+      "dimension": null,
+      "qualifiers": [],
+      "options": [
+        "bms_modernization",
+        "existing_building",
+        "new_construction",
+        "renovation"
+      ],
+      "valueShape": null,
+      "formulas": []
+    }
+  },
+  "impactRankOrder": [
+    "project.type",
+    "project.country",
+    "project.city",
+    "project.name",
+    "building.grossFloorArea",
+    "building.type",
+    "project.scope.hvac",
+    "project.scope.lighting",
+    "project.scope.energy",
+    "project.scope.access_control",
+    "project.scope.fire_safety",
+    "project.scope.water",
+    "project.scope.elevators",
+    "project.scope.cctv",
+    "building.floors",
+    "building.rooms",
+    "building.zones",
+    "project.automation.hvac",
+    "project.automation.lighting",
+    "project.automation.energy_management",
+    "project.automation.water_management",
+    "project.automation.security_access",
+    "project.automation.predictive_maintenance",
+    "project.operatingSchedule",
+    "project.occupancy",
+    "project.goal.reduce_energy",
+    "project.goal.lower_carbon",
+    "project.goal.occupant_comfort",
+    "project.goal.operational_efficiency",
+    "project.goal.compliance",
+    "project.goal.asset_lifespan",
+    "project.goal.reduce_operating_costs"
+  ],
   "gates": {
     "ai-processor-route": {
       "open": false,
@@ -346,5 +1219,542 @@
       ],
       "closedBehaviour": "On every model and plan view: no pins or highlights from location evidence, no scale bar, no north arrow or orientation words, no \"From a superseded revision\" line, no illustrative model. The view names its model with its stage and revision as recorded (2.3)."
     }
+  },
+  "formulas": {
+    "formula:capexIndicativeRange@1": {
+      "inputs": [
+        "building.grossFloorArea",
+        "building.type",
+        "project.country",
+        "project.scope.access_control",
+        "project.scope.cctv",
+        "project.scope.elevators",
+        "project.scope.energy",
+        "project.scope.fire_safety",
+        "project.scope.hvac",
+        "project.scope.lighting",
+        "project.scope.water",
+        "project.type"
+      ],
+      "outputs": [
+        "capex.indicativeRange"
+      ],
+      "unknownPolicy": "refuse",
+      "estimated": true
+    },
+    "formula:capexPreliminaryEstimate@1": {
+      "inputs": [
+        "building.floors",
+        "building.rooms",
+        "building.type",
+        "building.zones",
+        "project.automation.energy_management",
+        "project.automation.hvac",
+        "project.automation.lighting",
+        "project.automation.predictive_maintenance",
+        "project.automation.security_access",
+        "project.automation.water_management",
+        "project.country",
+        "project.scope.access_control",
+        "project.scope.cctv",
+        "project.scope.elevators",
+        "project.scope.energy",
+        "project.scope.fire_safety",
+        "project.scope.hvac",
+        "project.scope.lighting",
+        "project.scope.water",
+        "project.type"
+      ],
+      "outputs": [
+        "capex.preliminaryEstimate"
+      ],
+      "unknownPolicy": "range_over_options",
+      "estimated": true
+    },
+    "formula:measurePriority@1": {
+      "inputs": [
+        "project.automation.energy_management",
+        "project.automation.hvac",
+        "project.automation.lighting",
+        "project.automation.predictive_maintenance",
+        "project.automation.security_access",
+        "project.automation.water_management",
+        "project.goal.asset_lifespan",
+        "project.goal.compliance",
+        "project.goal.lower_carbon",
+        "project.goal.occupant_comfort",
+        "project.goal.operational_efficiency",
+        "project.goal.reduce_energy",
+        "project.goal.reduce_operating_costs",
+        "project.scope.access_control",
+        "project.scope.cctv",
+        "project.scope.elevators",
+        "project.scope.energy",
+        "project.scope.fire_safety",
+        "project.scope.hvac",
+        "project.scope.lighting",
+        "project.scope.water"
+      ],
+      "outputs": [
+        "measures.priorityOrder"
+      ],
+      "unknownPolicy": "refuse",
+      "estimated": false
+    },
+    "formula:operatingEnergyEstimate@1": {
+      "inputs": [
+        "building.grossFloorArea",
+        "building.type",
+        "project.city",
+        "project.country",
+        "project.occupancy",
+        "project.operatingSchedule"
+      ],
+      "outputs": [
+        "energy.annualConsumption"
+      ],
+      "unknownPolicy": "range_over_options",
+      "estimated": true
+    },
+    "formula:pointsEstimate@1": {
+      "inputs": [
+        "building.floors",
+        "building.rooms",
+        "building.type",
+        "building.zones",
+        "project.automation.energy_management",
+        "project.automation.hvac",
+        "project.automation.lighting",
+        "project.automation.predictive_maintenance",
+        "project.automation.security_access",
+        "project.automation.water_management",
+        "project.scope.access_control",
+        "project.scope.cctv",
+        "project.scope.elevators",
+        "project.scope.energy",
+        "project.scope.fire_safety",
+        "project.scope.hvac",
+        "project.scope.lighting",
+        "project.scope.water"
+      ],
+      "outputs": [
+        "points.hardwareIo",
+        "points.integration",
+        "points.virtual"
+      ],
+      "unknownPolicy": "range_over_options",
+      "estimated": true
+    },
+    "formula:savingsEstimate@1": {
+      "inputs": [
+        "building.grossFloorArea",
+        "building.type",
+        "project.automation.energy_management",
+        "project.automation.hvac",
+        "project.automation.lighting",
+        "project.automation.predictive_maintenance",
+        "project.automation.security_access",
+        "project.automation.water_management",
+        "project.city",
+        "project.country",
+        "project.occupancy",
+        "project.operatingSchedule",
+        "project.scope.access_control",
+        "project.scope.cctv",
+        "project.scope.elevators",
+        "project.scope.energy",
+        "project.scope.fire_safety",
+        "project.scope.hvac",
+        "project.scope.lighting",
+        "project.scope.water"
+      ],
+      "outputs": [
+        "savings.annualEnergy"
+      ],
+      "unknownPolicy": "range_over_options",
+      "estimated": true
+    }
+  },
+  "datasets": [],
+  "units": {
+    "%": {
+      "symbol": "%",
+      "dimension": "percent",
+      "written": [],
+      "toBase": "1"
+    },
+    "%RH": {
+      "symbol": "%RH",
+      "dimension": "relative_humidity",
+      "written": [
+        "% RH",
+        "% UR",
+        "%UR"
+      ],
+      "toBase": "1"
+    },
+    "A": {
+      "symbol": "A",
+      "dimension": "current",
+      "written": [],
+      "toBase": "1"
+    },
+    "bar": {
+      "symbol": "bar",
+      "dimension": "pressure",
+      "written": [],
+      "toBase": "100000"
+    },
+    "BTU/h": {
+      "symbol": "BTU/h",
+      "dimension": "power",
+      "written": [
+        "Btu/h"
+      ],
+      "toBase": null
+    },
+    "count": {
+      "symbol": "count",
+      "dimension": "count",
+      "written": [],
+      "toBase": "1"
+    },
+    "dB(A)": {
+      "symbol": "dB(A)",
+      "dimension": "sound_level",
+      "written": [
+        "dB (A)",
+        "dBA"
+      ],
+      "toBase": "1"
+    },
+    "degC": {
+      "symbol": "°C",
+      "dimension": "temperature",
+      "written": [
+        "grd C",
+        "grd. C",
+        "ºC"
+      ],
+      "toBase": "1"
+    },
+    "DN": {
+      "symbol": "DN",
+      "dimension": "nominal_size",
+      "written": [],
+      "toBase": null
+    },
+    "EUR": {
+      "symbol": "EUR",
+      "dimension": "currency",
+      "written": [
+        "EURO",
+        "Euro",
+        "euro",
+        "€"
+      ],
+      "toBase": null
+    },
+    "Gcal": {
+      "symbol": "Gcal",
+      "dimension": "energy",
+      "written": [],
+      "toBase": null
+    },
+    "Gcal/h": {
+      "symbol": "Gcal/h",
+      "dimension": "power",
+      "written": [],
+      "toBase": null
+    },
+    "GJ": {
+      "symbol": "GJ",
+      "dimension": "energy",
+      "written": [],
+      "toBase": "1000000000"
+    },
+    "h/a": {
+      "symbol": "h/a",
+      "dimension": "hours_per_year",
+      "written": [
+        "h/an",
+        "ore/an"
+      ],
+      "toBase": "1"
+    },
+    "Hz": {
+      "symbol": "Hz",
+      "dimension": "frequency",
+      "written": [],
+      "toBase": "1"
+    },
+    "K": {
+      "symbol": "K",
+      "dimension": "temperature_difference",
+      "written": [],
+      "toBase": "1"
+    },
+    "kcal/h": {
+      "symbol": "kcal/h",
+      "dimension": "power",
+      "written": [],
+      "toBase": null
+    },
+    "kPa": {
+      "symbol": "kPa",
+      "dimension": "pressure",
+      "written": [],
+      "toBase": "1000"
+    },
+    "kVA": {
+      "symbol": "kVA",
+      "dimension": "apparent_power",
+      "written": [],
+      "toBase": null
+    },
+    "kVAr": {
+      "symbol": "kVAr",
+      "dimension": "reactive_power",
+      "written": [
+        "kVAR",
+        "kvar"
+      ],
+      "toBase": null
+    },
+    "kvs": {
+      "symbol": "kvs",
+      "dimension": "flow_coefficient",
+      "written": [
+        "KVS",
+        "Kvs"
+      ],
+      "toBase": null
+    },
+    "kW": {
+      "symbol": "kW",
+      "dimension": "power",
+      "written": [],
+      "toBase": "1000"
+    },
+    "kWh": {
+      "symbol": "kWh",
+      "dimension": "energy",
+      "written": [],
+      "toBase": "3600000"
+    },
+    "kWh/a": {
+      "symbol": "kWh/a",
+      "dimension": "energy_per_year",
+      "written": [
+        "kWh/an",
+        "kWh/year",
+        "kWh/yr"
+      ],
+      "toBase": "1"
+    },
+    "kWh/m2a": {
+      "symbol": "kWh/m²·a",
+      "dimension": "energy_intensity",
+      "written": [
+        "kWh/m2/a",
+        "kWh/m2·a",
+        "kWh/mp/an",
+        "kWh/mp·an",
+        "kWh/m²/a",
+        "kWh/m²/an",
+        "kWh/m²a"
+      ],
+      "toBase": "1"
+    },
+    "l/min": {
+      "symbol": "l/min",
+      "dimension": "volume_flow",
+      "written": [
+        "L/min"
+      ],
+      "toBase": "0.06"
+    },
+    "l/s": {
+      "symbol": "l/s",
+      "dimension": "volume_flow",
+      "written": [
+        "L/s"
+      ],
+      "toBase": "3.6"
+    },
+    "lx": {
+      "symbol": "lx",
+      "dimension": "illuminance",
+      "written": [
+        "lux"
+      ],
+      "toBase": "1"
+    },
+    "m": {
+      "symbol": "m",
+      "dimension": "length",
+      "written": [],
+      "toBase": "1"
+    },
+    "m_head": {
+      "symbol": "m head",
+      "dimension": "head",
+      "written": [
+        "m CA",
+        "m H2O",
+        "m H₂O",
+        "m.c.a.",
+        "mCA",
+        "mH2O",
+        "mH₂O",
+        "mWS",
+        "mca"
+      ],
+      "toBase": "1"
+    },
+    "m2": {
+      "symbol": "m²",
+      "dimension": "area",
+      "written": [
+        "m.p.",
+        "mp",
+        "mp.",
+        "sqm"
+      ],
+      "toBase": "1"
+    },
+    "m3": {
+      "symbol": "m³",
+      "dimension": "volume",
+      "written": [
+        "m.c.",
+        "mc"
+      ],
+      "toBase": "1"
+    },
+    "m3/h": {
+      "symbol": "m³/h",
+      "dimension": "volume_flow",
+      "written": [
+        "mc/h",
+        "mc/ora",
+        "mc/oră"
+      ],
+      "toBase": "1"
+    },
+    "mA": {
+      "symbol": "mA",
+      "dimension": "current",
+      "written": [],
+      "toBase": "0.001"
+    },
+    "mbar": {
+      "symbol": "mbar",
+      "dimension": "pressure",
+      "written": [],
+      "toBase": "100"
+    },
+    "mm": {
+      "symbol": "mm",
+      "dimension": "length",
+      "written": [],
+      "toBase": "0.001"
+    },
+    "MW": {
+      "symbol": "MW",
+      "dimension": "power",
+      "written": [],
+      "toBase": "1000000"
+    },
+    "MWh": {
+      "symbol": "MWh",
+      "dimension": "energy",
+      "written": [],
+      "toBase": "3600000000"
+    },
+    "MWh/a": {
+      "symbol": "MWh/a",
+      "dimension": "energy_per_year",
+      "written": [
+        "MWh/an",
+        "MWh/year",
+        "MWh/yr"
+      ],
+      "toBase": "1000"
+    },
+    "Nm3": {
+      "symbol": "Nm³",
+      "dimension": "normal_volume",
+      "written": [
+        "Nmc"
+      ],
+      "toBase": null
+    },
+    "Pa": {
+      "symbol": "Pa",
+      "dimension": "pressure",
+      "written": [],
+      "toBase": "1"
+    },
+    "ppm": {
+      "symbol": "ppm",
+      "dimension": "concentration",
+      "written": [],
+      "toBase": "1"
+    },
+    "RON": {
+      "symbol": "RON",
+      "dimension": "currency",
+      "written": [
+        "LEI",
+        "Lei",
+        "lei"
+      ],
+      "toBase": null
+    },
+    "TR": {
+      "symbol": "TR",
+      "dimension": "power",
+      "written": [],
+      "toBase": null
+    },
+    "ug/m3": {
+      "symbol": "µg/m³",
+      "dimension": "mass_concentration",
+      "written": [
+        "µg/m3",
+        "µg/mc",
+        "μg/m3",
+        "μg/m³"
+      ],
+      "toBase": "1"
+    },
+    "V": {
+      "symbol": "V",
+      "dimension": "voltage",
+      "written": [],
+      "toBase": "1"
+    },
+    "W": {
+      "symbol": "W",
+      "dimension": "power",
+      "written": [],
+      "toBase": "1"
+    },
+    "W/m2": {
+      "symbol": "W/m²",
+      "dimension": "power_density",
+      "written": [
+        "W/mp"
+      ],
+      "toBase": "1"
+    }
+  },
+  "floorNotationLetters": {
+    "E": "upper",
+    "Er": "setback_or_technical",
+    "Mz": "mezzanine",
+    "P": "ground",
+    "S": "below_ground"
   }
 }

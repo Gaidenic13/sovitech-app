@@ -1,0 +1,14 @@
+{
+  "$comment": "Seeded bad input (synthetic): an allowance close to, but not word for word, a 2.8 badge ('Verified by SOVITECH engineers'). It is not 2.8 itself, so it waits for the approver (ADR 0011).",
+  "lists": {
+    "reserved-terms.allowances": {
+      "add": [
+        {
+          "key": "badge:near-miss",
+          "label": "badge:near-miss",
+          "content": { "kind": "badge", "badgeId": "near-miss", "label": "Verified by SOVITECH engineers" }
+        }
+      ]
+    }
+  }
+}

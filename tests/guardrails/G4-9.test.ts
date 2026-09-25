@@ -1,11 +1,11 @@
-// @pending-until: phase 1 derive
 /**
  * G4-9 (docs/guardrails.md section 7; rule 4 "Conflict test", counts).
  * Situation: 424 rooms against 427 rooms, both guest rooms.
  * Expected: conflict, because counts have zero tolerance.
  */
 import fc from 'fast-check';
-import { expect } from 'vitest';
+import { expect, test } from 'vitest';
+import { unitByCode } from '@sovitech/registry';
 import {
   NO_EVENTS,
   derive,
@@ -14,9 +14,6 @@ import {
   type DocumentRecord,
   type FieldDefinition,
 } from '@sovitech/domain';
-import { pendingCase } from './_support/pending';
-
-const pending = pendingCase(import.meta.url);
 
 const BUILDING = 'test-building-g4-9';
 
@@ -28,6 +25,7 @@ const roomsField: FieldDefinition = {
   kind: 'count',
   unit: 'count',
   qualifierRequired: true,
+  qualifiers: ['guest_rooms'],
   estimation: 'forbidden',
   criticality: 'optional',
   affects: [],
@@ -70,12 +68,14 @@ function roomCounts(first: number, second: number): Candidate[] {
 }
 
 const context: DeriveContext = {
+  subjectId: BUILDING,
   document: (id) => schedules.find((schedule) => schedule.id === id),
+  unit: unitByCode,
   inputState: () => undefined,
   datasetApproved: () => false,
 };
 
-pending('F-VALUE-03 · G4-9: 424 against 427 guest rooms: conflict, because counts have zero tolerance', () => {
+test('F-VALUE-03 · G4-9: 424 against 427 guest rooms: conflict, because counts have zero tolerance', () => {
   expect(derive(roomsField, roomCounts(424, 427), NO_EVENTS, context).state).toBe('conflict');
 
   // Property: with zero tolerance, two guest-room counts conflict exactly when they differ.

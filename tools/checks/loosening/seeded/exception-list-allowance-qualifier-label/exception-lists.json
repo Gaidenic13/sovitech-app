@@ -1,0 +1,14 @@
+{
+  "$comment": "Seeded bad input (synthetic): the registry qualifier label 2.8 names as an example ('final energy'). The ruling of ADR 0011 names badge labels, status lines, action labels and generated sentences only, so a qualifier label waits for the approver.",
+  "lists": {
+    "reserved-terms.allowances": {
+      "add": [
+        {
+          "key": "qualifier_label:energy/final",
+          "label": "qualifier_label:energy/final",
+          "content": { "kind": "qualifier_label", "fieldKey": "energy", "qualifier": "final", "label": "final energy" }
+        }
+      ]
+    }
+  }
+}

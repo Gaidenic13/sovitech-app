@@ -11,7 +11,9 @@
  * - outside its own package, a file under packages/<pkg>/src/ is imported only through
  *   an entry of that package's package.json `exports` (phase 0 review: a relative deep
  *   import of packages/registry/src/gates/source.ts reached the gate issuer, which
- *   no entry exports).
+ *   no entry exports);
+ * - the store's TEST machinery, @sovitech/db/testing, is reached only from tests/ and the
+ *   store's own *.test.ts files, through any chain of imports (phase 1 review).
  *
  * Two more rules close gaps the list above leaves open, and are recorded in
  * tools/eslint-rules/README.md: browser-side code never reaches server-side code
@@ -212,6 +214,25 @@ module.exports = {
       severity: 'error',
       from: { path: BROWSER_SIDE },
       to: { path: SERVER_SIDE, reachable: true },
+    },
+    {
+      name: 'test-formulas-and-fixtures-only-from-tests',
+      comment:
+        'TEST formulas (packages/engine/test-formulas/) and fixtures, the TEST datasets in fixtures/datasets/ among them, load only inside the test runner (prompt 3 sections 5.4 and 10): no chain of imports reaches them from app or package source (phase 1; until then this held by convention, backed by loadDataset refusing any TEST id).',
+      severity: 'error',
+      from: { path: '^(?:apps|packages)/[^/]+/src/' },
+      to: { path: '^(?:packages/engine/test-formulas/|fixtures/)', reachable: true },
+    },
+    {
+      name: 'db-testing-only-from-tests',
+      comment:
+        "The store's TEST machinery (@sovitech/db/testing: throwaway databases, TEST accounts, and engineer grants on the operator login) is reached only from tests/ and from the store's own *.test.ts files, through any chain of imports (prompt 3 section 5.4: TEST data loads only inside the test runner; rule 10: no script creates engineers). Phase 1 review: until then only a comment kept apps/api or a package from importing it.",
+      severity: 'error',
+      from: { pathNot: ['^tests/', '^packages/db/src/testing/', '^packages/db/src/.*\\.test\\.ts$'] },
+      to: {
+        path: '^packages/db/src/testing/|(^|/)node_modules/@sovitech/db/src/testing/|^@sovitech/db/testing(/|$)',
+        reachable: true,
+      },
     },
     {
       name: 'not-to-unresolvable',

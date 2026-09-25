@@ -1,11 +1,11 @@
-// @pending-until: phase 1 derive
+// @pending-until: phase 2 verify-proposal
 import { expect } from 'vitest';
-import { derive } from '@sovitech/domain';
+import { verifyProposal } from '@sovitech/domain';
 import { pendingCase } from './_support/pending';
 
 const pending = pendingCase(import.meta.url);
 
-pending('G1-2 · seeded pending case: the derive stub is not built yet', () => {
-  const state = (derive as unknown as () => unknown)();
-  expect(state).toBeDefined();
+pending('G1-2 · seeded pending case: the verify-proposal stub is not built yet', () => {
+  const verdict = (verifyProposal as unknown as () => unknown)();
+  expect(verdict).toBeDefined();
 });

@@ -1,0 +1,8 @@
+{
+  "fields": {
+    "building.grossFloorArea": {
+      "unit": "kW",
+      "dimension": "power"
+    }
+  }
+}

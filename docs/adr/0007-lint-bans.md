@@ -1,7 +1,7 @@
 # 0007. Lint bans and package boundaries
 
 - **Status:** Accepted: default, reversible
-- **Date:** 2026-09-25
+- **Date:** 2026-09-25 (amended 2026-09-25 at the end of phase 1)
 
 ## Context
 
@@ -55,3 +55,13 @@ Sources: guardrails rule 1 ("Unknown propagates": "The lint check forbids `?? 0`
 - The inline-disable guard: set `allowInlineConfig: true` in `tools/checks/lint-bans/lint-bans.ts`, or drop the `lint-bans` check (and its entry in `EXPECTED_CHECKS`).
 
 Each of these lets more code through, so each is listed in the build log for the owner's review before it is made.
+
+## Phase 1 amendment (2026-09-25)
+
+The rest of adversarial finding 7 (round 2) is built: thirteen ESLint rules and thirteen dependency-cruiser boundaries.
+
+- **Extended rules.** `no-zero-fallback` also bans a zero floor (`Math.max(x, 0)`) and `|| []` / `||= []`. `no-number-coercion` also bans arithmetic that changes no number (`x - 0`, `x * 1`, `1 * x`, `x / 1`, `x + 0`, `x ** 1`), `Number.call`, `.apply` and `.bind`, `const { Number: N } = globalThis`, `Number[name]`, `globalThis[name]` with a computed name and, with type information, any callee typed as the Number constructor.
+- **Four new rules.** `no-decimal-from-text` (a `Decimal`, `Big` or `BigNumber` built from text, typed and untyped forms; exempt scope `NUMBER_PARSER`, the rule 8 parser), `no-json-parse` (exempt the reviewed readers of `JSON_PARSE_REVIEWED`: `packages/registry/src/validation/snapshot.ts` and `packages/registry/src/test-utils/test-utils.test.ts`), `no-rounding-outside-formatting` (`Math.round`, `floor`, `ceil`, `trunc`, `fround`, `toFixed`, `toPrecision`, `toLocaleString`, `Intl.NumberFormat` and decimal rounding; exempt scope `FORMATTING_MODULE`) and `no-zero-tally` (`.fill(0)`, `Array.from(..., () => 0)`, `fromEntries` or `Map` of `[k, 0]` pairs, `{ [k]: 0 }`, `tally[k] = 0`, `.set(k, 0)`; no exemption). The three exempt scopes are exported from `index.js`, like `ENGINE`, and are three new exception lists recorded in unapproved baseline v0 on 2026-09-25 (`lint-bans.decimal-from-text-exempt`, `lint-bans.rounding-exempt`, `lint-bans.json-parse-reviewed`), so a scope or reader added now waits for the approver.
+- **A thirteenth boundary** (integration, phase 1): `test-formulas-and-fixtures-only-from-tests` forbids any chain of imports from `apps/*/src/` or `packages/*/src/` to `packages/engine/test-formulas/` or `fixtures/` (prompt 3 sections 5.4 and 10: TEST formulas and datasets load only inside the test runner; until then this held by convention, backed by `loadDataset` refusing any TEST id). Two seeded imports prove it (`packages/engine/src/imports-test-formulas.ts`, `apps/api/src/imports-fixture-dataset.ts` in `tools/eslint-rules/fixtures/seeded/depcruise/`).
+- **Seeds.** The lint-bans self-test runs 88 seeded bad inputs (69 before phase 1): 14 new seeded bad folders and the two new boundary seeds, with RuleTester files for each new rule (typed cases for the alias and text forms) and config scope tests; and, since the phase 1 review, the three seeded bad imports of the boundary `db-testing-only-from-tests` (from `apps/api`, from `packages/engine` and from a store file that is not a test).
+- **Consequences.** Rule 8's parsing (decimals and `JSON.parse` on text) and rule 9's rounding now have a lint check; "Not yet banned" above is closed. The first run of `no-zero-tally` flagged phase 0 harness code in `packages/domain/src/not-implemented.ts`, which now counts from a list of thrown features (a near miss in the guardrails 1.6 change log). Not banned or not covered, each documented in `tools/eslint-rules/README.md`: `?? []` (registry code reads optional lists that way; totals over such lists are banned outside the engine), `BigInt(text)` (the domain's decimal comparison uses it on a JavaScript number's own text), `Response.json()`, typed arrays (which zero-fill by themselves) and `Math.min(x, 0)`. The bans are strict: `Math.floor` for layout or indices, and `toLocaleString` for dates, are banned outside the formatting module, and any future `JSON.parse` in `apps/` or `packages/` needs a reviewed reader, which now waits for the approver.

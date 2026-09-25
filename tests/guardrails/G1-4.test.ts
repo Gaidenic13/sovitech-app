@@ -1,4 +1,4 @@
-// @pending-until: phase 2 verify-proposal, derive
+// @pending-until: phase 2 verify-proposal
 /**
  * G1-4 (docs/guardrails.md section 7; rule 1 "Enforced by", check 4).
  * Situation: the cited excerpt does not occur on the cited page.
@@ -17,6 +17,7 @@ import {
   type FieldDefinition,
   type ProposalContext,
 } from '@sovitech/domain';
+import { unitByCode } from '@sovitech/registry';
 import { pendingCase } from './_support/pending';
 
 const pending = pendingCase(import.meta.url);
@@ -89,9 +90,11 @@ function proposalCiting(page: number): CandidateProposal {
 }
 
 const deriveContext: DeriveContext = {
+  subjectId: BUILDING,
   document: (id) => (id === schedule.id ? schedule : undefined),
   inputState: () => undefined,
   datasetApproved: () => false,
+  unit: unitByCode,
 };
 
 function expectRejectedLoggedUnknown(page: number): void {

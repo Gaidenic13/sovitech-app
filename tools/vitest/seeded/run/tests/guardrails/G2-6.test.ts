@@ -1,4 +1,4 @@
-// @pending-until: phase 1 derive
+// @pending-until: phase 2 verify-proposal
 import { pendingCase } from './_support/pending';
 
 const pending = pendingCase(import.meta.url);

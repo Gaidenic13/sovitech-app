@@ -1,0 +1,9 @@
+{
+  "units": {
+    "change": {
+      "kVA": {
+        "dimension": "power"
+      }
+    }
+  }
+}

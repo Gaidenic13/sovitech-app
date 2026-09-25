@@ -1,5 +1,5 @@
 # Each line must appear in the probe's report for this seed to count.
 issueTestOverrideSource through a computed import, then readGate: refused: issueTestOverrideSource: a test-override gate source exists only inside the tests/proposed/ runner
-armTestOverridesForProposedRunner in a plain Node process: refused: A gate override is armed only by the tests/proposed/ runner: this process is not a Vitest worker
+armTestOverrides with Vitest's worker state forged and no token: refused: armTestOverrides: a gate override is armed only with the arming token of the tests/proposed/ runner
+armTestOverrides with an issued source passed as the token: refused: armTestOverrides: a gate override is armed only with the arming token
 openGateForTest through the test-utils entry: refused: issueTestOverrideSource: a test-override gate source exists only inside the tests/proposed/ runner
-readGate on a test-override source after its runner ended: refused: readGate: a test-override gate source exists only inside the tests/proposed/ runner

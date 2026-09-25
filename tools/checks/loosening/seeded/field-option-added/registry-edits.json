@@ -1,0 +1,11 @@
+{
+  "fields": {
+    "project.scope.fire_safety": {
+      "options": [
+        "include",
+        "exclude",
+        "TEST-maybe"
+      ]
+    }
+  }
+}

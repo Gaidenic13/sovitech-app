@@ -23,7 +23,38 @@ export const VERIFICATIONS = ['unverified', 'owner_acknowledged', 'user_confirme
 export type Verification = (typeof VERIFICATIONS)[number];
 
 /** Who acts in an event (2.3, 2.4). */
-export type Role = 'owner' | 'sovitech_engineer' | 'system';
+export const EVENT_ROLES = ['owner', 'sovitech_engineer', 'system'] as const;
+export type Role = (typeof EVENT_ROLES)[number];
+
+/**
+ * The app roles of prompt 3 section 10 (the contract's personas). Only
+ * `sovitech_engineer` may write `engineer_verified` (rule 10) and asset events
+ * (2.5); `sovitech_commercial_reviewer` co-signs the stage 3 record of rule 10; holding
+ * `sovitech_admin` never permits verification.
+ */
+export const APP_ROLES = ['owner', 'sovitech_engineer', 'sovitech_commercial_reviewer', 'sovitech_admin'] as const;
+export type AppRole = (typeof APP_ROLES)[number];
+
+// ---------------------------------------------------------------------------
+// 2.2 Subjects
+// ---------------------------------------------------------------------------
+
+/** 2.2: the kinds of subject a value belongs to, in 2.2's order. */
+export const SUBJECT_KINDS = ['project', 'building', 'level', 'zone', 'asset', 'document', 'metering_point'] as const;
+export type SubjectKind = (typeof SUBJECT_KINDS)[number];
+
+/** One subject (2.2). "The area of level 3" is one field on one subject. */
+export interface Subject {
+  readonly id: string;
+  readonly projectId: string;
+  readonly kind: SubjectKind;
+}
+
+/** 2.5 `FieldRef`: a field on a subject (an asset's tag, type, ratings and the rest are fields on the asset). */
+export interface FieldRef {
+  readonly subjectId: string;
+  readonly fieldKey: string;
+}
 
 // ---------------------------------------------------------------------------
 // 2.7 Units, 2.4 quantities
@@ -34,6 +65,29 @@ export type Role = 'owner' | 'sovitech_engineer' | 'system';
  * The registry and its dimension check live in @sovitech/registry.
  */
 export type UnitCode = string;
+
+/**
+ * 2.7: a unit registry entry, for example `{ code: 'm2', symbol: 'm²', dimension: 'area' }`.
+ * The closed list of entries, their dimensions and the dimension check live in
+ * @sovitech/registry, which implements this shape; the domain never imports the
+ * registry, so code that needs a unit is handed a {@link UnitLookup}.
+ */
+export interface UnitDefinition {
+  readonly code: UnitCode;
+  readonly symbol: string;
+  readonly dimension: string;
+}
+
+/** The registry's unit lookup, injected; undefined for a code the closed registry does not hold. */
+export type UnitLookup = (code: UnitCode) => UnitDefinition | undefined;
+
+/**
+ * Rule 8: "A value with no stated basis ... is stored with basis `unknown`". A
+ * quantity whose qualifier is absent, empty or this key has an unknown
+ * qualifier, and is compared with every qualified candidate of the same unit
+ * (rule 4, "An unknown qualifier is still compared").
+ */
+export const UNKNOWN_QUALIFIER = 'unknown';
 
 /** 2.4 `Candidate.quantity`: value, unit, qualifier and the approximate flag (rule 8). */
 export interface Quantity {
@@ -121,6 +175,24 @@ export interface DocumentEvent {
   readonly role: Role;
   readonly at: string;
   readonly reason?: string;
+  /**
+   * For `declared_revision_of`: the document this one revises, as the declaration
+   * named it (the store's `revision_of_document_id`). 2.3 keeps the target on the
+   * record (`supersedes`); carrying it on the event lets a later declaration on the
+   * same pair replace an earlier one. Absent, the record's `supersedes` is read.
+   */
+  readonly revisionOf?: string;
+  /** The stored event's id (the store's `document_events.id`), so another event can name it. */
+  readonly id?: string;
+  /**
+   * For a `withdrawn` event by the system: the id of the owner's or engineer's own
+   * `withdrawn` event on the same document that the system's job carries out (the
+   * store's `request_event_id`). A system withdrawal that names none, or names an
+   * event that is not a person's withdrawal of that document, removes nothing: 2.3
+   * and rule 13 describe no document leaving without a person's action, and rule 4
+   * keeps a value from going silently (documents.ts).
+   */
+  readonly requestEventId?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -145,6 +217,12 @@ export const EVIDENCE_LOCATOR_KEYS = ['page', 'sheet', 'cell', 'bbox'] as const 
 /** 2.4 `Evidence.check`: set by code, never by the AI. */
 export const EVIDENCE_MATCHES = ['text_match', 'ocr_match', 'region_rendered', 'unverifiable'] as const;
 export type EvidenceMatch = (typeof EVIDENCE_MATCHES)[number];
+
+/**
+ * The checks that matched an entry at its location (2.4: "at least one verified
+ * entry"; rule 1: "Evidence is verified by code"). `unverifiable` is not one of them.
+ */
+export const VERIFIED_EVIDENCE_MATCHES = ['text_match', 'ocr_match', 'region_rendered'] as const satisfies readonly EvidenceMatch[];
 
 /** 2.4 `Evidence`, as stored on a candidate after the verifier ran. */
 export interface Evidence {
@@ -195,6 +273,16 @@ export interface Candidate {
   /** Capped by code (rule 3). */
   readonly confidence?: Confidence;
   readonly createdBy: string;
+  /**
+   * The role its author acted in when it was written (2.1, "Who can create it"):
+   * `owner` or `sovitech_engineer` for a `user` value (the owner's own action, or an
+   * engineer's site survey entry), `system` for every other source. The store sets it
+   * from the request (`candidates.author_role`, migrations 0003 and 0009), never from
+   * the caller's word, and every stored candidate carries it. On a `decision` field only
+   * a `user` value whose author acted as the owner is a candidate (rule 3, "Choices
+   * belong to the owner"); a candidate without it is never read as the owner's choice.
+   */
+  readonly authorRole?: Role;
   readonly createdAt: string;
 }
 
@@ -245,6 +333,14 @@ export interface FieldEvent {
   readonly at: string;
   readonly reason?: string;
   readonly chosenCandidateId?: string;
+  /**
+   * For `conflict_resolved`: the candidates, by id, that the person was shown and
+   * compared (rule 4: "A conflict is put to someone only when values arrive
+   * without that person having seen both"). A resolution covers these and no
+   * other; a candidate outside the set is compared again. A resolution without
+   * them covers nothing.
+   */
+  readonly coveredCandidateIds?: readonly string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -259,11 +355,43 @@ export interface FieldEvent {
 export interface FieldDefinition {
   readonly key: string;
   readonly label: string;
-  readonly subject: 'project' | 'building' | 'level' | 'zone' | 'asset' | 'document' | 'metering_point';
+  readonly subject: SubjectKind;
   /** `decision`: an owner choice (rule 3). */
   readonly kind: 'quantity' | 'count' | 'enum' | 'text' | 'decision';
   readonly unit?: UnitCode;
   readonly qualifierRequired?: boolean;
+  /**
+   * The qualifier keys a candidate of this field may carry, besides the unknown
+   * qualifier (rule 8: the area basis, what a count counts, the level type). A
+   * registry extra (2.6 names only `qualifierRequired`); the registry's field
+   * entries carry it. A stated qualifier outside this list is refused on read, so
+   * a misspelt basis never forms a fact of its own that escapes rule 4's
+   * comparison. A field without the list takes no stated qualifier.
+   */
+  readonly qualifiers?: readonly string[];
+  /**
+   * The keys an `enum` or `decision` candidate may carry (2.4 `choice`: "enum key";
+   * 2.6 `kind`). A registry extra; the registry's field entries carry it. When the
+   * field lists options, a choice outside them is refused on read (`value_shape`).
+   */
+  readonly options?: readonly string[];
+  /**
+   * Which of rule 3's owner facts makes the owner the right person to confirm
+   * (`confirmBy: 'owner'`). A registry extra, read by registry validation and the
+   * loosening check. {@link OWNER_CHOICE_BASIS} records the registry's reading that a
+   * field is the owner's own choice (the project type answered on step 1). derive does
+   * not read it: only a `decision` field holds the owner's choice there (rule 3 names
+   * the choices; reading the project type as one is proposal P-1-OWNER-CHOICE-BASIS,
+   * ADR 0016 decision 20).
+   */
+  readonly confirmByBasis?: string;
+  /**
+   * The reference datasets a `reference` candidate of this field may come from
+   * (2.1 `reference`: "from the named dataset and version"; section 10: adding a
+   * reference dataset is a loosening). A registry extra. A field without the list
+   * takes no `reference` candidate.
+   */
+  readonly referenceDatasets?: readonly string[];
   readonly estimation: 'forbidden' | 'allowed';
   /** Rule 4. Counts default to zero tolerance. */
   readonly tolerance?: { readonly absolute?: number; readonly relative?: number; readonly reason: string };
@@ -278,6 +406,61 @@ export interface FieldDefinition {
   readonly identity?: boolean;
   /** Rule 1 "Material exclusions". */
   readonly minorForTotals?: boolean;
+}
+
+/**
+ * The `confirmByBasis` of a field that holds the owner's own choice (rule 3, "Who
+ * confirms": "their own choices"; "Choices belong to the owner").
+ */
+export const OWNER_CHOICE_BASIS = 'owner_choice';
+
+/** 2.6 `FieldDefinition.kind`, in its order. */
+export const FIELD_KINDS = ['quantity', 'count', 'enum', 'text', 'decision'] as const satisfies readonly FieldDefinition['kind'][];
+
+/** The registry's field lookup, injected; undefined for a key the registry does not hold. */
+export type FieldLookup = (key: string) => FieldDefinition | undefined;
+
+// ---------------------------------------------------------------------------
+// 2.5 Assets and identity
+// ---------------------------------------------------------------------------
+
+/** 2.5 `Asset.configuration` values, as its comment lists them. */
+export const ASSET_CONFIGURATIONS = ['single', 'duty_standby', 'twin_head', 'n_plus_1'] as const;
+export type AssetConfiguration = (typeof ASSET_CONFIGURATIONS)[number];
+
+/**
+ * 2.5 `Asset`. Every attribute but `lifeSafety` is a field on the asset subject,
+ * so it has candidates, events and a derived state like any other value.
+ */
+export interface Asset {
+  readonly id: string;
+  /** As written: 'CTA-01', 'VCV-3.12', 'P1.1'. */
+  readonly tag?: FieldRef;
+  /** From the asset taxonomy in reference data. */
+  readonly type: FieldRef;
+  readonly location?: FieldRef;
+  readonly serves?: FieldRef;
+  readonly configuration?: FieldRef;
+  /** Qualified quantities (rule 8). */
+  readonly ratings: readonly FieldRef[];
+  readonly interface?: FieldRef;
+  /** Rule 11. */
+  readonly lifeSafety: boolean;
+}
+
+/** 2.5 `AssetEvent.type`. */
+export const ASSET_EVENT_TYPES = ['merged_into', 'split_from', 'removed'] as const;
+export type AssetEventType = (typeof ASSET_EVENT_TYPES)[number];
+
+/** 2.5 `AssetEvent`: "Only engineer accounts write them". Append-only. */
+export interface AssetEvent {
+  readonly assetId: string;
+  readonly type: AssetEventType;
+  readonly relatedAssetIds: readonly string[];
+  readonly by: string;
+  readonly role: 'sovitech_engineer';
+  readonly at: string;
+  readonly reason: string;
 }
 
 // ---------------------------------------------------------------------------

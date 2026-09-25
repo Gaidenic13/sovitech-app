@@ -1,4 +1,3 @@
-// @pending-until: phase 1 verify-proposal
 /**
  * G13-1 (docs/guardrails.md section 7; rule 13 "Enforced by"; rule 1 check 1).
  * Situation: evidence cites a document from another project.
@@ -8,7 +7,7 @@
  * document lookup is not scoped to the project, so only the verifier's own
  * ownership check can reject it.
  */
-import { expect } from 'vitest';
+import { expect, test } from 'vitest';
 import {
   verifyProposal,
   type CandidateProposal,
@@ -16,9 +15,6 @@ import {
   type FieldDefinition,
   type ProposalContext,
 } from '@sovitech/domain';
-import { pendingCase } from './_support/pending';
-
-const pending = pendingCase(import.meta.url);
 
 const PROJECT_A = 'test-project-g13-1-a';
 const PROJECT_B = 'test-project-g13-1-b';
@@ -30,6 +26,7 @@ const areaField: FieldDefinition = {
   kind: 'quantity',
   unit: 'm2',
   qualifierRequired: true,
+  qualifiers: ['gross_total'],
   estimation: 'forbidden',
   criticality: 'optional',
   affects: [],
@@ -81,7 +78,7 @@ const proposal: CandidateProposal = {
   original: { text: '3.456 mp', locale: 'ro-RO' },
 };
 
-pending('F-EXTRACT-04 · G13-1: evidence cites a document from another project: rejected and logged', () => {
+test('F-EXTRACT-04 · G13-1: evidence cites a document from another project: rejected and logged', () => {
   const verdict = verifyProposal(proposal, unscopedContext);
 
   // Rejected ...

@@ -35,7 +35,7 @@ Eval files that stand for a good case in the other folders hold the full body to
 | `held-out-computed/` | A test held out by a computed modifier, `test['skip']` |
 | `held-out-destructured/` | A test held out by a destructured modifier, `const { skip } = test` |
 | `empty-test/` | A test with an empty body |
-| `pending-self-thrown/` | A pending case that throws `new NotImplementedError('derive')` itself instead of calling the domain |
+| `pending-self-thrown/` | A pending case that throws `new NotImplementedError('verify-proposal')` itself instead of calling the domain |
 | `eval-id-only/` | An eval file holding only its id |
 | `eval-pending-id-only/` | An eval file holding only its id and `status: pending` |
 | `eval-missing-fixture/` | A full eval whose fixture file does not exist |
@@ -55,5 +55,11 @@ Eval files that stand for a good case in the other folders hold the full body to
 | `reviewed-double-stale/` | A reviewed-list entry (`tools/checks/index/reviewed-test-doubles.json` in the seed) that matches no use |
 | `eval-runner-no-results/` | The eval runner module exists (a seeded stand-in, with a seeded prompt, model id and schema), and a full eval has no results record: the old hand-set switch would have counted it real |
 | `eval-runner-stale-results/` | The same, with a results record made against another prompt and schema |
+| `process-child-process/` | A case that runs the code under test in a child Node process (`node:child_process`) and asserts only on the exit status, where the stub guard cannot count a stub error (phase 1, round 2 residual) |
+| `process-worker-threads/` | The same through a worker thread (`node:worker_threads`) |
+| `support-finally-return/` | A `_support/` helper with no catch clause whose `finally` block returns, which replaces the body's failure (phase 1, round 2 residual) |
+| `swallow-finally-in-case/` | A case file whose `finally` block returns after a failed assertion in its `try` block |
+| `support-pin-changed/` | A module on the reviewed list of modules that may catch the stub's error (`tools/checks/index/stub-aware-support.json` in the seed), whose content no longer has the recorded hash |
+| `support-pin-stale/` | A reviewed-list entry naming a support module that does not exist |
 
-Of the 13 folders from `held-out-options/` on, the code before the phase 0 review fix passed 12 (it failed `empty-table/` through its table parser). The 13 folders from `vacuous-no-matcher/` on come from the second review round: the code before it counted the case file of each of the first 10 as real, had no reviewed list, and had only a hand-set eval switch. The run-time forms are seeded in `tools/vitest/seeded/`.
+Of the 13 folders from `held-out-options/` on, the code before the phase 0 review fix passed 12 (it failed `empty-table/` through its table parser). The 13 folders from `vacuous-no-matcher/` on come from the second review round: the code before it counted the case file of each of the first 10 as real, had no reviewed list, and had only a hand-set eval switch. The 6 folders from `process-child-process/` on come from phase 1 (the round 2 residuals and the reviewed list of modules that may catch the stub's error): the code before it counted each case file as real, or the helper as fit to run a case. The run-time forms are seeded in `tools/vitest/seeded/`. Since phase 1 built `derive`, the seeds that need an unbuilt stub use `verify-proposal`.

@@ -26,37 +26,7 @@ import {
   type GateSource,
 } from './index';
 import * as sourceModule from './source';
-import { PROPOSED_RUNNER_SETUP_FILE, armTestOverridesForProposedRunner, disarmTestOverrides, issueTestOverrideSource } from './source';
-import { REPO_ROOT } from '../approvals';
-
-/**
- * Runs `run` as if this worker were the tests/proposed/ runner: Vitest's worker
- * state is replaced for the length of one synchronous call (no expect() inside:
- * expect reads that state), then restored. The real runner is proven end to end
- * in ../test-utils/test-utils.test.ts.
- */
-function asProposedRunner<T>(run: () => T): T {
-  const real: unknown = Reflect.get(globalThis, '__vitest_worker__');
-  Reflect.set(globalThis, '__vitest_worker__', {
-    filepath: join(REPO_ROOT, 'tests', 'proposed', 'unit-stand-in.test.ts'),
-    config: { root: REPO_ROOT, setupFiles: [PROPOSED_RUNNER_SETUP_FILE] },
-  });
-  try {
-    armTestOverridesForProposedRunner();
-    return run();
-  } finally {
-    disarmTestOverrides();
-    Reflect.set(globalThis, '__vitest_worker__', real);
-  }
-}
-
-function outcome(run: () => unknown): string {
-  try {
-    return `ok: ${String(run())}`;
-  } catch (error) {
-    return `refused: ${error instanceof Error ? error.message : String(error)}`;
-  }
-}
+import { armTestOverrides, disarmTestOverrides, issueTestOverrideSource, type ProposedRunnerToken } from './source';
 
 const temporaryDirs: string[] = [];
 afterEach(() => {
@@ -205,7 +175,7 @@ describe('who can issue a gate source (phase 0 review: a gate opened by a deep i
       [
         'GateApprovalError',
         'PROPOSED_RUNNER_SETUP_FILE',
-        'armTestOverridesForProposedRunner',
+        'armTestOverrides',
         'assertGatesStartupSafe',
         'checkProductionDefinitions',
         'disarmTestOverrides',
@@ -214,12 +184,13 @@ describe('who can issue a gate source (phase 0 review: a gate opened by a deep i
         'issueTestOverrideSource',
         'productionGateSource',
         'readGate',
+        'takeProposedRunnerToken',
       ].sort(),
     );
   });
 
   it('keeps the test-override path and the arming functions out of the gates entry', () => {
-    for (const name of ['issueTestOverrideSource', 'armTestOverridesForProposedRunner', 'disarmTestOverrides']) {
+    for (const name of ['issueTestOverrideSource', 'takeProposedRunnerToken', 'armTestOverrides', 'disarmTestOverrides']) {
       expect(Object.keys(gatesEntry)).not.toContain(name);
     }
     for (const name of ['issueSource', 'gatesOf', 'createVerifiedSource', 'issue']) expect(Object.keys(gatesEntry)).not.toContain(name);
@@ -253,60 +224,48 @@ describe('who can issue a gate source (phase 0 review: a gate opened by a deep i
     expect(importers).toContain('test-utils/proposed-runner-setup.ts');
   });
 
-  it('issues only test-override sources on the test path, never a production one', () => {
-    const production = productionGateSource();
-    const seen = asProposedRunner(() => {
-      const override = issueTestOverrideSource(production, 'ifc-values');
-      return {
-        kind: override.kind,
-        production: isProductionSource(override),
-        startupChecked: isStartupCheckedSource(override),
-        open: readGate(override, 'ifc-values').open,
-        productionOpen: readGate(production, 'ifc-values').open,
-        // Chaining keeps the kind: an override of an override is still an override.
-        chainedProduction: isProductionSource(issueTestOverrideSource(override, 'ifc-areas')),
-      };
-    });
-    expect(seen).toEqual({ kind: 'test-override', production: false, startupChecked: false, open: true, productionOpen: false, chainedProduction: false });
+  it('lets only the proposed runner\'s setup file name the arming token (phase 1: the token replaced the worker-global check)', () => {
+    // The token is handed out once per module instance; the setup file takes it before any test
+    // file loads. No other file of the package may even name the function that hands it out.
+    // test-utils.test.ts names it only inside a child tests/proposed/ probe that must be refused.
+    const srcRoot = join(PRODUCTION_GATES_DIR, '..', 'src');
+    const naming: string[] = [];
+    const walk = (dir: string): void => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const path = join(dir, entry.name);
+        if (entry.isDirectory()) walk(path);
+        else if (/\.[cm]?[jt]sx?$/.test(entry.name) && readFileSync(path, 'utf8').includes('takeProposedRunnerToken')) {
+          naming.push(relative(srcRoot, path).split('\\').join('/'));
+        }
+      }
+    };
+    walk(srcRoot);
+    expect(naming.sort()).toEqual(['gates/gates.test.ts', 'gates/source.ts', 'test-utils/proposed-runner-setup.ts', 'test-utils/test-utils.test.ts']);
   });
 
-  it('refuses a forged base and an unknown gate on the test path', () => {
-    const forged = Object.freeze({ kind: 'production' }) as GateSource;
-    const seen = asProposedRunner(() => [
-      outcome(() => issueTestOverrideSource(forged, 'ifc-values')),
-      outcome(() => issueTestOverrideSource(productionGateSource(), 'no-such-gate' as never)),
-    ]);
-    expect(seen[0]).toMatch(/refused: .*not a gate source/);
-    expect(seen[1]).toMatch(/refused: .*unknown gate/);
-  });
 });
 
-describe('a test-override source outside the tests/proposed/ runner (phase 0 review, round 2)', () => {
-  // The verifier's probe: a computed dynamic import reached issueTestOverrideSource outside
-  // Vitest, and readGate read the gate open; only the VITEST variable stood in the way.
-  it('refuses to issue one in any other runner, this unit runner included', () => {
-    expect(() => issueTestOverrideSource(productionGateSource(), 'ifc-values')).toThrow(/exists only inside the tests\/proposed\/ runner/);
+describe('a test-override source outside the tests/proposed/ runner (phase 0 review, round 2; phase 1 token)', () => {
+  // The verifier's probe: a computed dynamic import reached issueTestOverrideSource outside Vitest, and
+  // readGate read the gate open; only the VITEST variable stood in the way. Since phase 1 the module is
+  // armed only with its private token, which the proposed runner's setup file alone takes. The positive
+  // path, and a source read after its arming ended, run in a child Vitest in ../test-utils/test-utils.test.ts.
+  it('refuses to issue one while the module is not armed, in this unit runner too', () => {
+    expect(() => issueTestOverrideSource(productionGateSource(), 'ifc-values')).toThrow(/exists only inside the tests\/proposed\/ runner.*this module is not armed/s);
   });
 
-  it('refuses to arm in a runner whose current file is not under tests/proposed/', () => {
-    expect(() => armTestOverridesForProposedRunner()).toThrow(/not under tests\/proposed\//);
+  it('refuses to arm or disarm without the arming token: a forged token, an issued source, nothing', () => {
+    const forgedToken = Object.freeze(Object.create(null)) as ProposedRunnerToken;
+    for (const token of [forgedToken, productionGateSource() as unknown as ProposedRunnerToken, undefined as unknown as ProposedRunnerToken]) {
+      expect(() => armTestOverrides(token)).toThrow(/armed only with the arming token of the tests\/proposed\/ runner/);
+      expect(() => disarmTestOverrides(token)).toThrow(/armed only with the arming token/);
+    }
+    expect(() => issueTestOverrideSource(productionGateSource(), 'ifc-values')).toThrow(/this module is not armed/);
   });
 
-  it('refuses to arm when the runner does not register the proposed-runner setup file', () => {
-    const real: unknown = Reflect.get(globalThis, '__vitest_worker__');
-    Reflect.set(globalThis, '__vitest_worker__', { filepath: join(REPO_ROOT, 'tests', 'proposed', 'x.test.ts'), config: { root: REPO_ROOT, setupFiles: [] } });
-    const seen = outcome(() => armTestOverridesForProposedRunner());
-    Reflect.set(globalThis, '__vitest_worker__', real);
-    expect(seen).toMatch(/refused: .*does not register packages\/registry\/src\/test-utils\/proposed-runner-setup\.ts/);
-  });
-
-  it('refuses to read one once its runner ended: a production-context read throws', () => {
-    const override = asProposedRunner(() => issueTestOverrideSource(productionGateSource(), 'ifc-values'));
-    expect(() => readGate(override, 'ifc-values')).toThrow(/readGate: a test-override gate source exists only inside the tests\/proposed\/ runner/);
-    // The production source is read everywhere, as before.
+  it('reads the production source everywhere, as before', () => {
     expect(readGate(productionGateSource(), 'ifc-values').open).toBe(false);
   });
-
 });
 
 describe('assertGatesStartupSafe', () => {

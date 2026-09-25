@@ -1,0 +1,4 @@
+{
+  "$comment": "Seeded bad input (synthetic): the build log without the owner's list heading.",
+  "edits": [{ "find": "## For the owner's review\n", "replace": "## The list, renamed\n" }]
+}

@@ -1,4 +1,4 @@
-// @pending-until: phase 1 derive
+// @pending-until: phase 2 verify-proposal
 import { expect } from 'vitest';
 import { pendingCase } from './_support/pending';
 

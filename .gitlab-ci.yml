@@ -91,6 +91,12 @@ typecheck:
 test:vitest:
   extends: .node
   stage: test
+  # Since phase 1 this run includes the database tests (packages/db and the
+  # guardrail cases G4-20, G10-3, G10-8 and G13-5), which start Postgres through
+  # Testcontainers and so need a Docker service in the job. The service image
+  # (docker:dind, pinned by digest) is not among the downloads the owner approved,
+  # so it is not added yet (docs/build-log.md, phase 1, "Questions for the owner");
+  # until it is, this job fails on those files. `pnpm check` runs them locally.
   variables:
     # The run guard writes its report here; the checks job confirms the case
     # counts against it, as pnpm check does (tools/checks/index/run-counts.ts).

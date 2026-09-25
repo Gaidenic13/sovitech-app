@@ -1,0 +1,50 @@
+{
+  "units": [
+    {
+      "code": "m2",
+      "symbol": "m²",
+      "dimension": "area"
+    },
+    {
+      "code": "count",
+      "symbol": "count",
+      "dimension": "count"
+    }
+  ],
+  "fields": [
+    {
+      "key": "project.seedKind",
+      "label": "Seed kind (synthetic)",
+      "subject": "project",
+      "kind": "enum",
+      "options": [
+        "alpha",
+        "beta"
+      ],
+      "estimation": "forbidden",
+      "criticality": "optional",
+      "impactRank": 1,
+      "confirmBy": "either",
+      "confirmByBasis": "owner_choice",
+      "affects": [
+        {
+          "output": "seed.output",
+          "via": "formula:seedFormula@1"
+        }
+      ]
+    }
+  ],
+  "questions": [],
+  "formulas": [
+    {
+      "id": "seedFormula",
+      "version": "1",
+      "inputs": [
+        "project.seedKind"
+      ],
+      "outputs": [
+        "seed.output"
+      ]
+    }
+  ]
+}

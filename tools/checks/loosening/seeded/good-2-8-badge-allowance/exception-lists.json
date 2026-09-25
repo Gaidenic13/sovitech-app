@@ -1,0 +1,24 @@
+{
+  "$comment": "Control input (synthetic): a reserved-term allowance that is word for word a badge of docs/guardrails.md 2.8, of kind badge. Under the orchestrator's ruling (ADR 0011) it is 2.8 itself, so the loosening check accepts it without an approval reference.",
+  "lists": {
+    "reserved-terms.allowances": {
+      "add": [
+        {
+          "key": "badge:engineer-verified",
+          "label": "badge:engineer-verified",
+          "content": { "kind": "badge", "badgeId": "engineer-verified", "label": "Verified by SOVITECH" }
+        },
+        {
+          "key": "generated_sentence:ai-verified",
+          "label": "generated_sentence:ai-verified",
+          "content": {
+            "kind": "generated_sentence",
+            "templateId": "ai-verified",
+            "template": "AI inference, verified by SOVITECH on {date}",
+            "readsStoredState": ["candidate event engineer_verified"]
+          }
+        }
+      ]
+    }
+  }
+}

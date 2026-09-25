@@ -14,8 +14,16 @@
  *   that helper lives (guardrails rule 1; 2.1 `calculated`);
  * - no-computed-import: module paths computed at run time, which dependency-cruiser
  *   cannot see (prompt 3 sections 5.4 and 6);
- * - no-number-coercion: Number(), parseFloat(), parseInt(), unary + and bitwise
- *   coercion outside the rule 8 number parser and the formatting module;
+ * - no-number-coercion: Number(), parseFloat(), parseInt(), unary +, bitwise and
+ *   arithmetic coercion (`x - 0`, `x * 1`) and aliases of Number outside the rule 8
+ *   number parser and the formatting module;
+ * - no-decimal-from-text: a decimal built from text outside the rule 8 number parser
+ *   (NUMBER_PARSER; guardrails rule 8, "Parsing");
+ * - no-json-parse: JSON.parse on text outside the reviewed readers (JSON_PARSE_REVIEWED;
+ *   guardrails rules 1 and 8);
+ * - no-rounding-outside-formatting: rounding outside the formatting module
+ *   (FORMATTING_MODULE; guardrails rule 9, "Rounding");
+ * - no-zero-tally: tallies that start every key at zero (guardrails rule 1, "Zero is a value");
  * - no-colour-literals, css-no-colour-literals: colours only from
  *   packages/ui/src/tokens.css;
  * - no-shadows, css-no-shadows: box-shadow and the Tailwind shadow and ring utilities.
@@ -32,11 +40,15 @@ import cssNoColourLiterals from './rules/css-no-colour-literals.js';
 import cssNoShadows from './rules/css-no-shadows.js';
 import noColourLiterals from './rules/no-colour-literals.js';
 import noComputedImport from './rules/no-computed-import.js';
+import noDecimalFromText from './rules/no-decimal-from-text.js';
 import noFilteredSum from './rules/no-filtered-sum.js';
+import noJsonParse from './rules/no-json-parse.js';
 import noNumberCoercion from './rules/no-number-coercion.js';
+import noRoundingOutsideFormatting from './rules/no-rounding-outside-formatting.js';
 import noShadows from './rules/no-shadows.js';
 import noTotalOutsideEngine from './rules/no-total-outside-engine.js';
 import noZeroFallback from './rules/no-zero-fallback.js';
+import noZeroTally from './rules/no-zero-tally.js';
 
 /**
  * Code in the app and its packages, in every script extension the toolchain runs.
@@ -49,6 +61,41 @@ const APP_CODE = [`apps/**/*.{${SCRIPT_EXTENSIONS.join(',')}}`, `packages/**/*.{
 
 /** Where totals are made: the engine, with its unknownPolicy helper (prompt 3 section 6). */
 export const ENGINE = 'packages/engine/**';
+
+/**
+ * The one rule 8 number parser (prompt 3 section 6): the only place text becomes a
+ * decimal (no-decimal-from-text). An exempt scope of that rule, recorded in the loosening
+ * check's exception-list snapshot (lint-bans.decimal-from-text-exempt).
+ */
+export const NUMBER_PARSER = 'packages/registry/src/number-parser/**';
+
+/**
+ * The formatting module (prompt 3 section 6, view-model server side), which owns rounding
+ * at display (guardrails rule 9): the only place a value is rounded
+ * (no-rounding-outside-formatting). An exempt scope of that rule, recorded in the loosening
+ * check's exception-list snapshot (lint-bans.rounding-exempt).
+ */
+export const FORMATTING_MODULE = 'packages/view-model/src/formatting/**';
+
+/**
+ * The reviewed readers that may call JSON.parse (no-json-parse), each with why what it
+ * parses is not document or AI text, or how it validates what comes out. An allow list in
+ * the loosening check's exception-list snapshot (lint-bans.json-parse-reviewed): an entry
+ * added after the snapshot records the list waits for the approver.
+ * @type {ReadonlyArray<{ files: string[]; reason: string }>}
+ */
+export const JSON_PARSE_REVIEWED = [
+  {
+    files: ['packages/registry/src/validation/snapshot.ts'],
+    reason:
+      "Reads the loosening check's own recorded snapshot files (packages/registry/src/snapshots/), written by tools/checks/loosening/write-baseline.ts, and validates them with their schema (snapshotSchema). No document, AI output or owner text passes through it.",
+  },
+  {
+    files: ['packages/registry/src/test-utils/test-utils.test.ts'],
+    reason:
+      "A unit test reading the result files its own child Vitest run wrote in a temporary folder (TEST outcomes as text). No document, AI output or owner text passes through it.",
+  },
+];
 const APP_CSS = ['apps/**/*.css', 'packages/**/*.css'];
 
 /** Colour names the Tailwind theme defines, so `bg-surface` reads as a token. */
@@ -63,6 +110,10 @@ const plugin = {
     'no-total-outside-engine': noTotalOutsideEngine,
     'no-computed-import': noComputedImport,
     'no-number-coercion': noNumberCoercion,
+    'no-decimal-from-text': noDecimalFromText,
+    'no-json-parse': noJsonParse,
+    'no-rounding-outside-formatting': noRoundingOutsideFormatting,
+    'no-zero-tally': noZeroTally,
     'no-colour-literals': noColourLiterals,
     'no-shadows': noShadows,
     'css-no-colour-literals': cssNoColourLiterals,
@@ -111,6 +162,33 @@ plugin.configs.recommended = [
     files: APP_CODE,
     ignores: allowlistedFiles('no-number-coercion'),
     rules: { 'sovitech/no-number-coercion': 'error' },
+  },
+  {
+    // Phase 1 (the rest of adversarial finding 7, phase 0 review round 2): decimals from text
+    // only in the rule 8 parser; JSON.parse only in reviewed readers; rounding only in the
+    // formatting module; no tally that starts every key at zero.
+    name: 'sovitech/decimals-through-the-parser',
+    files: APP_CODE,
+    ignores: [NUMBER_PARSER, ...allowlistedFiles('no-decimal-from-text')],
+    rules: { 'sovitech/no-decimal-from-text': 'error' },
+  },
+  {
+    name: 'sovitech/text-parsed-by-reviewed-readers',
+    files: APP_CODE,
+    ignores: [...JSON_PARSE_REVIEWED.flatMap((entry) => entry.files), ...allowlistedFiles('no-json-parse')],
+    rules: { 'sovitech/no-json-parse': 'error' },
+  },
+  {
+    name: 'sovitech/rounding-at-display',
+    files: APP_CODE,
+    ignores: [FORMATTING_MODULE, ...allowlistedFiles('no-rounding-outside-formatting')],
+    rules: { 'sovitech/no-rounding-outside-formatting': 'error' },
+  },
+  {
+    name: 'sovitech/no-zero-tallies',
+    files: APP_CODE,
+    ignores: allowlistedFiles('no-zero-tally'),
+    rules: { 'sovitech/no-zero-tally': 'error' },
   },
   {
     name: 'sovitech/brand-code',

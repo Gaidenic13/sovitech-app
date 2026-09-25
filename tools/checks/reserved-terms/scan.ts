@@ -5,10 +5,19 @@
  * required include root and each registered catalogue must match a file, and
  * at least one copy unit must be read. A file in scope that the check cannot
  * read fails too, unless a reviewed non-copy entry (non-copy.ts) names it.
+ *
+ * Allowances hold only where their registries define their text (phase 1 review,
+ * adversarial finding 12): a copy unit in a file under `allowanceScope` (the copy
+ * registries, COPY_REGISTRIES) is matched with the registered allowances as their
+ * definition; every other copy unit is matched with none, so "Verified by SOVITECH",
+ * "Confirmed by you" or "Formal quotation" written anywhere else in source (a screen,
+ * an export template, a seed, a migration, a data file) is flagged. The app shows
+ * those texts by taking them from the registries, never by writing them again.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
+  NO_ALLOWANCES,
   RESERVED_TERMS_EN,
   RESERVED_TERMS_RO,
   parseGuardrailsReservedTerms,
@@ -68,6 +77,13 @@ export const PHASE_0_SCOPE = {
   ignore: ['docs/**', '**/*.test.*', '**/*.spec.*', '**/__snapshots__/**'],
 } as const;
 
+/**
+ * The copy registries: the one place in source where an allowance's text is written
+ * (packages/registry/src/copy/: badges, status lines, generated sentences and the
+ * allowances they need). Allowances apply to copy units there and nowhere else.
+ */
+export const COPY_REGISTRIES: readonly string[] = ['packages/registry/src/copy/**'];
+
 /** The list's own definition: only these constants' initialisers are skipped, nothing else in the file. */
 export const LIST_MODULE = {
   path: 'packages/registry/src/reserved-terms.ts',
@@ -84,6 +100,12 @@ export interface ReservedTermScan {
   readonly catalogues: readonly StringCatalogue[];
   /** Builds the allowance set; may throw when an entry is invalid. */
   readonly allowances: () => AllowanceSet;
+  /**
+   * Globs (relative to `root`) of the copy registries, the only files whose copy units the
+   * allowances apply to; every other unit is matched with none. Omitted or empty: the
+   * allowances apply nowhere. Each glob must match a scanned file.
+   */
+  readonly allowanceScope?: readonly string[];
   readonly listModule: { readonly path: string; readonly constants: readonly string[] };
   /** Registered machine-key lists (machine-keys.ts). Omitted: none. */
   readonly machineKeyLists?: readonly MachineKeyList[];
@@ -260,6 +282,14 @@ export async function scanReservedTerms(options: ReservedTermScan): Promise<Chec
   problems.push(...registered.problems);
   const nonCopy = await nonCopyFilesOf(options.root, options.nonCopy ?? [], new Set(files), options.ignore);
   problems.push(...nonCopy.problems);
+  const registryFiles = new Set<string>();
+  for (const pattern of options.allowanceScope ?? []) {
+    const matched = (await listFiles(pattern, { cwd: options.root, ignore: options.ignore })).filter((path) => files.includes(path));
+    if (matched.length === 0 && allowances !== undefined && allowances.entries.length > 0) {
+      problems.push(`copy registry "${pattern}" matches no scanned file: the allowances would apply nowhere, so the scope is wrong`);
+    }
+    for (const path of matched) registryFiles.add(path);
+  }
 
   // Objects whose keys are handed out, found by name across every scanned script.
   const exposures: KeyExposure[] = [];
@@ -304,12 +334,15 @@ export async function scanReservedTerms(options: ReservedTermScan): Promise<Chec
     scannedFiles += 1;
     scannedUnits += units.length;
     if (allowances === undefined) continue;
+    const inRegistry = registryFiles.has(path);
     for (const unit of units) {
-      const matches = scanCopy(unit.text, { allowances });
+      const matches = inRegistry ? scanCopy(unit.text, { allowances, context: { kind: 'copy_registry' } }) : scanCopy(unit.text, { allowances: NO_ALLOWANCES });
       for (const match of matches) {
         found += 1;
+        const outside = !inRegistry && allowances.match(unit.text, { copyRegistry: true }) !== undefined;
         problems.push(
-          `${path}:${unit.line}:${unit.column} reserved term "${match.term}" (${match.languages.join(', ')}) as "${match.text}" in ${unit.kind}: "${snippet(unit.text, match.index, match.length)}"`,
+          `${path}:${unit.line}:${unit.column} reserved term "${match.term}" (${match.languages.join(', ')}) as "${match.text}" in ${unit.kind}: "${snippet(unit.text, match.index, match.length)}"` +
+            (outside ? ' (a registered allowance\'s text outside the copy registries: take it from the registry, never write it again)' : ''),
         );
       }
     }
@@ -317,7 +350,9 @@ export async function scanReservedTerms(options: ReservedTermScan): Promise<Chec
 
   if (scannedUnits === 0) problems.push(`0 copy units were scanned (${scannedFiles} files): a scan that reads no copy never passes`);
 
-  const counts = `${scannedFiles} files, ${scannedUnits} copy units${skipped > 0 ? `, ${skipped} files on the non-copy list not read` : ''}`;
+  const counts =
+    `${scannedFiles} files, ${scannedUnits} copy units${skipped > 0 ? `, ${skipped} files on the non-copy list not read` : ''}` +
+    `; allowances applied only in ${registryFiles.size} copy-registry files`;
   const list = `list of ${RESERVED_TERMS_EN.length} English and ${RESERVED_TERMS_RO.length} Romanian terms`;
   if (problems.length === 0) {
     const drift = options.guardrails === undefined ? '' : `; ${list} matches ${options.guardrails} 2.8`;

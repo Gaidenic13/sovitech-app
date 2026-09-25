@@ -1,0 +1,11 @@
+{
+  "fields": {
+    "building.grossFloorArea": {
+      "qualifiers": [
+        "gross_total",
+        "Gross_Total",
+        "usable"
+      ]
+    }
+  }
+}

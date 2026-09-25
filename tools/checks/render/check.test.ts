@@ -21,7 +21,7 @@ describe('F-RENDER-06 · G2-1: the render check', () => {
     expect(result.name).toBe('render');
     expect(result.details.some((line) => line.startsWith('wizard-step-number'))).toBe(true);
     expect(result.details.some((line) => line.startsWith('screen "'))).toBe(true);
-    expect(runGood().ok).toBe(true);
+    expect((await runGood()).ok).toBe(true);
     expect(checkHarnessPages().ok).toBe(true);
   });
 
@@ -72,13 +72,17 @@ describe('F-RENDER-06 · G2-1: the render check', () => {
   });
 
   test('G2-1: a reviewed unreadable entry needs a known element kind, a reason and a source', () => {
-    const good = { id: 'model-viewer', element: 'canvas', reason: REASON, source: 'TEST seeded source' };
+    // Phase 1: an element that loads no file names the one component that draws it.
+    const good = { id: 'model-viewer', element: 'canvas', component: 'packages/viewer/src/ModelCanvas.tsx', reason: REASON, source: 'TEST seeded source' };
     expect(checkAllowlist({ entries: [], unreadable: [good] }, 'TEST').ok).toBe(true);
     expect(checkAllowlist({ entries: [], unreadable: [{ ...good, element: 'svg-graphic' }] }, 'TEST').ok).toBe(true);
+    const noComponent = { id: good.id, element: good.element, reason: good.reason, source: good.source };
+    expect(checkAllowlist({ entries: [], unreadable: [noComponent] }, 'TEST').details.join('\n')).toContain('component is missing');
+    expect(checkAllowlist({ entries: [], unreadable: [{ ...good, component: 'packages/viewer/src/../../../company/x.tsx' }] }, 'TEST').ok).toBe(false);
     expect(checkAllowlist({ entries: [], unreadable: [{ ...good, element: 'iframe' }] }, 'TEST').ok).toBe(false);
     expect(checkAllowlist({ entries: [], unreadable: [{ ...good, reason: 'short' }] }, 'TEST').ok).toBe(false);
     // An image entry names its file, anchored; a canvas entry names none.
-    const image = { ...good, id: 'test-image', element: 'img' };
+    const image = { ...noComponent, id: 'test-image', element: 'img' };
     expect(checkAllowlist({ entries: [], unreadable: [image] }, 'TEST').details.join('\n')).toContain('src is missing');
     expect(checkAllowlist({ entries: [], unreadable: [{ ...image, src: 'test-image\\.svg' }] }, 'TEST').details.join('\n')).toContain(
       'must be anchored',
@@ -119,5 +123,48 @@ describe('F-RENDER-06 · G2-1: the render check', () => {
     expect(validateDisplayObjects({ 'building:b-test.guestRooms': { text: '  TEST   123 ' } }).displayObjects).toEqual({
       'building:b-test.guestRooms': { text: 'TEST 123' },
     });
+  });
+});
+
+describe('phase 1: fixed copy that reads as a quantity, and where unreadable markers are set', () => {
+  test('G2-1: fixed copy with a number next to a unit of rule 8 or a counted noun is refused; interface copy passes', async () => {
+    const { readsAsQuantity } = await import('../../../tests/e2e/render/allowlist-schema');
+    for (const text of ['TEST rooms 212', '212 guest rooms', 'Limit TEST 12 kW', 'TEST 34.500 mp', 'TEST 12 camere', 'TEST 34.500mp', 'TEST 5 °C', 'TEST 20 m²', 'TEST 3 AHUs', 'TEST 12,5 kWh']) {
+      expect(readsAsQuantity(text), text).toBeDefined();
+    }
+    for (const text of ['Max file size 500 MB', '3D / 2D', '24 / 7', 'Step 3 of 8', 'Page 2']) {
+      expect(readsAsQuantity(text), text).toBeUndefined();
+    }
+  });
+
+  test('G2-1: every unit of the rule 8 table of docs/guardrails.md is known to the quantity reading', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { readsAsQuantity } = await import('../../../tests/e2e/render/allowlist-schema');
+    const guardrails = readFileSync(join(import.meta.dirname, '..', '..', '..', 'docs', 'guardrails.md'), 'utf8');
+    const lines = guardrails.split('\n');
+    const start = lines.findIndex((line) => /^\| Dimension \| Units \|/.test(line));
+    expect(start).toBeGreaterThan(0);
+    const units: string[] = [];
+    for (const line of lines.slice(start + 2)) {
+      if (!line.startsWith('|')) break;
+      const cell = line.split('|')[2] ?? '';
+      // The first sentence of the cell, without parentheses: "m², m³, m, mm", "W, kW, MW, kVA, kVAr".
+      const sentence = (cell.split(/\. /u)[0] ?? '').replace(/\([^)]*\)/gu, '').replace(/[.;]\s*$/u, '');
+      for (const part of sentence.split(/,|\bor\b/u)) {
+        const unit = part.trim().replace(/^intensity\s+/u, '');
+        if (unit !== '' && !/\s/u.test(unit)) units.push(unit);
+      }
+    }
+    expect(units.length).toBeGreaterThan(30);
+    for (const unit of units) expect(readsAsQuantity(`TEST 12 ${unit}`), unit).toBeDefined();
+  });
+
+  test('G2-1: the repository sets every unreadable marker with a literal entry id', async () => {
+    const { checkUnreadableMarkers } = await import('./check');
+    const { RENDER_ALLOWLIST } = await import('../../../tests/e2e/render/allowlist');
+    const { repoRoot } = await import('../lib');
+    const result = await checkUnreadableMarkers(repoRoot, RENDER_ALLOWLIST.unreadable);
+    expect(result.ok, result.details.join('\n')).toBe(true);
   });
 });

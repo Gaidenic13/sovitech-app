@@ -1,0 +1,17 @@
+{
+  "formulas": {
+    "add": [
+      {
+        "id": "seedWriter",
+        "version": "1",
+        "inputs": [
+          "building.grossFloorArea"
+        ],
+        "outputs": [
+          "building.rooms"
+        ],
+        "unknownPolicy": "refuse"
+      }
+    ]
+  }
+}

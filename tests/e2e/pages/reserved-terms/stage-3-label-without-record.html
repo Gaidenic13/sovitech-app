@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Render harness: the last stage label with no stored record</title>
+    <!-- Render harness page for G10-9 (guardrails rule 10, "Stage 3 is derived, not passed. It comes from a stored quotation record"; 2.8, "'Formal quotation' at stage 3"; docs/adr/0011-verbatim-2-8-allowances.md, decision 13). The render check must FAIL here. A price's display object serves the line "Formal quotation", and the page marks it as a status line, but the display object names no stored quotation record, so the label is a stage 3 label passed in, not derived. The same marker passes when the display object names its record (tools/checks/render/rendered-copy.test.ts; G10-9's control). The TEST price is synthetic and shows no number. -->
+    <script type="application/json" data-render-display-objects>
+      {"proposal:p-test.capex": {"text": "TEST price range", "lines": ["Formal quotation"]}}
+    </script>
+  </head>
+  <body data-render-ready>
+    <main>
+      <h1>TEST price</h1>
+      <p><span data-value-id="proposal:p-test.capex">TEST price range</span></p>
+      <p data-copy-kind="status-line">Formal quotation</p>
+    </main>
+  </body>
+</html>

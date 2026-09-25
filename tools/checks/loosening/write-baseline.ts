@@ -11,7 +11,10 @@
  * - the production registry fails registry validation;
  * - any gate is open, or any approval reference is filled in anywhere
  *   (approvals belong in an approved snapshot, never in the unapproved baseline);
- * - any value is looser than the baseline already on disk;
+ * - any value is looser than the baseline already on disk (the field properties,
+ *   and since the phase 1 review, round 3, each field's kind, unit, dimension,
+ *   qualifiers, options, value shape and the formulas writing it, every formula
+ *   signature, the unit registry and the floor-notation letters);
  * - the result would hold a value the strict policy does not allow;
  * - an exception list cannot be read, or holds an entry added to an allow
  *   list, changed in one, or removed from a deny list against the exception-list
@@ -32,11 +35,13 @@ import {
   SETTING_NAMES,
   baselinePolicyProblems,
   compareSnapshots,
+  currentRegistryLists,
   loadProductionRegistry,
   projectSnapshot,
   readSnapshotFile,
   renderSnapshot,
   validateRegistry,
+  type RegistryLists,
   type Snapshot,
 } from '@sovitech/registry/validation';
 import {
@@ -48,6 +53,7 @@ import {
   type ExceptionListPlan,
   type ExceptionListPlanInputs,
 } from './exception-lists';
+import { repo2_8 } from './guardrails-2-8';
 
 export const BASELINE_NOTE =
   'Not approved: no approver is named in docs/guardrails.md section 10 (D-05), so no value here is approved. ' +
@@ -70,9 +76,10 @@ function guardrailsVersion(): string {
   return version;
 }
 
+/** Every recorded value, without the snapshot's own name, status, dates and note. */
 function valuesOnly(snapshot: Snapshot): string {
-  const { settings, fields, impactRankOrder, gates } = snapshot;
-  return JSON.stringify({ settings, fields, impactRankOrder, gates });
+  const { settings, fields, impactRankOrder, gates, formulas, datasets, units, floorNotationLetters } = snapshot;
+  return JSON.stringify({ settings, fields, impactRankOrder, gates, formulas, datasets, units, floorNotationLetters });
 }
 
 /** Everything the writer reads. */
@@ -87,6 +94,8 @@ export interface PlanInputs {
   guardrailsVersion: string;
   /** The date recorded when values change. */
   today: string;
+  /** The unit registry and the floor-notation letters (currentRegistryLists() when absent). */
+  registryLists?: RegistryLists;
 }
 
 export function repoPlanInputs(today: string = localDate()): PlanInputs {
@@ -131,15 +140,20 @@ export function planBaseline(inputs: PlanInputs = repoPlanInputs()): BaselinePla
     if (dataset.approvalRef !== undefined) problems.push(`dataset ${dataset.id}: carries an approval reference`);
   }
 
-  const draft = projectSnapshot(registry, gates, {
-    name: BASELINE_NAME,
-    status: 'unapproved',
-    version: 0,
-    guardrailsVersion: inputs.guardrailsVersion,
-    recordedOn: inputs.today,
-    approvalRef: '',
-    note: BASELINE_NOTE,
-  });
+  const draft = projectSnapshot(
+    registry,
+    gates,
+    {
+      name: BASELINE_NAME,
+      status: 'unapproved',
+      version: 0,
+      guardrailsVersion: inputs.guardrailsVersion,
+      recordedOn: inputs.today,
+      approvalRef: '',
+      note: BASELINE_NOTE,
+    },
+    inputs.registryLists ?? currentRegistryLists(),
+  );
   const next: Snapshot =
     existing !== undefined && valuesOnly(existing) === valuesOnly(draft)
       ? { ...draft, recordedOn: existing.recordedOn, guardrailsVersion: existing.guardrailsVersion }
@@ -162,6 +176,7 @@ export async function repoExceptionListPlanInputs(today: string = localDate()): 
   const onDisk = present ? readFileSync(EXCEPTION_LISTS_BASELINE_PATH, 'utf8') : '';
   return {
     current: await readCurrentLists(),
+    texts2_8: repo2_8(),
     existing: present ? parseExceptionListSnapshot(onDisk, EXCEPTION_LISTS_BASELINE_PATH) : undefined,
     onDisk,
     today,

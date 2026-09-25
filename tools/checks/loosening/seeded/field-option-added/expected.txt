@@ -1,0 +1,3 @@
+# Each line must appear in the check's details for this seed to count.
+# Phase 1 review, round 3 (adversarial finding 4, L5): a decision's options widened.
+problem: fields.project.scope.fire_safety.options: options [exclude, include] → [TEST-maybe, exclude, include] (added TEST-maybe;

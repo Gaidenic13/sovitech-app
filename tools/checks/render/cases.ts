@@ -11,6 +11,9 @@
  *   - display-objects/<name>.json: display objects, as a harness page declares them or the API
  *     serves them;
  *   - harness-pages/<name>.html: a harness page's HTML, whose display-object declaration is read;
+ *   - markers/<name>/allowlist.json: a reviewed unreadable list, with a tree of apps/ and packages/
+ *     files beside it that set the markers (.tsx only, so no other seed file is read
+ *     as a seed), checked by the source scan of unreadable-markers.ts;
  *   - run-guard/<name>.spec.ts: a Playwright spec, run in a render project under the
  *     repository's own playwright.config.ts settings (its reporters, the run guard included,
  *     and forbidOnly), with no web server and no browser; the run must fail.
@@ -22,13 +25,12 @@
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, join, relative } from 'node:path';
+import { basename, dirname, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { RENDER_ALLOWLIST } from '../../../tests/e2e/render/allowlist';
-import { RENDER_SCREENS } from '../../../tests/e2e/render/screens';
 import { fail, pass, readText, repoRoot } from '../lib';
 import type { CheckResult } from '../types';
-import { NAME, checkAllowlist, checkDisplayObjects, checkHarnessPageHtml, checkRender, checkScreens } from './check';
+import type { UnreadableEntry } from '../../../tests/e2e/render/contract';
+import { NAME, checkAllowlist, checkDisplayObjects, checkHarnessPageHtml, checkRepository, checkScreens, checkUnreadableMarkers } from './check';
 
 export const SEEDED_DIRECTORY = fileURLToPath(new URL('./seeded/', import.meta.url));
 
@@ -75,6 +77,19 @@ export const BAD_CASES: readonly SeededCase[] = [
     file: 'run-guard/held-out.spec.ts',
     expect: ['Playwright run guard FAILED the run', 'skipped (test.skip, test.fixme', 'each screen is checked once'],
   },
+  // Phase 1 (phase 0 review round 2, adversarial finding 10, remainder).
+  { file: 'allowlist/fixed-copy-reads-as-quantity.json', expect: ['text "TEST rooms 212" reads as a quantity', 'which names what a count counts'] },
+  { file: 'allowlist/fixed-copy-unit-quantity.json', expect: ['text "Limit TEST 12 kW" reads as a quantity', 'is a number with a unit of guardrails rule 8'] },
+  { file: 'allowlist/fixed-copy-romanian-quantity.json', expect: ['text "TEST 12 camere" reads as a quantity'] },
+  { file: 'allowlist/fixed-copy-attached-unit.json', expect: ['text "TEST 34.500mp" reads as a quantity'] },
+  { file: 'allowlist/unreadable-canvas-without-component.json', expect: ['component is missing; an element that loads no file (canvas)'] },
+  { file: 'allowlist/unreadable-css-image-without-component.json', expect: ['component is missing; an element that loads no file (css-image)'] },
+  { file: 'allowlist/unreadable-component-outside-app-code.json', expect: ['component "tests/e2e/pages/canvas.html" is not a file path under apps/ or packages/'] },
+  { file: 'markers/canvas-marker-outside-its-component/allowlist.json', expect: ['data-render-unreadable="test-viewer-canvas" is set outside packages/viewer/src/ModelCanvas.tsx'] },
+  { file: 'markers/computed-marker-value/allowlist.json', expect: ['is set or named here without a literal entry id'] },
+  { file: 'markers/dataset-marker/allowlist.json', expect: ['renderUnreadable is set or named here without a literal entry id'] },
+  { file: 'markers/component-without-marker/allowlist.json', expect: ['names packages/viewer/src/ModelCanvas.tsx, which does not set data-render-unreadable="test-viewer-canvas"'] },
+  { file: 'markers/unknown-marker-id/allowlist.json', expect: ['data-render-unreadable="test-borrowed" names no entry of the reviewed unreadable list'] },
   { file: 'screens/function-display-objects.ts', expect: ['displayObjects is a function'] },
   { file: 'screens/function-known-value-ids.ts', expect: ['knownValueIds is not accepted', 'has no displayObjects'] },
   { file: 'screens/hand-typed-ids.json', expect: ['displayObjects is a hand-typed map'] },
@@ -100,9 +115,9 @@ export function seededFiles(): string[] {
   return found.sort();
 }
 
-/** The real allowlist, screen list and harness pages: the control input, which must pass. */
-export function runGood(): CheckResult {
-  return checkRender(RENDER_ALLOWLIST, RENDER_SCREENS);
+/** The real allowlist, screen list, harness pages and markers: the control input, which must pass. */
+export async function runGood(): Promise<CheckResult> {
+  return checkRepository();
 }
 
 const PLAYWRIGHT_CLI = join(repoRoot, 'node_modules', '@playwright', 'test', 'cli.js');
@@ -157,7 +172,14 @@ export async function runCase(seededCase: SeededCase): Promise<CheckResult> {
   if (seededCase.file.startsWith('screens/')) return checkScreens(input, label);
   if (seededCase.file.startsWith('display-objects/')) return checkDisplayObjects(input, label);
   if (seededCase.file.startsWith('harness-pages/')) return checkHarnessPageHtml(String(input), label);
-  throw new Error(`${label}: a seed lives under seeded/allowlist/, seeded/screens/, seeded/display-objects/, seeded/harness-pages/ or seeded/run-guard/`);
+  if (seededCase.file.startsWith('markers/')) {
+    // A tree: allowlist.json holds the reviewed unreadable list, and apps/ and packages/ the code that sets markers.
+    const unreadable = (input as { unreadable?: UnreadableEntry[] }).unreadable ?? [];
+    const allowlist = checkAllowlist({ entries: [], unreadable }, label);
+    if (!allowlist.ok) return allowlist;
+    return checkUnreadableMarkers(join(SEEDED_DIRECTORY, dirname(seededCase.file)), unreadable, label);
+  }
+  throw new Error(`${label}: a seed lives under seeded/allowlist/, seeded/screens/, seeded/display-objects/, seeded/harness-pages/, seeded/markers/ or seeded/run-guard/`);
 }
 
 /**

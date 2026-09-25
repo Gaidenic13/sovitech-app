@@ -1,4 +1,4 @@
-// @pending-until: phase 2 verify-proposal, derive
+// @pending-until: phase 2 verify-proposal
 /**
  * G1-10 (docs/guardrails.md section 7; rule 1 "Values not written literally become
  * inferences, and the AI never derives quantities"; 2.1).
@@ -23,6 +23,7 @@ import {
   type FieldDefinition,
   type ProposalContext,
 } from '@sovitech/domain';
+import { unitByCode } from '@sovitech/registry';
 import { pendingCase } from './_support/pending';
 
 const pending = pendingCase(import.meta.url);
@@ -84,9 +85,11 @@ function inferredCapacity(value: number, confidence: 'high' | 'medium' | 'low'):
 }
 
 const deriveContext: DeriveContext = {
+  subjectId: 'test-asset-g1-10-chiller',
   document: (id) => (id === areaSchedule.id ? areaSchedule : undefined),
   inputState: () => undefined,
   datasetApproved: () => false,
+  unit: unitByCode,
 };
 
 function expectRejectedAndUnknown(

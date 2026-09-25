@@ -1,4 +1,4 @@
-// @pending-until: phase 2 verify-proposal, derive
+// @pending-until: phase 2 verify-proposal
 import { verifyProposal } from '@sovitech/domain';
 import { pendingCase } from './_support';
 

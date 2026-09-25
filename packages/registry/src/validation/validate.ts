@@ -9,6 +9,8 @@
  * approval reference. Whether a reference resolves is the loosening check's
  * job (./loosening.ts), because it needs docs/guardrails.md.
  */
+import { UNKNOWN_QUALIFIER } from '@sovitech/domain';
+import { UNIT_DEFINITIONS } from '../units/units';
 import {
   MULTI_FIELD_FIRST_ESTIMATE_SLOTS,
   PROPOSED_SETTINGS,
@@ -20,7 +22,7 @@ import {
   parseVia,
   registrySchema,
   templateRef,
-  type FieldDefinition,
+  type RegistryFieldDefinition,
   type FormulaSignature,
   type RegistryBundle,
   type TemplateSlot,
@@ -58,7 +60,13 @@ export type RegistryProblemCode =
   | 'formula-input-undeclared'
   | 'template-read-undeclared'
   | 'setting-differs-without-approval'
-  | 'setting-approved-without-reference';
+  | 'setting-approved-without-reference'
+  | 'required-field-missing'
+  | 'qualifiers-invalid'
+  | 'owner-choice-not-owner'
+  | 'value-shape-missing'
+  | 'value-shape-invalid'
+  | 'unit-not-in-closed-registry';
 
 export interface RegistryProblem {
   code: RegistryProblemCode;
@@ -114,7 +122,7 @@ export function validateRegistry(input: unknown, options: ValidateOptions): Regi
     if (slots.has(ref)) add('duplicate', `templateSlots[${position}]`, `${ref} is declared twice`);
     slots.set(ref, slot);
   });
-  const fields = new Map<string, FieldDefinition>();
+  const fields = new Map<string, RegistryFieldDefinition>();
   registry.fields.forEach((field, position) => {
     if (fields.has(field.key)) add('duplicate', `fields[${position}]`, `field ${field.key} is declared twice`);
     fields.set(field.key, field);
@@ -127,6 +135,25 @@ export function validateRegistry(input: unknown, options: ValidateOptions): Regi
   });
   const declaredDatasets = new Set(registry.datasets.map((dataset) => dataset.id));
   const units = new Map(registry.units.map((unit) => [unit.code, unit]));
+
+  if (options.scope === 'production') {
+    // The bundle carries the closed unit registry as it is (2.7; ADR 0017): derive and the parser read
+    // the registry's own entries, so a bundle unit that departs from them (a merged dimension, say)
+    // would pass the fields' dimension check here on a unit derive reads otherwise.
+    const closed = new Map(UNIT_DEFINITIONS.map((unit) => [unit.code, unit]));
+    registry.units.forEach((unit, position) => {
+      const entry = closed.get(unit.code);
+      if (entry === undefined || entry.symbol !== unit.symbol || entry.dimension !== unit.dimension) {
+        add(
+          'unit-not-in-closed-registry',
+          `units[${position}]`,
+          entry === undefined
+            ? `${unit.code} is not a unit of the closed registry (packages/registry/src/units/units.ts; 2.7)`
+            : `${unit.code} is ${entry.symbol} (${entry.dimension}) in the closed registry, not ${unit.symbol} (${unit.dimension}) (2.7; ADR 0017)`,
+        );
+      }
+    });
+  }
 
   if (options.scope === 'production') {
     const testIds: Array<[string, string]> = [
@@ -279,6 +306,36 @@ export function validateRegistry(input: unknown, options: ValidateOptions): Regi
         `${name} has confirmBy ${field.confirmBy} but names no owner fact of rule 3 (identity, use and occupancy, whether the building has something, their own choices); every other field has confirmBy engineer`,
       );
     }
+    // Phase 1 review, round 3: a decision is an owner choice (2.6), and an owner's own choice is the owner's alone
+    // (rule 3, "Choices belong to the owner"), never an engineer's to verify nor either's to settle.
+    if (field.kind === 'decision' || field.confirmByBasis === 'owner_choice') {
+      if (field.confirmBy !== 'owner') {
+        add(
+          'owner-choice-not-owner',
+          `${at}.confirmBy`,
+          `${name} is ${field.kind === 'decision' ? 'a decision field' : 'an owner choice (confirmByBasis owner_choice)'} with confirmBy ${field.confirmBy}; choices belong to the owner, so confirmBy is owner (rule 3; 2.6)`,
+        );
+      }
+      if (field.kind === 'decision' && field.confirmByBasis !== undefined && field.confirmByBasis !== 'owner_choice') {
+        add(
+          'owner-choice-not-owner',
+          `${at}.confirmByBasis`,
+          `${name} is a decision field resting on ${field.confirmByBasis}; a decision is the owner's own choice (confirmByBasis owner_choice; 2.6, rule 3)`,
+        );
+      }
+    }
+
+    // A count is a whole number, zero or more (2.6 kind count; rule 8; rule 1 "Zero is a value"): it declares that shape.
+    if (field.kind === 'count' && field.valueShape !== 'non_negative_integer') {
+      add(
+        'value-shape-missing',
+        `${at}.valueShape`,
+        `${name} is a count and declares no whole-number shape (valueShape non_negative_integer), so a fractional or negative count has nothing to be refused against (2.6; rule 8)`,
+      );
+    }
+    if (field.valueShape !== undefined && field.kind !== 'count') {
+      add('value-shape-invalid', `${at}.valueShape`, `${name} is a ${field.kind} field; only a count declares a value shape`);
+    }
 
     if (field.identity === true && (field.requiredSlot === undefined || !identityMembers.has(field.requiredSlot))) {
       add('identity-outside-list', `${at}.identity`, `${name} is an identity field, but the identity list holds only the project name (rule 6)`);
@@ -295,6 +352,20 @@ export function validateRegistry(input: unknown, options: ValidateOptions): Regi
       add('impact-rank-duplicate', `${at}.impactRank`, `${name} and ${rankHolder} share impactRank ${field.impactRank}; the order of questions must be total`);
     }
     ranks.set(field.impactRank, name);
+
+    if (field.qualifiers !== undefined) {
+      const seen = new Set<string>();
+      for (const qualifier of field.qualifiers) {
+        if (qualifier === UNKNOWN_QUALIFIER) {
+          add('qualifiers-invalid', `${at}.qualifiers`, `${name} lists "${UNKNOWN_QUALIFIER}" as a qualifier; the unknown qualifier is always allowed and never a stated one (rule 8)`);
+        }
+        if (seen.has(qualifier)) add('qualifiers-invalid', `${at}.qualifiers`, `${name} lists the qualifier ${qualifier} twice`);
+        seen.add(qualifier);
+      }
+      if (field.qualifierRequired !== true) {
+        add('qualifiers-invalid', `${at}.qualifiers`, `${name} lists qualifiers but does not require one (qualifierRequired)`);
+      }
+    }
 
     if (field.kind === 'quantity' && field.unit === undefined) {
       add('unit-missing', `${at}.unit`, `${name} is a quantity with no unit (rule 8)`);
@@ -333,7 +404,7 @@ export function validateRegistry(input: unknown, options: ValidateOptions): Regi
     const at = `questions[${position}]`;
     if (questionIds.has(question.id)) add('duplicate', at, `question ${question.id} is declared twice`);
     questionIds.add(question.id);
-    const questionFields: FieldDefinition[] = [];
+    const questionFields: RegistryFieldDefinition[] = [];
     question.fieldKeys.forEach((key, keyPosition) => {
       const field = fields.get(key);
       if (field === undefined) {
@@ -355,6 +426,20 @@ export function validateRegistry(input: unknown, options: ValidateOptions): Regi
   });
 
   validateSettings(registry, options, add);
+
+  if (options.scope === 'production') {
+    // The registry's own floor (phase 0 review, finding 17): the four required fields of rule 7's closed list exist,
+    // each held by one required field, so an empty or partial field list fails.
+    for (const slot of registry.settings.requiredSet.members) {
+      if (!requiredSlotsSeen.has(slot)) {
+        add(
+          'required-field-missing',
+          'fields',
+          `no field holds the required slot ${slot}: rule 7's four required fields (project name, project type, city, country) must each exist`,
+        );
+      }
+    }
+  }
 
   return { ok: problems.length === 0, problems, registry };
 }

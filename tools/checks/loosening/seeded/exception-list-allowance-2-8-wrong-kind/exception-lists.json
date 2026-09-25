@@ -1,0 +1,14 @@
+{
+  "$comment": "Seeded bad input (synthetic): a 2.8 badge text registered as a status line. 2.8 allows 'Verified by SOVITECH' as a badge, not as a status line, so the kind does not match and it waits for the approver (ADR 0011).",
+  "lists": {
+    "reserved-terms.allowances": {
+      "add": [
+        {
+          "key": "status_line:verified-line",
+          "label": "status_line:verified-line",
+          "content": { "kind": "status_line", "statusLineId": "verified-line", "text": "Verified by SOVITECH" }
+        }
+      ]
+    }
+  }
+}

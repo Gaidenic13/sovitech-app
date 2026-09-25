@@ -1,0 +1,9 @@
+{
+  "$comment": "Seeded bad input (synthetic): a badge row added to 2.8 in the working tree only (the build branch writes it). main's 2.8 does not hold it, so an allowance for it is not 2.8 itself and waits for the approver (ADR 0011).",
+  "edits": [
+    {
+      "find": "| Engineer verified | **Verified by SOVITECH** |",
+      "replace": "| TEST seeded situation | **Firm price agreed** | |\n| Engineer verified | **Verified by SOVITECH** |"
+    }
+  ]
+}

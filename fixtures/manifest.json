@@ -1,5 +1,59 @@
 {
   "version": 1,
-  "sources": [],
-  "files": []
+  "sources": [
+    {
+      "path": "fixtures/datasets/generate.ts",
+      "role": "generator"
+    }
+  ],
+  "files": [
+    {
+      "path": "fixtures/datasets/TEST-energy-benchmarks.json",
+      "sha256": "cf8155d1f5ba1806a348116843a213b55cc45a6e7acaf1c2757c28fc4b023364",
+      "generator": "fixtures/datasets/generate.ts",
+      "cases": [
+        "G6-1"
+      ]
+    },
+    {
+      "path": "fixtures/datasets/TEST-savings-factors.json",
+      "sha256": "609d172137b629d685bb9b23afabdea6b0c115a21360651b58d9cdae9e5e6658",
+      "generator": "fixtures/datasets/generate.ts",
+      "cases": [
+        "G6-1"
+      ]
+    },
+    {
+      "path": "fixtures/datasets/TEST-sovitech-cost-ranges.json",
+      "sha256": "3976d13e86892e7966419272182448f2e87a4f9861787f82181802c027802bf2",
+      "generator": "fixtures/datasets/generate.ts",
+      "cases": [
+        "G6-1"
+      ]
+    },
+    {
+      "path": "fixtures/datasets/TEST-sovitech-function-set.json",
+      "sha256": "4989b243f69035c9238c8e468d0d43a66fa42be29cd81f766dafca83f5310927",
+      "generator": "fixtures/datasets/generate.ts",
+      "cases": [
+        "G6-1"
+      ]
+    },
+    {
+      "path": "fixtures/datasets/TEST-sovitech-point-templates.json",
+      "sha256": "3ee7ba73cb7f69e9670d1331775ec03ed5e8827ae592d64594c27f3e88634ddc",
+      "generator": "fixtures/datasets/generate.ts",
+      "cases": [
+        "G6-1"
+      ]
+    },
+    {
+      "path": "fixtures/datasets/TEST-website-product-list-standin.json",
+      "sha256": "4035ae8a23acdb96c394a25ffe02591b55eb68a711ce57a890211948dc09907a",
+      "generator": "fixtures/datasets/generate.ts",
+      "cases": [
+        "G1-12"
+      ]
+    }
+  ]
 }

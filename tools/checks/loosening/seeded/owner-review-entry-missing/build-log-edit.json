@@ -1,0 +1,4 @@
+{
+  "$comment": "Seeded bad input (synthetic): the render allowlist entry max-file-size left out of the owner's list.",
+  "edits": [{ "find": ", `max-file-size`\n", "replace": "\n" }]
+}

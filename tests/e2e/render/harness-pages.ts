@@ -274,6 +274,22 @@ export const G2_8_PAGES: readonly HarnessPage[] = [
 ];
 
 /** Guardrails 2.8: shown copy holds a reserved term outside the places 2.8 allows, and the render check fails. */
+/** G10-9: the stage 3 label "Formal quotation" served with no stored quotation record fails the render test (rule 10; 2.8). */
+export const G10_9_PAGE: HarnessPage = {
+  file: 'reserved-terms/stage-3-label-without-record.html',
+  about: 'the status line "Formal quotation" served by a price display object that names no stored quotation record',
+  expectKinds: ['reserved-term'],
+  expectCounts: { 'reserved-term': 1 },
+};
+
+/** G3-11: the generated sentence "AI inference, verified by SOVITECH on {date}" with words in its date slot fails the render test (2.8; rule 3; rule 14). */
+export const G3_11_PAGE: HarnessPage = {
+  file: 'reserved-terms/sentence-slot-with-words.html',
+  about: 'the generated sentence "AI inference, verified by SOVITECH on ..." served with words, not a date, in its date slot',
+  expectKinds: ['reserved-term'],
+  expectCounts: { 'reserved-term': 1 },
+};
+
 export const RESERVED_TERM_PAGES: readonly HarnessPage[] = [
   {
     file: 'reserved-terms/object-keys-label.html',
@@ -305,6 +321,8 @@ export const RESERVED_TERM_PAGES: readonly HarnessPage[] = [
     expectKinds: ['reserved-term'],
     expectCounts: { 'reserved-term': 3 },
   },
+  G10_9_PAGE,
+  G3_11_PAGE,
 ];
 
 /** Every harness page, each listed once. */

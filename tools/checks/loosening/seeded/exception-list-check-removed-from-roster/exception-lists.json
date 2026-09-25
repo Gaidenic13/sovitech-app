@@ -1,0 +1,4 @@
+{
+  "$comment": "Seeded bad input (synthetic; phase 1 review): a check removed from the roster of checks. The roster is a deny list, so removing a check is a loosening; it would also let a later allow list of that check read as a new check's list.",
+  "lists": { "checks.roster": { "remove": ["eslint:no-json-parse"] } }
+}

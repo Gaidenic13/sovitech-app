@@ -113,4 +113,43 @@ export type VerifyProposal = (proposal: CandidateProposal, context: ProposalCont
 /** The one thrower of verifyProposal's NotImplementedError (declared once, when the package loads). */
 const verifyProposalNotImplemented = declareNotImplemented('verify-proposal');
 
-export const verifyProposal: VerifyProposal = () => verifyProposalNotImplemented();
+/** The evidence entries of a proposal that name a document; a malformed entry is left to the shape check (phase 2). */
+function evidenceEntries(proposal: CandidateProposal | undefined): readonly { readonly index: number; readonly documentId: string }[] {
+  const evidence: unknown = proposal?.evidence;
+  if (!Array.isArray(evidence)) return [];
+  return evidence.flatMap((entry: unknown, index) =>
+    typeof entry === 'object' && entry !== null && 'documentId' in entry && typeof entry.documentId === 'string'
+      ? [{ index, documentId: entry.documentId }]
+      : [],
+  );
+}
+
+/**
+ * Phase 1 builds check 1 (the document belongs to this project; rule 13 "Enforced
+ * by"; G13-1): any evidence entry whose document is unknown or belongs to another
+ * project rejects the proposal, logged as `evidence_not_found` in the project where
+ * it was attempted, with a code and never document text. Everything else, the
+ * other four checks, the proposal's shape (a strict runtime schema, G1-13) and the
+ * source and inference limits, is phase 2 and still throws NotImplementedError.
+ */
+export const verifyProposal: VerifyProposal = (proposal, context) => {
+  for (const entry of evidenceEntries(proposal)) {
+    const record = context.document(entry.documentId);
+    if (record === undefined || record.projectId !== context.projectId) {
+      return {
+        outcome: 'rejected',
+        rejection: { kind: 'evidence_check_failed', check: 'document_in_project', evidenceIndex: entry.index },
+        guardrailEvents: [
+          {
+            type: 'evidence_not_found',
+            projectId: context.projectId,
+            subjectId: proposal.subjectId,
+            fieldKey: proposal.fieldKey,
+            reason: 'document_in_project',
+          },
+        ],
+      };
+    }
+  }
+  return verifyProposalNotImplemented();
+};

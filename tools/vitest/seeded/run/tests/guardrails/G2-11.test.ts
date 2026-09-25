@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
-import { derive } from '@sovitech/domain';
+import { verifyProposal } from '@sovitech/domain';
 
 // Seeded: a "Rejected" case written as "throws", without the pending wrapper. It passes
-// against the unbuilt derive stub, because the stub throws; the stub guard must fail it.
-test('G2-11 · seeded case: TEST input is rejected (sync toThrow)', () => {
-  expect(() => (derive as unknown as (...args: unknown[]) => unknown)({}, [], { candidate: [], field: [], document: [] }, {})).toThrow();
+// against the unbuilt verify-proposal stub, because the stub throws; the stub guard must fail it.
+test('G2-11 · seeded case: TEST proposal is rejected (sync toThrow)', () => {
+  expect(() => (verifyProposal as unknown as (...args: unknown[]) => unknown)(undefined, {})).toThrow();
 });

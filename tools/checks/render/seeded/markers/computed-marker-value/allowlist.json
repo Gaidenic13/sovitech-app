@@ -1,0 +1,12 @@
+{
+  "$comment": "Seeded tree (synthetic): the reviewed unreadable list; the files beside it set the markers.",
+  "unreadable": [
+    {
+      "id": "test-viewer-canvas",
+      "element": "canvas",
+      "component": "packages/viewer/src/ModelCanvas.tsx",
+      "reason": "A seeded entry with a reason long enough to pass the length rule of the schema.",
+      "source": "seeded bad input for the render marker scan"
+    }
+  ]
+}

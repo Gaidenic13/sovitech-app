@@ -13,9 +13,19 @@
  * the render allowlist and adding a reserved-term exception are loosenings)
  * that passes only through an approved exception-list snapshot whose approval
  * reference resolves. Against the unapproved baseline, a tightening (an entry
- * removed from an allow list, added to a deny list, a new list) fails too,
- * until `tsx tools/checks/loosening/write-baseline.ts` records it; the writer
- * refuses every loosening.
+ * removed from an allow list, added to a deny list, a new deny list, a new allow
+ * list of a new check) fails too, until `tsx tools/checks/loosening/write-baseline.ts`
+ * records it; the writer refuses every loosening.
+ *
+ * A brand-new allow list (phase 1 review, verifier finding 3): each list names the
+ * check it lets things past (`check`), from the roster of checks (`checks.roster`, a
+ * deny list read from the check runner and the lint rules). A new allow list counts as
+ * a tightening only when its check is absent from the base's roster too (a new check
+ * with its own exemptions); its entries are then reported apart, for the owner. Any
+ * other new allow list widens a check the base already has, so each of its entries is
+ * an added allow entry: a loosening. A base with no roster cannot tell, so there too
+ * each entry is a loosening. An entry recorded with a `widening` note is a widening
+ * the review found and recorded as waiting for the approver; it is reported apart.
  *
  * The snapshot stores, per entry, a key and a SHA-256 of its content, never
  * the content: figure lists are stored by hash, so no mockup figure or hotel
@@ -31,6 +41,10 @@ import { createRequire } from 'node:module';
 import { resolveApprovalRef, type ApprovalContext } from '@sovitech/registry/gates';
 import { z } from 'zod';
 import { repoRoot } from '../lib';
+import { matches2_8, repo2_8, type Text2_8, type Texts2_8 } from './guardrails-2-8';
+
+/** The build log, whose "For the owner's review" list names every allow entry (owner-review.ts). */
+export const BUILD_LOG = 'docs/build-log.md';
 
 export type ListDirection = 'allow' | 'deny';
 
@@ -45,6 +59,12 @@ export interface ListEntry {
 export interface ExceptionListSpec {
   id: string;
   direction: ListDirection;
+  /**
+   * The check the list belongs to: an entry of the roster of checks (CHECK_ROSTER_LIST), such
+   * as `render`, `index` or `eslint:no-json-parse`. A new allow list is a tightening only when
+   * its check is new too.
+   */
+  check: string;
   /** Where the list lives, as a person reads it. */
   source: string;
   /** A list that may be absent (company-figures.txt, created by another change): absent reads as empty. */
@@ -56,7 +76,10 @@ export interface ExceptionListSpec {
 export interface CurrentList {
   direction: ListDirection;
   source: string;
-  entries: Map<string, { sha256: string; label: string }>;
+  /** The check the list belongs to (ExceptionListSpec.check). */
+  check?: string;
+  /** Each entry's hash and label, and its content as read (for the 2.8 match of ADR 0011; never written to the snapshot). */
+  entries: Map<string, { sha256: string; label: string; content?: unknown }>;
 }
 
 export interface CurrentLists {
@@ -159,11 +182,27 @@ export function figureEntries(text: string, listName: string): ListEntry[] {
 
 const requireFromHere = createRequire(import.meta.url);
 
+/** The roster of checks, as a deny list: removing a check is a loosening. */
+export const CHECK_ROSTER_LIST = 'checks.roster';
+
+/** Checks that are tools rather than tools/checks folders; each owns exception lists. */
+export const TOOL_CHECKS: readonly string[] = ['eslint', 'depcruise', 'vitest', 'checks'];
+
+/** Every check an exception list can belong to, read from the code that runs them. */
+export async function checkRoster(): Promise<string[]> {
+  const runner = (await import('../runner')) as Record<string, unknown>;
+  const expected = stringsOf(exported(runner, 'EXPECTED_CHECKS', 'tools/checks/runner.ts'), 'EXPECTED_CHECKS').map((entry) => entry.key);
+  const plugin = recordOf(exported((await import('../../eslint-rules/index.js')) as Record<string, unknown>, 'default', 'tools/eslint-rules/index.js'), 'the ESLint plugin');
+  const rules = Object.keys(recordOf(plugin['rules'], 'the ESLint plugin rules')).map((rule) => `eslint:${rule}`);
+  return [...new Set([...expected, ...TOOL_CHECKS, ...rules])].sort();
+}
+
 /** Every exception list the snapshot records. Adding a list: one entry here, then run the writer. */
 export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'render.entries',
     direction: 'allow',
+    check: 'render',
     source: 'tests/e2e/render/allowlist.ts: RENDER_ALLOWLIST.entries (digits allowed outside a value element; rule 2)',
     read: async () => {
       const module = (await import('../../../tests/e2e/render/allowlist')) as Record<string, unknown>;
@@ -174,6 +213,7 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'render.unreadable',
     direction: 'allow',
+    check: 'render',
     source: 'tests/e2e/render/allowlist.ts: RENDER_ALLOWLIST.unreadable (elements whose pixels the render test cannot read)',
     read: async () => {
       const module = (await import('../../../tests/e2e/render/allowlist')) as Record<string, unknown>;
@@ -184,6 +224,7 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'eslint.allowlist',
     direction: 'allow',
+    check: 'eslint',
     source: 'tools/eslint-rules/allowlist.js: allowlist (files a lint ban does not apply to), one entry per rule and file pattern',
     read: async () => {
       const module = (await import('../../eslint-rules/allowlist.js')) as Record<string, unknown>;
@@ -202,18 +243,21 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'lint-bans.shadow-free-values',
     direction: 'allow',
+    check: 'eslint:no-shadows',
     source: 'tools/eslint-rules/lib/patterns.js: SHADOW_FREE_VALUES (shadow values the shadow bans accept)',
     read: async () => stringsOf(exported((await import('../../eslint-rules/lib/patterns.js')) as Record<string, unknown>, 'SHADOW_FREE_VALUES', 'tools/eslint-rules/lib/patterns.js'), 'SHADOW_FREE_VALUES'),
   },
   {
     id: 'lint-bans.theme-files',
     direction: 'allow',
+    check: 'eslint:no-colour-literals',
     source: 'tools/eslint-rules/lib/theme.js: THEME_FILES (files whose colour names count as tokens)',
     read: async () => stringsOf(exported((await import('../../eslint-rules/lib/theme.js')) as Record<string, unknown>, 'THEME_FILES', 'tools/eslint-rules/lib/theme.js'), 'THEME_FILES'),
   },
   {
     id: 'reserved-terms.allowances',
     direction: 'allow',
+    check: 'reserved-terms',
     source: 'packages/registry/src/reserved-terms.ts: REGISTERED_ALLOWANCE_ENTRIES (places 2.8 allows a reserved term)',
     read: async () => {
       const module = (await import('@sovitech/registry/reserved-terms')) as Record<string, unknown>;
@@ -230,6 +274,7 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'reserved-terms.machine-keys',
     direction: 'allow',
+    check: 'reserved-terms',
     source: 'tools/checks/reserved-terms/machine-keys.ts: MACHINE_KEY_LISTS (lists whose strings the reserved-term check skips)',
     read: async () => {
       const module = (await import('../reserved-terms/machine-keys')) as Record<string, unknown>;
@@ -241,24 +286,28 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'fixture-manifest.document-homes',
     direction: 'allow',
+    check: 'fixture-manifest',
     source: 'tools/checks/fixture-manifest/manifest.ts: DOCUMENT_HOMES (where document-type files may live)',
     read: async () => stringsOf(exported((await import('../fixture-manifest/manifest')) as Record<string, unknown>, 'DOCUMENT_HOMES', 'tools/checks/fixture-manifest/manifest.ts'), 'DOCUMENT_HOMES'),
   },
   {
     id: 'fixture-manifest.never-read',
     direction: 'allow',
+    check: 'fixture-manifest',
     source: 'tools/checks/fixture-manifest/manifest.ts: NEVER_READ (paths the document scan never reads)',
     read: async () => stringsOf(exported((await import('../fixture-manifest/manifest')) as Record<string, unknown>, 'NEVER_READ', 'tools/checks/fixture-manifest/manifest.ts'), 'NEVER_READ'),
   },
   {
     id: 'fixture-manifest.document-extensions',
     direction: 'deny',
+    check: 'fixture-manifest',
     source: 'tools/checks/fixture-manifest/manifest.ts: DOCUMENT_EXTENSIONS (document types found by extension)',
     read: async () => stringsOf(exported((await import('../fixture-manifest/manifest')) as Record<string, unknown>, 'DOCUMENT_EXTENSIONS', 'tools/checks/fixture-manifest/manifest.ts'), 'DOCUMENT_EXTENSIONS'),
   },
   {
     id: 'fixture-manifest.content-signatures',
     direction: 'deny',
+    check: 'fixture-manifest',
     source: 'tools/checks/fixture-manifest/manifest.ts: CONTENT_SIGNATURES (document types found by content)',
     read: async () => {
       const module = (await import('../fixture-manifest/manifest')) as Record<string, unknown>;
@@ -272,12 +321,14 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'checks.default-ignores',
     direction: 'allow',
+    check: 'checks',
     source: 'tools/checks/lib.ts: DEFAULT_IGNORES (paths every scanning check skips)',
     read: async () => stringsOf(exported((await import('../lib')) as Record<string, unknown>, 'DEFAULT_IGNORES', 'tools/checks/lib.ts'), 'DEFAULT_IGNORES'),
   },
   {
     id: 'depcruise.exclude',
     direction: 'allow',
+    check: 'depcruise',
     source: '.dependency-cruiser.cjs: options.exclude.path (modules the boundaries never see)',
     read: async (root) => {
       const config = recordOf(requireFromHere(join(root, '.dependency-cruiser.cjs')), '.dependency-cruiser.cjs');
@@ -289,6 +340,7 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'version-sync.third-party-skills',
     direction: 'allow',
+    check: 'version-sync',
     source: 'skills-lock.json: skills (third-party skills the version-sync check exempts from the "Checked against" line)',
     read: async (root) => {
       const lock = recordOf(JSON.parse(readFileSync(join(root, 'skills-lock.json'), 'utf8')), 'skills-lock.json');
@@ -299,6 +351,7 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'mockup-figures',
     direction: 'deny',
+    check: 'mockup-figures',
     source: 'tools/checks/mockup-figures.txt (mockup figures and the mockups\' hotel name; stored by hash)',
     read: async (root) => figureEntries(readFileSync(join(root, 'tools/checks/mockup-figures.txt'), 'utf8'), 'mockup-figures.txt'),
   },
@@ -306,6 +359,7 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
     // Required since the company-figure check landed (phase 0 round 2): a missing file is a list that cannot be read.
     id: 'company-figures',
     direction: 'deny',
+    check: 'company-figures',
     source: 'tools/checks/company-figures.txt (company figures and SAUTER names; stored by hash)',
     read: async (root) => figureEntries(readFileSync(join(root, 'tools/checks/company-figures.txt'), 'utf8'), 'company-figures.txt'),
   },
@@ -314,6 +368,7 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'index.reviewed-test-doubles',
     direction: 'allow',
+    check: 'index',
     source: 'tools/checks/index/reviewed-test-doubles.json: entries (test doubles a guardrail case file or support module may use)',
     read: async (root) => {
       const list = recordOf(JSON.parse(readFileSync(join(root, 'tools/checks/index/reviewed-test-doubles.json'), 'utf8')), 'reviewed-test-doubles.json');
@@ -329,6 +384,7 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'vitest.allowed-test-script-flags',
     direction: 'allow',
+    check: 'vitest',
     source: 'tools/vitest/config-integrity.ts: ALLOWED_TEST_SCRIPT_FLAGS (flags the test script may add after "vitest run")',
     read: async () =>
       stringsOf(
@@ -339,6 +395,7 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'reserved-terms.non-copy-files',
     direction: 'allow',
+    check: 'reserved-terms',
     source: 'tools/checks/reserved-terms/non-copy.ts: NON_COPY_FILES (files in scope the reserved-term check does not read)',
     read: async () => {
       const module = (await import('../reserved-terms/non-copy')) as Record<string, unknown>;
@@ -348,6 +405,7 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'fixture-manifest.document-home-types',
     direction: 'allow',
+    check: 'fixture-manifest',
     source: 'tools/checks/fixture-manifest/manifest.ts: DOCUMENT_HOME_TYPES (the document types each home may hold)',
     read: async () => {
       const module = (await import('../fixture-manifest/manifest')) as Record<string, unknown>;
@@ -362,24 +420,79 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'scan-roots.excluded',
     direction: 'allow',
+    check: 'scan-roots',
     source: 'tools/checks/scan-roots/roots.json: folders no scan reads (topLevel, packageSubfolders, serviceSubfolders "excluded")',
     read: async (root) => scanRootEntries(root).excluded,
   },
   {
     id: 'scan-roots.scanned',
     direction: 'deny',
+    check: 'scan-roots',
     source: 'tools/checks/scan-roots/roots.json: the scans each folder is read by, and the top-level folders the CI path filter names ("ci": true)',
     read: async (root) => scanRootEntries(root).scanned,
+  },
+  // Lists added in phase 1 (the rest of adversarial finding 7, phase 0 review round 2; the
+  // reviewed route for support modules that may catch the stub's error).
+  {
+    id: 'lint-bans.decimal-from-text-exempt',
+    direction: 'allow',
+    check: 'eslint:no-decimal-from-text',
+    source: 'tools/eslint-rules/index.js: NUMBER_PARSER (the folder no-decimal-from-text does not apply to: the rule 8 number parser)',
+    read: async () => stringsOf([exported((await import('../../eslint-rules/index.js')) as Record<string, unknown>, 'NUMBER_PARSER', 'tools/eslint-rules/index.js')], 'NUMBER_PARSER'),
+  },
+  {
+    id: 'lint-bans.rounding-exempt',
+    direction: 'allow',
+    check: 'eslint:no-rounding-outside-formatting',
+    source: 'tools/eslint-rules/index.js: FORMATTING_MODULE (the folder no-rounding-outside-formatting does not apply to: the formatting module)',
+    read: async () =>
+      stringsOf([exported((await import('../../eslint-rules/index.js')) as Record<string, unknown>, 'FORMATTING_MODULE', 'tools/eslint-rules/index.js')], 'FORMATTING_MODULE'),
+  },
+  {
+    id: 'lint-bans.json-parse-reviewed',
+    direction: 'allow',
+    check: 'eslint:no-json-parse',
+    source: 'tools/eslint-rules/index.js: JSON_PARSE_REVIEWED (the reviewed readers no-json-parse does not apply to), one entry per file',
+    read: async () => {
+      const module = (await import('../../eslint-rules/index.js')) as Record<string, unknown>;
+      const entries: ListEntry[] = [];
+      arrayOf(exported(module, 'JSON_PARSE_REVIEWED', 'tools/eslint-rules/index.js'), 'JSON_PARSE_REVIEWED').forEach((item, index) => {
+        const record = recordOf(item, `JSON_PARSE_REVIEWED[${index}]`);
+        for (const file of arrayOf(record['files'], `JSON_PARSE_REVIEWED[${index}].files`)) {
+          entries.push({ key: String(file), content: { file, reason: record['reason'] }, label: String(file) });
+        }
+      });
+      return numbered(entries);
+    },
+  },
+  {
+    id: 'index.stub-aware-support-modules',
+    direction: 'allow',
+    check: 'index',
+    source: 'tools/checks/index/stub-aware-support.json: modules (support modules that may catch the stub\'s error, each pinned by the SHA-256 of its reviewed content)',
+    read: async (root) => {
+      const list = recordOf(JSON.parse(readFileSync(join(root, 'tools/checks/index/stub-aware-support.json'), 'utf8')), 'stub-aware-support.json');
+      return numbered(
+        arrayOf(list['modules'], 'stub-aware-support.json modules').map((item, index) => {
+          const record = recordOf(item, `stub-aware-support.json modules[${index}]`);
+          const key = String(record['path'] ?? '');
+          if (key === '') throw new Error(`stub-aware-support.json modules[${index}] has no path`);
+          return { key, content: { role: record['role'], sha256: record['sha256'], reason: record['reason'] }, label: `${key} (${String(record['role'] ?? '')})` };
+        }),
+      );
+    },
   },
   {
     id: 'lint-bans.total-outside-engine-exempt',
     direction: 'allow',
+    check: 'eslint:no-total-outside-engine',
     source: 'tools/eslint-rules/index.js: ENGINE (the folder no-total-outside-engine does not apply to)',
     read: async () => stringsOf([exported((await import('../../eslint-rules/index.js')) as Record<string, unknown>, 'ENGINE', 'tools/eslint-rules/index.js')], 'ENGINE'),
   },
   {
     id: 'eslint.script-extensions',
     direction: 'deny',
+    check: 'eslint',
     source: 'tools/eslint-rules/index.js: SCRIPT_EXTENSIONS (script extensions the ESLint bans read under apps/ and packages/)',
     read: async () =>
       stringsOf(exported((await import('../../eslint-rules/index.js')) as Record<string, unknown>, 'SCRIPT_EXTENSIONS', 'tools/eslint-rules/index.js'), 'SCRIPT_EXTENSIONS'),
@@ -387,12 +500,22 @@ export const EXCEPTION_LISTS: readonly ExceptionListSpec[] = [
   {
     id: 'lint-bans.extensions-a-ban-must-read',
     direction: 'deny',
+    check: 'lint-bans',
     source: 'tools/checks/lint-bans/lint-bans.ts: EXTENSIONS_A_BAN_MUST_READ (a file of these types under apps/ or packages/ that no ban reads fails)',
     read: async () =>
       stringsOf(
         exported((await import('../lint-bans/lint-bans')) as Record<string, unknown>, 'EXTENSIONS_A_BAN_MUST_READ', 'tools/checks/lint-bans/lint-bans.ts'),
         'EXTENSIONS_A_BAN_MUST_READ',
       ),
+  },
+  // Added in the phase 1 review (verifier finding 3): the roster of checks, so a new allow list's
+  // check can be told new or not against the base.
+  {
+    id: 'checks.roster',
+    direction: 'deny',
+    check: 'loosening',
+    source: `the checks an exception list can belong to: tools/checks/runner.ts EXPECTED_CHECKS, the tools ${TOOL_CHECKS.join(', ')}, and each rule of tools/eslint-rules/index.js as eslint:<rule>`,
+    read: async () => stringsOf(await checkRoster(), 'the roster of checks'),
   },
 ];
 
@@ -427,14 +550,22 @@ export async function readCurrentLists(root: string = repoRoot, specs: readonly 
   for (const spec of specs) {
     try {
       const entries = (await spec.read(root)) ?? [];
-      const map = new Map<string, { sha256: string; label: string }>();
+      const map = new Map<string, { sha256: string; label: string; content?: unknown }>();
       for (const entry of entries) {
         if (map.has(entry.key)) throw new Error(`the key "${entry.key}" appears twice`);
-        map.set(entry.key, { sha256: sha256(entry.content), label: entry.label });
+        map.set(entry.key, { sha256: sha256(entry.content), label: entry.label, content: entry.content });
       }
-      lists.set(spec.id, { direction: spec.direction, source: spec.source, entries: map });
+      lists.set(spec.id, { direction: spec.direction, source: spec.source, check: spec.check, entries: map });
     } catch (error) {
       problems.push(`exception list ${spec.id}: cannot be read from ${spec.source}: ${error instanceof Error ? error.message : String(error)}; a list that cannot be read fails the check`);
+    }
+  }
+  const roster = lists.get(CHECK_ROSTER_LIST);
+  if (roster !== undefined) {
+    for (const [id, list] of lists) {
+      if (list.check === undefined || !roster.entries.has(list.check)) {
+        problems.push(`exception list ${id}: names the check ${JSON.stringify(list.check)}, which is not in the roster of checks (${CHECK_ROSTER_LIST}); every list names the check it lets things past`);
+      }
     }
   }
   return { lists, problems };
@@ -450,7 +581,16 @@ export const EXCEPTION_LISTS_DIR: string = join(repoRoot, 'packages', 'registry'
 export const EXCEPTION_LISTS_BASELINE_FILE = 'unapproved-baseline-v0.json';
 export const EXCEPTION_LISTS_BASELINE_PATH: string = join(EXCEPTION_LISTS_DIR, EXCEPTION_LISTS_BASELINE_FILE);
 
-const entrySchema = z.strictObject({ sha256: z.string().regex(/^[0-9a-f]{64}$/).optional(), recordedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) });
+const entrySchema = z.strictObject({
+  sha256: z.string().regex(/^[0-9a-f]{64}$/).optional(),
+  recordedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  /**
+   * Set on an allow entry that a review found widens a check the earlier baseline already had,
+   * recorded as waiting for the approver: why it is a widening. The writer keeps it; the check
+   * reports the entry apart, for the owner. It never approves anything.
+   */
+  widening: z.string().min(1).optional(),
+});
 const listSchema = z.strictObject({ direction: z.enum(['allow', 'deny']), source: z.string().min(1), entries: z.record(z.string(), entrySchema) });
 export const exceptionListSnapshotSchema = z.strictObject({
   name: z.string().min(1),
@@ -490,6 +630,14 @@ export interface ExceptionListInputs {
   baselineProblem?: string;
   approvedSnapshots: readonly ExceptionListSnapshot[];
   approvals: ApprovalContext;
+  /**
+   * The texts docs/guardrails.md 2.8 lists as places a reserved term may appear, read from
+   * main's merge base and the working tree (guardrails-2-8.ts; ADR 0011). A reserved-term
+   * allowance that is one of them word for word, of the same kind, is 2.8 itself.
+   */
+  texts2_8: Texts2_8;
+  /** docs/build-log.md as it is, for the "For the owner's review" list (owner-review.ts); undefined when missing. */
+  buildLog: string | undefined;
 }
 
 /** The repository's exception-list inputs; the approval context is the loosening check's own. */
@@ -517,12 +665,15 @@ export async function repoExceptionListInputs(approvals: ApprovalContext, root: 
     }
   }
   const current = await readCurrentLists(root);
+  const buildLogPath = join(root, BUILD_LOG);
   return {
     current: { lists: current.lists, problems: [...current.problems, ...problems] },
     baseline,
     ...(baselineProblem === undefined ? {} : { baselineProblem }),
     approvedSnapshots,
     approvals,
+    texts2_8: repo2_8(root),
+    buildLog: existsSync(buildLogPath) ? readFileSync(buildLogPath, 'utf8') : undefined,
   };
 }
 
@@ -533,6 +684,12 @@ export interface ListDifference {
   list: string;
   kind: 'loosening' | 'tightening';
   message: string;
+  /** The entry the difference is about, when it is about one. */
+  key?: string;
+  /** What happened to that entry. */
+  change?: 'added' | 'changed' | 'removed';
+  /** For a new allow list of a new check: its entries, reported apart for the owner. */
+  newAllowEntries?: string[];
 }
 
 /** What changed from `base` to `current`, list by list. */
@@ -553,25 +710,57 @@ export function compareExceptionLists(base: ExceptionListSnapshot, current: Read
       if (earlier === undefined) {
         differences.push(
           now.direction === 'allow'
-            ? { list: id, kind: 'loosening', message: `exception list ${id}: entry added: ${entry.label}` }
-            : { list: id, kind: 'tightening', message: `exception list ${id}: entry added to a deny list: ${entry.label}` },
+            ? { list: id, kind: 'loosening', message: `exception list ${id}: entry added: ${entry.label}`, key, change: 'added' }
+            : { list: id, kind: 'tightening', message: `exception list ${id}: entry added to a deny list: ${entry.label}`, key, change: 'added' },
         );
       } else if (now.direction === 'allow' && earlier.sha256 !== entry.sha256) {
-        differences.push({ list: id, kind: 'loosening', message: `exception list ${id}: entry changed: ${entry.label} (a changed allow entry counts as a loosening)` });
+        differences.push({
+          list: id,
+          kind: 'loosening',
+          message: `exception list ${id}: entry changed: ${entry.label} (a changed allow entry counts as a loosening)`,
+          key,
+          change: 'changed',
+        });
       }
     }
     for (const key of Object.keys(recorded.entries)) {
       if (now.entries.has(key)) continue;
       differences.push(
         now.direction === 'deny'
-          ? { list: id, kind: 'loosening', message: `exception list ${id}: entry removed from a deny list: ${key}` }
-          : { list: id, kind: 'tightening', message: `exception list ${id}: entry removed from an allow list: ${key}` },
+          ? { list: id, kind: 'loosening', message: `exception list ${id}: entry removed from a deny list: ${key}`, key, change: 'removed' }
+          : { list: id, kind: 'tightening', message: `exception list ${id}: entry removed from an allow list: ${key}`, key, change: 'removed' },
       );
     }
   }
+  const baseRoster = base.lists[CHECK_ROSTER_LIST];
+  const currentRoster = current.get(CHECK_ROSTER_LIST);
   for (const [id, now] of current) {
     if (id in base.lists) continue;
-    differences.push({ list: id, kind: 'tightening', message: `exception list ${id}: not in ${base.name} (${now.entries.size} entries; ${now.source})` });
+    if (now.direction === 'deny') {
+      differences.push({ list: id, kind: 'tightening', message: `exception list ${id}: not in ${base.name} (${now.entries.size} entries; ${now.source})` });
+      continue;
+    }
+    // A new allow list: a tightening only with a check that is new against the base's roster too.
+    const check = now.check;
+    const newCheck =
+      check !== undefined && baseRoster !== undefined && !Object.hasOwn(baseRoster.entries, check) && currentRoster?.entries.has(check) === true;
+    if (newCheck) {
+      differences.push({
+        list: id,
+        kind: 'tightening',
+        message: `exception list ${id}: not in ${base.name}: a new allow list of the check ${check}, which ${base.name} does not have (${now.entries.size} entries; ${now.source})`,
+        newAllowEntries: [...now.entries.values()].map((entry) => `${id}: ${entry.label} (the new check ${check})`),
+      });
+      continue;
+    }
+    const why =
+      baseRoster === undefined
+        ? `${base.name} holds no roster of checks, so the check it belongs to cannot be told new`
+        : `its check ${check ?? '(none named)'} is in ${base.name}'s roster, so the list widens a check the base already has`;
+    for (const [key, entry] of now.entries) {
+      differences.push({ list: id, kind: 'loosening', message: `exception list ${id}: entry added: ${entry.label} (a new allow list: ${why})`, key, change: 'added' });
+    }
+    if (now.entries.size === 0) differences.push({ list: id, kind: 'tightening', message: `exception list ${id}: not in ${base.name} (an empty allow list; ${now.source})` });
   }
   return differences;
 }
@@ -583,6 +772,24 @@ export interface ExceptionListReport {
   tightenings: string[];
   /** Allow-list entries waiting for approval, and a line per deny list. */
   waiting: string[];
+  /** Reserved-term allowances accepted as texts of docs/guardrails.md 2.8 itself (ADR 0011), one line each. */
+  accepted2_8: string[];
+  /** Entries of new allow lists of new checks (tightenings as lists), reported apart for the owner. */
+  newAllowEntries: string[];
+  /** Allow entries the base records as widenings waiting for the approver, reported apart for the owner. */
+  widenings: string[];
+}
+
+/** The list whose entries may be texts of 2.8 itself (ADR 0011). */
+export const ALLOWANCES_LIST = 'reserved-terms.allowances';
+
+/**
+ * The 2.8 text a current reserved-term allowance is, word for word and of its kind
+ * (ADR 0011), or undefined. Only entries of ALLOWANCES_LIST can be one.
+ */
+export function allowanceAs2_8(list: string, entry: { content?: unknown } | undefined, texts: Texts2_8): Text2_8 | undefined {
+  if (list !== ALLOWANCES_LIST || entry === undefined) return undefined;
+  return matches2_8(entry.content, texts.texts);
 }
 
 const WRITER = 'tsx tools/checks/loosening/write-baseline.ts';
@@ -598,7 +805,7 @@ export function evaluateExceptionLists(inputs: ExceptionListInputs): ExceptionLi
       inputs.baselineProblem ??
         `packages/registry/src/snapshots/exception-lists/${EXCEPTION_LISTS_BASELINE_FILE} is missing: every exception list is recorded in ${EXCEPTION_LISTS_BASELINE_NAME} (restore it from git, or record it once with \`${WRITER}\`)`,
     );
-    return { base: EXCEPTION_LISTS_BASELINE_NAME, problems, approvedLoosenings, tightenings, waiting: [] };
+    return { base: EXCEPTION_LISTS_BASELINE_NAME, problems, approvedLoosenings, tightenings, waiting: [], accepted2_8: [], newAllowEntries: [], widenings: [] };
   }
   if (baseline.status !== 'unapproved' || baseline.approvalRef !== '' || baseline.version !== 0) {
     problems.push(`${EXCEPTION_LISTS_BASELINE_FILE}: the unapproved baseline must have status unapproved, version 0 and no approval reference`);
@@ -623,7 +830,26 @@ export function evaluateExceptionLists(inputs: ExceptionListInputs): ExceptionLi
   }
   const againstBaseline = base === baseline;
 
+  const accepted2_8: string[] = [];
+  const texts2_8Needed: string[] = [];
+  const newAllowEntries: string[] = [];
   for (const difference of compareExceptionLists(base, inputs.current.lists)) {
+    newAllowEntries.push(...(difference.newAllowEntries ?? []));
+    if (difference.kind === 'loosening' && difference.list === ALLOWANCES_LIST && difference.key !== undefined && difference.change !== 'removed') {
+      // ADR 0011: an allowance that is word for word a text 2.8 lists, of the kind 2.8 gives it, is 2.8 itself.
+      const entry = inputs.current.lists.get(difference.list)?.entries.get(difference.key);
+      const text = allowanceAs2_8(difference.list, entry, inputs.texts2_8);
+      if (text !== undefined) {
+        accepted2_8.push(`${difference.list}: ${entry?.label ?? difference.key} is the text "${text.text}" of ${text.where} (${text.kind}): 2.8 itself, accepted without an approval reference (ADR 0011)`);
+        continue;
+      }
+      texts2_8Needed.push(difference.key);
+      problems.push(
+        `${difference.message}: a loosening against ${base.name} with no approval reference (docs/guardrails.md section 10); ` +
+          'it is not word for word a text docs/guardrails.md 2.8 lists for its kind (ADR 0011), so it waits for the approver; the writer refuses it',
+      );
+      continue;
+    }
     if (difference.kind === 'loosening') {
       problems.push(`${difference.message}: a loosening against ${base.name} with no approval reference (docs/guardrails.md section 10); the writer refuses it`);
     } else if (againstBaseline) {
@@ -633,18 +859,30 @@ export function evaluateExceptionLists(inputs: ExceptionListInputs): ExceptionLi
     }
   }
 
+  // Without 2.8 read from main and the working tree, no allowance can be accepted as a 2.8 text; say why.
+  if (texts2_8Needed.length > 0) problems.push(...inputs.texts2_8.problems);
+
   const waiting: string[] = [];
+  const widenings: string[] = [];
   for (const [id, list] of inputs.current.lists) {
     if (list.direction === 'deny') {
       waiting.push(`exception list ${id} (deny list): ${list.entries.size} entries; removing one is a loosening`);
       continue;
     }
     for (const [key, entry] of list.entries) {
-      const recordedOn = base.lists[id]?.entries[key]?.recordedOn;
-      waiting.push(`exception list ${id}: ${entry.label}${recordedOn === undefined ? '' : ` (recorded ${recordedOn})`}`);
+      const recorded = base.lists[id]?.entries[key];
+      const recordedOn = recorded?.recordedOn;
+      const as2_8 = allowanceAs2_8(id, entry, inputs.texts2_8);
+      const widening = recorded !== undefined && recorded.sha256 === entry.sha256 ? recorded.widening : undefined;
+      if (widening !== undefined) widenings.push(`exception list ${id}: ${entry.label} (recorded ${recordedOn ?? '?'}): ${widening}`);
+      waiting.push(
+        `exception list ${id}: ${entry.label}${recordedOn === undefined ? '' : ` (recorded ${recordedOn})`}` +
+          (widening === undefined ? '' : ' (a widening of an existing check, waiting for the approver)') +
+          (as2_8 === undefined ? '' : ` (the 2.8 text "${as2_8.text}": accepted as 2.8 itself under ADR 0011, which the owner may reverse)`),
+      );
     }
   }
-  return { base: base.name, problems: [...new Set(problems)], approvedLoosenings, tightenings, waiting };
+  return { base: base.name, problems: [...new Set(problems)], approvedLoosenings, tightenings, waiting, accepted2_8, newAllowEntries, widenings };
 }
 
 // ---------------------------------------------------------------------------
@@ -657,6 +895,12 @@ export const EXCEPTION_LISTS_NOTE =
 
 export interface ExceptionListPlanInputs {
   current: CurrentLists;
+  /**
+   * 2.8's texts (ADR 0011). A reserved-term allowance that is one of them is not recorded:
+   * the check accepts it at run time against 2.8, so it stays tied to 2.8's text, and the
+   * writer neither refuses nor records it.
+   */
+  texts2_8?: Texts2_8;
   existing: ExceptionListSnapshot | undefined;
   /** The file content on disk, or '' when there is none. */
   onDisk: string;
@@ -677,6 +921,20 @@ export interface ExceptionListPlan {
 export function planExceptionListBaseline(inputs: ExceptionListPlanInputs): ExceptionListPlan {
   const problems = [...inputs.current.problems];
   const { existing } = inputs;
+  // ADR 0011: allowances that are 2.8's own texts are checked at run time, never recorded.
+  const kept2_8: string[] = [];
+  const currentLists = new Map(inputs.current.lists);
+  const allowances = currentLists.get(ALLOWANCES_LIST);
+  if (allowances !== undefined && inputs.texts2_8 !== undefined) {
+    const entries = new Map(allowances.entries);
+    for (const [key, entry] of allowances.entries) {
+      const text = allowanceAs2_8(ALLOWANCES_LIST, entry, inputs.texts2_8);
+      if (text === undefined) continue;
+      entries.delete(key);
+      kept2_8.push(`${ALLOWANCES_LIST}: ${entry.label} not recorded: it is the 2.8 text "${text.text}" (${text.kind}), accepted at run time (ADR 0011)`);
+    }
+    currentLists.set(ALLOWANCES_LIST, { ...allowances, entries });
+  }
   if (existing === undefined && inputs.inHead !== false) {
     problems.push(
       inputs.inHead === true
@@ -685,13 +943,13 @@ export function planExceptionListBaseline(inputs: ExceptionListPlanInputs): Exce
     );
   }
   if (existing !== undefined) {
-    for (const difference of compareExceptionLists(existing, inputs.current.lists)) {
+    for (const difference of compareExceptionLists(existing, currentLists)) {
       if (difference.kind === 'loosening') problems.push(`${difference.message}: a loosening; only the approver can allow it (docs/guardrails.md section 10)`);
     }
   }
   const lists: ExceptionListSnapshot['lists'] = {};
-  const newEntries: string[] = [];
-  for (const [id, list] of [...inputs.current.lists].sort(([left], [right]) => left.localeCompare(right))) {
+  const newEntries: string[] = [...kept2_8];
+  for (const [id, list] of [...currentLists].sort(([left], [right]) => left.localeCompare(right))) {
     const earlier = existing?.lists[id];
     const entries: ExceptionListSnapshot['lists'][string]['entries'] = {};
     let newDenyEntries = 0;
@@ -699,9 +957,11 @@ export function planExceptionListBaseline(inputs: ExceptionListPlanInputs): Exce
       const recorded = earlier?.entries[key];
       const same = recorded !== undefined && (list.direction === 'deny' || recorded.sha256 === entry.sha256);
       const recordedOn = same ? recorded.recordedOn : inputs.today;
-      entries[key] = list.direction === 'allow' ? { sha256: entry.sha256, recordedOn } : { recordedOn };
+      // A widening note stays with its entry while the entry is unchanged; the writer never adds one.
+      const widening = same && list.direction === 'allow' ? recorded.widening : undefined;
+      entries[key] = list.direction === 'allow' ? { sha256: entry.sha256, recordedOn, ...(widening === undefined ? {} : { widening }) } : { recordedOn };
       if (same) continue;
-      if (list.direction === 'allow') newEntries.push(`${id} (allow list): ${entry.label}`);
+      if (list.direction === 'allow') newEntries.push(`${id} (allow list${existing !== undefined && earlier === undefined ? ` of the new check ${list.check ?? '?'}` : ''}): ${entry.label}`);
       else newDenyEntries += 1;
     }
     if (newDenyEntries > 0) newEntries.push(`${id} (deny list; removing an entry is a loosening): ${newDenyEntries} entries of ${list.entries.size}`);

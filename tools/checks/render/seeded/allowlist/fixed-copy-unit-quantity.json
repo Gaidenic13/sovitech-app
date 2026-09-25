@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "id": "seeded-copy",
+      "category": "fixed_interface_copy",
+      "text": "Limit TEST 12 kW",
+      "reason": "A seeded entry with a reason long enough to pass the length rule of the schema.",
+      "source": "seeded bad input for the render allowlist self-test"
+    }
+  ],
+  "unreadable": []
+}

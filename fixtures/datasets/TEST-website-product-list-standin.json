@@ -1,0 +1,28 @@
+{
+  "id": "TEST-website-product-list-standin",
+  "version": "TEST-1",
+  "description": "TEST stand-in shaped like a product list published on a company website. Synthetic; never the file under company/.",
+  "entries": {
+    "TEST-P1": {
+      "productLine": "TEST line 1",
+      "model": "TEST-MODEL-1",
+      "name": "TEST product 1",
+      "category": "TEST category",
+      "description": "TEST description of product 1"
+    },
+    "TEST-P2": {
+      "productLine": "TEST line 2",
+      "model": "TEST-MODEL-2",
+      "name": "TEST product 2",
+      "category": "TEST category",
+      "description": "TEST description of product 2"
+    },
+    "TEST-P3": {
+      "productLine": "TEST line 3",
+      "model": "TEST-MODEL-3",
+      "name": "TEST product 3",
+      "category": "TEST category",
+      "description": "TEST description of product 3"
+    }
+  }
+}

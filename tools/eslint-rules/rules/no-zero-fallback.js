@@ -10,6 +10,11 @@
  * information, any name or property whose type is the literal type 0 (which
  * catches a zero constant imported from another module).
  *
+ * Since phase 1 (the rest of adversarial finding 7 of the phase 0 review, round 2)
+ * it also bans a zero floor, `Math.max(x, 0)` (a zero among its arguments, which
+ * turns a null into 0 and a shortfall into nothing), and an empty list standing in
+ * for a missing one, `x || []` and `x ||= []`, whose total or count then reads 0.
+ *
  * Engineering values cannot be told apart from other numbers at lint time, so the
  * ban covers all app and package code (tools/eslint-rules/README.md).
  * Guardrails rule 1, "Unknown propagates"; prompt 3 section 7.
@@ -78,7 +83,7 @@ function isZeroType(type) {
  * @param {import('eslint').Rule.RuleContext} context
  * @returns {(node: any) => boolean}
  */
-function zeroTest(context) {
+export function zeroTest(context) {
   const sourceCode = context.sourceCode;
   const services = /** @type {any} */ (sourceCode.parserServices);
   const typed =
@@ -225,6 +230,33 @@ function testedOperands(test) {
   }
 }
 
+/**
+ * Whether a node is an empty array: `[]`, `Array()`, `new Array()`, `Array.of()`, and those behind `as` or `!`.
+ * @param {any} node
+ */
+function isEmptyArray(node) {
+  const inner = unwrap(node);
+  if (inner === null || inner === undefined) return false;
+  if (inner.type === 'ArrayExpression') return inner.elements.length === 0;
+  if ((inner.type === 'NewExpression' || inner.type === 'CallExpression') && inner.arguments.length === 0) {
+    const callee = inner.callee;
+    if (callee.type === 'Identifier' && callee.name === 'Array') return true;
+    return callee.type === 'MemberExpression' && callee.object.type === 'Identifier' && callee.object.name === 'Array' && keyName(callee) === 'of';
+  }
+  return false;
+}
+
+/**
+ * Whether a callee is `Math.max`, also through `globalThis.Math`.
+ * @param {any} callee
+ */
+function isMathMax(callee) {
+  if (callee.type !== 'MemberExpression' || keyName(callee) !== 'max') return false;
+  const object = callee.object;
+  if (object.type === 'Identifier') return object.name === 'Math';
+  return object.type === 'MemberExpression' && keyName(object) === 'Math' && object.object.type === 'Identifier' && ['globalThis', 'window', 'self', 'global'].includes(object.object.name);
+}
+
 /** @type {import('eslint').Rule.RuleModule} */
 export default {
   meta: {
@@ -253,6 +285,10 @@ export default {
         'A default of 0 puts a zero where a value may be missing. Leave the default out and handle the missing value (guardrails rule 1, "Unknown propagates").',
       conditional:
         'This conditional falls back to 0 when the value is missing. Keep it unknown (guardrails rule 1, "Unknown propagates").',
+      zeroFloor:
+        '`Math.max(..., 0)` puts a floor of 0 under a value: a null becomes 0 and a missing shortfall disappears. Keep the value as it is and let the engine or the view-model handle it (guardrails rule 1, "Unknown propagates").',
+      emptyList:
+        '`|| []` puts an empty list where a list may be missing, so its total or count reads 0. Keep it unknown (guardrails rule 1, "Unknown propagates"; "Zero is a value").',
     },
   },
   create(context) {
@@ -265,11 +301,21 @@ export default {
       LogicalExpression(node) {
         if ((node.operator === '??' || node.operator === '||') && isZero(node.right)) {
           context.report({ node, messageId: node.operator === '??' ? 'nullish' : 'or' });
+        } else if (node.operator === '||' && isEmptyArray(node.right)) {
+          context.report({ node, messageId: 'emptyList' });
         }
       },
       AssignmentExpression(node) {
         if ((node.operator === '??=' || node.operator === '||=') && isZero(node.right)) {
           context.report({ node, messageId: 'assignment' });
+        } else if (node.operator === '||=' && isEmptyArray(node.right)) {
+          context.report({ node, messageId: 'emptyList' });
+        }
+      },
+      CallExpression(node) {
+        if (!isMathMax(node.callee)) return;
+        if (node.arguments.some((argument) => argument.type !== 'SpreadElement' && isZero(argument))) {
+          context.report({ node, messageId: 'zeroFloor' });
         }
       },
       AssignmentPattern(node) {

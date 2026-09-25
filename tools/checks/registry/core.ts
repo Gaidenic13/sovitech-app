@@ -8,11 +8,10 @@
  * packages/registry/gates/ is missing or holds fewer gate files than the 18 of
  * prompt 3 section 5.4's starting set, counted from the files and not from
  * GATE_IDS, so a shorter list in code cannot shrink what is checked.
- * Phase 1 adds the registry's own floor: once the production registry holds
- * fields, the four required fields of rule 7 (project name, project type,
- * city, country) must exist, so an empty or partial field list fails too.
- * Until then the production registry holds settings only, and the summary
- * says so ("0 fields").
+ * Since phase 1 the registry has its own floor: in the production scope the
+ * four required fields of rule 7 (project name, project type, city, country)
+ * must each exist (`required-field-missing`), so an empty or partial field
+ * list fails too.
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';

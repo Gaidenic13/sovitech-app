@@ -1,0 +1,18 @@
+[
+  {
+    "kind": "generated_sentence",
+    "templateId": "ai-verified",
+    "template": "AI inference, verified by SOVITECH on {date}",
+    "readsStoredState": [
+      "candidate_event:engineer_verified.at"
+    ]
+  },
+  {
+    "kind": "generated_sentence",
+    "templateId": "test-count",
+    "template": "TEST {count} values verified by SOVITECH",
+    "readsStoredState": [
+      "TEST count"
+    ]
+  }
+]

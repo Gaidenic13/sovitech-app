@@ -13,12 +13,12 @@ import { badSeeds, expectedReasons, runSeed } from './selftest';
 import selfTest from './selftest';
 
 describe('the registry check', () => {
-  it('passes on the repository: an empty production registry, the proposed settings and 18 gates', async () => {
+  it('passes on the repository: the phase 1 production registry, the proposed settings and 18 gates', async () => {
     const result = await check();
     expect(result.details).toEqual([]);
     expect(result.ok).toBe(true);
     expect(result.summary).toContain('18 gates');
-    expect(result.summary).toContain('no question registered yet');
+    expect(result.summary).toContain('30 of 30 question fields change a declared output');
   });
 
   it('passes its control input: a question whose answer reaches a declared output', async () => {
@@ -38,6 +38,10 @@ describe('the registry check', () => {
     const result = await runSeed(name);
     expect(result.ok).toBe(false);
     for (const reason of expectedReasons(name)) expect(result.details.join('\n')).toContain(reason);
+  });
+
+  it('holds the phase 1 review, round 3 seeds: owner choices, count shapes and the closed unit registry', () => {
+    expect(badSeeds()).toEqual(expect.arrayContaining(['decision-not-owner', 'owner-choice-not-owner', 'count-without-integer-shape', 'unit-not-in-closed-registry']));
   });
 
   it('holds the empty-scope seeds of the phase 0 review', () => {

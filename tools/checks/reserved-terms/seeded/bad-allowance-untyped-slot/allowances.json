@@ -1,0 +1,10 @@
+[
+  {
+    "kind": "generated_sentence",
+    "templateId": "any-words",
+    "template": "AI inference, verified by SOVITECH on {whenever}",
+    "readsStoredState": [
+      "TEST"
+    ]
+  }
+]

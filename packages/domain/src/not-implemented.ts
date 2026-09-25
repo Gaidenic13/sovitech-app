@@ -17,7 +17,7 @@
  *   a second declaration of the same feature throws, so code outside the domain
  *   cannot obtain a thrower once the package has loaded;
  * - the constructor refuses every caller but that thrower, so `new
- *   NotImplementedError('derive')` in a case file throws a TypeError instead;
+ *   NotImplementedError('verify-proposal')` in a case file throws a TypeError instead;
  * - `notImplementedFeature` accepts only the instances that thrower issued (a
  *   module-private WeakMap), so a look-alike class, an object built from the
  *   prototype, or a copied `feature` property is never read as pending.
@@ -29,12 +29,18 @@
  * module can reset or lower it). The guardrails Vitest project's stub guard
  * (tools/vitest/guardrail-stub-guard.ts) reads it before and after each test: a
  * test that reached an unbuilt stub, and was not held out by the pending wrapper,
- * fails, even when it caught the error (`expect(() => derive(...)).toThrow()`).
+ * fails, even when it caught the error (`expect(() => verifyProposal(...)).toThrow()`).
  * Such a case proves nothing about the code under test (phase 0 review, round 2).
  */
 
-/** The phase 0 functions that throw NotImplementedError, by feature name. */
-export const DOMAIN_FEATURES = ['derive', 'verify-proposal'] as const;
+/**
+ * The domain functions whose body is not built yet and that throw
+ * NotImplementedError, by feature name. Phase 1 built `derive` and removed it
+ * here together with its `declareNotImplemented` call (ADR 0004): a marker that
+ * still names it fails at load. `verify-proposal` stays until phase 2 builds
+ * checks 2 to 5 (check 1 is built).
+ */
+export const DOMAIN_FEATURES = ['verify-proposal'] as const;
 export type DomainFeature = (typeof DOMAIN_FEATURES)[number];
 
 /** Handed only to the constructor by the thrower below; never exported. */
@@ -46,8 +52,13 @@ const issued = new WeakMap<object, DomainFeature>();
 /** The features whose stub has been declared. Each is declared once. */
 const declared = new Set<DomainFeature>();
 
-/** How many errors each declared stub has thrown since this module loaded, from none. Module-private; only the throwers raise it. */
-const thrownCounts = Object.fromEntries(DOMAIN_FEATURES.map((feature) => [feature, 0])) as Record<DomainFeature, number>;
+/**
+ * The feature of every error the declared stubs have thrown since this module
+ * loaded, in order. Module-private; only the throwers append to it. The counts
+ * are read from what is there (a feature no stub threw for has an empty list),
+ * never from a tally started at zero.
+ */
+const thrownFeatures: DomainFeature[] = [];
 
 /** Thrown by a declared domain function whose body is not built yet. Created only by its stub. */
 export class NotImplementedError extends Error {
@@ -72,7 +83,7 @@ const isDomainFeature = (name: string): name is DomainFeature => (DOMAIN_FEATURE
 /**
  * Declares the stub of one feature and returns the function that throws its
  * NotImplementedError. Each domain stub calls it once, at module load
- * (field-state.ts for `derive`, evidence.ts for `verify-proposal`). A second
+ * (evidence.ts for `verify-proposal`). A second
  * call for the same feature throws, so nothing loaded after the domain, a case
  * file included, can obtain a thrower.
  */
@@ -87,7 +98,7 @@ export function declareNotImplemented(feature: DomainFeature): () => never {
   return () => {
     const error = new NotImplementedError(feature, ISSUE_KEY);
     issued.set(error, feature);
-    thrownCounts[feature] += 1;
+    thrownFeatures.push(feature);
     throw error;
   };
 }
@@ -102,7 +113,11 @@ export type StubErrorCounts = Readonly<Record<DomainFeature, number>>;
  * guardrails project's stub guard compares two readings around each test.
  */
 export function stubErrorCounts(): StubErrorCounts {
-  return Object.freeze({ ...thrownCounts });
+  return Object.freeze(
+    Object.fromEntries(
+      DOMAIN_FEATURES.map((feature) => [feature, thrownFeatures.filter((thrown) => thrown === feature).length]),
+    ) as Record<DomainFeature, number>,
+  );
 }
 
 /**
@@ -145,7 +160,7 @@ export const PENDING_MARKER_PREFIX = '// @pending-until:';
 
 /**
  * The whole first line: `// @pending-until: phase <1-7> <feature>[, <feature>...]`,
- * for example `// @pending-until: phase 1 derive`.
+ * for example `// @pending-until: phase 2 verify-proposal`.
  */
 export const PENDING_MARKER_PATTERN = /^\/\/ @pending-until: phase ([1-7]) ([a-z]+(?:-[a-z]+)*(?:, [a-z]+(?:-[a-z]+)*)*)$/;
 

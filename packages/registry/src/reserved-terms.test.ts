@@ -3,6 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
+import { COPY_ALLOWANCES } from './copy/allowances';
 import {
   NO_ALLOWANCES,
   RESERVED_TERMS,
@@ -181,8 +182,68 @@ describe('allowances: only the places 2.8 allows, as typed entries', () => {
   it('lets a generated sentence through when its fixed text matches the template', () => {
     const allowances = createAllowanceSet([sentence]);
     expect(scanCopy('AI inference, verified by SOVITECH on 12 Oct', { allowances })).toEqual([]);
-    expect(scanCopy('AI inference, verified by SOVITECH on {}', { allowances })).toEqual([]);
     expect(scanCopy('Verified by SOVITECH on 12 Oct', { allowances })).not.toEqual([]);
+  });
+
+  // Phase 1 review, adversarial finding 12 (probe-terms): the {date} slot took any words, so
+  // "AI inference, verified by SOVITECH on request of the designer" passed as the allowance.
+  it('fills a typed slot only with its type: a date slot with a calendar date, never words or an impossible day', () => {
+    const allowances = createAllowanceSet([sentence]);
+    for (const shown of ['12 Oct', '1 Jan', '25 Sep 2026', '29 Feb 2028', '29 Feb', '2026-09-25', '2000-02-29']) {
+      expect(scanCopy(`AI inference, verified by SOVITECH on ${shown}`, { allowances }), shown).toEqual([]);
+    }
+    for (const refused of ['request of the designer', 'a date', '31 Feb', '29 Feb 2027', '29 Feb 1900', '0 Oct', '32 Oct', '12 October', '2026-13-01', '2026-02-30', '{}', '{date}', '12']) {
+      expect(scanCopy(`AI inference, verified by SOVITECH on ${refused}`, { allowances }), refused).not.toEqual([]);
+    }
+  });
+
+  it('fills a number slot with digits only: a word never fills it', () => {
+    const counted: ReservedTermAllowance = { kind: 'generated_sentence', templateId: 'test-count', template: 'TEST {count} values verified by SOVITECH', readsStoredState: ['TEST'] };
+    const allowances = createAllowanceSet([counted]);
+    expect(scanCopy('TEST 12 values verified by SOVITECH', { allowances })).toEqual([]);
+    expect(scanCopy('TEST 1.200 values verified by SOVITECH', { allowances })).toEqual([]);
+    expect(scanCopy('TEST two values verified by SOVITECH', { allowances })).not.toEqual([]);
+    expect(scanCopy('TEST 12 or more values verified by SOVITECH', { allowances })).not.toEqual([]);
+  });
+
+  it('accepts a slot holding its own placeholder only as the copy registry\'s definition of the text', () => {
+    const allowances = createAllowanceSet([sentence]);
+    const registry = { kind: 'copy_registry' } as const;
+    expect(scanCopy('AI inference, verified by SOVITECH on {date}', { allowances, context: registry })).toEqual([]);
+    expect(scanCopy('AI inference, verified by SOVITECH on 12 Oct', { allowances, context: registry })).toEqual([]);
+    // An interpolation (read as {}) or another slot name is not the definition.
+    expect(scanCopy('AI inference, verified by SOVITECH on {}', { allowances, context: registry })).not.toEqual([]);
+    expect(scanCopy('AI inference, verified by SOVITECH on {when}', { allowances, context: registry })).not.toEqual([]);
+    expect(scanCopy('AI inference, verified by SOVITECH on request of the designer', { allowances, context: registry })).not.toEqual([]);
+  });
+
+  it('refuses a template whose slot has no type', () => {
+    expect(() => createAllowanceSet([{ ...sentence, template: 'AI inference, verified by SOVITECH on {whenever}' }])).toThrow(/has the slot \{whenever\}, which has no type/);
+    expect(() =>
+      createAllowanceSet([{ kind: 'status_line', statusLineId: 'x', text: 'Formal quotation {suffix}' }]),
+    ).toThrow(/has the slot \{suffix\}, which has no type/);
+  });
+
+  // Phase 1 review, adversarial finding 12: "Formal quotation" passed with no stage 3 condition.
+  it('holds the stage 3 label only with a stored quotation record (rule 10), or as its registry definition', () => {
+    const stage3: ReservedTermAllowance = { kind: 'status_line', statusLineId: 'formal_quotation', text: 'Formal quotation', requiresRecord: 'quotation_record' };
+    const allowances = createAllowanceSet([stage3]);
+    expect(scanCopy('Formal quotation', { allowances }).map((match) => match.term)).toEqual(['quotation']);
+    expect(scanCopy('Formal quotation', { allowances, quotationRecordId: ' ' })).not.toEqual([]);
+    expect(scanCopy('Formal quotation', { allowances, quotationRecordId: 'q-TEST-1' })).toEqual([]);
+    expect(scanCopy('Formal quotation', { allowances, context: { kind: 'copy_registry' } })).toEqual([]);
+    expect(() => createAllowanceSet([{ ...stage3, requiresRecord: 'any_record' } as unknown as ReservedTermAllowance])).toThrow(/"requiresRecord" "any_record"/);
+    // The registered stage 3 label is bound to its record.
+    expect(registeredAllowances().match('Formal quotation')).toBeUndefined();
+    expect(registeredAllowances().match('Formal quotation', { quotationRecordId: 'q-TEST-1' })?.kind).toBe('status_line');
+  });
+
+  it('refuses a sentence whose slot text carries a reserved term itself (phase 1: templates of 2.8, ADR 0011)', () => {
+    const allowances = createAllowanceSet([sentence]);
+    expect(scanCopy('AI inference, verified by SOVITECH on a firm price date', { allowances }).map((match) => match.term)).toEqual(['verified', 'firm price']);
+    expect(scanCopy('AI inference, verified by SOVITECH on a firm price date', { allowances, context: { kind: 'copy_registry' } })).not.toEqual([]);
+    expect(scanCopy('AI inference, verified by SOVITECH on 12 Oct, final', { allowances })).not.toEqual([]);
+    expect(scanCopy('AI inference, verified by SOVITECH on 12 Oct', { allowances })).toEqual([]);
   });
 
   it('never accepts an entry outside the closed set of kinds', () => {
@@ -231,7 +292,8 @@ describe('allowances: only the places 2.8 allows, as typed entries', () => {
     ).toThrow();
   });
 
-  it('registers no allowance in phase 0', () => {
-    expect(registeredAllowances().entries).toEqual([]);
+  it('registers the copy registries\' allowances from phase 1, and nothing else', () => {
+    expect(registeredAllowances().entries.map((entry) => entry.kind)).toEqual(['badge', 'badge', 'status_line', 'generated_sentence', 'generated_sentence']);
+    expect(registeredAllowances().entries).toEqual(COPY_ALLOWANCES);
   });
 });

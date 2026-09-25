@@ -1,0 +1,4 @@
+# Each line must appear in the check's details for this seed to count.
+# Phase 1 review, round 3 (adversarial finding 4, L3): the area field's unit moved to another dimension.
+problem: fields.building.grossFloorArea.unit: unit m2 → kW (the dimension check reads it, 2.7): a loosening against unapproved baseline v0 with no approval reference
+problem: fields.building.grossFloorArea.dimension: dimension area → power (the dimension check reads it, 2.7): a loosening against unapproved baseline v0 with no approval reference

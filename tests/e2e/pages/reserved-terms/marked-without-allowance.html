@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>Render harness: markers with no registered allowance</title>
-    <!-- Render harness page for guardrails 2.8 "Reserved terms" (docs/adr/0006-render-test.md, decision 8). The render check must FAIL here. Copy marked as a badge, a status line and an action label, which 2.8 allows only when a registered allowance of that kind covers the whole text (none is registered at phase 0), and a marker naming no place 2.8 allows. A marker alone allows nothing. -->
+    <!-- Render harness page for guardrails 2.8 "Reserved terms" (docs/adr/0006-render-test.md, decision 8). The render check must FAIL here. Copy marked as a badge, a status line and an action label, which 2.8 allows only when a registered allowance of that kind covers the whole text (since phase 1 the registered allowances are 2.8's own texts, ADR 0011; the texts here are not), and a marker naming no place 2.8 allows. A marker alone allows nothing. -->
     <script type="application/json" data-render-display-objects>
       {}
     </script>
@@ -11,8 +11,8 @@
   <body data-render-ready>
     <main>
       <h1>TEST markers</h1>
-      <p><span data-copy-kind="badge">Verified by SOVITECH</span></p>
-      <p data-copy-kind="status-line">Formal quotation</p>
+      <p><span data-copy-kind="badge">Verified by SOVITECH engineers</span></p>
+      <p data-copy-kind="status-line">Formal quotation issued</p>
       <button type="button" data-copy-kind="action-label">Mark as final</button>
       <p><span data-copy-kind="made-up-place">Guaranteed</span></p>
     </main>

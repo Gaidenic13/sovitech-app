@@ -1,0 +1,3 @@
+# Each line must appear in the check's details for this seed to count.
+# Phase 1 review, round 3 (adversarial finding 4, L4): the bundle merges apparent power into power, a unit derive reads otherwise.
+[unit-not-in-closed-registry] kVA is kVA (apparent_power) in the closed registry, not kVA (power)

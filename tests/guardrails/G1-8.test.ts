@@ -1,4 +1,3 @@
-// @pending-until: phase 1 derive
 /**
  * G1-8 (docs/guardrails.md section 7; rule 1; rule 12; 2.4 "Field states").
  * Situation: no parking drawings uploaded.
@@ -8,7 +7,8 @@
  * analysis never stops early); none of them yields a parking candidate.
  */
 import fc from 'fast-check';
-import { expect } from 'vitest';
+import { expect, test } from 'vitest';
+import { unitByCode } from '@sovitech/registry';
 import {
   NO_EVENTS,
   derive,
@@ -17,9 +17,6 @@ import {
   type FieldDefinition,
   type FieldEvent,
 } from '@sovitech/domain';
-import { pendingCase } from './_support/pending';
-
-const pending = pendingCase(import.meta.url);
 
 const PROJECT = 'test-project-g1-8';
 
@@ -60,7 +57,9 @@ const uploaded: readonly DocumentRecord[] = [
 ];
 
 const context: DeriveContext = {
+  subjectId: PROJECT,
   document: (id) => uploaded.find((document) => document.id === id),
+  unit: unitByCode,
   inputState: () => undefined,
   datasetApproved: () => false,
 };
@@ -87,7 +86,7 @@ function expectUnknownNotNotApplicable(field: FieldDefinition, runs: number): vo
   expect(state.state).toBe('unknown');
 }
 
-pending('F-VALUE-02 · F-VALUE-06 · G1-8: no parking drawings uploaded: parking fields stay unknown, not not_applicable', () => {
+test('F-VALUE-02 · F-VALUE-06 · G1-8: no parking drawings uploaded: parking fields stay unknown, not not_applicable', () => {
   for (const field of parkingFields) expectUnknownNotNotApplicable(field, 1);
 
   // Property: however many analysis runs have finished, absence never sets not_applicable.

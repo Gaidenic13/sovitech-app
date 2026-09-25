@@ -10,6 +10,8 @@
  * key positions and registered lists that machine-keys.ts describes. A file
  * the check cannot read fails unless non-copy.ts lists it. A scan root with no
  * file, a registered catalogue with no file, or a run with no copy unit fails.
+ * The registered allowances apply only to copy inside the copy registries
+ * (COPY_REGISTRIES); the same text anywhere else is flagged (phase 1 review).
  */
 import { registeredAllowances } from '@sovitech/registry/reserved-terms';
 import { repoRoot } from '../lib';
@@ -17,7 +19,7 @@ import type { Check } from '../types';
 import { STRING_CATALOGUES } from './catalogues';
 import { MACHINE_KEY_LISTS } from './machine-keys';
 import { NON_COPY_FILES } from './non-copy';
-import { LIST_MODULE, PHASE_0_SCOPE, scanReservedTerms } from './scan';
+import { COPY_REGISTRIES, LIST_MODULE, PHASE_0_SCOPE, scanReservedTerms } from './scan';
 
 const check: Check = () =>
   scanReservedTerms({
@@ -27,6 +29,7 @@ const check: Check = () =>
     ignore: PHASE_0_SCOPE.ignore,
     catalogues: STRING_CATALOGUES,
     allowances: registeredAllowances,
+    allowanceScope: COPY_REGISTRIES,
     listModule: LIST_MODULE,
     machineKeyLists: MACHINE_KEY_LISTS,
     nonCopy: NON_COPY_FILES,

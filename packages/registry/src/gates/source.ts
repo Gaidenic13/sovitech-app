@@ -22,15 +22,16 @@
  * A test-override source exists only inside the runner of tests/proposed/
  * (phase 0 review, round 2: a computed dynamic import reached
  * issueTestOverrideSource outside Vitest, and readGate read the gate open).
- * Issuing one, and reading one, is refused unless this module was armed for
- * the test file that runs now. Only the proposed runner's setup file,
- * packages/registry/src/test-utils/proposed-runner-setup.ts, arms it, and
- * arming checks the runner itself: a Vitest worker whose current file is under
- * tests/proposed/ of its root and whose setup files include that file. No
- * environment variable or config value arms it.
+ * Issuing one, and reading one, is refused unless this module is armed, and a
+ * source is read only in the arming that issued it. Arming takes this module's
+ * private token, which it hands out once per module instance, and only the
+ * proposed runner's setup file, packages/registry/src/test-utils/proposed-runner-setup.ts,
+ * takes it: it runs before the test file it serves, so in that runner it always
+ * takes the token first. (Phase 1 replaced the check of Vitest's worker global,
+ * which code in the same process could forge, with this token; the round 2
+ * residual.) No environment variable or config value arms it.
  */
-import { realpathSync } from 'node:fs';
-import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadRepoApprovalContext, type ApprovalContext } from '../approvals';
 import { PRODUCTION_GATES_DIR, gateSetProblems, loadGateDefinitions } from './load';
@@ -148,72 +149,85 @@ export function isStartupCheckedSource(source: GateSource): boolean {
 // ---------------------------------------------------------------------------
 // The proposed runner: where a test-override source may exist.
 
-/** The setup file of the tests/proposed/ runner (vitest.proposed.config.ts `setupFiles`), the one caller of the arming function. */
+/** The setup file of the tests/proposed/ runner (vitest.proposed.config.ts `setupFiles`), the one module that takes the arming token. */
 export const PROPOSED_RUNNER_SETUP_FILE: string = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'test-utils', 'proposed-runner-setup.ts');
 
-/** The test file this module is armed for, while the proposed runner runs it. Module-private. */
-let armedFor: string | undefined;
+/** The arming token's type. Only this module creates the one value of it. */
+export interface ProposedRunnerToken {
+  readonly __proposedRunnerToken: never;
+}
 
-function realPath(path: string): string | undefined {
-  try {
-    return realpathSync(path);
-  } catch {
-    return undefined;
+/** The arming token: module-private, handed out once per module instance (takeProposedRunnerToken). */
+const RUNNER_TOKEN: ProposedRunnerToken = Object.freeze(Object.create(null) as ProposedRunnerToken);
+
+/** Whether the token was handed out in this module instance. Module-private. */
+let tokenTaken = false;
+
+/** The arming now in force: a fresh object each time the module is armed, undefined while it is not. Module-private. */
+let session: object | undefined;
+
+/** The arming that issued each test-override source. Module-private. */
+const issuedIn = new WeakMap<GateSource, object>();
+
+/**
+ * Internal, for packages/registry/src/test-utils/proposed-runner-setup.ts only:
+ * this module's arming token. It is handed out once per module instance, and a
+ * second call throws. The proposed runner loads its setup file before the test
+ * file it serves (and, with Vitest's default isolation, gives each test file a
+ * fresh module instance), so there the setup file always takes the token first
+ * and no test file or helper can take it after. A registry unit test keeps every
+ * other file of the package from naming this function, and dependency-cruiser
+ * keeps every file outside the package from importing this module.
+ */
+export function takeProposedRunnerToken(): ProposedRunnerToken {
+  if (tokenTaken) {
+    throw new GateApprovalError(
+      "The arming token of the tests/proposed/ runner was already taken in this module instance: only the runner's setup file " +
+        '(packages/registry/src/test-utils/proposed-runner-setup.ts) takes it, before any test file loads.',
+    );
+  }
+  tokenTaken = true;
+  return RUNNER_TOKEN;
+}
+
+function assertToken(token: unknown, action: string): void {
+  if (token !== RUNNER_TOKEN) {
+    throw new GateApprovalError(
+      `${action}: a gate override is armed only with the arming token of the tests/proposed/ runner, which its setup file ` +
+        '(packages/registry/src/test-utils/proposed-runner-setup.ts) alone takes. No environment variable opens a gate (prompt 3 section 5.4).',
+    );
   }
 }
 
 /**
- * The tests/proposed/ file the current Vitest worker runs, when the worker is
- * the proposed runner: its current file lies under tests/proposed/ of the
- * worker's root, and its setup files include PROPOSED_RUNNER_SETUP_FILE.
- * Undefined anywhere else, a plain Node process included. It reads Vitest's
- * worker state; no environment variable is read.
+ * Internal, for the same setup file: arms this module for the test file the
+ * runner runs now, with the token. Each arming is a new session; sources issued
+ * in an earlier one are no longer read.
  */
-function proposedRunnerTestFile(): { file?: string; refusal?: string } {
-  const worker: unknown = Reflect.get(globalThis, '__vitest_worker__');
-  if (typeof worker !== 'object' || worker === null) return { refusal: 'this process is not a Vitest worker' };
-  const file: unknown = Reflect.get(worker, 'filepath');
-  const config: unknown = Reflect.get(worker, 'config');
-  const root: unknown = typeof config === 'object' && config !== null ? Reflect.get(config, 'root') : undefined;
-  const setupFiles: unknown = typeof config === 'object' && config !== null ? Reflect.get(config, 'setupFiles') : undefined;
-  if (typeof file !== 'string' || !isAbsolute(file) || typeof root !== 'string') return { refusal: 'the Vitest worker names no test file or root' };
-  const inside = relative(root, file);
-  if (!inside.startsWith(`tests${sep}proposed${sep}`) || inside.split(sep).includes('..')) {
-    return { refusal: `the test file ${inside} is not under tests/proposed/` };
-  }
-  const setup = realPath(PROPOSED_RUNNER_SETUP_FILE);
-  const registered = Array.isArray(setupFiles) && setupFiles.some((entry) => typeof entry === 'string' && setup !== undefined && realPath(entry) === setup);
-  if (!registered) return { refusal: 'the runner does not register packages/registry/src/test-utils/proposed-runner-setup.ts in its setupFiles' };
-  return { file };
-}
-
-/**
- * Internal, for packages/registry/src/test-utils/proposed-runner-setup.ts
- * only: arms this module for the tests/proposed/ file the Vitest worker runs
- * now. Throws anywhere else, and changes nothing then.
- */
-export function armTestOverridesForProposedRunner(): void {
-  const runner = proposedRunnerTestFile();
-  if (runner.file === undefined) {
-    throw new GateApprovalError(`A gate override is armed only by the tests/proposed/ runner: ${runner.refusal ?? 'unknown runner'}.`);
-  }
-  armedFor = runner.file;
+export function armTestOverrides(token: ProposedRunnerToken): void {
+  assertToken(token, 'armTestOverrides');
+  session = Object.freeze({});
 }
 
 /** Internal, for the same setup file: disarms this module after the test file ran. */
-export function disarmTestOverrides(): void {
-  armedFor = undefined;
+export function disarmTestOverrides(token: ProposedRunnerToken): void {
+  assertToken(token, 'disarmTestOverrides');
+  session = undefined;
 }
 
-/** Throws unless this module is armed for the tests/proposed/ file the proposed runner runs now. */
-function assertInsideProposedRunner(action: string): void {
-  const runner = proposedRunnerTestFile();
-  if (armedFor === undefined || runner.file !== armedFor) {
+/** Throws unless this module is armed, and, for a source, unless the arming in force issued it. */
+function assertInsideProposedRunner(action: string, source?: GateSource): void {
+  const refusal =
+    session === undefined
+      ? 'this module is not armed'
+      : source !== undefined && issuedIn.get(source) !== session
+        ? 'the source was issued in an arming that has ended'
+        : undefined;
+  if (refusal !== undefined) {
     throw new GateApprovalError(
       `${action}: a test-override gate source exists only inside the tests/proposed/ runner ` +
-        `(vitest.proposed.config.ts with packages/registry/src/test-utils/proposed-runner-setup.ts in setupFiles); ` +
-        `${armedFor === undefined ? 'this module is not armed' : 'the armed test file is not the one running'}` +
-        `${runner.refusal === undefined ? '' : `, and ${runner.refusal}`}. No environment variable opens a gate (prompt 3 section 5.4).`,
+        `(vitest.proposed.config.ts with packages/registry/src/test-utils/proposed-runner-setup.ts in setupFiles), while its setup file ` +
+        `has armed this module for the test file that runs; ${refusal}. No environment variable opens a gate (prompt 3 section 5.4).`,
     );
   }
 }
@@ -228,19 +242,21 @@ export function issueTestOverrideSource(base: GateSource, id: GateId): GateSourc
   assertInsideProposedRunner('issueTestOverrideSource');
   const readings = readingsOf(base);
   if (!isGateId(id) || !readings.has(id)) throw new RangeError(`unknown gate "${String(id)}"`);
-  return issue(
+  const source = issue(
     'test-override',
     [...readings.values()].map((reading) => (reading.id === id ? Object.freeze({ ...reading, open: true }) : reading)),
   );
+  if (session !== undefined) issuedIn.set(source, session);
+  return source;
 }
 
 /**
  * The one way code reads a gate. A test-override source is read only inside
- * the tests/proposed/ runner that issued it; anywhere else the read throws.
+ * the tests/proposed/ runner, in the arming that issued it; anywhere else the read throws.
  */
 export function readGate(source: GateSource, id: GateId): GateReading {
   const readings = readingsOf(source);
-  if (source.kind !== 'production') assertInsideProposedRunner('readGate');
+  if (source.kind !== 'production') assertInsideProposedRunner('readGate', source);
   if (!isGateId(id)) throw new RangeError(`unknown gate "${String(id)}"`);
   const reading = readings.get(id);
   if (reading === undefined) throw new RangeError(`unknown gate "${id}" in this source`);

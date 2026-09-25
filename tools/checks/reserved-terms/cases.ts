@@ -9,11 +9,12 @@ import { fileURLToPath } from 'node:url';
 import {
   NO_ALLOWANCES,
   createAllowanceSet,
+  registeredAllowances,
   type AllowanceSet,
   type ReservedTermAllowance,
 } from '@sovitech/registry/reserved-terms';
 import type { CheckResult } from '../types';
-import { LIST_MODULE, PHASE_0_SCOPE, scanReservedTerms, type ReservedTermScan } from './scan';
+import { COPY_REGISTRIES, LIST_MODULE, PHASE_0_SCOPE, scanReservedTerms, type ReservedTermScan } from './scan';
 
 const SEEDED = join(dirname(fileURLToPath(import.meta.url)), 'seeded');
 
@@ -183,6 +184,34 @@ export const BAD_CASES: readonly SeededCase[] = [
       ],
     },
   },
+  // Allowances held everywhere (phase 1 review, adversarial finding 12, probe-terms): the
+  // registered allowances' own texts written outside the copy registries passed.
+  {
+    id: 'bad-allowance-outside-copy-registry',
+    expect: [
+      'apps/web/src/ExportHeading.tsx:2:', "as \"quotation\" in jsx-text: \"Formal [[quotation]]\" (a registered allowance's text outside the copy registries",
+      "apps/web/src/Pending.ts:2:29 reserved term \"confirmed\" (en) as \"Confirmed\" in string: \"[[Confirmed]] by you\" (a registered allowance's text outside the copy registries",
+      'seeds/demo-lines.json:3:', 'as "Verified" in data: "[[Verified]] by SOVITECH" (a registered allowance',
+      'seeds/demo-lines.json:4:', 'as "confirmed" in data: "AI inference, [[confirmed]] by you" (a registered allowance',
+      'packages/engine/templates/export.hbs:2:', 'as "verified" in text-template',
+    ],
+    notExpect: ['packages/registry/src/copy/texts.ts'],
+    options: { allowances: registeredAllowances },
+  },
+  // Untyped slots (phase 1 review, adversarial finding 12): a word, an impossible day or an
+  // interpolation filled a template's {date} slot, and a word would have filled a number slot.
+  {
+    id: 'bad-allowance-slot-not-typed',
+    expect: [
+      'lines.ts:3:', 'as "verified" in string: "AI inference, [[verified]] by SOVITECH on request of the designer"',
+      'lines.ts:4:', 'on 31 Feb',
+      'lines.ts:5:', 'as "verified" in template',
+      'lines.ts:6:', 'as "verified" in string: "TEST two values [[verified]] by SOVITECH"',
+    ],
+    notExpect: ['controls.ts'],
+    options: { allowances: allowancesFrom('bad-allowance-slot-not-typed') },
+  },
+  { id: 'bad-allowance-untyped-slot', expect: ['has the slot {whenever}, which has no type'], options: { allowances: allowancesFrom('bad-allowance-untyped-slot') } },
 ];
 
 /** Runs the check on one seeded tree, with the phase 0 scope (in a temporary copy when the case writes files at run time). */
@@ -204,6 +233,7 @@ export async function runCase(seededCase: SeededCase): Promise<CheckResult> {
       ignore: PHASE_0_SCOPE.ignore,
       catalogues: [],
       allowances: () => NO_ALLOWANCES,
+      allowanceScope: COPY_REGISTRIES,
       listModule: LIST_MODULE,
       label: seededCase.id,
       ...seededCase.options,

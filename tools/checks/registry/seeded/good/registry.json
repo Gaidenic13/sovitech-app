@@ -27,6 +27,79 @@
           "via": "formula:seedFormula@1"
         }
       ]
+    },
+    {
+      "key": "project.seedName",
+      "label": "Seed name (synthetic)",
+      "subject": "project",
+      "kind": "text",
+      "estimation": "forbidden",
+      "criticality": "required",
+      "requiredSlot": "project_name",
+      "identity": true,
+      "impactRank": 2,
+      "confirmBy": "owner",
+      "confirmByBasis": "identity",
+      "affects": [
+        {
+          "output": "seed.required",
+          "via": "template:seed.required"
+        }
+      ]
+    },
+    {
+      "key": "project.seedType",
+      "label": "Seed type (synthetic)",
+      "subject": "project",
+      "kind": "text",
+      "estimation": "forbidden",
+      "criticality": "required",
+      "requiredSlot": "project_type",
+      "impactRank": 3,
+      "confirmBy": "owner",
+      "confirmByBasis": "identity",
+      "affects": [
+        {
+          "output": "seed.required",
+          "via": "template:seed.required"
+        }
+      ]
+    },
+    {
+      "key": "project.seedCity",
+      "label": "Seed city (synthetic)",
+      "subject": "project",
+      "kind": "text",
+      "estimation": "forbidden",
+      "criticality": "required",
+      "requiredSlot": "city",
+      "impactRank": 4,
+      "confirmBy": "owner",
+      "confirmByBasis": "identity",
+      "affects": [
+        {
+          "output": "seed.required",
+          "via": "template:seed.required"
+        }
+      ]
+    },
+    {
+      "key": "project.seedCountry",
+      "label": "Seed country (synthetic)",
+      "subject": "project",
+      "kind": "text",
+      "estimation": "forbidden",
+      "criticality": "required",
+      "requiredSlot": "country",
+      "impactRank": 5,
+      "confirmBy": "owner",
+      "confirmByBasis": "identity",
+      "affects": [
+        {
+          "output": "seed.required",
+          "via": "template:seed.required"
+        }
+      ]
     }
   ],
   "questions": [
@@ -47,6 +120,17 @@
       ],
       "outputs": [
         "seed.output"
+      ]
+    }
+  ],
+  "templateSlots": [
+    {
+      "id": "seed.required",
+      "reads": [
+        "project.seedName",
+        "project.seedType",
+        "project.seedCity",
+        "project.seedCountry"
       ]
     }
   ]

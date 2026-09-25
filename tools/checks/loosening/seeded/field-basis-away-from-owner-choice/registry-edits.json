@@ -1,0 +1,8 @@
+{
+  "fields": {
+    "project.type": {
+      "confirmBy": "engineer",
+      "confirmByBasis": null
+    }
+  }
+}

@@ -8,19 +8,21 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { PRODUCTION_GATES_DIR, loadGateDefinitions, type GateDefinition } from '../gates';
 import { PROPOSED_SETTINGS, policyAnchorProblems } from './policy';
-import type { FieldDefinition, RegistryBundle } from './schema';
+import type { RegistryFieldDefinition, RegistryBundle } from './schema';
 import {
   BASELINE_NAME,
   baselinePolicyProblems,
   compareSnapshots,
+  currentRegistryLists,
   projectSnapshot,
+  type RegistryLists,
   type Snapshot,
   type SnapshotDifference,
 } from './snapshot';
 
 const GUARDRAILS = readFileSync(new URL('../../../../docs/guardrails.md', import.meta.url), 'utf8');
 
-const baseField: FieldDefinition = {
+const baseField: RegistryFieldDefinition = {
   key: 'building.testArea',
   label: 'Test area',
   subject: 'building',
@@ -35,16 +37,19 @@ const baseField: FieldDefinition = {
   affects: [{ output: 'unit.output', via: 'formula:unitFormula@1' }],
 };
 
-function registry(fields: FieldDefinition[], settings = PROPOSED_SETTINGS): RegistryBundle {
+const UNIT_FORMULA: RegistryBundle['formulas'][number] = { id: 'unitFormula', version: '1', inputs: ['building.testArea'], outputs: ['unit.output'] };
+
+function registry(fields: RegistryFieldDefinition[], settings = PROPOSED_SETTINGS, formulas = [UNIT_FORMULA], datasets = [{ id: 'test-reference-set', version: '1' }]): RegistryBundle {
   return {
     id: 'unit-registry',
     version: '1',
     units: [{ code: 'm2', symbol: 'm²', dimension: 'area' }],
     fields,
     questions: [],
-    formulas: [{ id: 'unitFormula', version: '1', inputs: fields.map((f) => f.key), outputs: ['unit.output'] }],
+    // A formula's signature no longer follows the field list: a changed signature is a loosening itself (2.4).
+    formulas,
     templateSlots: [],
-    datasets: [{ id: 'test-reference-set', version: '1' }],
+    datasets,
     settings,
   };
 }
@@ -52,11 +57,11 @@ function registry(fields: FieldDefinition[], settings = PROPOSED_SETTINGS): Regi
 const gates: GateDefinition[] = loadGateDefinitions(PRODUCTION_GATES_DIR);
 const meta = { name: BASELINE_NAME, status: 'unapproved' as const, version: 0, guardrailsVersion: '1.5', recordedOn: '2026-09-25', approvalRef: '' };
 
-function snap(fields: FieldDefinition[], settings = PROPOSED_SETTINGS, gateList = gates): Snapshot {
+function snap(fields: RegistryFieldDefinition[], settings = PROPOSED_SETTINGS, gateList = gates): Snapshot {
   return projectSnapshot(registry(fields, settings), gateList, meta);
 }
 
-function diff(before: FieldDefinition[], after: FieldDefinition[]): SnapshotDifference[] {
+function diff(before: RegistryFieldDefinition[], after: RegistryFieldDefinition[]): SnapshotDifference[] {
   return compareSnapshots(snap(before), snap(after));
 }
 
@@ -82,8 +87,19 @@ describe('projectSnapshot', () => {
       impactRank: 10,
       minorForTotals: false,
       qualifierRequired: true,
+      kind: 'quantity',
+      unit: 'm2',
+      dimension: 'area',
+      qualifiers: [],
+      options: [],
+      valueShape: null,
+      formulas: [],
     });
     expect(snapshot.impactRankOrder).toEqual(['building.testArea']);
+    expect(snapshot.formulas).toEqual({ 'formula:unitFormula@1': { inputs: ['building.testArea'], outputs: ['unit.output'], unknownPolicy: 'refuse', estimated: false } });
+    expect(snapshot.datasets).toEqual(['test-reference-set@1']);
+    expect(snapshot.units['m2']).toEqual({ symbol: 'm²', dimension: 'area', written: ['m.p.', 'mp', 'mp.', 'sqm'], toBase: '1' });
+    expect(snapshot.floorNotationLetters).toEqual({ E: 'upper', Er: 'setback_or_technical', Mz: 'mezzanine', P: 'ground', S: 'below_ground' });
     expect(snapshot.settings.confirmationBudget).toBe(7);
     expect(Object.keys(snapshot.gates).sort()).toEqual(gates.map((gate) => gate.id).sort());
     expect(snapshot.gates['ifc-values']?.open).toBe(false);
@@ -167,11 +183,134 @@ describe('compareSnapshots, field properties', () => {
     expect(kinds(diff([baseField], [baseField, other]))).toEqual(['added fields.building.other']);
   });
 
+  it('a confirmBy basis moved away from owner_choice is a loosening, even when the field goes to an engineer (phase 1 review, round 3)', () => {
+    const choice = { ...baseField, kind: 'decision' as const, unit: undefined, dimension: undefined, qualifierRequired: undefined, options: ['include', 'exclude'], confirmBy: 'owner' as const, confirmByBasis: 'owner_choice' as const };
+    const occupancy = { ...choice, confirmByBasis: 'use_and_occupancy' as const };
+    const engineer = { ...choice, confirmBy: 'engineer' as const, confirmByBasis: undefined };
+    expect(kinds(diff([choice], [occupancy]))).toEqual(['loosening fields.building.testArea.confirmByBasis']);
+    expect(kinds(diff([choice], [engineer]))).toEqual(['tightening fields.building.testArea.confirmBy', 'loosening fields.building.testArea.confirmByBasis']);
+    expect(diff([choice], [engineer])[1]?.message).toContain('Choices belong to the owner');
+  });
+  it('a basis changed on an owner field is a loosening; on an engineer field a tightening', () => {
+    const identity = { ...baseField, confirmBy: 'owner' as const, confirmByBasis: 'identity' as const };
+    expect(kinds(diff([identity], [{ ...identity, confirmByBasis: 'use_and_occupancy' as const }]))).toEqual(['loosening fields.building.testArea.confirmByBasis']);
+    expect(kinds(diff([{ ...baseField, confirmByBasis: 'identity' as const }], [baseField]))).toEqual(['tightening fields.building.testArea.confirmByBasis']);
+  });
+
+  it('a kind changed away from decision is a loosening; any other change of kind too (when unsure)', () => {
+    const choice = { ...baseField, kind: 'decision' as const, unit: undefined, dimension: undefined, qualifierRequired: undefined, options: ['include', 'exclude'], confirmBy: 'owner' as const, confirmByBasis: 'owner_choice' as const };
+    const found = diff([choice], [{ ...choice, kind: 'enum' as const }]);
+    expect(kinds(found)).toEqual(['loosening fields.building.testArea.kind']);
+    expect(found[0]?.message).toContain('kind decision → enum: away from an owner decision');
+    expect(kinds(diff([baseField], [{ ...baseField, kind: 'count' as const, valueShape: 'non_negative_integer' as const }]))).toEqual([
+      'loosening fields.building.testArea.kind',
+      'tightening fields.building.testArea.valueShape',
+    ]);
+  });
+
+  it('a unit or dimension changed is a loosening; a dimension first declared a tightening', () => {
+    expect(kinds(diff([baseField], [{ ...baseField, unit: 'kW', dimension: 'power' }]))).toEqual([
+      'loosening fields.building.testArea.unit',
+      'loosening fields.building.testArea.dimension',
+    ]);
+    expect(kinds(diff([{ ...baseField, dimension: undefined }], [baseField]))).toEqual(['tightening fields.building.testArea.dimension']);
+    expect(kinds(diff([baseField], [{ ...baseField, dimension: undefined }]))).toEqual(['loosening fields.building.testArea.dimension']);
+  });
+
+  it('a qualifier added is a loosening (G8-14 reads the list); a qualifier removed a tightening', () => {
+    const one = { ...baseField, qualifiers: ['gross_total'] };
+    const found = diff([one], [{ ...baseField, qualifiers: ['gross_total', 'Gross_Total', 'usable'] }]);
+    expect(kinds(found)).toEqual(['loosening fields.building.testArea.qualifiers']);
+    expect(found[0]?.message).toContain('qualifiers [gross_total] → [Gross_Total, gross_total, usable] (added Gross_Total, usable;');
+    expect(kinds(diff([{ ...baseField, qualifiers: ['gross_total', 'usable'] }], [one]))).toEqual(['tightening fields.building.testArea.qualifiers']);
+    expect(kinds(diff([one], [{ ...baseField, qualifiers: ['usable'] }]))).toEqual(['loosening fields.building.testArea.qualifiers']);
+  });
+
+  it('an option added is a loosening; an option removed a tightening', () => {
+    const choice = { ...baseField, kind: 'enum' as const, unit: undefined, dimension: undefined, qualifierRequired: undefined, options: ['alpha', 'beta'] };
+    expect(kinds(diff([choice], [{ ...choice, options: ['alpha', 'beta', 'TEST-maybe'] }]))).toEqual(['loosening fields.building.testArea.options']);
+    expect(kinds(diff([{ ...choice, options: ['alpha', 'beta', 'gamma'] }], [choice]))).toEqual(['tightening fields.building.testArea.options']);
+  });
+
+  it("a count's whole-number shape dropped is a loosening", () => {
+    const count = { ...baseField, kind: 'count' as const, unit: 'count', dimension: 'count', valueShape: 'non_negative_integer' as const };
+    expect(kinds(diff([count], [{ ...count, valueShape: undefined }]))).toEqual(['loosening fields.building.testArea.valueShape']);
+  });
+
+  it('a formula that starts writing a field is a loosening for that field; one that stops, a tightening', () => {
+    const writer: RegistryBundle['formulas'][number] = { id: 'unitWriter', version: '1', inputs: ['building.testArea'], outputs: ['building.testArea'] };
+    const found = compareSnapshots(snap([baseField]), projectSnapshot(registry([baseField], PROPOSED_SETTINGS, [UNIT_FORMULA, writer]), gates, meta));
+    expect(kinds(found)).toEqual(['loosening fields.building.testArea.formulas', 'added formulas.formula:unitWriter@1']);
+    const back = compareSnapshots(projectSnapshot(registry([baseField], PROPOSED_SETTINGS, [UNIT_FORMULA, writer]), gates, meta), snap([baseField]));
+    expect(kinds(back)).toEqual(['tightening fields.building.testArea.formulas', 'tightening formulas.formula:unitWriter@1']);
+  });
+
   it('a changed impactRank order is a loosening; a changed rank with the same order is not a difference', () => {
     const a = { ...baseField, key: 'building.a', impactRank: 1 };
     const b = { ...baseField, key: 'building.b', impactRank: 2 };
     expect(kinds(diff([a, b], [{ ...a, impactRank: 3 }, b]))).toEqual(['loosening impactRankOrder']);
     expect(kinds(diff([a, b], [a, { ...b, impactRank: 5 }]))).toEqual([]);
+  });
+});
+
+describe('compareSnapshots, formulas, datasets, units and floor-notation letters (phase 1 review, round 3)', () => {
+  function withFormulas(formulas: RegistryBundle['formulas']): Snapshot {
+    return projectSnapshot(registry([baseField], PROPOSED_SETTINGS, formulas), gates, meta);
+  }
+
+  it('a changed formula signature is a loosening (2.4: versions are immutable); a new one is added; a removed one a tightening', () => {
+    expect(kinds(compareSnapshots(snap([baseField]), withFormulas([{ ...UNIT_FORMULA, estimated: true }])))).toEqual(['loosening formulas.formula:unitFormula@1']);
+    expect(kinds(compareSnapshots(snap([baseField]), withFormulas([{ ...UNIT_FORMULA, inputs: ['building.testArea', 'building.other'] }])))).toEqual([
+      'loosening formulas.formula:unitFormula@1',
+    ]);
+    expect(kinds(compareSnapshots(snap([baseField]), withFormulas([UNIT_FORMULA, { ...UNIT_FORMULA, version: '2' }])))).toEqual(['added formulas.formula:unitFormula@2']);
+    expect(kinds(compareSnapshots(snap([baseField]), withFormulas([])))).toEqual(['tightening formulas.formula:unitFormula@1']);
+  });
+
+  it('a missing unknownPolicy is recorded as refuse (G1-9), so declaring it refuse is no difference', () => {
+    expect(compareSnapshots(snap([baseField]), withFormulas([{ ...UNIT_FORMULA, unknownPolicy: 'refuse' }]))).toEqual([]);
+  });
+
+  it('a newly declared dataset is added; a removed one a tightening', () => {
+    const more = projectSnapshot(registry([baseField], PROPOSED_SETTINGS, [UNIT_FORMULA], [{ id: 'test-reference-set', version: '1' }, { id: 'test-other-set', version: '1' }]), gates, meta);
+    expect(kinds(compareSnapshots(snap([baseField]), more))).toEqual(['added datasets.test-other-set@1']);
+    expect(kinds(compareSnapshots(more, snap([baseField])))).toEqual(['tightening datasets.test-other-set@1']);
+  });
+
+  function withLists(change: (lists: RegistryLists) => RegistryLists): SnapshotDifference[] {
+    return compareSnapshots(snap([baseField]), projectSnapshot(registry([baseField]), gates, meta, change(currentRegistryLists())));
+  }
+  const editUnit = (lists: RegistryLists, code: string, change: Partial<RegistryLists['units'][number]>): RegistryLists => ({
+    ...lists,
+    units: lists.units.map((unit) => (unit.code === code ? { ...unit, ...change } : unit)),
+  });
+
+  it('a unit added, a written form added, a dimension merged, a symbol or a factor changed is a loosening (ADR 0017)', () => {
+    expect(kinds(withLists((lists) => ({ ...lists, units: [...lists.units, { code: 'TEST-unit', symbol: 'TEST', dimension: 'area', written: [] }] })))).toEqual([
+      'loosening units.TEST-unit',
+    ]);
+    const m2 = currentRegistryLists().units.find((unit) => unit.code === 'm2');
+    expect(kinds(withLists((lists) => editUnit(lists, 'm2', { written: [...(m2?.written ?? []), 'TEST-mp'] })))).toEqual(['loosening units.m2.written']);
+    expect(kinds(withLists((lists) => editUnit(lists, 'kVA', { dimension: 'power' })))).toEqual(['loosening units.kVA.dimension']);
+    expect(kinds(withLists((lists) => editUnit(lists, 'm2', { symbol: 'TEST-m2' })))).toEqual(['loosening units.m2.symbol']);
+    expect(kinds(withLists((lists) => editUnit(lists, 'Gcal', { toBase: '4184000000' })))).toEqual(['loosening units.Gcal.toBase']);
+  });
+
+  it('a unit, a written form or a factor removed is a tightening', () => {
+    expect(kinds(withLists((lists) => ({ ...lists, units: lists.units.filter((unit) => unit.code !== 'TR') })))).toEqual(['tightening units.TR']);
+    expect(kinds(withLists((lists) => editUnit(lists, 'm2', { written: ['mp'] })))).toEqual(['tightening units.m2.written']);
+    expect(kinds(withLists((lists) => editUnit(lists, 'mm', { toBase: undefined })))).toEqual(['tightening units.mm.toBase']);
+  });
+
+  it('a floor-notation letter added, or naming another level type, is a loosening; removed a tightening (rule 8, "Abbreviations")', () => {
+    const found = withLists((lists) => ({ ...lists, floorNotationLetters: { ...lists.floorNotationLetters, D: 'semi_basement' } }));
+    expect(kinds(found)).toEqual(['loosening floorNotationLetters.D']);
+    expect(found[0]?.message).toContain('outside the glossary');
+    expect(kinds(withLists((lists) => ({ ...lists, floorNotationLetters: { ...lists.floorNotationLetters, Er: 'attic' } })))).toEqual([
+      'loosening floorNotationLetters.Er',
+    ]);
+    const fewer = Object.fromEntries(Object.entries(currentRegistryLists().floorNotationLetters).filter(([letter]) => letter !== 'Mz'));
+    expect(kinds(withLists((lists) => ({ ...lists, floorNotationLetters: fewer })))).toEqual(['tightening floorNotationLetters.Mz']);
   });
 });
 
@@ -281,8 +420,15 @@ describe('baselinePolicyProblems (the unapproved baseline holds only the stricte
     ['required without a slot', { ...baseField, criticality: 'required' as const }, 'required'],
     ['first_estimate without a slot', { ...baseField, criticality: 'first_estimate' as const }, 'first_estimate'],
     ['identity outside the list', { ...baseField, identity: true }, 'identity'],
+    ['a count with no whole-number shape', { ...baseField, kind: 'count' as const, unit: 'count', dimension: 'count' }, 'whole-number shape'],
+    [
+      'a decision an engineer confirms',
+      { ...baseField, kind: 'decision' as const, unit: undefined, dimension: undefined, options: ['include', 'exclude'], confirmBy: 'engineer' as const },
+      "choices belong to the owner",
+    ],
+    ['an owner choice either may settle', { ...baseField, confirmBy: 'either' as const, confirmByBasis: 'owner_choice' as const }, "choices belong to the owner"],
   ])('fails a baseline holding %s', (_label, value, fragment) => {
-    const problems = baselinePolicyProblems(snap([value as FieldDefinition]));
+    const problems = baselinePolicyProblems(snap([value as RegistryFieldDefinition]));
     expect(problems.join('\n')).toContain(fragment);
   });
 

@@ -10,13 +10,14 @@ import { parseApprovalContext, type ApprovalContext } from '../approvals';
 import { PRODUCTION_GATES_DIR, loadGateDefinitions, type GateDefinition } from '../gates';
 import { evaluateLoosening, type LooseningInputs } from './loosening';
 import { PROPOSED_SETTINGS } from './policy';
-import type { FieldDefinition, RegistryBundle } from './schema';
-import { BASELINE_NAME, projectSnapshot, type Snapshot } from './snapshot';
+import { loadRepoLooseningInputs } from './repo';
+import type { RegistryFieldDefinition, RegistryBundle } from './schema';
+import { BASELINE_NAME, currentRegistryLists, projectSnapshot, type RegistryLists, type Snapshot } from './snapshot';
 
 const GUARDRAILS = readFileSync(new URL('../../../../docs/guardrails.md', import.meta.url), 'utf8');
 const gates: GateDefinition[] = loadGateDefinitions(PRODUCTION_GATES_DIR);
 
-const areaField: FieldDefinition = {
+const areaField: RegistryFieldDefinition = {
   key: 'building.testArea',
   label: 'Test area',
   subject: 'building',
@@ -31,7 +32,7 @@ const areaField: FieldDefinition = {
   affects: [{ output: 'unit.output', via: 'formula:unitFormula@1' }],
 };
 
-function registry(fields: FieldDefinition[], extra: Partial<RegistryBundle> = {}): RegistryBundle {
+function registry(fields: RegistryFieldDefinition[], extra: Partial<RegistryBundle> = {}): RegistryBundle {
   return {
     id: 'unit-registry',
     version: '1',
@@ -64,7 +65,7 @@ function approvals(approver: string, rows: string[] = []): ApprovalContext {
 }
 const NOBODY = approvals('*(to be named by the product owner)*');
 
-function inputs(overrides: Partial<LooseningInputs> & { fields?: FieldDefinition[]; baselineFields?: FieldDefinition[] } = {}): LooseningInputs {
+function inputs(overrides: Partial<LooseningInputs> & { fields?: RegistryFieldDefinition[]; baselineFields?: RegistryFieldDefinition[] } = {}): LooseningInputs {
   const { fields = [areaField], baselineFields = [areaField], ...rest } = overrides;
   return {
     registry: registry(fields),
@@ -195,5 +196,122 @@ describe('evaluateLoosening', () => {
       expect(report.ok).toBe(false);
       expect(report.problems.join('\n')).toContain('approved snapshot v1');
     });
+  });
+});
+
+/**
+ * The phase 1 review, round 3 (adversarial finding 4): the allow lists derive and the verifier read
+ * from the registry were outside the snapshot, so widening one left the check green. Each edit below
+ * is the adversarial probe's, made on the production registry and compared with the repository's
+ * own "unapproved baseline v0".
+ */
+describe('the allow lists derive reads, against the repository baseline (phase 1 review, round 3)', () => {
+  const repo = loadRepoLooseningInputs();
+
+  function withField(key: string, change: (field: RegistryFieldDefinition) => RegistryFieldDefinition): LooseningInputs {
+    expect(repo.registry.fields.some((field) => field.key === key)).toBe(true);
+    return { ...repo, registry: { ...repo.registry, fields: repo.registry.fields.map((field) => (field.key === key ? change(field) : field)) } };
+  }
+  function withLists(change: (lists: RegistryLists) => RegistryLists): LooseningInputs {
+    return { ...repo, registryLists: change(currentRegistryLists()) };
+  }
+  function loosening(input: LooseningInputs, path: string): string {
+    const report = evaluateLoosening(input);
+    expect(report.ok).toBe(false);
+    const line = report.problems.find((problem) => problem.startsWith(`${path}: `));
+    expect(line, report.problems.join('\n')).toBeDefined();
+    expect(line).toContain('a loosening against unapproved baseline v0 with no approval reference');
+    return line ?? '';
+  }
+
+  it('passes the repository as it is: the baseline records every property', () => {
+    const report = evaluateLoosening(repo);
+    expect(report.problems).toEqual([]);
+    expect(repo.baseline.fields['building.grossFloorArea']).toMatchObject({ kind: 'quantity', unit: 'm2', dimension: 'area', qualifiers: ['gross_total'], formulas: [] });
+    expect(repo.baseline.fields['project.scope.fire_safety']).toMatchObject({ kind: 'decision', options: ['exclude', 'include'], confirmBy: 'owner', confirmByBasis: 'owner_choice' });
+    expect(repo.baseline.fields['building.rooms']).toMatchObject({ kind: 'count', valueShape: 'non_negative_integer' });
+    expect(Object.keys(repo.baseline.formulas)).toHaveLength(repo.registry.formulas.length);
+    expect(Object.keys(repo.baseline.units)).toHaveLength(currentRegistryLists().units.length);
+    expect(repo.baseline.floorNotationLetters).toEqual({ E: 'upper', Er: 'setback_or_technical', Mz: 'mezzanine', P: 'ground', S: 'below_ground' });
+  });
+
+  it('L1: a misspelt basis and another basis added to the area qualifiers (the list G8-14 reads)', () => {
+    const line = loosening(withField('building.grossFloorArea', (field) => ({ ...field, qualifiers: [...(field.qualifiers ?? []), 'Gross_Total', 'usable'] })), 'fields.building.grossFloorArea.qualifiers');
+    expect(line).toContain('added Gross_Total, usable');
+  });
+
+  it('L2: Fire Safety in scope turned from a decision into an enum (the kind G3-9 reads)', () => {
+    expect(loosening(withField('project.scope.fire_safety', (field) => ({ ...field, kind: 'enum' })), 'fields.project.scope.fire_safety.kind')).toContain(
+      'kind decision → enum: away from an owner decision',
+    );
+  });
+
+  it('L3: the area unit moved to another dimension', () => {
+    const input = withField('building.grossFloorArea', (field) => ({ ...field, unit: 'kW', dimension: 'power' }));
+    loosening(input, 'fields.building.grossFloorArea.unit');
+    loosening(input, 'fields.building.grossFloorArea.dimension');
+  });
+
+  it('L5: a decision option added', () => {
+    loosening(withField('project.scope.fire_safety', (field) => ({ ...field, options: [...(field.options ?? []), 'TEST-maybe'] })), 'fields.project.scope.fire_safety.options');
+  });
+
+  it("an owner's choice moved to an engineer: the basis leaves owner_choice, a loosening although confirmBy tightens", () => {
+    const input = withField('project.type', (field) => {
+      const next: RegistryFieldDefinition = { ...field, confirmBy: 'engineer' };
+      delete next.confirmByBasis;
+      return next;
+    });
+    expect(loosening(input, 'fields.project.type.confirmByBasis')).toContain('Choices belong to the owner');
+  });
+
+  it("a count's whole-number shape dropped", () => {
+    loosening(
+      withField('building.rooms', (field) => {
+        const next: RegistryFieldDefinition = { ...field };
+        delete next.valueShape;
+        return next;
+      }),
+      'fields.building.rooms.valueShape',
+    );
+  });
+
+  it('a declared formula that starts writing a field', () => {
+    const input: LooseningInputs = {
+      ...repo,
+      registry: { ...repo.registry, formulas: [...repo.registry.formulas, { id: 'unitWriter', version: '1', inputs: ['building.grossFloorArea'], outputs: ['building.rooms'] }] },
+    };
+    loosening(input, 'fields.building.rooms.formulas');
+  });
+
+  it('a declared formula signature changed under the same version (2.4)', () => {
+    const [first] = repo.registry.formulas;
+    expect(first).toBeDefined();
+    if (first === undefined) return;
+    const input: LooseningInputs = {
+      ...repo,
+      registry: { ...repo.registry, formulas: repo.registry.formulas.map((formula) => (formula === first ? { ...formula, estimated: !(formula.estimated === true) } : formula)) },
+    };
+    loosening(input, `formulas.formula:${first.id}@${first.version}`);
+  });
+
+  it('a written form added to a unit, and two dimensions merged (ADR 0017)', () => {
+    loosening(
+      withLists((lists) => ({ ...lists, units: lists.units.map((unit) => (unit.code === 'm2' ? { ...unit, written: [...unit.written, 'TEST-mp'] } : unit)) })),
+      'units.m2.written',
+    );
+    loosening(withLists((lists) => ({ ...lists, units: lists.units.map((unit) => (unit.code === 'kVA' ? { ...unit, dimension: 'power' } : unit)) })), 'units.kVA.dimension');
+  });
+
+  it('a floor-notation letter the glossary has not approved (D, demisol)', () => {
+    loosening(withLists((lists) => ({ ...lists, floorNotationLetters: { ...lists.floorNotationLetters, D: 'semi_basement' } })), 'floorNotationLetters.D');
+  });
+
+  it('a qualifier removed is a tightening: the check asks for it to be recorded, and the loosening message never appears', () => {
+    const report = evaluateLoosening(withField('building.rooms', (field) => ({ ...field, qualifiers: ['guest_rooms', 'keys'] })));
+    expect(report.ok).toBe(false);
+    const line = report.problems.find((problem) => problem.startsWith('fields.building.rooms.qualifiers: '));
+    expect(line).toContain('unapproved baseline v0 does not hold this value');
+    expect(line).not.toContain('a loosening against');
   });
 });

@@ -1,0 +1,3 @@
+# Each line must appear in the check's details for this seed to count.
+# Phase 1 review, round 3 (adversarial finding 4): a written form added to the closed unit registry (ADR 0017, "How to reverse").
+problem: units.m2.written: the written forms of m2: added TEST-mp (a new written form maps more text to a unit; ADR 0017): a loosening against unapproved baseline v0 with no approval reference

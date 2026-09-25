@@ -1,0 +1,14 @@
+{
+  "units": {
+    "add": [
+      {
+        "code": "TEST-unit",
+        "symbol": "TEST",
+        "dimension": "area",
+        "written": [
+          "TEST-form"
+        ]
+      }
+    ]
+  }
+}

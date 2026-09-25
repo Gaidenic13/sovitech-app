@@ -1,11 +1,11 @@
-// @pending-until: phase 1 derive
 /**
  * G4-10 (docs/guardrails.md section 7; rule 4 "Conflict test", "What is compared").
  * Situation: area candidates 34,500, 34,200 and 33,900 m², same basis, tolerance 1%.
  * Expected: conflict, because the spread is 1.7%.
  */
 import fc from 'fast-check';
-import { expect } from 'vitest';
+import { expect, test } from 'vitest';
+import { unitByCode } from '@sovitech/registry';
 import {
   NO_EVENTS,
   derive,
@@ -14,9 +14,6 @@ import {
   type DocumentRecord,
   type FieldDefinition,
 } from '@sovitech/domain';
-import { pendingCase } from './_support/pending';
-
-const pending = pendingCase(import.meta.url);
 
 const BUILDING = 'test-building-g4-10';
 
@@ -27,6 +24,7 @@ const areaField: FieldDefinition = {
   kind: 'quantity',
   unit: 'm2',
   qualifierRequired: true,
+  qualifiers: ['gross_total'],
   estimation: 'forbidden',
   tolerance: { relative: 0.01, reason: 'TEST: the 1% tolerance case G4-10 names' },
   criticality: 'optional',
@@ -69,7 +67,9 @@ function readings(values: readonly number[]): { candidates: Candidate[]; context
     };
   });
   const context: DeriveContext = {
+    subjectId: BUILDING,
     document: (id) => documents.find((document) => document.id === id),
+    unit: unitByCode,
     inputState: () => undefined,
     datasetApproved: () => false,
   };
@@ -90,7 +90,7 @@ function orderings<T>(items: readonly T[]): T[][] {
   );
 }
 
-pending('F-VALUE-03 · G4-10: 34,500, 34,200 and 33,900 m², same basis, tolerance 1%: conflict over the 1.7% spread', () => {
+test('F-VALUE-03 · G4-10: 34,500, 34,200 and 33,900 m², same basis, tolerance 1%: conflict over the 1.7% spread', () => {
   // Each neighbouring pair is within 1%; the whole spread is not. Every arrival order.
   for (const order of orderings([34500, 34200, 33900])) expectConflict(order);
 

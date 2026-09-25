@@ -21,8 +21,8 @@ export const byStage: Record<Stage, number> = { final: 1, 'draft': 2 };
 export const computedKeys = { ['verified']: true };
 export const lookup = byStage['final'];
 export const event = { type: 'user_confirmed' };
-export const badge = 'Verified by SOVITECH';
-export const sourceLine = (date: string) => `AI inference, verified by SOVITECH on ${date}`;
+// The badge and the source line come from the copy registry (packages/registry/src/copy/), never written here.
+export const badgeId = 'verified_by_sovitech';
 export const Summary = () => (
   <section className="final-step firm-price">
     <h2>Unconfirmed items</h2>

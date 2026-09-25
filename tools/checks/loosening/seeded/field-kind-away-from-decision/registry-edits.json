@@ -1,0 +1,7 @@
+{
+  "fields": {
+    "project.scope.fire_safety": {
+      "kind": "enum"
+    }
+  }
+}

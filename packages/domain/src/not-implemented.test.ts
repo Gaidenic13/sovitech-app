@@ -6,13 +6,15 @@ import {
   PENDING_MARKER_PREFIX,
   declareNotImplemented,
   declaredStubFeatures,
-  derive,
   notImplementedFeature,
   parsePendingMarker,
   verifyProposal,
 } from './index';
 
-/** What a stub throws. The stubs ignore their arguments, so none are built here. */
+/**
+ * What a stub throws. Called with no arguments: verifyProposal's built part
+ * (check 1) reads no evidence then, so the call reaches its stub.
+ */
 function thrownBy(stub: unknown): unknown {
   try {
     (stub as () => unknown)();
@@ -24,14 +26,18 @@ function thrownBy(stub: unknown): unknown {
 
 describe('NotImplementedError', () => {
   test('a stub throws it, naming the feature it stands for', () => {
-    const error = thrownBy(derive);
+    const error = thrownBy(verifyProposal);
     expect(error).toBeInstanceOf(NotImplementedError);
     expect(error).toBeInstanceOf(Error);
     if (!(error instanceof NotImplementedError)) throw new Error('not a NotImplementedError');
     expect(error.name).toBe('NotImplementedError');
-    expect(error.feature).toBe('derive');
-    expect(error.message).toContain('derive');
-    expect(notImplementedFeature(thrownBy(verifyProposal))).toBe('verify-proposal');
+    expect(error.feature).toBe('verify-proposal');
+    expect(error.message).toContain('verify-proposal');
+  });
+
+  test('phase 1 built derive: it is no longer a stub feature, and no code can declare one for it', () => {
+    expect(DOMAIN_FEATURES).not.toContain('derive');
+    expect(() => declareNotImplemented('derive' as never)).toThrow(TypeError);
   });
 
   test('every declared feature is a distinct lower-case name', () => {
@@ -48,8 +54,8 @@ describe('NotImplementedError', () => {
   });
 
   test('code outside the stubs cannot create one: the constructor throws a TypeError', () => {
-    expect(() => new NotImplementedError('derive')).toThrow(TypeError);
-    expect(() => new NotImplementedError('derive', Symbol('NotImplementedError issue key'))).toThrow(TypeError);
+    expect(() => new NotImplementedError('verify-proposal')).toThrow(TypeError);
+    expect(() => new NotImplementedError('verify-proposal', Symbol('NotImplementedError issue key'))).toThrow(TypeError);
   });
 });
 
@@ -59,9 +65,9 @@ describe('notImplementedFeature', () => {
   });
 
   test('finds the feature through a cause chain, as fast-check reports property failures', () => {
-    const inner = thrownBy(derive);
+    const inner = thrownBy(verifyProposal);
     const wrapped = new Error('Property failed after 1 tests', { cause: new Error('outer', { cause: inner }) });
-    expect(notImplementedFeature(wrapped)).toBe('derive');
+    expect(notImplementedFeature(wrapped)).toBe('verify-proposal');
   });
 
   test('finds it when fast-check wraps it', () => {
@@ -69,25 +75,25 @@ describe('notImplementedFeature', () => {
     try {
       fc.assert(
         fc.property(fc.integer(), () => {
-          (derive as unknown as () => never)();
+          (verifyProposal as unknown as () => never)();
         }),
       );
     } catch (error) {
       caught = error;
     }
-    expect(notImplementedFeature(caught)).toBe('derive');
+    expect(notImplementedFeature(caught)).toBe('verify-proposal');
   });
 
   test('ignores every other error, including look-alikes of the real class', () => {
-    const lookalike = new Error('derive is not implemented yet');
+    const lookalike = new Error('verify-proposal is not implemented yet');
     lookalike.name = 'NotImplementedError';
-    const shaped = { name: 'NotImplementedError', feature: 'derive' };
+    const shaped = { name: 'NotImplementedError', feature: 'verify-proposal' };
     class LookalikeNotImplementedError extends Error {
       override readonly name = 'NotImplementedError';
-      readonly feature = 'derive';
+      readonly feature = 'verify-proposal';
     }
     const fromPrototype: unknown = Object.assign(Object.create(NotImplementedError.prototype) as object, {
-      feature: 'derive',
+      feature: 'verify-proposal',
       name: 'NotImplementedError',
     });
     expect(fromPrototype).toBeInstanceOf(NotImplementedError);
@@ -95,10 +101,10 @@ describe('notImplementedFeature', () => {
       new TypeError('x is not a function'),
       lookalike,
       shaped,
-      new LookalikeNotImplementedError('derive is not implemented yet'),
+      new LookalikeNotImplementedError('verify-proposal is not implemented yet'),
       fromPrototype,
       new Error('wraps a look-alike', { cause: fromPrototype }),
-      'derive',
+      'verify-proposal',
       undefined,
       null,
     ]) {
@@ -116,41 +122,42 @@ describe('notImplementedFeature', () => {
 
 describe('parsePendingMarker', () => {
   test('reads the phase and the features from the first line', () => {
-    expect(parsePendingMarker(`${PENDING_MARKER_PREFIX} phase 1 derive\nimport x from 'y';\n`)).toEqual({
+    expect(parsePendingMarker(`${PENDING_MARKER_PREFIX} phase 2 verify-proposal\nimport x from 'y';\n`)).toEqual({
       kind: 'marker',
-      marker: { phase: 1, features: ['derive'] },
+      marker: { phase: 2, features: ['verify-proposal'] },
     });
-    expect(parsePendingMarker(`${PENDING_MARKER_PREFIX} phase 2 verify-proposal, derive\n`)).toEqual({
-      kind: 'marker',
-      marker: { phase: 2, features: ['verify-proposal', 'derive'] },
-    });
+  });
+
+  test('a marker that names derive, built in phase 1, is malformed', () => {
+    expect(parsePendingMarker(`${PENDING_MARKER_PREFIX} phase 1 derive\n`).kind).toBe('malformed');
+    expect(parsePendingMarker(`${PENDING_MARKER_PREFIX} phase 2 verify-proposal, derive\n`).kind).toBe('malformed');
   });
 
   test('a file without the marker on its first line is not pending', () => {
     expect(parsePendingMarker("import { test } from 'vitest';\n")).toEqual({ kind: 'none' });
-    expect(parsePendingMarker(`\n${PENDING_MARKER_PREFIX} phase 1 derive\n`)).toEqual({ kind: 'none' });
+    expect(parsePendingMarker(`\n${PENDING_MARKER_PREFIX} phase 2 verify-proposal\n`)).toEqual({ kind: 'none' });
     expect(parsePendingMarker('')).toEqual({ kind: 'none' });
   });
 
   test('a malformed marker is reported, never read as pending', () => {
     const bad = [
-      `${PENDING_MARKER_PREFIX} phase 1`,
-      `${PENDING_MARKER_PREFIX} phase 9 derive`,
-      `${PENDING_MARKER_PREFIX} phase 0 derive`,
-      `${PENDING_MARKER_PREFIX} phase one derive`,
-      `${PENDING_MARKER_PREFIX} phase 1 derive,verify-proposal`,
-      `${PENDING_MARKER_PREFIX} phase 1 derive, derive`,
-      `${PENDING_MARKER_PREFIX} phase 1 render`,
-      `${PENDING_MARKER_PREFIX} phase 1 derive `,
-      `${PENDING_MARKER_PREFIX}phase 1 derive`,
+      `${PENDING_MARKER_PREFIX} phase 2`,
+      `${PENDING_MARKER_PREFIX} phase 9 verify-proposal`,
+      `${PENDING_MARKER_PREFIX} phase 0 verify-proposal`,
+      `${PENDING_MARKER_PREFIX} phase two verify-proposal`,
+      `${PENDING_MARKER_PREFIX} phase 2 verify-proposal,verify-proposal`,
+      `${PENDING_MARKER_PREFIX} phase 2 verify-proposal, verify-proposal`,
+      `${PENDING_MARKER_PREFIX} phase 2 render`,
+      `${PENDING_MARKER_PREFIX} phase 2 verify-proposal `,
+      `${PENDING_MARKER_PREFIX}phase 2 verify-proposal`,
     ];
     for (const line of bad) expect(parsePendingMarker(`${line}\n`).kind, line).toBe('malformed');
   });
 
   test('accepts CRLF line endings', () => {
-    expect(parsePendingMarker(`${PENDING_MARKER_PREFIX} phase 1 derive\r\nrest`)).toEqual({
+    expect(parsePendingMarker(`${PENDING_MARKER_PREFIX} phase 2 verify-proposal\r\nrest`)).toEqual({
       kind: 'marker',
-      marker: { phase: 1, features: ['derive'] },
+      marker: { phase: 2, features: ['verify-proposal'] },
     });
   });
 });

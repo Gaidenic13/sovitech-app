@@ -1,0 +1,47 @@
+{
+  "units": [
+    {
+      "code": "m2",
+      "symbol": "m²",
+      "dimension": "area"
+    },
+    {
+      "code": "count",
+      "symbol": "count",
+      "dimension": "count"
+    }
+  ],
+  "fields": [
+    {
+      "key": "building.seedCount",
+      "label": "Seed count (synthetic)",
+      "subject": "building",
+      "kind": "count",
+      "unit": "count",
+      "dimension": "count",
+      "estimation": "forbidden",
+      "criticality": "for_quotation",
+      "impactRank": 1,
+      "confirmBy": "engineer",
+      "affects": [
+        {
+          "output": "seed.output",
+          "via": "formula:seedFormula@1"
+        }
+      ]
+    }
+  ],
+  "questions": [],
+  "formulas": [
+    {
+      "id": "seedFormula",
+      "version": "1",
+      "inputs": [
+        "building.seedCount"
+      ],
+      "outputs": [
+        "seed.output"
+      ]
+    }
+  ]
+}

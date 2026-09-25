@@ -1,0 +1,3 @@
+# Each line: <list id> <key>, listed for the owner as the integrator would list it.
+reserved-terms.allowances badge:engineer-verified
+reserved-terms.allowances generated_sentence:ai-verified

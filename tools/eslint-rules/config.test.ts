@@ -11,7 +11,7 @@ import ts from 'typescript';
 import tseslint from 'typescript-eslint';
 import { describe, expect, it } from 'vitest';
 import { allowlist } from './allowlist.js';
-import plugin, { SCRIPT_EXTENSIONS } from './index.js';
+import plugin, { FORMATTING_MODULE, JSON_PARSE_REVIEWED, NUMBER_PARSER, SCRIPT_EXTENSIONS } from './index.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..', '..');
@@ -137,7 +137,12 @@ describe('configs.recommended scope', () => {
   it.each(['tools/checks/example.ts', 'tests/guardrails/G1-8.test.ts', 'evals/runner.ts', 'fixtures/generate.ts'])(
     'leaves %s to the other checks',
     async (filePath) => {
-      expect(await sovitechRules(`${zero}\n${coercion}\n${filteredSum}`, filePath)).toEqual([]);
+      expect(
+        await sovitechRules(
+          `${zero}\n${coercion}\n${filteredSum}\nexport const read = (text: string): unknown => JSON.parse(text);\nexport const r = (x: number) => Math.round(x);`,
+          filePath,
+        ),
+      ).toEqual([]);
     },
   );
 
@@ -162,6 +167,61 @@ describe('configs.recommended scope', () => {
       expect(await sovitechRules(coercion, filePath)).toEqual([]);
     },
   );
+
+  // Phase 1 (the rest of adversarial finding 7, phase 0 review round 2): each ban's exempt scope.
+  const decimalFromText = 'export const d = (whole: string) => new Decimal(`${whole}.5`);';
+  const jsonParse = 'export const read = (text: string): unknown => JSON.parse(text);';
+  const rounding = 'export const r = (x: number) => Math.round(x);';
+  const zeroTally = 'export const t = (n: number) => new Array(n).fill(1).fill(0);';
+
+  it.each(['apps/api/src/ingest.ts', 'packages/engine/src/points.ts', 'packages/view-model/src/formatting/round.ts', 'packages/domain/src/conflict.ts'])(
+    'bans a decimal built from text in %s',
+    async (filePath) => {
+      expect(await sovitechRules(decimalFromText, filePath)).toEqual(['sovitech/no-decimal-from-text']);
+    },
+  );
+
+  it('lets only the rule 8 parser build a decimal from text', async () => {
+    expect(await sovitechRules(decimalFromText, 'packages/registry/src/number-parser/parse.ts')).toEqual([]);
+  });
+
+  it.each(['apps/api/src/ai.ts', 'packages/ai/src/validate.ts', 'packages/registry/src/production/load.ts', 'packages/view-model/src/formatting/round.ts'])(
+    'bans JSON.parse in %s',
+    async (filePath) => {
+      expect(await sovitechRules(jsonParse, filePath)).toEqual(['sovitech/no-json-parse']);
+    },
+  );
+
+  it.each(JSON_PARSE_REVIEWED.flatMap((entry) => entry.files))('lets the reviewed reader %s call JSON.parse', async (filePath) => {
+    expect(await sovitechRules(jsonParse, filePath)).toEqual([]);
+  });
+
+  it.each(['apps/web/src/Tile.tsx', 'packages/engine/src/points.ts', 'packages/registry/src/number-parser/parse.ts', 'packages/view-model/src/server.ts'])(
+    'bans rounding in %s',
+    async (filePath) => {
+      expect(await sovitechRules(rounding, filePath)).toEqual(['sovitech/no-rounding-outside-formatting']);
+    },
+  );
+
+  it('lets only the formatting module round', async () => {
+    expect(await sovitechRules(rounding, 'packages/view-model/src/formatting/round.ts')).toEqual([]);
+  });
+
+  it.each(['apps/web/src/Tile.tsx', 'packages/engine/src/counts.ts', 'packages/view-model/src/formatting/round.ts'])(
+    'bans a zero-initialised tally in %s, the engine included',
+    async (filePath) => {
+      expect(await sovitechRules(zeroTally, filePath)).toEqual(['sovitech/no-zero-tally']);
+    },
+  );
+
+  it('names each exempt scope as its own exported constant', () => {
+    expect(NUMBER_PARSER).toBe('packages/registry/src/number-parser/**');
+    expect(FORMATTING_MODULE).toBe('packages/view-model/src/formatting/**');
+    for (const entry of JSON_PARSE_REVIEWED) {
+      expect(entry.files.length).toBeGreaterThan(0);
+      expect(entry.reason.length).toBeGreaterThan(40);
+    }
+  });
 
   it('bans colour literals and shadows in app and package code, not in tests', async () => {
     const code = "export const A = () => <div className=\"bg-red-500 shadow-md\" style={{ color: '#fff' }} />;";

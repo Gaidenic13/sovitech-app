@@ -1,4 +1,3 @@
-// @pending-until: phase 1 derive
 /**
  * G9-2 (docs/guardrails.md section 7; 2.4 "Provisional"; rule 9 "No laundering").
  * Situation: floors enter conflict after the points estimate was calculated.
@@ -8,7 +7,8 @@
  * and after; only the floors field gains a disagreeing document reading.
  */
 import fc from 'fast-check';
-import { expect } from 'vitest';
+import { expect, test } from 'vitest';
+import { unitByCode } from '@sovitech/registry';
 import {
   NO_EVENTS,
   derive,
@@ -20,19 +20,17 @@ import {
   type FieldDefinition,
   type FieldState,
 } from '@sovitech/domain';
-import { pendingCase } from './_support/pending';
-
-const pending = pendingCase(import.meta.url);
 
 const BUILDING = 'test-building-g9-2';
 
-const ownerCount = (key: string, label: string): FieldDefinition => ({
+const ownerCount = (key: string, label: string, qualifier: string): FieldDefinition => ({
   key,
   label,
   subject: 'building',
   kind: 'count',
   unit: 'count',
   qualifierRequired: true,
+  qualifiers: [qualifier],
   estimation: 'forbidden',
   criticality: 'optional',
   affects: [{ output: 'test.points.hardware_io', via: 'formula:TEST-points@1.0.0' }],
@@ -40,8 +38,8 @@ const ownerCount = (key: string, label: string): FieldDefinition => ({
   confirmBy: 'owner',
 });
 
-const floorsField = ownerCount('test.building.upper_floors', 'TEST upper floors');
-const roomsField = ownerCount('test.building.guest_rooms', 'TEST guest rooms');
+const floorsField = ownerCount('test.building.upper_floors', 'TEST upper floors', 'upper_floors');
+const roomsField = ownerCount('test.building.guest_rooms', 'TEST guest rooms', 'guest_rooms');
 
 const pointsField: FieldDefinition = {
   key: 'test.points.hardware_io',
@@ -50,6 +48,7 @@ const pointsField: FieldDefinition = {
   kind: 'count',
   unit: 'count',
   qualifierRequired: true,
+  qualifiers: ['hardware_io'],
   estimation: 'allowed',
   criticality: 'optional',
   affects: [],
@@ -109,9 +108,13 @@ function laterDocumentFloors(value: number): Candidate {
 }
 
 const plainContext: DeriveContext = {
+  subjectId: BUILDING,
   document: (id) => (id === memoriu.id ? memoriu : undefined),
+  unit: unitByCode,
   inputState: () => undefined,
   datasetApproved: () => false,
+  // The case's TEST formula is declared inside the test runner only (prompt 3 5.4).
+  formulaDeclared: (formulaId, formulaVersion) => formulaId === 'TEST-points' && formulaVersion === '1.0.0',
 };
 
 function checkScenario(ownerFloors: number, documentFloors: number, rooms: number): void {
@@ -145,6 +148,7 @@ function checkScenario(ownerFloors: number, documentFloors: number, rooms: numbe
   const roomsState = derive(roomsField, [roomsAnswer], roomsEvents, plainContext);
   const pointsContext = (floorsState: FieldState): DeriveContext => ({
     ...plainContext,
+    subjectId: 'test-project-g9-2',
     inputState: (candidateId) =>
       candidateId === floorsAnswer.id ? floorsState : candidateId === roomsAnswer.id ? roomsState : undefined,
   });
@@ -162,7 +166,7 @@ function checkScenario(ownerFloors: number, documentFloors: number, rooms: numbe
   expect(after.provisional).toBe(true);
 }
 
-pending('F-VALUE-02 · G9-2: floors enter conflict after the points estimate: Provisional with no manual step', () => {
+test('F-VALUE-02 · G9-2: floors enter conflict after the points estimate: Provisional with no manual step', () => {
   checkScenario(12, 14, 80);
 
   fc.assert(

@@ -13,8 +13,14 @@
  * expressed as typed allowance entries (action labels, badges, status lines,
  * generated sentences built from stored state, registry qualifier labels) or as
  * the typed context of verbatim document text. There is no free-text exemption
- * list and no exemption by file path.
+ * list and no exemption by file path. Since the phase 1 review an allowance also
+ * holds in fewer places: in source only inside the copy registries that define
+ * its text (the same text elsewhere is flagged); its slots take typed values
+ * (a date, a number), never words; and the stage 3 label holds only with a
+ * stored quotation record (ADR 0011, phase 1 review amendment).
  */
+
+import { COPY_ALLOWANCES } from './copy/allowances';
 
 /** English terms, as docs/guardrails.md 2.8 lists them. */
 export const RESERVED_TERMS_EN = [
@@ -209,6 +215,14 @@ export function findReservedTerms(text: string): ReservedTermMatch[] {
 // Allowances: the places 2.8 allows, as typed entries.
 
 /**
+ * The stored records an allowance can be bound to. `quotation_record`: rule 10's stage 3
+ * ("Stage 3 is derived, not passed. It comes from a stored quotation record"; "Templates
+ * read the stage from the record"), which 2.8 allows as "Formal quotation" at stage 3 only.
+ */
+export const ALLOWANCE_RECORDS = ['quotation_record'] as const;
+export type AllowanceRecord = (typeof ALLOWANCE_RECORDS)[number];
+
+/**
  * One place where 2.8 allows a reserved term. Later phases build these from
  * their registries (actions, badges, status lines, sentence templates, field
  * qualifiers) and add them to REGISTERED_ALLOWANCE_ENTRIES. Verbatim document
@@ -219,9 +233,13 @@ export type ReservedTermAllowance =
   | { readonly kind: 'action_label'; readonly actionId: string; readonly label: string }
   /** A badge label from the 2.8 badge table. */
   | { readonly kind: 'badge'; readonly badgeId: string; readonly label: string }
-  /** A status line or stage label from the 2.8 status-line table. */
-  | { readonly kind: 'status_line'; readonly statusLineId: string; readonly text: string }
-  /** A sentence the app builds from stored state; `{name}` marks a filled slot. */
+  /**
+   * A status line or stage label from the 2.8 status-line table; `{name}` marks a typed slot.
+   * `requiresRecord` binds it to copy derived from that stored record: set on the stage 3
+   * label, which then holds only where a stored quotation record is named (rule 10).
+   */
+  | { readonly kind: 'status_line'; readonly statusLineId: string; readonly text: string; readonly requiresRecord?: AllowanceRecord }
+  /** A sentence the app builds from stored state; `{name}` marks a typed slot. */
   | {
       readonly kind: 'generated_sentence';
       readonly templateId: string;
@@ -243,9 +261,64 @@ const ALLOWANCE_FIELDS: Readonly<Record<ReservedTermAllowanceKind, { id: string;
   qualifier_label: { id: 'fieldKey', copy: 'label', strings: ['fieldKey', 'qualifier', 'label'] },
 };
 
+/** The kinds whose copy may hold `{slot}` placeholders, each filled from stored state by type. */
+const TEMPLATE_KINDS: ReadonlySet<ReservedTermAllowanceKind> = new Set(['status_line', 'generated_sentence']);
+
 export const ALLOWANCE_KINDS: readonly ReservedTermAllowanceKind[] = Object.freeze(
   Object.keys(ALLOWANCE_FIELDS) as ReservedTermAllowanceKind[],
 );
+
+/**
+ * The type of each slot name an allowance template may hold (a closed list). A slot
+ * is filled from stored state, so its text must read as its type and nothing else:
+ * a `date` slot takes a calendar date as the app writes one ("12 Oct", "25 Sep 2026",
+ * "2026-09-25"; 2.8's "on 12 Oct" and the render allowlist's "D MMM YYYY"); a
+ * `number` slot takes digits with their separators (the equipment and page counts
+ * of 2.8's status lines). A word
+ * never fills either. Adding a slot name or a type accepts more text: list it for the
+ * approver with the phase that needs it (ADR 0011, phase 1 review amendment).
+ */
+export const SLOT_TYPES: Readonly<Record<string, 'date' | 'number'>> = Object.freeze({
+  date: 'date',
+  count: 'number',
+  analysed: 'number',
+  total: 'number',
+});
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+
+const SLOT_PATTERNS: Readonly<Record<'date' | 'number', string>> = {
+  date: String.raw`\d{1,2} (?:${MONTHS.join('|')})(?: \d{4})?|\d{4}-\d{2}-\d{2}`,
+  number: String.raw`\d+(?:[.,]\d+)*`,
+};
+
+/** Two-digit texts, "00" to "99". Dates are checked as text: numbers are read from text only by the rule 8 parser. */
+const TWO_DIGITS: readonly string[] = Array.from({ length: 100 }, (_, index) => `${index < 10 ? '0' : ''}${index}`);
+/** Two-digit texts that are multiples of 4, for leap years. */
+const MULTIPLES_OF_FOUR: ReadonlySet<string> = new Set(TWO_DIGITS.filter((_, index) => index % 4 === 0));
+
+/** Whether a four-digit year text is a leap year (Gregorian); no year: 29 Feb may exist. */
+function isLeapYear(year: string | undefined): boolean {
+  if (year === undefined) return true;
+  const century = year.slice(0, 2);
+  const within = year.slice(2);
+  return within === '00' ? MULTIPLES_OF_FOUR.has(century) : MULTIPLES_OF_FOUR.has(within);
+}
+
+/** Whether `text`, which matched the date pattern, names a day the calendar has ("31 Feb" does not). */
+function isCalendarDate(text: string): boolean {
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/u.exec(text);
+  const written = /^(\d{1,2}) ([A-Z][a-z]{2})(?: (\d{4}))?$/u.exec(text);
+  const year = iso?.[1] ?? written?.[3];
+  // Month and day as positions in lists of their texts: 1 to 12, and 1 to 31.
+  const month = iso === null ? MONTHS.indexOf((written?.[2] ?? '') as (typeof MONTHS)[number]) : TWO_DIGITS.indexOf(iso[2] ?? '') - 1;
+  const dayText = iso?.[3] ?? written?.[1] ?? '';
+  const day = TWO_DIGITS.indexOf(dayText.length === 1 ? `0${dayText}` : dayText);
+  if (month < 0 || month > 11 || day < 1) return false;
+  const lengths = [31, isLeapYear(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  const length = lengths[month];
+  return length !== undefined && day <= length;
+}
 
 export class ReservedTermAllowanceError extends Error {
   readonly problems: readonly string[];
@@ -256,10 +329,22 @@ export class ReservedTermAllowanceError extends Error {
   }
 }
 
+/** What a copy unit is known to come from, for the allowances bound to it. */
+export interface AllowanceConditions {
+  /**
+   * The unit is text defined in a copy registry itself (packages/registry/src/copy/**),
+   * where an allowance's own text is written: a slot may then hold its own placeholder
+   * (`{date}`), and an allowance bound to a stored record holds as its definition.
+   */
+  readonly copyRegistry?: boolean;
+  /** The id of the stored quotation record the unit is derived from (rule 10, stage 3), if any. */
+  readonly quotationRecordId?: string;
+}
+
 export interface AllowanceSet {
   readonly entries: readonly ReservedTermAllowance[];
-  /** The entry that allows `text` as a whole copy unit, if any. */
-  match(text: string): ReservedTermAllowance | undefined;
+  /** The entry that allows `text` as a whole copy unit under these conditions, if any. */
+  match(text: string, conditions?: AllowanceConditions): ReservedTermAllowance | undefined;
 }
 
 const PLACEHOLDER = /\{[^{}]*\}/g;
@@ -296,6 +381,11 @@ function idOf(entry: ReservedTermAllowance): string {
   }
 }
 
+/** The slot names of a template, in order. */
+function slotNames(template: string): string[] {
+  return [...template.matchAll(PLACEHOLDER)].map((match) => match[0].slice(1, -1));
+}
+
 function problemsOf(value: unknown, position: number): string[] {
   const where = `entry ${position + 1}`;
   if (typeof value !== 'object' || value === null) return [`${where} is not an object`];
@@ -305,7 +395,8 @@ function problemsOf(value: unknown, position: number): string[] {
     return [`${where} has kind ${JSON.stringify(kind)}; the kinds are ${ALLOWANCE_KINDS.join(', ')}`];
   }
   const fields = ALLOWANCE_FIELDS[kind as ReservedTermAllowanceKind];
-  const allowedKeys = new Set(['kind', ...fields.strings, ...(kind === 'generated_sentence' ? ['readsStoredState'] : [])]);
+  const optional = kind === 'generated_sentence' ? ['readsStoredState'] : kind === 'status_line' ? ['requiresRecord'] : [];
+  const allowedKeys = new Set(['kind', ...fields.strings, ...optional]);
   const problems: string[] = [];
   for (const key of Object.keys(record)) {
     if (!allowedKeys.has(key)) problems.push(`${where} (${kind}) has the unknown key "${key}"`);
@@ -320,24 +411,74 @@ function problemsOf(value: unknown, position: number): string[] {
       problems.push(`${where} (generated_sentence) needs "readsStoredState": the stored state it is built from`);
     }
   }
+  if ('requiresRecord' in record && !(ALLOWANCE_RECORDS as readonly unknown[]).includes(record['requiresRecord'])) {
+    problems.push(`${where} (${kind}) has "requiresRecord" ${JSON.stringify(record['requiresRecord'])}; the records are ${ALLOWANCE_RECORDS.join(', ')}`);
+  }
   if (problems.length > 0) return problems;
   const copy = record[fields.copy] as string;
-  const fixedText = kind === 'generated_sentence' ? copy.replace(PLACEHOLDER, '\u0000') : copy;
+  const template = TEMPLATE_KINDS.has(kind as ReservedTermAllowanceKind);
+  const fixedText = template ? copy.replace(PLACEHOLDER, '\u0000') : copy;
   if (findReservedTerms(fixedText).length === 0) {
     problems.push(`${where} (${kind}) holds no reserved term in its fixed text, so it allows nothing: remove it`);
+  }
+  if (template) {
+    for (const name of slotNames(copy)) {
+      if (!Object.hasOwn(SLOT_TYPES, name)) {
+        problems.push(`${where} (${kind}) has the slot {${name}}, which has no type; the typed slots are ${Object.keys(SLOT_TYPES).map((slot) => `{${slot}}`).join(', ')}`);
+      }
+    }
   }
   return problems;
 }
 
-function templatePattern(template: string): RegExp {
-  const parts = canonical(template).split(PLACEHOLDER).map(escapeForRegExp);
-  return new RegExp(`^${parts.join('.+?')}$`, 'su');
+/** A template with typed slots. `definitions`: a slot may also hold its own placeholder, as the copy registry writes it. */
+interface TemplatePattern {
+  readonly pattern: RegExp;
+  readonly types: readonly ('date' | 'number')[];
+}
+
+function templatePattern(template: string, definitions: boolean): TemplatePattern {
+  const text = canonical(template);
+  const fixed = text.split(PLACEHOLDER).map(escapeForRegExp);
+  const names = slotNames(text);
+  const types = names.map((name) => SLOT_TYPES[name] ?? 'number');
+  let source = fixed[0] ?? '';
+  names.forEach((name, position) => {
+    const typed = SLOT_PATTERNS[types[position] ?? 'number'];
+    source += `(${definitions ? `${escapeForRegExp(`{${name}}`)}|` : ''}${typed})${fixed[position + 1] ?? ''}`;
+  });
+  return { pattern: new RegExp(`^${source}$`, 'u'), types };
+}
+
+/**
+ * Whether a template covers a copy unit: the fixed text matches, each slot reads as its
+ * type (a date slot as a calendar date, a number slot as digits; a word fills neither),
+ * and no text filling a slot holds a reserved term itself. A slot is filled from stored
+ * state, so a slot that carries "verified" or "firm price" would pass the allowance's
+ * reserved term through a place 2.8 does not allow.
+ */
+function templateCovers(template: TemplatePattern, unit: string): boolean {
+  const match = template.pattern.exec(unit);
+  if (match === null) return false;
+  return match.slice(1).every((slot, position) => {
+    if (slot === undefined || findReservedTerms(slot).length > 0) return false;
+    if (slot.startsWith('{')) return true;
+    return template.types[position] !== 'date' || isCalendarDate(slot);
+  });
+}
+
+/** Whether an entry's stored-record binding holds for these conditions. */
+function recordHolds(entry: ReservedTermAllowance, conditions: AllowanceConditions): boolean {
+  if (entry.kind !== 'status_line' || entry.requiresRecord === undefined) return true;
+  if (conditions.copyRegistry === true) return true;
+  return typeof conditions.quotationRecordId === 'string' && conditions.quotationRecordId.trim() !== '';
 }
 
 /**
  * Checks and freezes a list of allowance entries. Throws
  * ReservedTermAllowanceError when any entry is outside the closed set of kinds,
- * carries an unknown key or an empty field, allows nothing, or repeats an id.
+ * carries an unknown key or an empty field, allows nothing, holds a slot with no
+ * type, names an unknown record, or repeats an id.
  */
 export function createAllowanceSet(entries: readonly ReservedTermAllowance[]): AllowanceSet {
   const problems = entries.flatMap((entry, position) => problemsOf(entry, position));
@@ -352,28 +493,46 @@ export function createAllowanceSet(entries: readonly ReservedTermAllowance[]): A
   if (problems.length > 0) throw new ReservedTermAllowanceError(problems);
   const frozen = Object.freeze(entries.map((entry) => Object.freeze({ ...entry })));
   const fixed = new Map<string, ReservedTermAllowance>();
-  const templates: Array<{ pattern: RegExp; entry: ReservedTermAllowance }> = [];
+  const templates: Array<{ shown: TemplatePattern; defined: TemplatePattern; entry: ReservedTermAllowance }> = [];
   for (const entry of frozen) {
-    if (entry.kind === 'generated_sentence') templates.push({ pattern: templatePattern(entry.template), entry });
-    else fixed.set(canonical(copyOf(entry)), entry);
+    const copy = copyOf(entry);
+    if (TEMPLATE_KINDS.has(entry.kind) && slotNames(copy).length > 0) {
+      templates.push({ shown: templatePattern(copy, false), defined: templatePattern(copy, true), entry });
+    } else {
+      fixed.set(canonical(copy), entry);
+    }
   }
   return Object.freeze({
     entries: frozen,
-    match(text: string): ReservedTermAllowance | undefined {
+    match(text: string, conditions: AllowanceConditions = {}): ReservedTermAllowance | undefined {
       const unit = canonical(text);
-      return fixed.get(unit) ?? templates.find((template) => template.pattern.test(unit))?.entry;
+      const exact = fixed.get(unit);
+      if (exact !== undefined && recordHolds(exact, conditions)) return exact;
+      return templates.find(
+        (template) => recordHolds(template.entry, conditions) && templateCovers(conditions.copyRegistry === true ? template.defined : template.shown, unit),
+      )?.entry;
     },
   });
 }
 
-/** No allowance at all. */
+/**
+ * No allowance at all. The AI output validator (phase 2) scans AI-written text with
+ * this set, never with the registered one: 2.8 flags reserved terms in "all AI-written
+ * text", and the app, not the AI, builds every badge, status line and generated
+ * sentence from stored state (rules 2, 11 and 14).
+ */
 export const NO_ALLOWANCES: AllowanceSet = createAllowanceSet([]);
 
 /**
- * The allowances later phases register, each built from its registry entry.
- * Phase 0 registers none.
+ * The allowances the registries register, each built from its registry entry.
+ * Phase 1 registers the texts of the badge, status-line and generated-sentence
+ * registries that hold a reserved term (./copy/allowances.ts), each word for word
+ * a text 2.8 lists for its kind (ADR 0011). The source scan applies them only to
+ * copy inside the copy registries (tools/checks/reserved-terms, COPY_REGISTRIES);
+ * the render check only to marked copy the screen was served; the AI output
+ * validator never (NO_ALLOWANCES).
  */
-export const REGISTERED_ALLOWANCE_ENTRIES: readonly ReservedTermAllowance[] = [];
+export const REGISTERED_ALLOWANCE_ENTRIES: readonly ReservedTermAllowance[] = COPY_ALLOWANCES;
 
 let registered: AllowanceSet | undefined;
 
@@ -390,12 +549,23 @@ export function registeredAllowances(): AllowanceSet {
 export type CopyContext =
   /** App copy, AI-written text, exports: reserved terms are flagged unless an allowance covers the whole unit. */
   | { readonly kind: 'copy' }
+  /**
+   * Text defined in a copy registry (packages/registry/src/copy/**): an allowance's own text as
+   * its registry writes it, slots as `{name}` included. Only the source scan of the copy
+   * registries uses it.
+   */
+  | { readonly kind: 'copy_registry' }
   /** Verbatim document text shown with its source, such as an evidence excerpt or original text. */
   | { readonly kind: 'verbatim_document_text'; readonly documentId: string; readonly contentHash: string };
 
 export interface ScanCopyOptions {
   readonly allowances: AllowanceSet;
   readonly context?: CopyContext;
+  /**
+   * The stored quotation record the unit is derived from, when it is (rule 10, stage 3).
+   * An allowance bound to that record ("Formal quotation") holds only when it is named.
+   */
+  readonly quotationRecordId?: string;
 }
 
 /**
@@ -410,7 +580,11 @@ export function scanCopy(text: string, options: ScanCopyOptions): ReservedTermMa
     }
     return [];
   }
-  if (options.allowances.match(text) !== undefined) return [];
+  const conditions: AllowanceConditions = {
+    copyRegistry: context.kind === 'copy_registry',
+    ...(options.quotationRecordId === undefined ? {} : { quotationRecordId: options.quotationRecordId }),
+  };
+  if (options.allowances.match(text, conditions) !== undefined) return [];
   return findReservedTerms(text);
 }
 

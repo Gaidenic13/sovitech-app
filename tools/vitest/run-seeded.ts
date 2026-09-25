@@ -125,15 +125,15 @@ export const SEEDED_RUN_EXPECTATIONS: readonly SeededRunExpectation[] = [
   { caseId: 'G2-4', seeds: 'test.todo', holds: heldOutOf('G2-4', 'marked todo') },
   { caseId: 'G2-5', seeds: 'test.skipIf(true)', holds: heldOutOf('G2-5', 'marked skip') },
   { caseId: 'G2-6', seeds: 'a pending case whose body fails to import a module', holds: failing('G2-6') },
-  { caseId: 'G2-7', seeds: 'a pending case held for derive whose body reaches verify-proposal', holds: failing('G2-7') },
+  { caseId: 'G2-7', seeds: 'a stale marker naming derive, which phase 1 built', holds: problemOf('G2-7', '[no tests]', 'failed to load') },
   { caseId: 'G2-8', seeds: 'a pending case whose body passes', holds: failing('G2-8') },
   { caseId: 'G2-9', seeds: 'the wrapper with no marker on the first line', holds: problemOf('G2-9', '[no tests]', 'failed to load') },
   { caseId: 'G2-10', seeds: 'a case file whose import fails', holds: problemOf('G2-10', '[no tests]', 'failed to load') },
   // Phase 0 review, round 2: a case that passes because an unbuilt stub throws, or that catches its error.
   {
     caseId: 'G2-11',
-    seeds: 'expect(() => derive(...)).toThrow() without the pending wrapper',
-    holds: failingWith('G2-11', STUB_FAILURE, 'during the test: derive'),
+    seeds: 'expect(() => verifyProposal(...)).toThrow() without the pending wrapper',
+    holds: failingWith('G2-11', STUB_FAILURE, 'during the test: verify-proposal'),
   },
   {
     caseId: 'G2-12',
@@ -142,13 +142,13 @@ export const SEEDED_RUN_EXPECTATIONS: readonly SeededRunExpectation[] = [
   },
   {
     caseId: 'G2-13',
-    seeds: 'the derive stub reached while the file loads, its error swallowed',
+    seeds: 'the verify-proposal stub reached while the file loads, its error swallowed',
     holds: failingWith('G2-13', STUB_FAILURE, 'outside any test of this file'),
   },
   {
     caseId: 'G2-14',
     seeds: 'a support helper that swallows the body failure and asserts a constant',
-    holds: failingWith('G2-14', STUB_FAILURE, 'during the test: derive'),
+    holds: failingWith('G2-14', STUB_FAILURE, 'during the test: verify-proposal'),
   },
 ];
 

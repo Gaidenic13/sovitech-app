@@ -22,7 +22,9 @@ import {
   BASELINE_NAME,
   baselinePolicyProblems,
   compareSnapshots,
+  currentRegistryLists,
   projectSnapshot,
+  type RegistryLists,
   type Snapshot,
   type SnapshotDifference,
 } from './snapshot';
@@ -38,6 +40,11 @@ export interface LooseningInputs {
   approvals: ApprovalContext;
   /** docs/guardrails.md, for the policy anchors. */
   ruleText: string;
+  /**
+   * The unit registry and the floor-notation letters as the code holds them
+   * (currentRegistryLists() when absent); seeds and tests pass edited ones.
+   */
+  registryLists?: RegistryLists;
 }
 
 export interface LooseningReport {
@@ -80,18 +87,37 @@ function waitingList(registry: RegistryBundle, gates: readonly GateDefinition[],
     const setting = registry.settings[name];
     if (setting.status !== 'approved') lines.push(`setting ${settingLine(registry, name)}`);
   }
+  const list = (entries: readonly string[]): string => (entries.length === 0 ? 'none' : entries.join(', '));
   for (const [key, field] of Object.entries(current.fields)) {
     lines.push(
-      `field ${key}: criticality ${field.criticality}${field.requiredSlot === null ? '' : ` (${field.requiredSlot})`}` +
+      `field ${key}: kind ${field.kind}${field.unit === null ? '' : `; unit ${field.unit}`}${field.dimension === null ? '' : ` (${field.dimension})`}` +
+        `; criticality ${field.criticality}${field.requiredSlot === null ? '' : ` (${field.requiredSlot})`}` +
         `${field.firstEstimateSlot === null ? '' : ` (${field.firstEstimateSlot})`}; estimation ${field.estimation}` +
         `${field.estimatedMethod === null ? '' : ` (${field.estimatedMethod})`}; confirmBy ${field.confirmBy}` +
         `${field.confirmByBasis === null ? '' : ` (${field.confirmByBasis})`}; tolerance ${field.tolerance === null ? 'none' : JSON.stringify(field.tolerance)}` +
         `; plausible ${field.plausible === null ? 'none' : JSON.stringify(field.plausible)}; identity ${field.identity ? 'yes' : 'no'}` +
-        `; reference datasets ${field.referenceDatasets.length === 0 ? 'none' : field.referenceDatasets.join(', ')}` +
-        `; minorForTotals ${field.minorForTotals ? 'yes' : 'no'}; impactRank ${field.impactRank}`,
+        `; reference datasets ${list(field.referenceDatasets)}` +
+        `; minorForTotals ${field.minorForTotals ? 'yes' : 'no'}; impactRank ${field.impactRank}` +
+        `; qualifiers ${list(field.qualifiers)}; options ${list(field.options)}` +
+        `${field.valueShape === null ? '' : `; value shape ${field.valueShape}`}; formulas writing it ${list(field.formulas)}`,
     );
   }
   if (current.impactRankOrder.length > 0) lines.push(`impactRank order: ${current.impactRankOrder.join(', ')}`);
+  for (const [ref, formula] of Object.entries(current.formulas)) {
+    lines.push(
+      `formula signature ${ref}: ${formula.estimated ? 'estimated' : 'calculated'}; unknownPolicy ${formula.unknownPolicy}; ` +
+        `outputs ${list(formula.outputs)}; ${formula.inputs.length} inputs`,
+    );
+  }
+  const units = Object.entries(current.units);
+  if (units.length > 0) {
+    lines.push(
+      `unit registry (ADR 0017): ${units.length} units in ${new Set(units.map(([, unit]) => unit.dimension)).size} dimensions, ` +
+        `${units.flatMap(([, unit]) => unit.written).length} written forms, ${units.filter(([, unit]) => unit.toBase !== null).length} factors`,
+    );
+  }
+  const letters = Object.entries(current.floorNotationLetters);
+  if (letters.length > 0) lines.push(`floor-notation letters (ADR 0017, decision 5): ${letters.map(([letter, level]) => `${letter} ${level}`).join(', ')}`);
   for (const dataset of registry.datasets) {
     if (dataset.approvalRef === undefined) lines.push(`dataset ${dataset.id}@${dataset.version}: no approval record`);
   }
@@ -142,14 +168,19 @@ export function evaluateLoosening(inputs: LooseningInputs): LooseningReport {
   }
   const againstBaseline = base === baseline;
 
-  const current = projectSnapshot(registry, gates, {
-    name: 'current registry',
-    status: 'unapproved',
-    version: base.version,
-    guardrailsVersion: base.guardrailsVersion,
-    recordedOn: base.recordedOn,
-    approvalRef: '',
-  });
+  const current = projectSnapshot(
+    registry,
+    gates,
+    {
+      name: 'current registry',
+      status: 'unapproved',
+      version: base.version,
+      guardrailsVersion: base.guardrailsVersion,
+      recordedOn: base.recordedOn,
+      approvalRef: '',
+    },
+    inputs.registryLists ?? currentRegistryLists(),
+  );
 
   const gateProblems = verifyGates(gates, approvals);
   const gatesWithProblems = new Set(gates.filter((gate) => gateProblems.some((line) => line.includes(`gates/${gate.id}.yaml`))).map((gate) => gate.id));

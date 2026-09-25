@@ -1,0 +1,4 @@
+# Each line must appear in the check's details for this seed to count.
+# Phase 1 review, round 3: a declared formula starts writing an existing field (2.1: calculated values come from the engine's formulas).
+problem: fields.building.rooms.formulas: formulas [] → [formula:seedWriter@1] (added formula:seedWriter@1;
+problem: formulas.formula:seedWriter@1: the formula signature formula:seedWriter@1 is new: unapproved baseline v0 does not hold this value

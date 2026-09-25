@@ -1,0 +1,2 @@
+# Each line must appear in the check's details for this seed to count.
+exception list index.stub-aware-support-modules: entry added: tests/guardrails/_support/property.ts (stub-aware) (a new allow list: its check index is in unapproved baseline v0 (exception lists)'s roster, so the list widens a check the base already has): a loosening against unapproved baseline v0 (exception lists) with no approval reference

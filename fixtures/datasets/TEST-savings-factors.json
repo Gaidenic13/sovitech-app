@@ -1,0 +1,52 @@
+{
+  "id": "TEST-savings-factors",
+  "version": "TEST-2",
+  "description": "TEST savings factors: synthetic whole numbers for the sensitivity test and engine cases. Not SOVITECH data.",
+  "entries": {
+    "percentByArea": {
+      "hvac": {
+        "low": 9001,
+        "high": 9002
+      },
+      "lighting": {
+        "low": 9002,
+        "high": 9003
+      },
+      "energy_management": {
+        "low": 9003,
+        "high": 9004
+      },
+      "water_management": {
+        "low": 9004,
+        "high": 9005
+      },
+      "security_access": {
+        "low": 9005,
+        "high": 9006
+      },
+      "predictive_maintenance": {
+        "low": 9006,
+        "high": 9007
+      }
+    },
+    "requires": {
+      "hvac": [
+        "hvac"
+      ],
+      "lighting": [
+        "lighting"
+      ],
+      "energy_management": [
+        "energy"
+      ],
+      "water_management": [
+        "water"
+      ],
+      "security_access": [
+        "access_control",
+        "cctv"
+      ],
+      "predictive_maintenance": "any"
+    }
+  }
+}

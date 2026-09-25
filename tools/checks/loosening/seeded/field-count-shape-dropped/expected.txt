@@ -1,0 +1,3 @@
+# Each line must appear in the check's details for this seed to count.
+# Phase 1 review, round 3: a count's whole-number shape dropped, so a fractional or negative count has nothing to be refused against.
+problem: fields.building.rooms.valueShape: value shape non_negative_integer → null: a loosening against unapproved baseline v0 with no approval reference

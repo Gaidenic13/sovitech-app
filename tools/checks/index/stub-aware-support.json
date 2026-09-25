@@ -1,0 +1,17 @@
+{
+  "$comment": "The reviewed list of support modules under tests/guardrails/_support/ that may catch the domain's NotImplementedError to tell it apart from every other error (tools/checks/index/support-pin.ts; tools/checks/index/README.md, 'Modules that may catch the stub's error'). Each entry pins the reviewed content by SHA-256: a changed module is held to the full [support] rule until the change is reviewed and its new hash recorded here. This is an allow list in the loosening check's exception-list snapshot (index.stub-aware-support-modules), so an added entry or a changed hash also waits for the approver (docs/guardrails.md section 10).",
+  "modules": [
+    {
+      "path": "tests/guardrails/_support/pending.ts",
+      "role": "pending-wrapper",
+      "sha256": "7366bcc486dc915c0fb8e45692721ecc6a73594839559dda480f846c22af2791",
+      "reason": "The pending wrapper (docs/adr/0004 decision 5): it catches a case body's error only to tell a domain stub's NotImplementedError (through notImplementedFeature) from any other error, skips the case with its record and note for the stub's error alone, and rethrows everything else; a passing body fails."
+    },
+    {
+      "path": "tests/guardrails/_support/property.ts",
+      "role": "stub-aware",
+      "sha256": "ce44c948568c99ba9925e4f3480729d931efa6077b61e5a3a9119a6e5d660c12",
+      "reason": "The property helper for fast-check cases (phase 0 review round 1, finding 16): it catches a predicate's error only to tell the stub's error (through notImplementedFeature) from any other, rethrows every other error at once, holds the stub's error back so fast-check keeps looking for a real counterexample, and rethrows the first stub error when the run ends."
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 <!--
 System prompt for the AI inside the SOVITECH app: document analysis, asset and fact extraction,
 and proposal drafting.
-Checked against: docs/guardrails.md v1.5. CI compares this line with the guardrails version.
+Checked against: docs/guardrails.md v1.6. CI compares this line with the guardrails version.
 The output format is enforced by the request's structured-output schema, not by this text.
 Code validates every output (evidence, units, sources, tokens, reserved terms) before anything is stored or shown.
 -->

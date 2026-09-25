@@ -1,0 +1,4 @@
+{
+  "$comment": "Seeded bad input (synthetic; phase 1 review, verifier finding 3): the baseline as 135d74d held it, without index.stub-aware-support-modules. The list is new, but its check (index) is in the baseline's roster, so each entry is an added allow entry: tests/guardrails/_support/property.ts widens the index check's [support] rule and must wait for the approver. Before the fix a brand-new allow list read as a tightening and the writer recorded it.",
+  "baselineLists": { "index.stub-aware-support-modules": null }
+}

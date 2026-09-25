@@ -1,7 +1,7 @@
 # 0003. Index-check convention: no pending stubs while D-33 is open
 
 - **Status:** Accepted: default, reversible
-- **Date:** 2026-09-25
+- **Date:** 2026-09-25 (amended 2026-09-25 at the end of phase 1)
 
 ## Context
 
@@ -65,3 +65,16 @@ Once the owner decides D-33 for pending stubs, and the approver (guardrails sect
 1. Run `tsx tools/checks/index/generate-stubs.ts --write` once (without `--write` it is a dry run). It writes a pending stub for each id with no case file: `tests/guardrails/<ID>.test.ts` for T cases and `evals/guardrails/<ID>.yaml` for E cases.
 2. Change the index check to report stub ids as "no automated check yet" through a list that does not fail the run: move `report.stubs` out of `noAutomatedCheckYet` in `reportToResult` (`tools/checks/index/index-check.ts`) into a new field of `CheckResult` (`tools/checks/types.ts`) that `tools/checks/runner.ts` prints and does not fail on, keeping the rule that an id with no file at all fails. `tools/checks/index/README.md` gives the same steps.
 3. Change this ADR's status to "Accepted: owner decision <date>", naming the approver's ruling.
+
+## Phase 1 amendment (2026-09-25)
+
+The round 2 residuals and the phase 1 items of the build log's "Next" were closed in the index check. Each is a tightening; the conventions above hold, with these additions.
+
+- **`[process]`** (round 2 residual: a stub reached from a child process, which the stub guard cannot count, and a case asserting only on the exit status). A case file that imports or loads `child_process`, `worker_threads`, `cluster` or `vm` (with or without `node:`; statically, by `import()`, `require()` or a re-export), `execa`, `tinyexec`, `cross-spawn`, `tinypool` or `piscina`, uses `new Worker(...)`, loads a module by a path computed from code, or uses `createRequire`, is malformed. The rule is static and reads case files and `_support/` modules only: a module a case reaches outside `_support/` is not read (the render cases G2-1 and G2-8 start Chromium through Playwright), and the run guard cannot see a child process at run time.
+- **`[swallow]`** (round 2 residual). A case file whose `finally` block leaves by `return`, `throw`, `break` or `continue`, which replaces whatever the `try` block threw, is malformed. `[support]` flags the same `finally` exits, and process use, in `_support/` modules.
+- **Modules that may catch the stub's error** (the reviewed route of the build log's phase 1 item). `tools/checks/index/stub-aware-support.json` lists the two support modules that must catch an error to tell the domain stub's from every other: `tests/guardrails/_support/pending.ts` (role `pending-wrapper`) and `tests/guardrails/_support/property.ts` (role `stub-aware`), each pinned by the SHA-256 of its reviewed content and each reading the error through `notImplementedFeature`. A listed module whose content changed is held to the full `[support]` rule, with a problem, until its hash is recorded again; an entry that matches no module fails. The list is the exception list `index.stub-aware-support-modules`, recorded in unapproved baseline v0 on 2026-09-25, so an added entry or a changed hash waits for the approver. The other support modules (the builders) are not pinned: the `[support]` rule reads each of them on every run, and pinning them would make each new helper wait for the approver.
+- **The fast-check edge** (phase 0 review, finding 16) is closed by `tests/guardrails/_support/property.ts` (`assertProperty`, `assertAsyncProperty`; ADR 0004, phase 1 amendment).
+- **Seeds.** The index self-test runs 91 seeded bad inputs (85 before): 51 static seeds under `tools/checks/index/seeded/` (45 before; new: `process-child-process`, `process-worker-threads`, `swallow-finally-in-case`, `support-finally-return`, `support-pin-changed`, `support-pin-stale`), the run seeds in `tools/vitest/seeded/run/`, the four roots and the 12 config seeds. When phase 1 built `derive`, the harness tests and seeds that need an unbuilt stub moved to `verify-proposal`; run seed G2-7 is now a stale marker (a pending case still naming `derive`, which must fail to load), and `tools/vitest/stub-probe.ts` finds whichever stub still throws. When phase 2 builds the last stub, those tests say so and skip, and the pending wrapper can go.
+- **The count at v1.6.** Guardrails 1.6 adds G4-20, G10-8 and G13-5: 107 ids, 87 T and 20 E. `guardrail-index.test.ts` pins the count per version (1.5 and 1.6); a later version adds its own pin.
+- **A reading of the parser, recorded** (registry builder, phase 1): a local name in a case file that shadows a Vitest API (a variable named `suite`) is read as that API, so `suite.fixture.values[key]` read as a computed modifier and the case as held out. Renaming the variable fixed it; `tests/guardrails/README.md` notes it. This errs on the safe side (the case counted as malformed, never as real).
+- **Known residuals, unchanged:** an assertion on a literal subject (`expect(true).toBe(true)`) is not flagged statically, and once a stub is built a case that catches its own failure is caught only by review.

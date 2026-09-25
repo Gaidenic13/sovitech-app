@@ -1,0 +1,49 @@
+{
+  "units": [
+    {
+      "code": "m2",
+      "symbol": "m²",
+      "dimension": "area"
+    },
+    {
+      "code": "count",
+      "symbol": "count",
+      "dimension": "count"
+    }
+  ],
+  "fields": [
+    {
+      "key": "project.seedScope",
+      "label": "Seed scope (synthetic)",
+      "subject": "project",
+      "kind": "decision",
+      "options": [
+        "include",
+        "exclude"
+      ],
+      "estimation": "forbidden",
+      "criticality": "optional",
+      "impactRank": 1,
+      "confirmBy": "engineer",
+      "affects": [
+        {
+          "output": "seed.output",
+          "via": "formula:seedFormula@1"
+        }
+      ]
+    }
+  ],
+  "questions": [],
+  "formulas": [
+    {
+      "id": "seedFormula",
+      "version": "1",
+      "inputs": [
+        "project.seedScope"
+      ],
+      "outputs": [
+        "seed.output"
+      ]
+    }
+  ]
+}

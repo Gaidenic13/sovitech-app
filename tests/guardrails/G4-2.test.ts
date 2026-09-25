@@ -1,11 +1,11 @@
-// @pending-until: phase 1 derive
 /**
  * G4-2 (docs/guardrails.md section 7; rule 4 "Conflict test").
  * Situation: 34,500 m² and 34,480 m², same basis, tolerance 1%.
  * Expected: no conflict.
  */
 import fc from 'fast-check';
-import { expect } from 'vitest';
+import { expect, test } from 'vitest';
+import { unitByCode } from '@sovitech/registry';
 import {
   NO_EVENTS,
   derive,
@@ -14,9 +14,6 @@ import {
   type DocumentRecord,
   type FieldDefinition,
 } from '@sovitech/domain';
-import { pendingCase } from './_support/pending';
-
-const pending = pendingCase(import.meta.url);
 
 const PROJECT = 'test-project-g4-2';
 const BUILDING = 'test-building-g4-2';
@@ -28,6 +25,7 @@ const areaField: FieldDefinition = {
   kind: 'quantity',
   unit: 'm2',
   qualifierRequired: true,
+  qualifiers: ['gross_total'],
   estimation: 'forbidden',
   tolerance: { relative: 0.01, reason: 'TEST: the 1% tolerance case G4-2 names' },
   criticality: 'optional',
@@ -74,7 +72,9 @@ function readings(values: readonly number[]): Candidate[] {
 const documents: readonly DocumentRecord[] = Array.from({ length: 5 }, (_, index) => documentFor(index));
 
 const context: DeriveContext = {
+  subjectId: BUILDING,
   document: (id) => documents.find((document) => document.id === id),
+  unit: unitByCode,
   inputState: () => undefined,
   datasetApproved: () => false,
 };
@@ -85,7 +85,7 @@ function expectNoConflict(values: readonly number[]): void {
   expect(state.state).toBe('known');
 }
 
-pending('F-VALUE-03 · G4-2: 34,500 m² and 34,480 m², same basis, tolerance 1%: no conflict', () => {
+test('F-VALUE-03 · G4-2: 34,500 m² and 34,480 m², same basis, tolerance 1%: no conflict', () => {
   expectNoConflict([34500, 34480]);
   expectNoConflict([34480, 34500]);
 

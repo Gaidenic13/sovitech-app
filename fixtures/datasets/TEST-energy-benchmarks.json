@@ -1,0 +1,50 @@
+{
+  "id": "TEST-energy-benchmarks",
+  "version": "TEST-2",
+  "description": "TEST energy benchmarks: synthetic whole numbers for the sensitivity test and engine cases. Not a benchmark.",
+  "entries": {
+    "intensityByBuildingType": {
+      "hotel": {
+        "low": 9001,
+        "high": 9011
+      },
+      "office": {
+        "low": 9011,
+        "high": 9021
+      },
+      "retail": {
+        "low": 9021,
+        "high": 9031
+      },
+      "hospital": {
+        "low": 9031,
+        "high": 9041
+      },
+      "residential": {
+        "low": 9041,
+        "high": 9051
+      }
+    },
+    "occupancyPercent": {
+      "mostly_occupied": 9063,
+      "mixed": 9062,
+      "low": 9061
+    },
+    "schedulePercent": {
+      "24_7": 9074,
+      "business_hours": 9072,
+      "extended_hours": 9073,
+      "seasonal": 9071
+    },
+    "climatePercent": {
+      "TEST-XA": {
+        "TEST city A": 9081,
+        "TEST city B": 9082
+      },
+      "TEST-XB": {
+        "TEST city A": 9083,
+        "TEST city B": 9084
+      }
+    }
+  }
+}

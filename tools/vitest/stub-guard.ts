@@ -42,7 +42,12 @@ export interface StubGuardRecord {
 export function countsSince(before: StubErrorCounts, after: StubErrorCounts): StubErrorTally {
   const tally: Partial<Record<DomainFeature, number>> = {};
   for (const feature of DOMAIN_FEATURES) {
-    const thrown = after[feature] - before[feature];
+    // A feature with no count yet has thrown nothing: the domain may keep its counts sparse
+    // (a tally started at zero for every feature is what sovitech/no-zero-tally bans in packages/).
+    const now: number | undefined = after[feature];
+    if (now === undefined) continue;
+    const was: number | undefined = before[feature];
+    const thrown = was === undefined ? now : now - was;
     if (thrown > 0) tally[feature] = thrown;
   }
   return tally;
