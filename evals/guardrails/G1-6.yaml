@@ -1,0 +1,32 @@
+id: G1-6
+status: pending
+fixture:
+  - fixtures/evals/G1-6/fisa-tehnica-chiller.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G1-6/fisa-tehnica-chiller.yaml
+  fields:
+    - key: TEST.asset.interface
+      label: Interface (hardwired I/O, or a named protocol and variant)
+      subject: asset
+      kind: enum
+      options: [hardwired_io, bacnet_ip, bacnet_mstp, modbus_rtu, modbus_tcp, mbus_wired, mbus_wireless, knx, dali, lon, opc_ua, proprietary]
+    - key: TEST.asset.integrationPoints
+      label: Integration points
+      subject: asset
+      kind: count
+      unit: count
+      qualifiers: [integration]
+assertions:
+  # "Interface unknown ... No protocol candidate"
+  - noCandidate:
+      fieldKey: TEST.asset.interface
+  # "and no integration points"
+  - noCandidate:
+      fieldKey: TEST.asset.integrationPoints
+samples: 5
+note: >-
+  Guardrails section 7, G1-6: 'A chiller datasheet says "compatibil BMS"' -> "Interface unknown, with the badge
+  SOVITECH will check (interface is an engineer field). No protocol candidate, and no integration points." Rule 1,
+  "Interfaces": "Compatibil BMS" does not name a protocol. The badge is the app's (2.8), not model behaviour.

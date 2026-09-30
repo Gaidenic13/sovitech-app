@@ -28,7 +28,66 @@ export {
   type MigrationSettings,
 } from './migrate';
 export { withRequest, projectOf, type Request, type RequestScope } from './request';
-export type { AccountKind, Database } from './schema';
+export { ensureBuildingSubject, existingSubjects, projectIsDemo, projectVisible, requestActsAs } from './scope';
+export type { AccountKind, Database, StoredFormat } from './schema';
+export {
+  AUTHORING_TOOL_PART,
+  FILE_NAME_PART,
+  fileNamePart,
+  readCandidateAiOrigins,
+  readDocumentFiles,
+  readDocumentFindings,
+  readDocumentText,
+  readDocumentTexts,
+  readModelRecords,
+  recordCandidateAiOrigin,
+  recordDocumentFile,
+  recordDocumentFinding,
+  recordModelRecord,
+  storeDocumentTexts,
+  type StoredFile,
+  type StoredFinding,
+  type StoredModelRecord,
+  type TextPart,
+} from './ingestion';
+export {
+  IFC_ELEMENT_KINDS,
+  IfcValuesClosed,
+  assertIfcValuesOpen,
+  insertIfcCandidate,
+  readIfcElements,
+  readIfcValueRefusals,
+  recordIfcAppearance,
+  recordIfcElement,
+  recordIfcValueRefusal,
+  type IfcCandidateWrite,
+  type IfcElementKind,
+  type IfcElementLink,
+  type IfcValueRefusal,
+  type NewIfcCandidate,
+  type StoredIfcElement,
+} from './ifc-evidence';
+export {
+  cancelQueuedAnalysis,
+  claimAnalysisJob,
+  claimAbandonedUpload,
+  claimUploadLease,
+  createUploadSession,
+  deleteAbandonedUpload,
+  deleteUploadSession,
+  enqueueAnalysis,
+  failAnalysisJob,
+  finishAnalysisJob,
+  openAnalysisJobs,
+  readAnalysisJobs,
+  readUploadSession,
+  releaseAbandonedUpload,
+  releaseUploadLease,
+  staleUploadSessions,
+  type AnalysisJob,
+  type UploadFormat,
+  type UploadSession,
+} from './work';
 export {
   appendAssetEvent,
   appendCandidateEvent,

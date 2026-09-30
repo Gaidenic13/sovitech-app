@@ -12,6 +12,7 @@
  * keeps a value visible and in front of a person (more conflicts, fewer
  * silent choices), and the choice is named where it is made (ADR 0016).
  */
+import { derivedConfidence } from './confidence';
 import { disagreementOf, readingsOf, spreadExceedsTolerance } from './conflict';
 import { documentStatuses, type DocumentStatuses } from './documents';
 import {
@@ -20,6 +21,7 @@ import {
   type Candidate,
   type CandidateEvent,
   type CandidateReference,
+  type Confidence,
   type DocumentEvent,
   type DocumentRecord,
   type DocumentStage,
@@ -30,7 +32,7 @@ import {
   type UnitLookup,
   type Verification,
 } from './model';
-import { atOrBefore, olderFirst } from './time';
+import { atOrBefore, olderFirst, timeInNanos } from './time';
 
 // ---------------------------------------------------------------------------
 // Closed lists
@@ -198,10 +200,11 @@ export const EVENT_REFUSALS = [
   /** A `conflict_resolved` event without who, why, the chosen candidate or the candidates it covered. */
   'resolution_incomplete',
   /**
-   * A resolution by someone the conflict is not routed to, or a rejection of a side of an open conflict by
-   * an engineer, or by the owner with no value of their own, who may not resolve it (rule 4, "Routing":
-   * "Conflicts on owner fields go to the owner"; "Only the right person's resolution closes a conflict").
-   * The conflict stays with the person it is routed to.
+   * A resolution by someone the conflict is not routed to, or a rejection by an engineer, or by the owner with no
+   * value of their own, that took a side of an open conflict its author may not resolve when it was made (rule 4,
+   * "Routing": "Conflicts on owner fields go to the owner"; "Only the right person's resolution closes a conflict").
+   * The conflict stays with the person it is routed to. A rejection is judged against the field as it stood when it
+   * was made, and keeps that judgement (phase 2, NP-A).
    */
   'resolver_not_routed',
   /** A `skipped` field event from anyone but the owner (2.4 Field states: "skipped: The owner chose Skip for now"; rule 7). */
@@ -245,6 +248,13 @@ export interface DerivedCandidate {
   readonly status: CandidateStatus;
   /** Why it is refused; null unless `status` is `refused`. */
   readonly refusal: RefusalReason | null;
+  /**
+   * The confidence tier the value is read with (rule 3; 2.3): for an inference, its stored confidence capped again by
+   * the evidence whose documents are not removed, never higher than stored (./confidence.ts); for another source, its
+   * stored confidence. Present only on an eligible candidate that has one: a value that is not eligible is never shown
+   * as current (2.3). The badge reads this, never the stored confidence.
+   */
+  readonly confidence?: Confidence;
 }
 
 /**
@@ -943,6 +953,47 @@ function refusedKey(refused: RefusedEvent): string {
 }
 
 // ---------------------------------------------------------------------------
+// The field in time (phase 2, NP-A)
+// ---------------------------------------------------------------------------
+
+/**
+ * A field's candidates and the events that concern them as they stood at one point in time: the candidates created by
+ * then and the events recorded by then, with what those events make of each candidate. A record whose time does not
+ * parse counts as present. Derive reads the field now, and as it stood just before each lone rejection was made.
+ */
+interface World {
+  readonly candidates: readonly Candidate[];
+  readonly verification: ReadonlyMap<string, Verification>;
+  readonly withdrawnIds: ReadonlySet<string>;
+  /** The candidates withdrawn because every document they cite is removed (2.3 "Deleting a document"). */
+  readonly removedWithDocument: ReadonlySet<string>;
+  /** The engine's recalculations (2.4); supersession by a declared revision is derived in `assess`. */
+  readonly supersededIds: ReadonlySet<string>;
+  readonly documents: DocumentStatuses;
+  /** The complete resolutions, oldest first. */
+  readonly resolutions: readonly FieldEvent[];
+}
+
+/** A `rejected` event with the candidate it rejects, and when derive reads it as made ({@link madeAtOf}). */
+interface Rejection {
+  readonly event: CandidateEvent;
+  readonly candidate: Candidate;
+  readonly madeAt: bigint | null;
+}
+
+/**
+ * When a rejection was made, in nanoseconds: the later of its own time and its candidate's creation, since nobody
+ * rejects a value before it exists (a rejection dated earlier is read as made when its value arrived, the strict side:
+ * the values that arrived with it are then in view). Null when either time does not parse.
+ */
+function madeAtOf(event: CandidateEvent, candidate: Candidate): bigint | null {
+  const at = timeInNanos(event.at);
+  const created = timeInNanos(candidate.createdAt);
+  if (at === null || created === null) return null;
+  return at > created ? at : created;
+}
+
+// ---------------------------------------------------------------------------
 // derive
 // ---------------------------------------------------------------------------
 
@@ -976,89 +1027,8 @@ export const derive: Derive = (field, candidates, events, context) => {
     if (cited.has(entry.event.documentId)) refusedEvents.push({ kind: 'document', event: entry.event, refusal: entry.refusal });
   }
   const factKey = (candidate: Candidate): string | null => (isQuantityField(field) ? qualifierOf(candidate) : null);
-
-  // --- Pass 1: each candidate's verification, refusal and withdrawal.
-  const verification = new Map<string, Verification>();
-  const refusal = new Map<string, RefusalReason | null>();
-  const withdrawnIds = new Set<string>();
-  const removedWithDocument = new Set<string>();
-  for (const candidate of candidates) {
-    const own = candidateEvents.get(candidate.id) ?? [];
-    const checks = verificationOf(field, own);
-    verification.set(candidate.id, checks.level);
-    refusedEvents.push(...checks.refused);
-    refusal.set(candidate.id, refusalOf(field, candidate, context));
-
-    if (allEvidenceRemoved(candidate, documents)) {
-      withdrawnIds.add(candidate.id);
-      removedWithDocument.add(candidate.id);
-    }
-    for (const event of own.filter((entry) => entry.type === 'withdrawn')) {
-      const why = withdrawalRefusal(event, candidate, checks.level, documents);
-      if (why !== null) refusedEvents.push({ kind: 'candidate', event, refusal: why });
-      else withdrawnIds.add(candidate.id);
-    }
-  }
-
-  // --- Pass 2: rejections (rule 4) and supersession by the engine (2.4).
-  const engineerChecks = field.confirmBy === 'engineer' || field.criticality === 'for_quotation';
-  const ownerChoice = isOwnerChoice(field);
-  /**
-   * Rule 4 "A correction is a resolution": the same owner's value for the same fact (or with an unknown
-   * qualifier, as a correction typed in another unit is), entered no earlier than the value it corrects.
-   */
-  const correctedBy = (event: CandidateEvent, rejected: Candidate): boolean =>
-    candidates.some(
-      (other) =>
-        other.id !== rejected.id &&
-        other.source === 'user' &&
-        other.createdBy === event.by &&
-        (factKey(other) === factKey(rejected) || factKey(other) === null) &&
-        atOrBefore(rejected.createdAt, other.createdAt) &&
-        refusal.get(other.id) === null &&
-        !withdrawnIds.has(other.id),
-    );
-  const ownerRejected: Candidate[] = [];
-  const ownerNotes: Candidate[] = [];
-  const engineerRejected = new Set<string>();
-  /** Rejections that hold unless they take a side of an open conflict their author may not resolve (rule 4; below). */
-  const heldRejections: { readonly event: CandidateEvent; readonly candidate: Candidate; readonly role: 'owner' | 'sovitech_engineer' }[] = [];
-  const rejectedIds = new Set<string>();
-  const supersededIds = new Set<string>();
-  for (const candidate of candidates) {
-    const own = candidateEvents.get(candidate.id) ?? [];
-    const level = verification.get(candidate.id) ?? 'unverified';
-    for (const event of own) {
-      if (event.type === 'rejected') {
-        if (event.role === 'system') refusedEvents.push({ kind: 'candidate', event, refusal: 'rejected_by_system' });
-        else if (!filled(event.by)) refusedEvents.push({ kind: 'candidate', event, refusal: 'by_missing' });
-        else if (event.role === 'sovitech_engineer' && ownerChoice && candidate.source === 'user') {
-          // Rule 3: the owner's choice is theirs; an engineer who questions it leaves a note, never a rejection.
-          refusedEvents.push({ kind: 'candidate', event, refusal: 'engineer_overrules_owner_choice' });
-        } else if (event.role === 'sovitech_engineer') {
-          // Held until the open conflicts are known: rule 4 lets it take a side only of one the engineer may resolve.
-          heldRejections.push({ event, candidate, role: 'sovitech_engineer' });
-        } else if (level === 'engineer_verified') {
-          refusedEvents.push({ kind: 'candidate', event, refusal: 'owner_overrules_engineer' });
-        } else if (engineerChecks && !correctedBy(event, candidate)) {
-          refusedEvents.push({ kind: 'candidate', event, refusal: 'owner_rejection_without_value' });
-          ownerNotes.push(candidate);
-        } else if (!correctedBy(event, candidate)) {
-          // The owner's rejection with no value of their own: held like an engineer's. The owner's correction (their
-          // own value) is rule 4's own resolution, "A correction is a resolution", and holds as it stands.
-          heldRejections.push({ event, candidate, role: 'owner' });
-        } else {
-          ownerRejected.push(candidate);
-          rejectedIds.add(candidate.id);
-        }
-      }
-      if (event.type === 'superseded') {
-        const why = supersessionRefusal(event, candidate);
-        if (why !== null) refusedEvents.push({ kind: 'candidate', event, refusal: why });
-        else supersededIds.add(candidate.id);
-      }
-    }
-  }
+  /** The rules a candidate breaks on every read: they do not depend on when the field is read. */
+  const refusal = new Map<string, RefusalReason | null>(candidates.map((candidate) => [candidate.id, refusalOf(field, candidate, context)]));
 
   // --- Resolutions (rule 4): a person, a reason, the chosen candidate and the candidates it covered, by id.
   const resolutions: FieldEvent[] = [];
@@ -1087,18 +1057,129 @@ export const derive: Derive = (field, candidates, events, context) => {
   );
 
   /**
-   * The candidates' statuses, the facts and the open conflicts, given the candidates that rejections
-   * which hold have rejected. Pure over its argument: it is run once without the engineer's rejections
-   * held back in pass 2, to see which open conflicts they would take a side of, and once more with the
-   * ones that hold (rule 4, "Only the right person's resolution closes a conflict").
+   * The field as it stood at `at` (nanoseconds), or now when `at` is null (see {@link World}): each candidate's
+   * verification and withdrawal, the engine's supersessions (2.4 "Recalculation"), the document statuses and the
+   * resolutions, from the records made by then. `refused` collects the events that do not hold; derive passes it only
+   * for now, so each is listed once.
    */
-  const assess = (rejected: ReadonlySet<string>): Assessment => {
+  const worldAt = (at: bigint | null, refused: RefusedEvent[] | null): World => {
+    const present = (time: string): boolean => {
+      if (at === null) return true;
+      const nanos = timeInNanos(time);
+      return nanos === null || nanos <= at;
+    };
+    const existing = at === null ? candidates : candidates.filter((candidate) => present(candidate.createdAt));
+    const documentsThen = at === null ? documents : documentStatuses(events.document.filter((event) => present(event.at)), context.document);
+    const verification = new Map<string, Verification>();
+    const withdrawnIds = new Set<string>();
+    const removedWithDocument = new Set<string>();
+    const supersededIds = new Set<string>();
+    for (const candidate of existing) {
+      const own = (candidateEvents.get(candidate.id) ?? []).filter((event) => event.type !== 'rejected' && present(event.at));
+      const checks = verificationOf(field, own);
+      verification.set(candidate.id, checks.level);
+      refused?.push(...checks.refused);
+      if (allEvidenceRemoved(candidate, documentsThen)) {
+        withdrawnIds.add(candidate.id);
+        removedWithDocument.add(candidate.id);
+      }
+      for (const event of own) {
+        if (event.type === 'withdrawn') {
+          const why = withdrawalRefusal(event, candidate, checks.level, documentsThen);
+          if (why !== null) refused?.push({ kind: 'candidate', event, refusal: why });
+          else withdrawnIds.add(candidate.id);
+        }
+        if (event.type === 'superseded') {
+          const why = supersessionRefusal(event, candidate);
+          if (why !== null) refused?.push({ kind: 'candidate', event, refusal: why });
+          else supersededIds.add(candidate.id);
+        }
+      }
+    }
+    return {
+      candidates: existing,
+      verification,
+      withdrawnIds,
+      removedWithDocument,
+      supersededIds,
+      documents: documentsThen,
+      resolutions: at === null ? resolutions : resolutions.filter((resolution) => present(resolution.at)),
+    };
+  };
+
+  // --- Rejections (rule 4).
+  const engineerChecks = field.confirmBy === 'engineer' || field.criticality === 'for_quotation';
+  const ownerChoice = isOwnerChoice(field);
+  const rejections: Rejection[] = [];
+  for (const candidate of candidates) {
+    for (const event of candidateEvents.get(candidate.id) ?? []) {
+      if (event.type === 'rejected') rejections.push({ event, candidate, madeAt: madeAtOf(event, candidate) });
+    }
+  }
+  /**
+   * Rule 4 "A correction is a resolution": the same owner's value for the same fact (or with an unknown qualifier, as a
+   * correction typed in another unit is), entered no earlier than the value it corrects, in the field as it stood then.
+   */
+  const correctedIn = (world: World, event: CandidateEvent, rejected: Candidate): boolean =>
+    world.candidates.some(
+      (other) =>
+        other.id !== rejected.id &&
+        other.source === 'user' &&
+        other.createdBy === event.by &&
+        (factKey(other) === factKey(rejected) || factKey(other) === null) &&
+        atOrBefore(rejected.createdAt, other.createdAt) &&
+        refusal.get(other.id) === null &&
+        !world.withdrawnIds.has(other.id),
+    );
+  /**
+   * What a rejection is in the field as it stood (rule 4): the owner's correction, rule 4's own resolution, which holds
+   * as it stands; a lone rejection (an engineer's, or the owner's with no value of their own on an owner or either
+   * field), which holds unless it took a side of an open conflict its author may not resolve when it was made (below);
+   * or why it does not hold.
+   */
+  const classify = (rejection: Rejection, world: World): 'correction' | 'lone' | EventRefusal => {
+    const { event, candidate } = rejection;
+    if (event.role === 'system') return 'rejected_by_system';
+    if (!filled(event.by)) return 'by_missing';
+    if (event.role === 'sovitech_engineer') {
+      // Rule 3: the owner's choice is theirs; an engineer who questions it leaves a note, never a rejection.
+      return ownerChoice && candidate.source === 'user' ? 'engineer_overrules_owner_choice' : 'lone';
+    }
+    if (world.verification.get(candidate.id) === 'engineer_verified') return 'owner_overrules_engineer';
+    if (correctedIn(world, event, candidate)) return 'correction';
+    // Rule 3: on an engineer or for_quotation field the owner's rejection with no value of their own is a note.
+    return engineerChecks ? 'owner_rejection_without_value' : 'lone';
+  };
+  /** Whether a rejection can be a lone one in some reading of the field: only those are judged in time. */
+  const mayBeLone = ({ event, candidate }: Rejection): boolean =>
+    filled(event.by) &&
+    (event.role === 'sovitech_engineer' ? !(ownerChoice && candidate.source === 'user') : event.role === 'owner' && !engineerChecks);
+  /** How each lone rejection was judged when it was made: true when it holds. */
+  const judged = new Map<Rejection, boolean>();
+  /** The candidates that the rejections `included` admits reject in the field as it stood, each as it was judged. */
+  const rejectedIn = (world: World, included: (rejection: Rejection) => boolean): Set<string> => {
+    const rejected = new Set<string>();
+    for (const rejection of rejections) {
+      if (!included(rejection)) continue;
+      const kind = classify(rejection, world);
+      if (kind === 'correction' || (kind === 'lone' && judged.get(rejection) === true)) rejected.add(rejection.candidate.id);
+    }
+    return rejected;
+  };
+
+  /**
+   * The candidates' statuses, the facts and the open conflicts of the field as it stood (`world`), given the
+   * candidates that rejections which hold have rejected. Pure over its arguments: derive runs it on the field now, and
+   * on the field just before each lone rejection was made, to see which open conflict that rejection took a side of
+   * (rule 4, "Only the right person's resolution closes a conflict").
+   */
+  const assess = (world: World, rejected: ReadonlySet<string>): Assessment => {
     const baseStatus = new Map<string, CandidateStatus>();
-    for (const candidate of candidates) {
+    for (const candidate of world.candidates) {
       let status: CandidateStatus = 'eligible';
-      if (withdrawnIds.has(candidate.id)) status = 'withdrawn';
+      if (world.withdrawnIds.has(candidate.id)) status = 'withdrawn';
       else if (rejected.has(candidate.id)) status = 'rejected';
-      else if (supersededIds.has(candidate.id)) status = 'superseded';
+      else if (world.supersededIds.has(candidate.id)) status = 'superseded';
       else if (refusal.get(candidate.id) !== null) status = 'refused';
       baseStatus.set(candidate.id, status);
     }
@@ -1106,12 +1187,12 @@ export const derive: Derive = (field, candidates, events, context) => {
     // --- Supersession by a declared revision (2.3): a newer revision's candidate for the same fact
     // supersedes the old one, unless a person checked the old one (then the two are compared).
     const status = new Map(baseStatus);
-    for (const old of candidates) {
+    for (const old of world.candidates) {
       if (baseStatus.get(old.id) !== 'eligible' || old.evidence.length === 0) continue;
-      if (isChecked(verification.get(old.id) ?? 'unverified')) continue;
+      if (isChecked(world.verification.get(old.id) ?? 'unverified')) continue;
       const citedByNewer = (documentId: string): boolean => {
-        const later = documents.successors(documentId);
-        return candidates.some(
+        const later = world.documents.successors(documentId);
+        return world.candidates.some(
           (other) =>
             other.id !== old.id &&
             baseStatus.get(other.id) === 'eligible' &&
@@ -1119,11 +1200,11 @@ export const derive: Derive = (field, candidates, events, context) => {
             other.evidence.some((evidence) => later.has(evidence.documentId)),
         );
       };
-      const live = old.evidence.filter((evidence) => !documents.removed(evidence.documentId));
+      const live = old.evidence.filter((evidence) => !world.documents.removed(evidence.documentId));
       if (live.length > 0 && live.every((evidence) => citedByNewer(evidence.documentId))) status.set(old.id, 'superseded');
     }
 
-    const eligible = candidates.filter((candidate) => status.get(candidate.id) === 'eligible').sort(byId);
+    const eligible = world.candidates.filter((candidate) => status.get(candidate.id) === 'eligible').sort(byId);
     const tally: ResolutionTally = { applied: new Set(), notRouted: new Set() };
 
     // --- Facts, and values with an unknown qualifier (rule 4, "What is compared").
@@ -1140,7 +1221,7 @@ export const derive: Derive = (field, candidates, events, context) => {
       else list.push(candidate);
     }
     const qualifiedFacts = [...byQualifier.entries()].map(([qualifier, members]) =>
-      resolveFact(field, { qualifier, members, setAside: [], setAsideByOwner: [] }, resolutions, verification, tally),
+      resolveFact(field, { qualifier, members, setAside: [], setAsideByOwner: [] }, world.resolutions, world.verification, tally),
     );
 
     // An unknown qualifier is compared with every qualified candidate of the same unit; with qualified
@@ -1174,7 +1255,7 @@ export const derive: Derive = (field, candidates, events, context) => {
         kind = matched.length === 0 ? 'unqualified_matches_none' : 'unqualified_matches_several';
         compared = [value, ...sameUnit.flatMap((fact) => fact.members)];
       }
-      const outcome = resolveUnqualified(field, value, compared, resolutions, verification, tally);
+      const outcome = resolveUnqualified(field, value, compared, world.resolutions, world.verification, tally);
       if (outcome.kind === 'alone') {
         unqualifiedAlone.push(value);
       } else if (outcome.kind === 'set_aside') {
@@ -1188,7 +1269,7 @@ export const derive: Derive = (field, candidates, events, context) => {
           kind,
           qualifier: null,
           candidateIds: ids(compared),
-          routedTo: routeOf(field, compared, verification),
+          routedTo: routeOf(field, compared, world.verification),
           proposedCandidateId: null,
         });
       }
@@ -1201,7 +1282,7 @@ export const derive: Derive = (field, candidates, events, context) => {
     });
     if (unqualifiedAlone.length > 0) {
       workingFacts.push(
-        resolveFact(field, { qualifier: null, members: unqualifiedAlone, setAside: [], setAsideByOwner: [] }, resolutions, verification, tally),
+        resolveFact(field, { qualifier: null, members: unqualifiedAlone, setAside: [], setAsideByOwner: [] }, world.resolutions, world.verification, tally),
       );
     }
 
@@ -1215,8 +1296,8 @@ export const derive: Derive = (field, candidates, events, context) => {
             kind,
             qualifier: fact.qualifier,
             candidateIds: ids(fact.members),
-            routedTo: routeOf(field, fact.members, verification),
-            proposedCandidateId: kind === 'values_differ' ? stageProposal(field, fact.members, context, documents, verification) : null,
+            routedTo: routeOf(field, fact.members, world.verification),
+            proposedCandidateId: kind === 'values_differ' ? stageProposal(field, fact.members, context, world.documents, world.verification) : null,
           };
           return { ...common, state: 'conflict', activeCandidateId: null, ambiguous: false, conflict, provisional: true, stale: false };
         }
@@ -1224,9 +1305,9 @@ export const derive: Derive = (field, candidates, events, context) => {
         if (fact.members.length === 1 && lone !== undefined && isAmbiguousReading(field, lone)) {
           return { ...common, state: 'known', activeCandidateId: null, ambiguous: true, conflict: null, provisional: true, stale: false };
         }
-        const active = [...fact.members].sort(activeOrder(verification))[0];
+        const active = [...fact.members].sort(activeOrder(world.verification))[0];
         if (active === undefined) throw new Error('a fact always holds a candidate');
-        const flags = provisionalAndStale(active, verification.get(active.id) ?? 'unverified', context);
+        const flags = provisionalAndStale(active, world.verification.get(active.id) ?? 'unverified', context);
         return { ...common, state: 'known', activeCandidateId: active.id, ambiguous: false, conflict: null, ...flags };
       })
       .sort((a, b) => (a.qualifier ?? '').localeCompare(b.qualifier ?? ''));
@@ -1235,28 +1316,57 @@ export const derive: Derive = (field, candidates, events, context) => {
     return { status, eligible, workingFacts, facts, conflicts, readingsToConfirm, tally };
   };
 
-  // --- A rejection by an engineer, or by the owner with no value of their own (rule 4, "Routing": "Conflicts on
-  // owner fields go to the owner", a conflict with an engineer_verified candidate goes to the engineer queue, and
-  // "Only the right person's resolution closes a conflict"): one that takes a side of an open conflict its author may
-  // not resolve holds no more than the same person's `conflict_resolved` would (`mayResolve`); it is listed, and the
-  // conflict stays with the person it is routed to. Outside any open conflict it holds as before.
-  let assessment = assess(rejectedIds);
-  if (heldRejections.length > 0) {
-    const before = assessment;
-    let applied = 0;
-    for (const held of heldRejections) {
-      const sides = before.conflicts.filter((conflict) => conflict.candidateIds.includes(held.candidate.id));
-      if (sides.some((conflict) => !mayResolve(field, conflict.routedTo, held.role))) {
-        refusedEvents.push({ kind: 'candidate', event: held.event, refusal: 'resolver_not_routed' });
-        continue;
-      }
-      applied += 1;
-      rejectedIds.add(held.candidate.id);
-      if (held.role === 'sovitech_engineer') engineerRejected.add(held.candidate.id);
-      else ownerRejected.push(held.candidate);
-    }
-    if (applied > 0) assessment = assess(rejectedIds);
+  // --- A lone rejection, an engineer's or the owner's with no value of their own (rule 4, "Routing": "Conflicts on
+  // owner fields go to the owner", a conflict with an engineer_verified candidate goes to the engineer queue, and "Only
+  // the right person's resolution closes a conflict"): one that takes a side of an open conflict its author may not
+  // resolve holds no more than the same person's `conflict_resolved` would (`mayResolve`); it is listed, and the
+  // conflict stays with the person it is routed to. Outside any open conflict it holds.
+  //
+  // Each is judged once, against the field just before it was made (phase 2, NP-A): the candidates created by then, the
+  // events recorded by then (so the routing then), and the rejections made earlier, each as it was judged. Rejections
+  // made at the same instant do not see each other. What arrives later leaves the judgement as it was: a rejection that
+  // held keeps its value out, and a later value forms its own comparison with the values still eligible (rule 5, "Never
+  // ask twice"; 2.4, "Eligible means not rejected"); one that was refused stays refused. A rejection whose time, or
+  // whose candidate's time, does not parse is judged last, against the field now with every other rejection as judged.
+  const byTime = (a: bigint, b: bigint): number => (a < b ? -1 : a > b ? 1 : 0);
+  const lone = rejections.filter(mayBeLone);
+  const holdsAgainst = (before: Assessment, rejection: Rejection): boolean =>
+    !before.conflicts.some(
+      (conflict) => conflict.candidateIds.includes(rejection.candidate.id) && !mayResolve(field, conflict.routedTo, rejection.event.role),
+    );
+  for (const at of [...new Set(lone.flatMap((rejection) => (rejection.madeAt === null ? [] : [rejection.madeAt])))].sort(byTime)) {
+    const then = worldAt(at, null);
+    const before = assess(then, rejectedIn(then, (rejection) => rejection.madeAt !== null && rejection.madeAt < at));
+    for (const rejection of lone) if (rejection.madeAt === at) judged.set(rejection, holdsAgainst(before, rejection));
   }
+  const now = worldAt(null, refusedEvents);
+  const undated = lone.filter((rejection) => rejection.madeAt === null);
+  if (undated.length > 0) {
+    const before = assess(now, rejectedIn(now, (rejection) => rejection.madeAt !== null));
+    for (const rejection of undated) judged.set(rejection, holdsAgainst(before, rejection));
+  }
+
+  // --- The rejections as they stand now.
+  const ownerRejected: Candidate[] = [];
+  const ownerNotes: Candidate[] = [];
+  const engineerRejected = new Set<string>();
+  const rejectedIds = new Set<string>();
+  for (const rejection of rejections) {
+    const { event, candidate } = rejection;
+    const kind = classify(rejection, now);
+    if (kind === 'correction' || (kind === 'lone' && judged.get(rejection) === true)) {
+      rejectedIds.add(candidate.id);
+      if (event.role === 'sovitech_engineer') engineerRejected.add(candidate.id);
+      else ownerRejected.push(candidate);
+    } else if (kind === 'lone') {
+      refusedEvents.push({ kind: 'candidate', event, refusal: 'resolver_not_routed' });
+    } else {
+      refusedEvents.push({ kind: 'candidate', event, refusal: kind });
+      if (kind === 'owner_rejection_without_value') ownerNotes.push(candidate);
+    }
+  }
+  const assessment = assess(now, rejectedIds);
+  const { verification, removedWithDocument } = now;
   const { status, eligible, workingFacts, facts, conflicts, tally } = assessment;
   const readingsToConfirm = [...assessment.readingsToConfirm];
 
@@ -1323,12 +1433,18 @@ export const derive: Derive = (field, candidates, events, context) => {
     fieldKey: field.key,
     state,
     activeCandidateId,
-    candidates: [...candidates].sort(byId).map((candidate) => ({
-      candidateId: candidate.id,
-      verification: verification.get(candidate.id) ?? 'unverified',
-      status: status.get(candidate.id) ?? 'eligible',
-      refusal: status.get(candidate.id) === 'refused' ? (refusal.get(candidate.id) ?? null) : null,
-    })),
+    candidates: [...candidates].sort(byId).map((candidate) => {
+      const candidateStatus = status.get(candidate.id) ?? 'eligible';
+      // Rule 3 and 2.3: the tier as the evidence that remains caps it, on a value that can be shown as current.
+      const confidence = candidateStatus === 'eligible' ? derivedConfidence(candidate, documents.removed) : undefined;
+      return {
+        candidateId: candidate.id,
+        verification: verification.get(candidate.id) ?? 'unverified',
+        status: candidateStatus,
+        refusal: candidateStatus === 'refused' ? (refusal.get(candidate.id) ?? null) : null,
+        ...(confidence === undefined ? {} : { confidence }),
+      };
+    }),
     facts,
     conflicts,
     conflict: merged,

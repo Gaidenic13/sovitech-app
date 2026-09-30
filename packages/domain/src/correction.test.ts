@@ -115,6 +115,29 @@ describe('planOwnerCorrection', () => {
     ]);
   });
 
+  test('F-VALUE-05 · rule 3 · G3-18: the tier logged is the one the owner was shown, capped by the evidence that remains, not the stored one', () => {
+    const typeField: FieldDefinition = { ...field({}), key: 'test.building.type', kind: 'enum', unit: undefined, qualifierRequired: undefined, qualifiers: undefined, options: ['hotel', 'office'] };
+    const label: DocumentRecord = { ...document, id: 'test-doc-label', contentHash: 'sha256:test-doc-label' };
+    const typeContext: DeriveContext = { ...context, document: (id) => [document, label].find((record) => record.id === id) };
+    const inferred: Candidate = {
+      id: 'test-cand-type',
+      subjectId: SUBJECT,
+      fieldKey: typeField.key,
+      choice: 'hotel',
+      source: 'ai_inference',
+      evidence: [
+        { documentId: label.id, contentHash: label.contentHash, locator: { page: 1 }, excerpt: 'Destinatia cladirii: hotel', check: 'text_match' },
+        { documentId: document.id, contentHash: document.contentHash, locator: { page: 1 }, excerpt: 'TEST camere', check: 'text_match' },
+      ],
+      confidence: 'high',
+      createdBy: 'test-extractor',
+      createdAt: '2026-09-25T09:00:00.000Z',
+    };
+    const state = derive(typeField, [inferred], { candidate: [], field: [], document: [{ documentId: label.id, type: 'withdrawn', by: 'test-owner', role: 'owner', at: '2026-09-25T09:30:00.000Z' }] }, typeContext);
+    const plan = planOwnerCorrection({ projectId: 'test-project', field: typeField, state, shown: inferred, value: { choice: 'office' }, candidateId: 'test-cand-owner', by: 'test-owner', at: '2026-09-25T10:00:00.000Z' });
+    expect(plan.guardrailEvents).toEqual([expect.objectContaining({ type: 'owner_corrected_inference', reason: 'confidence:medium' })]);
+  });
+
   test('a candidate the screen could not have shown is refused', () => {
     const f = field({});
     const shown = shownReading('document');

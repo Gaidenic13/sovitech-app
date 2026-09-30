@@ -345,6 +345,60 @@ export interface ProposalSnapshotFormulasTable {
   formula_version: string;
 }
 
+/** The detected format of a stored file (0010; the extraction contract's Format). */
+export type StoredFormat = 'pdf' | 'xlsx' | 'ifc' | 'rvt' | 'dwg' | 'docx' | 'jpg' | 'png' | 'zip' | 'other';
+
+/** 0010: the stored file of a document: its format code detected and its size. No file name (owner text lives in document_texts). */
+export interface DocumentFilesTable {
+  document_id: string;
+  project_id: string;
+  content_hash: string;
+  format: StoredFormat;
+  byte_size: ColumnType<string, number, never>;
+  created_by: string;
+  created_at: DatabaseTime;
+}
+
+/** 0010: a rule 14 finding of the extractor: a kind, a code and a locator, never text. */
+export interface DocumentFindingsTable {
+  id: string;
+  project_id: string;
+  document_id: string;
+  content_hash: string;
+  kind: 'embedded_instruction' | 'hidden_text' | 'schema_error' | 'hidden_content';
+  code: string;
+  locator: JSONColumnType<Record<string, unknown>>;
+  created_by: string;
+  created_at: DatabaseTime;
+}
+
+/** 0010: the engineer-only record of an IFC model (PRD R-023): codes, ids and counts only. */
+export interface DocumentModelRecordsTable {
+  id: string;
+  project_id: string;
+  document_id: string;
+  content_hash: string;
+  ifc_schema: string;
+  ifc_project_global_id: string | null;
+  classes_present: string[];
+  processing: 'complete' | 'partial' | 'failed';
+  schema_check_tool: string;
+  schema_check_version: string;
+  schema_check_outcome: 'no_problems' | 'problems' | 'not_run';
+  ids_results: ColumnType<Record<string, unknown> | null, string | null, never>;
+  created_by: string;
+  created_at: DatabaseTime;
+}
+
+/** 0010: the model id with every candidate the AI proposed (build-readiness 3 item 6). */
+export interface CandidateAiOriginsTable {
+  candidate_id: string;
+  project_id: string;
+  model_id: string;
+  created_by: string;
+  created_at: DatabaseTime;
+}
+
 /** Schema `sovitech`: the store opens Kysely with `withSchema('sovitech')`. */
 export interface Database {
   app_users: AppUsersTable;
@@ -375,4 +429,8 @@ export interface Database {
   proposal_snapshots: ProposalSnapshotsTable;
   proposal_snapshot_candidates: ProposalSnapshotCandidatesTable;
   proposal_snapshot_formulas: ProposalSnapshotFormulasTable;
+  document_files: DocumentFilesTable;
+  document_findings: DocumentFindingsTable;
+  document_model_records: DocumentModelRecordsTable;
+  candidate_ai_origins: CandidateAiOriginsTable;
 }

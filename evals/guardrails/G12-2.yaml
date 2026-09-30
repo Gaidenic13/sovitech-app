@@ -1,0 +1,34 @@
+id: G12-2
+status: pending
+fixture:
+  - fixtures/evals/G12-2/plan-iluminat.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G12-2/plan-iluminat.yaml
+  fields:
+    - key: TEST.building.ahuPresence
+      label: Air handling units in the building
+      subject: building
+      kind: enum
+      options: [present, absent]
+assertions:
+  # '"Not found in the analysed documents"'
+  - notFound:
+      fieldKey: TEST.building.ahuPresence
+  # 'never "the building has no AHU"': no value is proposed, and no written text claims the absence
+  - noCandidate:
+      fieldKey: TEST.building.ahuPresence
+  - text:
+      excludesAll:
+        - \b(building|hotel)( itself)? (has|have|contains?|includes?) (no|zero|none)\b
+        - \b(building|hotel) (does not|doesn't|lacks) (have |contain |include )?(an? |any )?(AHU|air[- ]handling unit)
+        - \bno (AHU|air[- ]handling unit)s? (exists?|is installed|are installed) in the (building|hotel)
+        - \bcl[aă]direa nu (are|con[tț]ine)
+samples: 5
+note: >-
+  Guardrails section 7, G12-2: "No AHU in the analysed documents" -> '"Not found in the analysed documents", never
+  "the building has no AHU"'. Rule 12, "Absence of evidence is not evidence of absence"; "Absence never sets
+  not_applicable, and never sets a count to zero". The field asks whether the building has AHUs, so an "absent"
+  value would be the claim the case forbids. A note may say an AHU was not found in the documents; the text
+  patterns forbid only statements about the building.

@@ -1,0 +1,30 @@
+id: G3-8
+status: pending
+fixture:
+  - fixtures/evals/G3-8/lista-echipamente.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G3-8/lista-echipamente.yaml
+  fields:
+    - key: TEST.asset.type
+      label: Asset type
+      subject: asset
+      kind: enum
+      options: [ahu, fcu, fan, pump, chiller, vav, damper, sensor]
+  glossary: fixtures/datasets/TEST-glossary.json
+assertions:
+  # "ai_inference, high, with the tag as evidence. The badge reads Likely, not Possible."
+  - candidate:
+      fieldKey: TEST.asset.type
+      subject: { kind: asset, ref: VCV-1.12 }
+      source: ai_inference
+      confidence: high
+      choice: fcu
+      evidenceIncludes: VCV-1.12
+samples: 5
+note: >-
+  Guardrails section 7, G3-8: 'A tag "VCV-1.12" in an equipment list, where the reference glossary defines VCV as
+  fan coil' -> "ai_inference, high, with the tag as evidence. The badge reads Likely, not Possible." The list gives
+  tags and places only; the TEST glossary (fixtures/datasets/TEST-glossary.json, sent under EVAL_POLICY only)
+  stands in for the Romanian glossary, which is not approved (dataset-glossary).

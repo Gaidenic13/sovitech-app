@@ -1,4 +1,3 @@
-// @pending-until: phase 2 verify-proposal
 /**
  * G2-2 (docs/guardrails.md section 7; 2.1 "code decides which of the two applies";
  * rule 1 check 5; rule 8 "Sheet counts never establish floor counts").
@@ -9,7 +8,7 @@
  * is not written in any excerpt (check 5 fails for `document`), and a direct count of
  * items at the cited locations is an allowed inference (rule 1).
  */
-import { expect } from 'vitest';
+import { expect, test } from 'vitest';
 import {
   verifyProposal,
   type CandidateProposal,
@@ -17,9 +16,6 @@ import {
   type FieldDefinition,
   type ProposalContext,
 } from '@sovitech/domain';
-import { pendingCase } from './_support/pending';
-
-const pending = pendingCase(import.meta.url);
 
 const PROJECT = 'test-project-g2-2';
 
@@ -85,7 +81,7 @@ const proposal: CandidateProposal = {
   })),
 };
 
-pending('F-EXTRACT-05 · G2-2: the AI labels a count of sheets as document: stored as ai_inference', () => {
+test('F-EXTRACT-05 · G2-2: the AI labels a count of sheets as document: stored as ai_inference', () => {
   const verdict = verifyProposal(proposal, context);
   expect(verdict.outcome).toBe('accepted');
   if (verdict.outcome !== 'accepted') return;

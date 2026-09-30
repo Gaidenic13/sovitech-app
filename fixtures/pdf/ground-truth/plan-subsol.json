@@ -1,0 +1,97 @@
+{
+  "about": "TEST ground truth of a synthetic PDF fixture (fictitious building, not a real project), written by fixtures/generators/pdf/companions.py with the PDF. `text` is exactly what the page's text layer holds (compare after normalising whitespace); pages with no text layer hold only an image. Case ids name what each value is for; they are not app outputs.",
+  "file": "fixtures/pdf/plan-subsol.pdf",
+  "testMarking": "DOCUMENT DE TEST: document sintetic, cladire fictiva. Nu este un proiect real.",
+  "pageCount": 1,
+  "pagesWithTextLayer": [
+    1
+  ],
+  "pagesWithoutTextLayer": [],
+  "values": [
+    {
+      "page": 1,
+      "text": "CTA-01",
+      "tag": "CTA-01",
+      "note": "Tag next to an equipment symbol on the plan"
+    },
+    {
+      "page": 1,
+      "text": "CTA-02",
+      "tag": "CTA-02",
+      "note": "Tag next to an equipment symbol on the plan"
+    },
+    {
+      "page": 1,
+      "text": "TA-01",
+      "tag": "TA-01",
+      "note": "Tag next to an equipment symbol on the plan"
+    },
+    {
+      "page": 1,
+      "text": "CH-01",
+      "tag": "CH-01",
+      "note": "Tag next to an equipment symbol on the plan"
+    },
+    {
+      "page": 1,
+      "text": "CH-02",
+      "tag": "CH-02",
+      "note": "Tag next to an equipment symbol on the plan"
+    },
+    {
+      "page": 1,
+      "text": "P1.1",
+      "tag": "P1.1",
+      "note": "Tag next to an equipment symbol on the plan"
+    },
+    {
+      "page": 1,
+      "text": "P1.2",
+      "tag": "P1.2",
+      "note": "Tag next to an equipment symbol on the plan"
+    },
+    {
+      "page": 1,
+      "text": "P2",
+      "tag": "P2",
+      "note": "Tag next to an equipment symbol on the plan"
+    },
+    {
+      "page": 1,
+      "text": "VE-P1",
+      "tag": "VE-P1",
+      "note": "Tag next to an equipment symbol on the plan"
+    },
+    {
+      "page": 1,
+      "text": "CTA-03",
+      "tag": "CTA-03",
+      "note": "Tag next to an equipment symbol on the plan"
+    },
+    {
+      "page": 1,
+      "text": "CTA = centrala de tratare a aerului",
+      "cases": [
+        "G3-1"
+      ],
+      "note": "The drawing legend defines the CTA prefix"
+    }
+  ],
+  "titleBlock": {
+    "stage": "PT",
+    "revision": "Rev. 01",
+    "code": "M-101",
+    "kind": "mep"
+  },
+  "hiddenText": [
+    {
+      "page": 1,
+      "text": "CH-02 putere frigorifica 510 kW",
+      "how": "white fill (1, 1, 1) on a white page",
+      "cases": [
+        "G14-2"
+      ],
+      "expected": "a hidden-text finding; no candidate (CH-02's capacity stays unknown, G1-1)"
+    }
+  ]
+}

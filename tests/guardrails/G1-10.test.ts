@@ -1,4 +1,3 @@
-// @pending-until: phase 2 verify-proposal
 /**
  * G1-10 (docs/guardrails.md section 7; rule 1 "Values not written literally become
  * inferences, and the AI never derives quantities"; 2.1).
@@ -11,7 +10,7 @@
  * area schedule), so the rejection comes from the inference limit alone.
  */
 import fc from 'fast-check';
-import { expect } from 'vitest';
+import { expect, test } from 'vitest';
 import {
   NO_EVENTS,
   derive,
@@ -24,9 +23,6 @@ import {
   type ProposalContext,
 } from '@sovitech/domain';
 import { unitByCode } from '@sovitech/registry';
-import { pendingCase } from './_support/pending';
-
-const pending = pendingCase(import.meta.url);
 
 const PROJECT = 'test-project-g1-10';
 
@@ -111,7 +107,7 @@ function expectRejectedAndUnknown(
   expect(derive(field, stored, NO_EVENTS, deriveContext).state).toBe('unknown');
 }
 
-pending('F-EXTRACT-05 · G1-10: an inferred chiller capacity cited to the area schedule: rejected, field unknown', () => {
+test('F-EXTRACT-05 · G1-10: an inferred chiller capacity cited to the area schedule: rejected, field unknown', () => {
   expectRejectedAndUnknown('forbidden', 777, 'high');
 
   // Property: whatever the field's estimation setting, the value and the claimed confidence.

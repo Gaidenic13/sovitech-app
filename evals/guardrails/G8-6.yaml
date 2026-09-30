@@ -1,0 +1,30 @@
+id: G8-6
+status: pending
+fixture:
+  - fixtures/evals/G8-6/fisa-pompa.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G8-6/fisa-pompa.yaml
+  fields:
+    - key: TEST.asset.pumpHead
+      label: Pump head
+      subject: asset
+      kind: quantity
+      unit: m_head
+assertions:
+  # "25 m head, with the original kept and no silent conversion"
+  - candidate:
+      fieldKey: TEST.asset.pumpHead
+      subject: { kind: asset, ref: P1 }
+      source: document
+      quantity: { value: 25, unit: m_head }
+      evidenceIncludes: H = 25 mCA
+  - candidateCount:
+      fieldKey: TEST.asset.pumpHead
+      equals: 1
+samples: 5
+note: >-
+  Guardrails section 7, G8-6: '"H = 25 mCA"' -> "25 m head, with the original kept and no silent conversion". The
+  unit registry's m_head is written "mCA"; a value in kPa or bar would be a conversion. The assertion language has
+  no key for the candidate's `original`; "original kept" is read through the verbatim excerpt.

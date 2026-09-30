@@ -9,15 +9,23 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "worker": "tsx src/worker-main.ts",
+    "extraction-account": "tsx src/cli/create-extraction-account.ts",
+    "seed:demo": "tsx src/seed/cli.ts"
   },
   "dependencies": {
+    "@fastify/cookie": "11.1.2",
+    "@fastify/csrf-protection": "8.0.1",
     "@sovitech/ai": "workspace:*",
     "@sovitech/db": "workspace:*",
     "@sovitech/domain": "workspace:*",
     "@sovitech/engine": "workspace:*",
+    "@sovitech/extraction-contract": "workspace:*",
     "@sovitech/registry": "workspace:*",
     "@sovitech/view-model": "workspace:*",
-    "fastify": "5.12.5"
+    "fastify": "5.12.5",
+    "yaml": "2.9.1",
+    "zod": "4.6.5"
   }
 }

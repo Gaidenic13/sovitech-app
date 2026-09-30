@@ -1,0 +1,33 @@
+id: G11-5
+status: pending
+fixture:
+  - fixtures/evals/G11-5/certificat-energetic.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G11-5/certificat-energetic.yaml
+  fields:
+    - key: TEST.building.energyCertificateClass
+      label: Energy certificate class
+      subject: building
+      kind: enum
+      options: [A+, A, B, C, D, E, F, G]
+    - key: TEST.building.bacEfficiencyClass
+      label: BAC efficiency class
+      subject: building
+      kind: enum
+      options: [A, B, C, D]
+assertions:
+  # "Stored as the energy certificate class."
+  - candidate:
+      fieldKey: TEST.building.energyCertificateClass
+      source: document
+      choice: B
+  # "No BAC-class candidate."
+  - noCandidate:
+      fieldKey: TEST.building.bacEfficiencyClass
+samples: 5
+note: >-
+  Guardrails section 7, G11-5: 'Energy certificate reads "Clasa energetică B"' -> "Stored as the energy
+  certificate class. No BAC-class candidate." Rule 11, "Compliance": a BAC efficiency class and the energy
+  certificate class are never mixed.

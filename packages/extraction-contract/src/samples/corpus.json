@@ -1,0 +1,3046 @@
+{
+  "about": "Shared test corpus of the extraction contract. Both languages parse every case and must reach its expected verdict: 'valid', 'schema' (refused by the structure), or the sorted list of invariant ids it breaks. An invalid case is a valid case ('base') with a patch: 'set' puts a value at a JSON Pointer ('-' appends to a list), 'remove' deletes it. Pairs check outputAnswersRequest / output_answers_request: 'expect' lists the pointers of the problems. Test data only: every value is synthetic and marked TEST.",
+  "cases": [
+    {
+      "name": "pdf-analysed",
+      "entry": "ExtractionOutput",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "producer": {
+          "name": "sovitech-extractor",
+          "version": "0.1.0",
+          "libraries": [
+            {
+              "name": "pypdfium2",
+              "version": "5.13.0"
+            },
+            {
+              "name": "openpyxl",
+              "version": "3.1.5"
+            }
+          ]
+        },
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "format": "pdf",
+        "analysis": {
+          "status": "analysed"
+        },
+        "coverage": {
+          "pages": {
+            "total": 2,
+            "read": [
+              {
+                "first": 1,
+                "last": 2
+              }
+            ],
+            "unread": []
+          }
+        },
+        "pdf": {
+          "pages": [
+            {
+              "page": 1,
+              "mediaBox": [
+                0,
+                0,
+                595.28,
+                841.89
+              ],
+              "rotation": 0,
+              "blocks": [
+                {
+                  "anchorId": "p1-b1",
+                  "text": "Memoriu TEST\nAria TEST 7.35 mp",
+                  "bbox": [
+                    56.7,
+                    700.1,
+                    300.2,
+                    760.4
+                  ],
+                  "charBoxes": [
+                    {
+                      "start": 0,
+                      "end": 7,
+                      "box": [
+                        56.7,
+                        745.0,
+                        110.3,
+                        760.4
+                      ]
+                    },
+                    {
+                      "start": 8,
+                      "end": 12,
+                      "box": [
+                        112.0,
+                        745.0,
+                        140.9,
+                        760.4
+                      ]
+                    }
+                  ],
+                  "hidden": []
+                },
+                {
+                  "anchorId": "p1-b2",
+                  "text": "Putere TEST 9.5 kW",
+                  "bbox": [
+                    56.7,
+                    20.0,
+                    200.0,
+                    26.0
+                  ],
+                  "charBoxes": [],
+                  "hidden": [
+                    "fill_matches_background"
+                  ]
+                }
+              ]
+            },
+            {
+              "page": 2,
+              "mediaBox": [
+                0,
+                0,
+                595.28,
+                841.89
+              ],
+              "rotation": 90,
+              "blocks": [
+                {
+                  "anchorId": "p2-b1",
+                  "text": "Schema TEST CTA-T1",
+                  "bbox": [
+                    60.0,
+                    500.0,
+                    220.0,
+                    520.0
+                  ],
+                  "charBoxes": [],
+                  "hidden": [],
+                  "layer": "Adnotari TEST"
+                },
+                {
+                  "anchorId": "p2-b2",
+                  "text": "Nota TEST pentru cititor",
+                  "bbox": [
+                    60.0,
+                    400.0,
+                    260.0,
+                    420.0
+                  ],
+                  "charBoxes": [],
+                  "hidden": []
+                }
+              ]
+            }
+          ]
+        },
+        "findings": [
+          {
+            "kind": "hidden_text",
+            "code": "pdf.fill_matches_background",
+            "locator": {
+              "kind": "pdf",
+              "page": 1,
+              "anchorId": "p1-b2"
+            }
+          },
+          {
+            "kind": "embedded_instruction",
+            "code": "instruction.state_change",
+            "locator": {
+              "kind": "pdf",
+              "page": 2,
+              "anchorId": "p2-b2",
+              "bbox": [
+                60.0,
+                400.0,
+                260.0,
+                420.0
+              ]
+            }
+          }
+        ],
+        "derivatives": [
+          {
+            "kind": "page_image",
+            "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+            "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "relativePath": "0192f0a0-0000-7000-8000-00000000c0a1/sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/derived/page-1.png",
+            "sha256": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+            "mediaType": "image/png",
+            "producer": {
+              "name": "sovitech-extractor",
+              "version": "0.1.0"
+            },
+            "page": 1
+          },
+          {
+            "kind": "thumbnail",
+            "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+            "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "relativePath": "0192f0a0-0000-7000-8000-00000000c0a1/sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/derived/thumbnail.webp",
+            "sha256": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+            "mediaType": "image/webp",
+            "producer": {
+              "name": "sovitech-extractor",
+              "version": "0.1.0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "pdf-partly-analysed",
+      "entry": "ExtractionOutput",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "producer": {
+          "name": "sovitech-extractor",
+          "version": "0.1.0",
+          "libraries": [
+            {
+              "name": "pypdfium2",
+              "version": "5.13.0"
+            },
+            {
+              "name": "openpyxl",
+              "version": "3.1.5"
+            }
+          ]
+        },
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "format": "pdf",
+        "analysis": {
+          "status": "partly_analysed",
+          "unit": "pages",
+          "read": 3,
+          "total": 5
+        },
+        "coverage": {
+          "pages": {
+            "total": 5,
+            "read": [
+              {
+                "first": 1,
+                "last": 2
+              },
+              {
+                "first": 4,
+                "last": 4
+              }
+            ],
+            "unread": [
+              {
+                "first": 3,
+                "last": 3,
+                "reason": "no_text_layer"
+              },
+              {
+                "first": 5,
+                "last": 5,
+                "reason": "no_text_layer"
+              }
+            ]
+          }
+        },
+        "pdf": {
+          "pages": [
+            {
+              "page": 1,
+              "mediaBox": [
+                0,
+                0,
+                595.28,
+                841.89
+              ],
+              "rotation": 0,
+              "blocks": [
+                {
+                  "anchorId": "p1-b1",
+                  "text": "Pagina TEST unu",
+                  "bbox": [
+                    50,
+                    50,
+                    150,
+                    70
+                  ],
+                  "charBoxes": [],
+                  "hidden": []
+                }
+              ]
+            },
+            {
+              "page": 2,
+              "mediaBox": [
+                0,
+                0,
+                595.28,
+                841.89
+              ],
+              "rotation": 0,
+              "blocks": []
+            },
+            {
+              "page": 4,
+              "mediaBox": [
+                0,
+                0,
+                595.28,
+                841.89
+              ],
+              "rotation": 0,
+              "blocks": [
+                {
+                  "anchorId": "p4-b1",
+                  "text": "Pagina TEST patru",
+                  "bbox": [
+                    50,
+                    50,
+                    150,
+                    70
+                  ],
+                  "charBoxes": [],
+                  "hidden": []
+                }
+              ]
+            }
+          ]
+        },
+        "findings": [],
+        "derivatives": []
+      }
+    },
+    {
+      "name": "pdf-scan-stored-only",
+      "entry": "ExtractionOutput",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "producer": {
+          "name": "sovitech-extractor",
+          "version": "0.1.0",
+          "libraries": [
+            {
+              "name": "pypdfium2",
+              "version": "5.13.0"
+            },
+            {
+              "name": "openpyxl",
+              "version": "3.1.5"
+            }
+          ]
+        },
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "format": "pdf",
+        "analysis": {
+          "status": "stored_only",
+          "formatWord": "PDF scan"
+        },
+        "coverage": {
+          "pages": {
+            "total": 2,
+            "read": [],
+            "unread": [
+              {
+                "first": 1,
+                "last": 2,
+                "reason": "no_text_layer"
+              }
+            ]
+          }
+        },
+        "findings": [],
+        "derivatives": []
+      }
+    },
+    {
+      "name": "pdf-failed",
+      "entry": "ExtractionOutput",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "producer": {
+          "name": "sovitech-extractor",
+          "version": "0.1.0",
+          "libraries": [
+            {
+              "name": "pypdfium2",
+              "version": "5.13.0"
+            },
+            {
+              "name": "openpyxl",
+              "version": "3.1.5"
+            }
+          ]
+        },
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "format": "pdf",
+        "analysis": {
+          "status": "failed",
+          "reason": "encrypted"
+        },
+        "coverage": {},
+        "findings": [],
+        "derivatives": []
+      }
+    },
+    {
+      "name": "xlsx-analysed",
+      "entry": "ExtractionOutput",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "producer": {
+          "name": "sovitech-extractor",
+          "version": "0.1.0",
+          "libraries": [
+            {
+              "name": "pypdfium2",
+              "version": "5.13.0"
+            },
+            {
+              "name": "openpyxl",
+              "version": "3.1.5"
+            }
+          ]
+        },
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "format": "xlsx",
+        "analysis": {
+          "status": "analysed"
+        },
+        "coverage": {
+          "sheets": [
+            {
+              "sheet": "Camere",
+              "status": "read"
+            },
+            {
+              "sheet": "Ascuns",
+              "status": "read"
+            }
+          ]
+        },
+        "xlsx": {
+          "sheets": [
+            {
+              "name": "Camere",
+              "visibility": "visible",
+              "cells": [
+                {
+                  "ref": "A1",
+                  "valueType": "shared_string",
+                  "raw": "Camera TEST",
+                  "numberFormat": "General",
+                  "hidden": []
+                },
+                {
+                  "ref": "B2",
+                  "valueType": "number",
+                  "raw": "17.25",
+                  "numberFormat": "#,##0.00",
+                  "hidden": []
+                },
+                {
+                  "ref": "B3",
+                  "valueType": "number",
+                  "raw": "3",
+                  "numberFormat": "General",
+                  "formula": "COUNTA(A4:A6)",
+                  "hidden": [
+                    "hidden_row"
+                  ]
+                }
+              ],
+              "mergedRanges": [
+                "A1:B1"
+              ]
+            },
+            {
+              "name": "Ascuns",
+              "visibility": "hidden",
+              "cells": [
+                {
+                  "ref": "A1",
+                  "valueType": "inline_string",
+                  "raw": "Nota TEST ascunsa",
+                  "numberFormat": "General",
+                  "hidden": [
+                    "hidden_sheet"
+                  ]
+                }
+              ],
+              "mergedRanges": []
+            }
+          ]
+        },
+        "findings": [
+          {
+            "kind": "hidden_text",
+            "code": "xlsx.hidden_row",
+            "locator": {
+              "kind": "xlsx",
+              "sheet": "Camere",
+              "cell": "B3"
+            }
+          },
+          {
+            "kind": "hidden_text",
+            "code": "xlsx.hidden_sheet",
+            "locator": {
+              "kind": "xlsx",
+              "sheet": "Ascuns"
+            }
+          }
+        ],
+        "derivatives": [
+          {
+            "kind": "thumbnail",
+            "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+            "contentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "relativePath": "0192f0a0-0000-7000-8000-00000000c0a1/sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/derived/thumbnail.png",
+            "sha256": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+            "mediaType": "image/png",
+            "producer": {
+              "name": "sovitech-extractor",
+              "version": "0.1.0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "xlsx-partly-analysed-sheets",
+      "entry": "ExtractionOutput",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "producer": {
+          "name": "sovitech-extractor",
+          "version": "0.1.0",
+          "libraries": [
+            {
+              "name": "pypdfium2",
+              "version": "5.13.0"
+            },
+            {
+              "name": "openpyxl",
+              "version": "3.1.5"
+            }
+          ]
+        },
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "format": "xlsx",
+        "analysis": {
+          "status": "partly_analysed",
+          "unit": "sheets",
+          "read": 2,
+          "total": 3
+        },
+        "coverage": {
+          "sheets": [
+            {
+              "sheet": "Camere",
+              "status": "read"
+            },
+            {
+              "sheet": "Ascuns",
+              "status": "read"
+            },
+            {
+              "sheet": "Grafic",
+              "status": "not_read",
+              "reason": "chart_sheet"
+            }
+          ]
+        },
+        "xlsx": {
+          "sheets": [
+            {
+              "name": "Camere",
+              "visibility": "visible",
+              "cells": [
+                {
+                  "ref": "A1",
+                  "valueType": "shared_string",
+                  "raw": "Camera TEST",
+                  "numberFormat": "General",
+                  "hidden": []
+                },
+                {
+                  "ref": "B2",
+                  "valueType": "number",
+                  "raw": "17.25",
+                  "numberFormat": "#,##0.00",
+                  "hidden": []
+                },
+                {
+                  "ref": "B3",
+                  "valueType": "number",
+                  "raw": "3",
+                  "numberFormat": "General",
+                  "formula": "COUNTA(A4:A6)",
+                  "hidden": [
+                    "hidden_row"
+                  ]
+                }
+              ],
+              "mergedRanges": [
+                "A1:B1"
+              ]
+            },
+            {
+              "name": "Ascuns",
+              "visibility": "hidden",
+              "cells": [
+                {
+                  "ref": "A1",
+                  "valueType": "inline_string",
+                  "raw": "Nota TEST ascunsa",
+                  "numberFormat": "General",
+                  "hidden": [
+                    "hidden_sheet"
+                  ]
+                }
+              ],
+              "mergedRanges": []
+            }
+          ]
+        },
+        "findings": [
+          {
+            "kind": "hidden_text",
+            "code": "xlsx.hidden_row",
+            "locator": {
+              "kind": "xlsx",
+              "sheet": "Camere",
+              "cell": "B3"
+            }
+          },
+          {
+            "kind": "hidden_text",
+            "code": "xlsx.hidden_sheet",
+            "locator": {
+              "kind": "xlsx",
+              "sheet": "Ascuns"
+            }
+          }
+        ],
+        "derivatives": [
+          {
+            "kind": "thumbnail",
+            "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+            "contentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "relativePath": "0192f0a0-0000-7000-8000-00000000c0a1/sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/derived/thumbnail.png",
+            "sha256": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+            "mediaType": "image/png",
+            "producer": {
+              "name": "sovitech-extractor",
+              "version": "0.1.0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ifc-gate-closed",
+      "entry": "ExtractionOutput",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "producer": {
+          "name": "sovitech-extractor",
+          "version": "0.1.0",
+          "libraries": [
+            {
+              "name": "pypdfium2",
+              "version": "5.13.0"
+            },
+            {
+              "name": "openpyxl",
+              "version": "3.1.5"
+            }
+          ]
+        },
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "format": "ifc",
+        "analysis": {
+          "status": "stored_only",
+          "formatWord": "IFC model"
+        },
+        "coverage": {
+          "ifc": {
+            "classesRead": [
+              "IfcProject",
+              "IfcBuildingStorey",
+              "IfcSpace"
+            ],
+            "notRead": [
+              {
+                "scope": "geometry",
+                "reason": "geometry.not_requested",
+                "globalIds": [],
+                "stepIds": []
+              },
+              {
+                "scope": "element",
+                "reason": "element.unresolved_reference",
+                "ifcClass": "IfcBuildingElementProxy",
+                "globalIds": [
+                  "0TESTGLOBALID000000031"
+                ],
+                "stepIds": [
+                  4107
+                ]
+              }
+            ]
+          }
+        },
+        "ifcModel": {
+          "header": {
+            "schema": "IFC4",
+            "authoringTool": "Generator TEST fictiv",
+            "ifcProjectGlobalId": "0TESTGLOBALID000000001"
+          },
+          "classesPresent": [
+            "IfcProject",
+            "IfcBuildingStorey",
+            "IfcSpace",
+            "IfcUnitaryEquipment",
+            "IfcBuildingElementProxy"
+          ],
+          "processing": "complete",
+          "schemaCheck": {
+            "tool": {
+              "name": "ifcopenshell.validate",
+              "version": "0.8.5"
+            },
+            "outcome": "problems"
+          },
+          "ids": {
+            "ids": {
+              "id": "sovitech-ifc-minimum",
+              "version": "0.1",
+              "draft": true,
+              "sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+            },
+            "tool": {
+              "name": "ifctester",
+              "version": "0.8.5"
+            },
+            "specifications": [
+              {
+                "specId": "S01",
+                "outcome": "pass",
+                "applicable": 3,
+                "passed": 3,
+                "failed": 0,
+                "failingGlobalIds": []
+              },
+              {
+                "specId": "S03",
+                "outcome": "fail",
+                "applicable": 4,
+                "passed": 2,
+                "failed": 2,
+                "failingGlobalIds": [
+                  "0TESTGLOBALID000000021",
+                  "0TESTGLOBALID000000022"
+                ]
+              },
+              {
+                "specId": "S10",
+                "outcome": "not_applicable",
+                "applicable": 0,
+                "passed": 0,
+                "failed": 0,
+                "failingGlobalIds": []
+              }
+            ]
+          }
+        },
+        "findings": [
+          {
+            "kind": "schema_error",
+            "code": "ifc.schema.inverse_cardinality",
+            "locator": {
+              "kind": "ifc",
+              "globalId": "0TESTGLOBALID000000031",
+              "stepIds": [
+                4107
+              ],
+              "ifcClass": "IfcBuildingElementProxy"
+            }
+          },
+          {
+            "kind": "embedded_instruction",
+            "code": "instruction.verification_claim",
+            "locator": {
+              "kind": "ifc",
+              "globalId": "0TESTGLOBALID000000032",
+              "stepIds": [
+                5210
+              ]
+            }
+          },
+          {
+            "kind": "hidden_content",
+            "code": "ifc.layer_off",
+            "locator": {
+              "kind": "ifc",
+              "globalId": "0TESTGLOBALID000000033",
+              "stepIds": [
+                6301,
+                6302
+              ]
+            }
+          },
+          {
+            "kind": "schema_error",
+            "code": "ifc.header.file_name_missing",
+            "locator": {
+              "kind": "file"
+            }
+          }
+        ],
+        "derivatives": [
+          {
+            "kind": "glb",
+            "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+            "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "relativePath": "0192f0a0-0000-7000-8000-00000000c0a1/sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/derived/model.glb",
+            "sha256": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+            "mediaType": "model/gltf-binary",
+            "producer": {
+              "name": "sovitech-extractor",
+              "version": "0.1.0"
+            }
+          },
+          {
+            "kind": "svg_plan",
+            "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+            "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "relativePath": "0192f0a0-0000-7000-8000-00000000c0a1/sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/derived/plan-a.svg",
+            "sha256": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+            "mediaType": "image/svg+xml",
+            "producer": {
+              "name": "sovitech-extractor",
+              "version": "0.1.0"
+            },
+            "storeyGlobalId": "0TESTGLOBALID000000002"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ifc-with-values",
+      "entry": "ExtractionOutput",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "producer": {
+          "name": "sovitech-extractor",
+          "version": "0.1.0",
+          "libraries": [
+            {
+              "name": "pypdfium2",
+              "version": "5.13.0"
+            },
+            {
+              "name": "openpyxl",
+              "version": "3.1.5"
+            }
+          ]
+        },
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "format": "ifc",
+        "analysis": {
+          "status": "stored_only",
+          "formatWord": "IFC model"
+        },
+        "coverage": {
+          "ifc": {
+            "classesRead": [
+              "IfcProject",
+              "IfcBuildingStorey",
+              "IfcSpace"
+            ],
+            "notRead": [
+              {
+                "scope": "geometry",
+                "reason": "geometry.not_requested",
+                "globalIds": [],
+                "stepIds": []
+              },
+              {
+                "scope": "element",
+                "reason": "element.unresolved_reference",
+                "ifcClass": "IfcBuildingElementProxy",
+                "globalIds": [
+                  "0TESTGLOBALID000000031"
+                ],
+                "stepIds": [
+                  4107
+                ]
+              }
+            ]
+          }
+        },
+        "ifcModel": {
+          "header": {
+            "schema": "IFC4",
+            "authoringTool": "Generator TEST fictiv",
+            "ifcProjectGlobalId": "0TESTGLOBALID000000001"
+          },
+          "classesPresent": [
+            "IfcProject",
+            "IfcBuildingStorey",
+            "IfcSpace",
+            "IfcUnitaryEquipment",
+            "IfcBuildingElementProxy"
+          ],
+          "processing": "complete",
+          "schemaCheck": {
+            "tool": {
+              "name": "ifcopenshell.validate",
+              "version": "0.8.5"
+            },
+            "outcome": "problems"
+          },
+          "ids": {
+            "ids": {
+              "id": "sovitech-ifc-minimum",
+              "version": "0.1",
+              "draft": true,
+              "sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+            },
+            "tool": {
+              "name": "ifctester",
+              "version": "0.8.5"
+            },
+            "specifications": [
+              {
+                "specId": "S01",
+                "outcome": "pass",
+                "applicable": 3,
+                "passed": 3,
+                "failed": 0,
+                "failingGlobalIds": []
+              },
+              {
+                "specId": "S03",
+                "outcome": "fail",
+                "applicable": 4,
+                "passed": 2,
+                "failed": 2,
+                "failingGlobalIds": [
+                  "0TESTGLOBALID000000021",
+                  "0TESTGLOBALID000000022"
+                ]
+              },
+              {
+                "specId": "S10",
+                "outcome": "not_applicable",
+                "applicable": 0,
+                "passed": 0,
+                "failed": 0,
+                "failingGlobalIds": []
+              }
+            ]
+          }
+        },
+        "ifcValues": {
+          "facts": [
+            {
+              "id": "f-cta-tag",
+              "locator": {
+                "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schema": "IFC4",
+                "globalId": "0TESTGLOBALID000000041",
+                "stepIds": [
+                  812
+                ],
+                "path": {
+                  "kind": "attribute",
+                  "through": "occurrence",
+                  "attribute": "Tag"
+                }
+              },
+              "value": {
+                "kind": "string",
+                "ifcType": "IFCIDENTIFIER",
+                "token": "'CTA-T1'",
+                "text": "CTA-T1"
+              },
+              "excerpt": "#812=IFCUNITARYEQUIPMENT('0TESTGLOBALID000000041',#5,'CTA-T1 Central\\X2\\0103\\X0\\ TEST',$,$,#813,#814,'CTA-T1',.AIRHANDLER.);"
+            },
+            {
+              "id": "f-cta-class",
+              "locator": {
+                "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schema": "IFC4",
+                "globalId": "0TESTGLOBALID000000041",
+                "stepIds": [
+                  812
+                ],
+                "path": {
+                  "kind": "attribute",
+                  "through": "occurrence",
+                  "attribute": "PredefinedType"
+                }
+              },
+              "value": {
+                "kind": "enumeration",
+                "token": ".AIRHANDLER."
+              },
+              "excerpt": "#812=IFCUNITARYEQUIPMENT('0TESTGLOBALID000000041',#5,'CTA-T1 Central\\X2\\0103\\X0\\ TEST',$,$,#813,#814,'CTA-T1',.AIRHANDLER.);"
+            },
+            {
+              "id": "f-cta-flow",
+              "locator": {
+                "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schema": "IFC4",
+                "globalId": "0TESTGLOBALID000000041",
+                "stepIds": [
+                  901,
+                  902
+                ],
+                "path": {
+                  "kind": "property",
+                  "through": "type_object",
+                  "propertySet": "Pset TEST Debit",
+                  "property": "Debit nominal"
+                }
+              },
+              "value": {
+                "kind": "real",
+                "ifcType": "IFCVOLUMETRICFLOWRATEMEASURE",
+                "token": "1.75"
+              },
+              "declaredUnit": {
+                "source": "project_unit_assignment",
+                "stepId": 31,
+                "unitKind": "derived",
+                "unitType": "VOLUMETRICFLOWRATEUNIT",
+                "name": "m3/s TEST"
+              },
+              "excerpt": "#901=IFCPROPERTYSINGLEVALUE('Debit nominal',$,IFCVOLUMETRICFLOWRATEMEASURE(1.75),$);\n#902=IFCPROPERTYSET('0TESTGLOBALID000000042',#5,'Pset TEST Debit',$,(#901));"
+            },
+            {
+              "id": "f-space-area",
+              "locator": {
+                "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schema": "IFC4",
+                "globalId": "0TESTGLOBALID000000043",
+                "stepIds": [
+                  1203
+                ],
+                "path": {
+                  "kind": "quantity",
+                  "through": "occurrence",
+                  "quantitySet": "Qto_SpaceBaseQuantities",
+                  "quantity": "NetFloorArea"
+                }
+              },
+              "value": {
+                "kind": "real",
+                "ifcType": "IFCAREAMEASURE",
+                "token": "13.5"
+              },
+              "excerpt": "#1203=IFCQUANTITYAREA('NetFloorArea',$,$,13.5,$);"
+            },
+            {
+              "id": "f-storey",
+              "locator": {
+                "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schema": "IFC4",
+                "globalId": "0TESTGLOBALID000000041",
+                "stepIds": [
+                  1500
+                ],
+                "path": {
+                  "kind": "relation",
+                  "relation": "contained_in_spatial_structure",
+                  "relatedGlobalId": "0TESTGLOBALID000000002"
+                }
+              },
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "reference",
+                    "stepId": 812
+                  }
+                ]
+              },
+              "excerpt": "#1500=IFCRELCONTAINEDINSPATIALSTRUCTURE('0TESTGLOBALID000000044',#5,$,$,(#812),#60);"
+            },
+            {
+              "id": "f-unset",
+              "locator": {
+                "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schema": "IFC4",
+                "globalId": "0TESTGLOBALID000000045",
+                "stepIds": [
+                  1601
+                ],
+                "path": {
+                  "kind": "attribute",
+                  "through": "occurrence",
+                  "attribute": "Description"
+                }
+              },
+              "value": {
+                "kind": "unset"
+              },
+              "excerpt": "#1601=IFCPUMP('0TESTGLOBALID000000045',#5,'P-T1',$,$,#1602,#1603,$,.CIRCULATOR.);"
+            }
+          ],
+          "candidateProposals": [
+            {
+              "id": "p-cta-flow",
+              "subject": {
+                "kind": "asset",
+                "elementGlobalId": "0TESTGLOBALID000000041"
+              },
+              "fieldKey": "asset.airflow",
+              "sourceClaim": "document",
+              "mechanism": "direct_read",
+              "requiresGates": [
+                "ifc-values",
+                "ifc-units"
+              ],
+              "datasets": [
+                {
+                  "id": "TEST-ifc-property-map",
+                  "version": "0.0.1"
+                }
+              ],
+              "value": {
+                "kind": "fact",
+                "factId": "f-cta-flow"
+              },
+              "evidenceFactIds": [
+                "f-cta-flow"
+              ]
+            },
+            {
+              "id": "p-cta-type",
+              "subject": {
+                "kind": "asset",
+                "elementGlobalId": "0TESTGLOBALID000000041"
+              },
+              "fieldKey": "asset.type",
+              "sourceClaim": "ai_inference",
+              "mechanism": "class_mapping",
+              "requiresGates": [
+                "ifc-values",
+                "ifc-code-inference",
+                "dataset-asset-taxonomy"
+              ],
+              "datasets": [
+                {
+                  "id": "TEST-ifc-class-map",
+                  "version": "0.0.1"
+                }
+              ],
+              "value": {
+                "kind": "choice",
+                "choice": "ahu"
+              },
+              "evidenceFactIds": [
+                "f-cta-class"
+              ],
+              "confidence": "high"
+            },
+            {
+              "id": "p-cta-tag",
+              "subject": {
+                "kind": "asset",
+                "elementGlobalId": "0TESTGLOBALID000000041"
+              },
+              "fieldKey": "asset.tag",
+              "sourceClaim": "document",
+              "mechanism": "tag_source",
+              "requiresGates": [
+                "ifc-values",
+                "ifc-identity"
+              ],
+              "datasets": [],
+              "value": {
+                "kind": "fact",
+                "factId": "f-cta-tag"
+              },
+              "evidenceFactIds": [
+                "f-cta-tag"
+              ]
+            },
+            {
+              "id": "p-space-area",
+              "subject": {
+                "kind": "zone",
+                "elementGlobalId": "0TESTGLOBALID000000043"
+              },
+              "fieldKey": "zone.area",
+              "sourceClaim": "document",
+              "mechanism": "quantity_set_area",
+              "requiresGates": [
+                "ifc-values",
+                "ifc-areas"
+              ],
+              "datasets": [
+                {
+                  "id": "TEST-ifc-property-map",
+                  "version": "0.0.1"
+                }
+              ],
+              "value": {
+                "kind": "fact",
+                "factId": "f-space-area"
+              },
+              "evidenceFactIds": [
+                "f-space-area"
+              ]
+            }
+          ]
+        },
+        "findings": [
+          {
+            "kind": "schema_error",
+            "code": "ifc.schema.inverse_cardinality",
+            "locator": {
+              "kind": "ifc",
+              "globalId": "0TESTGLOBALID000000031",
+              "stepIds": [
+                4107
+              ],
+              "ifcClass": "IfcBuildingElementProxy"
+            }
+          },
+          {
+            "kind": "embedded_instruction",
+            "code": "instruction.verification_claim",
+            "locator": {
+              "kind": "ifc",
+              "globalId": "0TESTGLOBALID000000032",
+              "stepIds": [
+                5210
+              ]
+            }
+          },
+          {
+            "kind": "hidden_content",
+            "code": "ifc.layer_off",
+            "locator": {
+              "kind": "ifc",
+              "globalId": "0TESTGLOBALID000000033",
+              "stepIds": [
+                6301,
+                6302
+              ]
+            }
+          },
+          {
+            "kind": "schema_error",
+            "code": "ifc.header.file_name_missing",
+            "locator": {
+              "kind": "file"
+            }
+          }
+        ],
+        "derivatives": [
+          {
+            "kind": "glb",
+            "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+            "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "relativePath": "0192f0a0-0000-7000-8000-00000000c0a1/sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/derived/model.glb",
+            "sha256": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+            "mediaType": "model/gltf-binary",
+            "producer": {
+              "name": "sovitech-extractor",
+              "version": "0.1.0"
+            }
+          },
+          {
+            "kind": "svg_plan",
+            "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+            "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "relativePath": "0192f0a0-0000-7000-8000-00000000c0a1/sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/derived/plan-a.svg",
+            "sha256": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+            "mediaType": "image/svg+xml",
+            "producer": {
+              "name": "sovitech-extractor",
+              "version": "0.1.0"
+            },
+            "storeyGlobalId": "0TESTGLOBALID000000002"
+          }
+        ]
+      }
+    },
+    {
+      "name": "rvt-stored-only",
+      "entry": "ExtractionOutput",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "producer": {
+          "name": "sovitech-extractor",
+          "version": "0.1.0",
+          "libraries": [
+            {
+              "name": "pypdfium2",
+              "version": "5.13.0"
+            },
+            {
+              "name": "openpyxl",
+              "version": "3.1.5"
+            }
+          ]
+        },
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "format": "rvt",
+        "analysis": {
+          "status": "stored_only",
+          "formatWord": "RVT model"
+        },
+        "coverage": {},
+        "findings": [],
+        "derivatives": []
+      }
+    },
+    {
+      "name": "zip-stored-only",
+      "entry": "ExtractionOutput",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "producer": {
+          "name": "sovitech-extractor",
+          "version": "0.1.0",
+          "libraries": [
+            {
+              "name": "pypdfium2",
+              "version": "5.13.0"
+            },
+            {
+              "name": "openpyxl",
+              "version": "3.1.5"
+            }
+          ]
+        },
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        "format": "zip",
+        "analysis": {
+          "status": "stored_only",
+          "formatWord": "ZIP archive"
+        },
+        "coverage": {},
+        "findings": [],
+        "derivatives": []
+      }
+    },
+    {
+      "name": "other-failed",
+      "entry": "ExtractionOutput",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "producer": {
+          "name": "sovitech-extractor",
+          "version": "0.1.0",
+          "libraries": [
+            {
+              "name": "pypdfium2",
+              "version": "5.13.0"
+            },
+            {
+              "name": "openpyxl",
+              "version": "3.1.5"
+            }
+          ]
+        },
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        "format": "other",
+        "analysis": {
+          "status": "failed",
+          "reason": "unrecognised_format"
+        },
+        "coverage": {},
+        "findings": [
+          {
+            "kind": "embedded_instruction",
+            "code": "instruction.metadata",
+            "locator": {
+              "kind": "file"
+            }
+          }
+        ],
+        "derivatives": []
+      }
+    },
+    {
+      "name": "xlsx-for-the-pdf-job",
+      "base": "xlsx-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/job",
+          "value": {
+            "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+            "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+            "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        {
+          "op": "set",
+          "path": "/derivatives",
+          "value": []
+        }
+      ],
+      "expect": "valid"
+    },
+    {
+      "name": "other-failed-for-the-pdf-job",
+      "base": "other-failed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/job",
+          "value": {
+            "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+            "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+            "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        {
+          "op": "set",
+          "path": "/analysis/reason",
+          "value": "format_mismatch"
+        }
+      ],
+      "expect": "valid"
+    },
+    {
+      "name": "request-ifc-gate-closed",
+      "entry": "ExtractionRequest",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "declaredFormat": "ifc",
+        "ifcValues": false,
+        "datasets": [],
+        "ids": {
+          "id": "sovitech-ifc-minimum",
+          "version": "0.1",
+          "draft": true,
+          "sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "derivatives": [
+          "glb",
+          "svg_plan"
+        ],
+        "limits": {
+          "maxPages": 2000,
+          "maxCellsPerSheet": 1000000,
+          "wallClockSeconds": 900
+        }
+      }
+    },
+    {
+      "name": "request-ifc-gate-open",
+      "entry": "ExtractionRequest",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "declaredFormat": "ifc",
+        "ifcValues": true,
+        "datasets": [
+          {
+            "id": "TEST-ifc-property-map",
+            "version": "0.0.1"
+          },
+          {
+            "id": "TEST-ifc-class-map",
+            "version": "0.0.1"
+          }
+        ],
+        "ids": {
+          "id": "sovitech-ifc-minimum",
+          "version": "0.1",
+          "draft": true,
+          "sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "derivatives": [
+          "glb",
+          "svg_plan"
+        ],
+        "limits": {
+          "maxPages": 2000,
+          "maxCellsPerSheet": 1000000,
+          "wallClockSeconds": 900
+        }
+      }
+    },
+    {
+      "name": "request-pdf",
+      "entry": "ExtractionRequest",
+      "expect": "valid",
+      "value": {
+        "contractVersion": "1.0.0",
+        "job": {
+          "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+          "documentId": "0192f0a0-0000-7000-8000-00000000d0c1",
+          "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "declaredFormat": "pdf",
+        "ifcValues": false,
+        "datasets": [],
+        "derivatives": [
+          "page_image",
+          "thumbnail"
+        ],
+        "limits": {
+          "maxPages": 2000,
+          "maxCellsPerSheet": 1000000,
+          "wallClockSeconds": 900
+        }
+      }
+    },
+    {
+      "name": "locator-page",
+      "entry": "EvidenceLocator",
+      "expect": "valid",
+      "value": {
+        "page": 3
+      }
+    },
+    {
+      "name": "locator-page-bbox",
+      "entry": "EvidenceLocator",
+      "expect": "valid",
+      "value": {
+        "page": 1,
+        "bbox": [
+          56.7,
+          700.1,
+          300.2,
+          760.4
+        ]
+      }
+    },
+    {
+      "name": "locator-sheet-cell",
+      "entry": "EvidenceLocator",
+      "expect": "valid",
+      "value": {
+        "sheet": "Camere",
+        "cell": "B2"
+      }
+    },
+    {
+      "name": "locator-sheet",
+      "entry": "EvidenceLocator",
+      "expect": "valid",
+      "value": {
+        "sheet": "Camere"
+      }
+    },
+    {
+      "name": "locator-sheet-diacritics",
+      "entry": "EvidenceLocator",
+      "expect": "valid",
+      "value": {
+        "sheet": "Încăperi TEST"
+      }
+    },
+    {
+      "name": "locator-ifc-object",
+      "base": "locator-page",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifc",
+          "value": {
+            "globalId": "0TESTGLOBALID000000041",
+            "stepIds": [
+              812
+            ],
+            "path": "Qto_SpaceBaseQuantities.NetFloorArea"
+          }
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-globalid-key",
+      "base": "locator-sheet-cell",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/globalId",
+          "value": "0TESTGLOBALID000000041"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-step-ids-key",
+      "base": "locator-page",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/stepIds",
+          "value": [
+            812
+          ]
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-path-key",
+      "base": "locator-sheet",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/path",
+          "value": "Pset TEST Debit.Debit nominal"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-unknown-key",
+      "base": "locator-page",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/line",
+          "value": 4
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-empty",
+      "base": "locator-page",
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/page"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-page-and-sheet",
+      "base": "locator-page",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/sheet",
+          "value": "Camere"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-cell-without-sheet",
+      "base": "locator-sheet-cell",
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/sheet"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-page-zero",
+      "base": "locator-page",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/page",
+          "value": 0
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-page-fraction",
+      "base": "locator-page",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/page",
+          "value": 2.5
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-page-as-text",
+      "base": "locator-page",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/page",
+          "value": "3"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-bbox-three-numbers",
+      "base": "locator-page-bbox",
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/bbox/3"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-sheet-name-too-long",
+      "base": "locator-sheet",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/sheet",
+          "value": "Foaie TEST cu un nume mult prea lung"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-cell-lower-case",
+      "base": "locator-sheet-cell",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/cell",
+          "value": "b2"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-not-an-object",
+      "base": "locator-page",
+      "patch": [
+        {
+          "op": "set",
+          "path": "",
+          "value": [
+            3
+          ]
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "locator-bbox-reversed",
+      "base": "locator-page-bbox",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/bbox",
+          "value": [
+            300.2,
+            700.1,
+            56.7,
+            760.4
+          ]
+        }
+      ],
+      "expect": [
+        "box_ordered"
+      ]
+    },
+    {
+      "name": "output-unknown-top-key",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcLocator",
+          "value": {
+            "globalId": "0TESTGLOBALID000000041"
+          }
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-ifc-key-on-text-block",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/pdf/pages/0/blocks/0/globalId",
+          "value": "0TESTGLOBALID000000041"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-cell-value-as-number",
+      "base": "xlsx-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/xlsx/sheets/0/cells/1/raw",
+          "value": 17.25
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-step-token-as-number",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues/facts/2/value/token",
+          "value": 1.75
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-step-real-without-point",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues/facts/2/value/token",
+          "value": "175"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-content-hash-bare-hex",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/job/contentHash",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-other-contract-version",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/contractVersion",
+          "value": "2.0.0"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-fact-without-step-ids",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues/facts/0/locator/stepIds",
+          "value": []
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-ids-report-text",
+      "base": "ifc-gate-closed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcModel/ids/specifications/1/report",
+          "value": "TEST report text"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-finding-with-text",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/findings/1/text",
+          "value": "Nota TEST pentru cititor"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-finding-kind-unknown",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/findings/1/kind",
+          "value": "instruction"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-status-queued",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/analysis",
+          "value": {
+            "status": "queued"
+          }
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-stored-only-free-word",
+      "base": "rvt-stored-only",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/analysis/formatWord",
+          "value": "Revit file"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-derivative-path-escapes",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/derivatives/1/relativePath",
+          "value": "0192f0a0-0000-7000-8000-00000000c0a1/sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/derived/../../x.png"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-proposal-quantity-number",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues/candidateProposals/0/value",
+          "value": {
+            "kind": "quantity",
+            "value": 1.75,
+            "unit": "m3_s"
+          }
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-gate-not-a-gate",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues/candidateProposals/0/requiresGates/1",
+          "value": "ifc-everything"
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "output-duplicate-hidden-reason",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/pdf/pages/0/blocks/1/hidden",
+          "value": [
+            "tiny_text",
+            "tiny_text"
+          ]
+        }
+      ],
+      "expect": "schema"
+    },
+    {
+      "name": "pdf-analysed-with-unread-page",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/coverage/pages/total",
+          "value": 3
+        },
+        {
+          "op": "set",
+          "path": "/coverage/pages/unread",
+          "value": [
+            {
+              "first": 3,
+              "last": 3,
+              "reason": "no_text_layer"
+            }
+          ]
+        }
+      ],
+      "expect": [
+        "page_coverage"
+      ]
+    },
+    {
+      "name": "pdf-pages-leave-a-gap",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/coverage/pages/total",
+          "value": 3
+        }
+      ],
+      "expect": [
+        "page_coverage"
+      ]
+    },
+    {
+      "name": "pdf-page-read-twice",
+      "base": "pdf-partly-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/coverage/pages/unread/0",
+          "value": {
+            "first": 2,
+            "last": 3,
+            "reason": "no_text_layer"
+          }
+        }
+      ],
+      "expect": [
+        "page_coverage"
+      ]
+    },
+    {
+      "name": "partly-analysed-count-differs",
+      "base": "pdf-partly-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/analysis/read",
+          "value": 2
+        }
+      ],
+      "expect": [
+        "page_coverage"
+      ]
+    },
+    {
+      "name": "partly-analysed-read-not-below-total",
+      "base": "pdf-partly-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/analysis/read",
+          "value": 5
+        }
+      ],
+      "expect": [
+        "page_coverage",
+        "read_below_total"
+      ]
+    },
+    {
+      "name": "pdf-unread-page-with-text",
+      "base": "pdf-partly-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/pdf/pages/-",
+          "value": {
+            "page": 3,
+            "mediaBox": [
+              0,
+              0,
+              595.28,
+              841.89
+            ],
+            "rotation": 0,
+            "blocks": []
+          }
+        }
+      ],
+      "expect": [
+        "page_coverage"
+      ]
+    },
+    {
+      "name": "pdf-scan-with-a-read-page",
+      "base": "pdf-scan-stored-only",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/coverage/pages/read",
+          "value": [
+            {
+              "first": 1,
+              "last": 1
+            }
+          ]
+        },
+        {
+          "op": "set",
+          "path": "/coverage/pages/unread",
+          "value": [
+            {
+              "first": 2,
+              "last": 2,
+              "reason": "no_text_layer"
+            }
+          ]
+        }
+      ],
+      "expect": [
+        "page_coverage"
+      ]
+    },
+    {
+      "name": "pdf-scan-with-text",
+      "base": "pdf-scan-stored-only",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/pdf",
+          "value": {
+            "pages": []
+          }
+        }
+      ],
+      "expect": [
+        "format_sections"
+      ]
+    },
+    {
+      "name": "pdf-failed-with-text",
+      "base": "pdf-failed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/pdf",
+          "value": {
+            "pages": []
+          }
+        }
+      ],
+      "expect": [
+        "format_sections"
+      ]
+    },
+    {
+      "name": "ifc-analysed",
+      "base": "ifc-gate-closed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/analysis",
+          "value": {
+            "status": "analysed"
+          }
+        }
+      ],
+      "expect": [
+        "status_matches_format"
+      ]
+    },
+    {
+      "name": "ifc-partly-analysed",
+      "base": "ifc-gate-closed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/analysis",
+          "value": {
+            "status": "partly_analysed",
+            "unit": "pages",
+            "read": 1,
+            "total": 2
+          }
+        }
+      ],
+      "expect": [
+        "status_matches_format"
+      ]
+    },
+    {
+      "name": "ifc-word-rvt",
+      "base": "ifc-gate-closed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/analysis/formatWord",
+          "value": "RVT model"
+        }
+      ],
+      "expect": [
+        "status_matches_format"
+      ]
+    },
+    {
+      "name": "rvt-with-page-coverage",
+      "base": "rvt-stored-only",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/coverage/pages",
+          "value": {
+            "total": 1,
+            "read": [],
+            "unread": [
+              {
+                "first": 1,
+                "last": 1,
+                "reason": "no_text_layer"
+              }
+            ]
+          }
+        }
+      ],
+      "expect": [
+        "format_sections"
+      ]
+    },
+    {
+      "name": "xlsx-partly-analysed-in-pages",
+      "base": "xlsx-partly-analysed-sheets",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/analysis/unit",
+          "value": "pages"
+        }
+      ],
+      "expect": [
+        "status_matches_format"
+      ]
+    },
+    {
+      "name": "xlsx-analysed-with-a-sheet-not-read",
+      "base": "xlsx-partly-analysed-sheets",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/analysis",
+          "value": {
+            "status": "analysed"
+          }
+        }
+      ],
+      "expect": [
+        "sheet_coverage"
+      ]
+    },
+    {
+      "name": "xlsx-partly-analysed-count-differs",
+      "base": "xlsx-partly-analysed-sheets",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/analysis/read",
+          "value": 1
+        }
+      ],
+      "expect": [
+        "sheet_coverage"
+      ]
+    },
+    {
+      "name": "xlsx-failed-with-a-sheet-read",
+      "base": "xlsx-partly-analysed-sheets",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/analysis",
+          "value": {
+            "status": "failed",
+            "reason": "unreadable_file"
+          }
+        },
+        {
+          "op": "remove",
+          "path": "/xlsx"
+        },
+        {
+          "op": "set",
+          "path": "/findings",
+          "value": []
+        }
+      ],
+      "expect": [
+        "sheet_coverage"
+      ]
+    },
+    {
+      "name": "pdf-partly-analysed-in-sheets",
+      "base": "pdf-partly-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/analysis/unit",
+          "value": "sheets"
+        }
+      ],
+      "expect": [
+        "status_matches_format"
+      ]
+    },
+    {
+      "name": "pdf-char-box-past-text",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/pdf/pages/0/blocks/0/charBoxes/1/end",
+          "value": 99
+        }
+      ],
+      "expect": [
+        "text_blocks"
+      ]
+    },
+    {
+      "name": "pdf-char-boxes-overlap",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/pdf/pages/0/blocks/0/charBoxes/1/start",
+          "value": 5
+        }
+      ],
+      "expect": [
+        "text_blocks"
+      ]
+    },
+    {
+      "name": "pdf-anchor-twice",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/pdf/pages/1/blocks/0/anchorId",
+          "value": "p1-b1"
+        }
+      ],
+      "expect": [
+        "text_blocks"
+      ]
+    },
+    {
+      "name": "pdf-hidden-block-not-reported",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/findings/0"
+        }
+      ],
+      "expect": [
+        "hidden_reported"
+      ]
+    },
+    {
+      "name": "xlsx-hidden-cell-not-reported",
+      "base": "xlsx-analysed",
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/findings/0"
+        }
+      ],
+      "expect": [
+        "hidden_reported"
+      ]
+    },
+    {
+      "name": "xlsx-hidden-sheet-cell-not-marked",
+      "base": "xlsx-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/xlsx/sheets/1/cells/0/hidden",
+          "value": []
+        }
+      ],
+      "expect": [
+        "hidden_reported"
+      ]
+    },
+    {
+      "name": "xlsx-sheet-missing-from-coverage",
+      "base": "xlsx-analysed",
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/coverage/sheets/1"
+        }
+      ],
+      "expect": [
+        "sheet_coverage"
+      ]
+    },
+    {
+      "name": "xlsx-not-read-sheet-with-cells",
+      "base": "xlsx-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/coverage/sheets/0/status",
+          "value": "not_read"
+        },
+        {
+          "op": "set",
+          "path": "/coverage/sheets/0/reason",
+          "value": "read_error"
+        }
+      ],
+      "expect": [
+        "sheet_coverage"
+      ]
+    },
+    {
+      "name": "xlsx-cell-twice",
+      "base": "xlsx-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/xlsx/sheets/0/cells/1/ref",
+          "value": "A1"
+        }
+      ],
+      "expect": [
+        "sheet_coverage"
+      ]
+    },
+    {
+      "name": "xlsx-finding-with-pdf-locator",
+      "base": "xlsx-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/findings/-",
+          "value": {
+            "kind": "embedded_instruction",
+            "code": "instruction.state_change",
+            "locator": {
+              "kind": "pdf",
+              "page": 1
+            }
+          }
+        }
+      ],
+      "expect": [
+        "finding_locators"
+      ]
+    },
+    {
+      "name": "pdf-hidden-content-finding",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/findings/-",
+          "value": {
+            "kind": "hidden_content",
+            "code": "pdf.layer_off",
+            "locator": {
+              "kind": "pdf",
+              "page": 1
+            }
+          }
+        }
+      ],
+      "expect": [
+        "finding_locators"
+      ]
+    },
+    {
+      "name": "pdf-finding-anchor-on-other-page",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/findings/1/locator/page",
+          "value": 1
+        }
+      ],
+      "expect": [
+        "finding_locators"
+      ]
+    },
+    {
+      "name": "rvt-finding-with-ifc-locator",
+      "base": "rvt-stored-only",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/findings/-",
+          "value": {
+            "kind": "schema_error",
+            "code": "ifc.schema.entity",
+            "locator": {
+              "kind": "ifc",
+              "stepIds": [
+                5
+              ]
+            }
+          }
+        }
+      ],
+      "expect": [
+        "finding_locators"
+      ]
+    },
+    {
+      "name": "ifc-schema-errors-not-in-check",
+      "base": "ifc-gate-closed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcModel/schemaCheck/outcome",
+          "value": "no_problems"
+        }
+      ],
+      "expect": [
+        "ifc_model_record"
+      ]
+    },
+    {
+      "name": "ifc-ids-pass-with-failures",
+      "base": "ifc-gate-closed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcModel/ids/specifications/0/failingGlobalIds",
+          "value": [
+            "0TESTGLOBALID000000021"
+          ]
+        }
+      ],
+      "expect": [
+        "ifc_model_record"
+      ]
+    },
+    {
+      "name": "ifc-ids-spec-twice",
+      "base": "ifc-gate-closed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcModel/ids/specifications/2/specId",
+          "value": "S01"
+        }
+      ],
+      "expect": [
+        "ifc_model_record"
+      ]
+    },
+    {
+      "name": "ifc-class-read-not-present",
+      "base": "ifc-gate-closed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/coverage/ifc/classesRead/-",
+          "value": "IfcChiller"
+        }
+      ],
+      "expect": [
+        "ifc_model_record"
+      ]
+    },
+    {
+      "name": "ifc-fact-of-another-file",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues/facts/0/locator/contentHash",
+          "value": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      ],
+      "expect": [
+        "ifc_value_locators"
+      ]
+    },
+    {
+      "name": "ifc-fact-of-another-schema",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues/facts/0/locator/schema",
+          "value": "IFC2X3"
+        }
+      ],
+      "expect": [
+        "ifc_value_locators"
+      ]
+    },
+    {
+      "name": "ifc-values-without-model-record",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/ifcModel"
+        }
+      ],
+      "expect": [
+        "format_sections",
+        "ifc_value_locators"
+      ]
+    },
+    {
+      "name": "pdf-with-ifc-values",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues",
+          "value": {
+            "facts": [],
+            "candidateProposals": []
+          }
+        }
+      ],
+      "expect": [
+        "format_sections"
+      ]
+    },
+    {
+      "name": "ifc-proposal-skips-mechanism-gate",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues/candidateProposals/1/requiresGates",
+          "value": [
+            "ifc-values",
+            "dataset-asset-taxonomy"
+          ]
+        }
+      ],
+      "expect": [
+        "ifc_proposals"
+      ]
+    },
+    {
+      "name": "ifc-proposal-calculated-direct-read",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues/candidateProposals/0/sourceClaim",
+          "value": "calculated"
+        }
+      ],
+      "expect": [
+        "ifc_proposals"
+      ]
+    },
+    {
+      "name": "ifc-proposal-unknown-fact",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues/candidateProposals/2/evidenceFactIds",
+          "value": [
+            "f-missing"
+          ]
+        },
+        {
+          "op": "set",
+          "path": "/ifcValues/candidateProposals/2/value/factId",
+          "value": "f-missing"
+        }
+      ],
+      "expect": [
+        "ifc_proposals"
+      ]
+    },
+    {
+      "name": "ifc-proposal-inference-without-confidence",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/ifcValues/candidateProposals/1/confidence"
+        }
+      ],
+      "expect": [
+        "ifc_proposals"
+      ]
+    },
+    {
+      "name": "ifc-proposal-table-without-dataset",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues/candidateProposals/3/datasets",
+          "value": []
+        }
+      ],
+      "expect": [
+        "ifc_proposals"
+      ]
+    },
+    {
+      "name": "ifc-proposal-id-twice",
+      "base": "ifc-with-values",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues/candidateProposals/3/id",
+          "value": "p-cta-flow"
+        }
+      ],
+      "expect": [
+        "ifc_proposals"
+      ]
+    },
+    {
+      "name": "derivative-of-another-project",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/derivatives/0/projectId",
+          "value": "0192f0a0-0000-7000-8000-00000000c0b2"
+        }
+      ],
+      "expect": [
+        "derivatives_keyed"
+      ]
+    },
+    {
+      "name": "derivative-under-another-hash",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/derivatives/0/relativePath",
+          "value": "0192f0a0-0000-7000-8000-00000000c0a1/sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff/derived/page-1.png"
+        }
+      ],
+      "expect": [
+        "derivatives_keyed"
+      ]
+    },
+    {
+      "name": "derivative-plan-without-storey",
+      "base": "ifc-gate-closed",
+      "patch": [
+        {
+          "op": "remove",
+          "path": "/derivatives/1/storeyGlobalId"
+        }
+      ],
+      "expect": [
+        "derivatives_keyed"
+      ]
+    },
+    {
+      "name": "derivative-model-for-pdf",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/derivatives/1",
+          "value": {
+            "kind": "glb",
+            "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+            "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "relativePath": "0192f0a0-0000-7000-8000-00000000c0a1/sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/derived/model.glb",
+            "sha256": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+            "mediaType": "model/gltf-binary",
+            "producer": {
+              "name": "sovitech-extractor",
+              "version": "0.1.0"
+            }
+          }
+        }
+      ],
+      "expect": [
+        "derivatives_keyed"
+      ]
+    },
+    {
+      "name": "derivative-wrong-media-type",
+      "base": "ifc-gate-closed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/derivatives/0/mediaType",
+          "value": "image/png"
+        }
+      ],
+      "expect": [
+        "derivatives_keyed"
+      ]
+    },
+    {
+      "name": "derivative-for-rvt",
+      "base": "rvt-stored-only",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/derivatives/-",
+          "value": {
+            "kind": "thumbnail",
+            "projectId": "0192f0a0-0000-7000-8000-00000000c0a1",
+            "contentHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "relativePath": "0192f0a0-0000-7000-8000-00000000c0a1/sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/derived/thumbnail.png",
+            "sha256": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+            "mediaType": "image/png",
+            "producer": {
+              "name": "sovitech-extractor",
+              "version": "0.1.0"
+            }
+          }
+        }
+      ],
+      "expect": [
+        "derivatives_keyed"
+      ]
+    },
+    {
+      "name": "text-block-box-reversed",
+      "base": "pdf-analysed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/pdf/pages/0/blocks/0/bbox",
+          "value": [
+            300.2,
+            700.1,
+            56.7,
+            760.4
+          ]
+        }
+      ],
+      "expect": [
+        "box_ordered"
+      ]
+    },
+    {
+      "name": "request-closed-gate-with-tables",
+      "base": "request-ifc-gate-closed",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/datasets",
+          "value": [
+            {
+              "id": "TEST-ifc-property-map",
+              "version": "0.0.1"
+            }
+          ]
+        }
+      ],
+      "expect": [
+        "request_consistent"
+      ]
+    },
+    {
+      "name": "request-ifc-values-for-pdf",
+      "base": "request-pdf",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ifcValues",
+          "value": true
+        }
+      ],
+      "expect": [
+        "request_consistent"
+      ]
+    },
+    {
+      "name": "request-ids-for-pdf",
+      "base": "request-pdf",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/ids",
+          "value": {
+            "id": "sovitech-ifc-minimum",
+            "version": "0.1",
+            "draft": true,
+            "sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        }
+      ],
+      "expect": [
+        "request_consistent"
+      ]
+    },
+    {
+      "name": "request-model-for-pdf",
+      "base": "request-pdf",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/derivatives",
+          "value": [
+            "glb"
+          ]
+        }
+      ],
+      "expect": [
+        "request_consistent"
+      ]
+    },
+    {
+      "name": "request-unknown-key",
+      "base": "request-pdf",
+      "patch": [
+        {
+          "op": "set",
+          "path": "/openGates",
+          "value": [
+            "ifc-values"
+          ]
+        }
+      ],
+      "expect": "schema"
+    }
+  ],
+  "pairs": [
+    {
+      "name": "closed-request-closed-output",
+      "request": "request-ifc-gate-closed",
+      "output": "ifc-gate-closed",
+      "expect": []
+    },
+    {
+      "name": "open-request-open-output",
+      "request": "request-ifc-gate-open",
+      "output": "ifc-with-values",
+      "expect": []
+    },
+    {
+      "name": "closed-request-open-output",
+      "request": "request-ifc-gate-closed",
+      "output": "ifc-with-values",
+      "expect": [
+        "/ifcValues",
+        "/ifcValues/candidateProposals/0/datasets",
+        "/ifcValues/candidateProposals/1/datasets",
+        "/ifcValues/candidateProposals/3/datasets"
+      ]
+    },
+    {
+      "name": "pdf-request-ifc-output",
+      "request": "request-pdf",
+      "output": "ifc-gate-closed",
+      "expect": [
+        "/job",
+        "/format",
+        "/ifcModel/ids/ids",
+        "/derivatives/0/kind",
+        "/derivatives/1/kind"
+      ]
+    },
+    {
+      "name": "pdf-request-pdf-output",
+      "request": "request-pdf",
+      "output": "pdf-analysed",
+      "expect": []
+    },
+    {
+      "name": "pdf-request-xlsx-output",
+      "request": "request-pdf",
+      "output": "xlsx-for-the-pdf-job",
+      "expect": [
+        "/format"
+      ]
+    },
+    {
+      "name": "pdf-request-format-mismatch-output",
+      "request": "request-pdf",
+      "output": "other-failed-for-the-pdf-job",
+      "expect": []
+    }
+  ]
+}

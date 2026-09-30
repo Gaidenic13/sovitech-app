@@ -2,20 +2,45 @@
  * The seeded inputs of the licence check, shared by selftest.ts and the unit
  * tests. Package reports and site-packages folders sit under seeded/<id>/.
  * An installed npm tree is built in a temporary folder at run time, because a
- * folder named node_modules is never committed.
+ * folder named node_modules is never committed; so is a site-packages folder
+ * that holds an archive, so that no binary file is committed. The npm native
+ * binaries and WebAssembly modules of the seeded trees are text stand-ins that
+ * carry the markers (phase 2 review, adversarial finding 16), and the notices
+ * list of those cases is a TEST list with TEST component names.
  */
+import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { repoRoot } from '../lib';
 import type { CheckResult } from '../types';
-import { evaluateLicences, loadNpmFromTree, loadPython, parsePnpmLicences, type NpmSource, type PythonSource } from './licences';
+import {
+  NO_NOTICES,
+  evaluateLicences,
+  findPython,
+  loadNpmFromTree,
+  loadPython,
+  parsePnpmLicences,
+  scanNpmBinaries,
+  type BundledNotices,
+  type NpmBinarySource,
+  type NpmSource,
+  type PythonSource,
+} from './licences';
 
 const SEEDED = join(dirname(fileURLToPath(import.meta.url)), 'seeded');
 
 type NpmInput = { readonly report: string } | { readonly tree: Readonly<Record<string, string>> } | { readonly noTree: true };
-type PythonInput = { readonly sitePackages: string } | { readonly noEnvironment: true };
+/**
+ * A seeded site-packages folder, none, or one built at run time: `tree` holds
+ * text files, and `archives` holds zip archives (built with Python's zipfile, so
+ * no binary is committed), each a map of member names to text.
+ */
+type PythonInput =
+  | { readonly sitePackages: string }
+  | { readonly noEnvironment: true }
+  | { readonly tree: Readonly<Record<string, string>>; readonly archives: Readonly<Record<string, Readonly<Record<string, string>>>> };
 
 export interface SeededCase {
   readonly id: string;
@@ -23,12 +48,31 @@ export interface SeededCase {
   readonly expect: readonly string[];
   readonly npm?: NpmInput;
   readonly python?: PythonInput;
+  /** The components listed for the notices page; none when left out. */
+  readonly notices?: BundledNotices;
 }
 
 const GOOD_NPM: NpmInput = { report: 'good' };
 const GOOD_PYTHON: PythonInput = { sitePackages: 'good' };
 
 const manifest = (fields: Record<string, unknown>): string => `${JSON.stringify(fields, null, 2)}\n`;
+
+/** A TEST notices list: TEST components with TEST markers, as mangled C++ names show a namespace. */
+const TEST_NOTICES: BundledNotices = {
+  components: {
+    TESTmesh: { licence: 'MPL-2.0', markers: ['8TESTmesh'], source: 'TEST' },
+    TESTmath: { licence: 'MIT', markers: ['8TESTmath'], source: 'TEST' },
+    TESTnurbs: { licence: 'BSD-3-Clause', markers: ['9TESTnurbs'], source: 'TEST' },
+  },
+  packages: [{ package: 'seeded-geom', version: '1.0.0', licence: 'MPL-2.0', components: ['TESTmesh', 'TESTmath'] }],
+};
+
+/** An installed npm package whose WebAssembly module bundles the TEST mesh and math components, and whose Node addon names only CGAL's LGPL kernel. */
+const GEOM_TREE: Readonly<Record<string, string>> = {
+  'node_modules/.pnpm/seeded-geom@1.0.0/node_modules/seeded-geom/package.json': manifest({ name: 'seeded-geom', version: '1.0.0', license: 'MPL-2.0' }),
+  'node_modules/.pnpm/seeded-geom@1.0.0/node_modules/seeded-geom/dist/seeded-geom.wasm': 'Seeded stand-in (text): _ZN8TESTmesh13TriangulationE _ZN8TESTmath3vecILi3EdE\n',
+  'node_modules/.pnpm/seeded-geom@1.0.0/node_modules/seeded-geom/build/Release/kernel.node': 'Seeded stand-in (text): _ZN4CGAL5EpeckE (the LGPL kernel only)\n',
+};
 
 export const GOOD_CASES: readonly SeededCase[] = [
   {
@@ -48,6 +92,18 @@ export const GOOD_CASES: readonly SeededCase[] = [
         }),
       },
     },
+  },
+  // Phase 2 review, adversarial finding 16: npm native binaries and WebAssembly are searched, and their
+  // bundled components are reported for the notices page (D-94).
+  {
+    id: 'good-npm-binaries',
+    expect: [
+      'no AGPL or GPL dependency',
+      '2 npm native binaries and WebAssembly modules searched',
+      'bundled (for the notices page, D-94): npm seeded-geom 1.0.0 (MPL-2.0): TESTmesh (MPL-2.0), TESTmath (MIT)',
+    ],
+    npm: { tree: GEOM_TREE },
+    notices: TEST_NOTICES,
   },
 ];
 
@@ -79,6 +135,77 @@ export const BAD_CASES: readonly SeededCase[] = [
     python: { sitePackages: 'python-gpl-inside-lgpl' },
   },
   { id: 'python-no-environment', expect: ['python: licences could not be read: no Python environment'], python: { noEnvironment: true } },
+  // Phase 2 (2026-09-25): the IfcOpenShell 0.8.5 wheel declares LGPL, ships no
+  // licence file, and its compiled library bundles CGAL packages CGAL publishes
+  // under the GPL. The check read licence files only and passed it.
+  {
+    id: 'python-gpl-bundled-in-binary',
+    expect: ['geomwrap 0.8: a native binary bundles GPL components', '3D Boolean Operations on Nef Polyhedra', 'geomwrap/_wrapper.so'],
+    python: { sitePackages: 'python-gpl-bundled-in-binary' },
+  },
+  {
+    id: 'python-lgpl-binary-no-licence-file',
+    expect: ['nolicgeom 2.0: an LGPL wheel that installs native binaries', 'ships no licence file'],
+    python: { sitePackages: 'python-lgpl-binary-no-licence-file' },
+  },
+  // The IfcTester 0.8.5 wheel ships a WebAssembly build of IfcOpenShell inside
+  // a wheel inside its own wheel.
+  {
+    id: 'python-gpl-bundled-in-nested-archive',
+    expect: ['idscheck 0.8: a native binary bundles GPL components', 'Polygon Mesh Processing', 'idscheck/www/bin/geomwrap-0.8-wasm32.whl!geomwrap/_wrapper.wasm'],
+    python: {
+      tree: {
+        'idscheck-0.8.dist-info/METADATA':
+          'Metadata-Version: 2.4\nName: idscheck\nVersion: 0.8\nSummary: Seeded distribution for the licence self-test.\nLicense-Expression: BSD-3-Clause\n',
+        'idscheck-0.8.dist-info/RECORD': 'idscheck-0.8.dist-info/METADATA,,\nidscheck-0.8.dist-info/RECORD,,\nidscheck/www/bin/geomwrap-0.8-wasm32.whl,,\n',
+      },
+      archives: {
+        'idscheck/www/bin/geomwrap-0.8-wasm32.whl': {
+          'geomwrap/_wrapper.wasm': 'Seeded stand-in (text): _ZN4CGAL23Polygon_mesh_processing8internalE\n',
+          'geomwrap/__init__.py': '',
+        },
+      },
+    },
+  },
+  // Phase 2 review, adversarial finding 16: npm WebAssembly and native addons were read from package metadata only.
+  {
+    id: 'npm-gpl-bundled-in-wasm',
+    expect: ['npm seeded-kernel 2.0.0: a native binary or WebAssembly module bundles GPL components', '3D Boolean Operations on Nef Polyhedra', 'seeded-kernel/lib/kernel.wasm'],
+    npm: {
+      tree: {
+        'node_modules/.pnpm/seeded-kernel@2.0.0/node_modules/seeded-kernel/package.json': manifest({ name: 'seeded-kernel', version: '2.0.0', license: 'MIT' }),
+        'node_modules/.pnpm/seeded-kernel@2.0.0/node_modules/seeded-kernel/lib/kernel.wasm': 'Seeded stand-in (text): _ZN4CGAL15Nef_polyhedron_3INS_5EpeckEE\n',
+      },
+    },
+  },
+  {
+    id: 'npm-gpl-bundled-in-native-addon',
+    expect: ['npm seeded-mesh 1.2.0: a native binary or WebAssembly module bundles GPL components', 'Polygon Mesh Processing', 'seeded-mesh/build/Release/mesh.node'],
+    npm: {
+      tree: {
+        'node_modules/.pnpm/seeded-mesh@1.2.0/node_modules/seeded-mesh/package.json': manifest({ name: 'seeded-mesh', version: '1.2.0', license: 'Apache-2.0' }),
+        'node_modules/.pnpm/seeded-mesh@1.2.0/node_modules/seeded-mesh/build/Release/mesh.node': 'Seeded stand-in (text): _ZN4CGAL23Polygon_mesh_processing8internalE\n',
+      },
+    },
+  },
+  {
+    id: 'npm-bundled-component-unlisted',
+    expect: ['npm seeded-geom 1.0.0:', 'seeded-geom.wasm bundles TESTmath (MIT), which bundled-notices.json does not list for this package'],
+    npm: { tree: GEOM_TREE },
+    notices: { ...TEST_NOTICES, packages: [{ package: 'seeded-geom', version: '1.0.0', components: ['TESTmesh'] }] },
+  },
+  {
+    id: 'npm-bundled-notices-stale-version',
+    expect: ['bundled-notices.json lists seeded-geom 0.9.0, but seeded-geom 1.0.0 is installed'],
+    npm: { tree: GEOM_TREE },
+    notices: { ...TEST_NOTICES, packages: [{ package: 'seeded-geom', version: '0.9.0', components: ['TESTmesh', 'TESTmath'] }] },
+  },
+  {
+    id: 'npm-bundled-notices-listed-not-found',
+    expect: ['bundled-notices.json lists TESTnurbs for seeded-geom 1.0.0, but none of its binaries holds its markers'],
+    npm: { tree: GEOM_TREE },
+    notices: { ...TEST_NOTICES, packages: [{ package: 'seeded-geom', version: '1.0.0', components: ['TESTmesh', 'TESTmath', 'TESTnurbs'] }] },
+  },
 ];
 
 function buildTree(files: Readonly<Record<string, string>>): string {
@@ -90,30 +217,58 @@ function buildTree(files: Readonly<Record<string, string>>): string {
   return root;
 }
 
-function npmSource(input: NpmInput, temporary: string[]): NpmSource {
+/** The npm packages of a case, and its native binaries searched (none for a seeded report, which holds no tree). */
+function npmSource(input: NpmInput, notices: BundledNotices, temporary: string[]): { readonly npm: NpmSource; readonly binaries: NpmBinarySource; readonly root?: string } {
   if ('report' in input) {
     const json: unknown = JSON.parse(readFileSync(join(SEEDED, input.report, 'pnpm-licenses.json'), 'utf8'));
-    return { kind: 'packages', packages: parsePnpmLicences(json), from: `seeded/${input.report}/pnpm-licenses.json` };
+    return {
+      npm: { kind: 'packages', packages: parsePnpmLicences(json), from: `seeded/${input.report}/pnpm-licenses.json` },
+      binaries: { kind: 'binaries', binaries: [], from: 'a seeded report (no installed tree)' },
+    };
   }
   if ('tree' in input) {
     const root = buildTree(input.tree);
     temporary.push(root);
-    return loadNpmFromTree(join(root, 'node_modules'));
+    return { npm: loadNpmFromTree(join(root, 'node_modules')), binaries: scanNpmBinaries(join(root, 'node_modules'), notices), root };
   }
-  return loadNpmFromTree(join(tmpdir(), 'sovitech-licences-absent', 'node_modules'));
+  const absent = join(tmpdir(), 'sovitech-licences-absent', 'node_modules');
+  return { npm: loadNpmFromTree(absent), binaries: scanNpmBinaries(absent, notices) };
 }
 
-function pythonSource(input: PythonInput): PythonSource {
-  if ('noEnvironment' in input) return loadPython(repoRoot, [], 'seeded (no environment)');
-  return loadPython(repoRoot, [join(SEEDED, input.sitePackages, 'site-packages')], `seeded/${input.sitePackages}/site-packages`);
+const ZIP_WRITER = 'import json, sys, zipfile\nwith zipfile.ZipFile(sys.argv[1], "w") as z:\n    for name, text in json.loads(sys.argv[2]).items():\n        z.writestr(name, text)\n';
+
+/** The Python source of a case, and the folder its findings' paths are shown relative to. */
+function pythonSource(input: PythonInput, temporary: string[]): { readonly source: PythonSource; readonly root: string } {
+  if ('noEnvironment' in input) return { source: loadPython(repoRoot, [], 'seeded (no environment)'), root: SEEDED };
+  if ('sitePackages' in input) {
+    return {
+      source: loadPython(repoRoot, [join(SEEDED, input.sitePackages, 'site-packages')], `seeded/${input.sitePackages}/site-packages`),
+      root: SEEDED,
+    };
+  }
+  const root = buildTree(input.tree);
+  temporary.push(root);
+  const python = findPython(repoRoot);
+  if (python === undefined) {
+    return { source: { kind: 'unavailable', reason: 'no Python 3.10 or later runs here, so the seeded archive cannot be built' }, root };
+  }
+  for (const [path, members] of Object.entries(input.archives)) {
+    mkdirSync(dirname(join(root, path)), { recursive: true });
+    const made = spawnSync(python, ['-I', '-B', '-c', ZIP_WRITER, join(root, path), JSON.stringify(members)], { encoding: 'utf8', timeout: 60_000 });
+    if (made.status !== 0) throw new Error(`the seeded archive ${path} could not be built: ${made.stderr}`);
+  }
+  return { source: loadPython(repoRoot, [root], 'seeded (built at run time)'), root };
 }
 
 export function runCase(seededCase: SeededCase): Promise<CheckResult> {
   const temporary: string[] = [];
   try {
-    const npm = npmSource(seededCase.npm ?? GOOD_NPM, temporary);
-    const python = pythonSource(seededCase.python ?? GOOD_PYTHON);
-    return Promise.resolve(evaluateLicences({ npm, python, root: SEEDED, label: seededCase.id }));
+    const notices = seededCase.notices ?? NO_NOTICES;
+    const npm = npmSource(seededCase.npm ?? GOOD_NPM, notices, temporary);
+    const python = pythonSource(seededCase.python ?? GOOD_PYTHON, temporary);
+    return Promise.resolve(
+      evaluateLicences({ npm: npm.npm, npmBinaries: npm.binaries, notices, python: python.source, root: npm.root ?? python.root, label: seededCase.id }),
+    );
   } finally {
     for (const path of temporary) rmSync(path, { recursive: true, force: true });
   }

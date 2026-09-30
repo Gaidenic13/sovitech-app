@@ -7,13 +7,19 @@
  * outside the repository, must be found. It proves that each real entry is
  * detectable without committing a second copy of the company figures or the
  * SAUTER product names.
+ *
+ * The document case (phase 2 review, adversarial finding 16) writes a TEST
+ * workbook and PDF into a temporary copy of the good tree at run time
+ * (../mockup-figures/seeded-documents.ts), because a document-type file may not
+ * be committed outside fixtures/.
  */
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { repoRoot } from '../lib';
 import { SCOPE, parseList, type FigureEntry } from '../mockup-figures/figures';
+import { pdfBytes, textContent, workbookBytes } from '../mockup-figures/seeded-documents';
 import type { CheckResult } from '../types';
 import { LIST_NAME } from './check';
 import { COMPANY_LIST_SYNTAX, checkCompanyFigures } from './company';
@@ -29,6 +35,10 @@ export interface SeededCase {
   readonly notExpect?: readonly string[];
   /** The case's own list, relative to seeded/<id>/, instead of the shared TEST list. */
   readonly list?: string;
+  /** Files written at run time into a temporary copy of the tree (a workbook or a PDF may not be committed outside fixtures/). */
+  readonly extraFiles?: Readonly<Record<string, string | Buffer>>;
+  /** The seeded tree the case starts from, when it is not seeded/<id>/ (the document case starts from the good tree). */
+  readonly base?: string;
 }
 
 export const GOOD_CASE: SeededCase = { id: 'good', expect: [] };
@@ -89,20 +99,48 @@ export const BAD_CASES: readonly SeededCase[] = [
       '0 files were read',
     ],
   },
+  // Phase 2 review, adversarial finding 16: a workbook was skipped as binary and a PDF read only as raw bytes.
+  {
+    id: 'bad-document-hits',
+    base: 'good',
+    extraFiles: {
+      'fixtures/xlsx/TEST-echipamente.xlsx': workbookBytes('TEST Echipamente', [{ shared: 'Regulator ZQX 987' }, { inline: 'Linia zetaLine' }]),
+      'fixtures/pdf/TEST-referinte.pdf': pdfBytes([{ content: textContent(['Suprafata: 97.531 mp', 'Recuperare 7,9 ani']), deflate: true }]),
+    },
+    expect: [
+      'fixtures/xlsx/TEST-echipamente.xlsx!xl/sharedStrings.xml:1: SAUTER product name "ZQX 987" (company/products/TEST-catalogue.json:3) as "zqx 987"',
+      'fixtures/xlsx/TEST-echipamente.xlsx!xl/worksheets/sheet1.xml:2: SAUTER product name "zetaLine"',
+      'fixtures/pdf/TEST-referinte.pdf#page=1:1: company figure "97,531" (company/business/TEST-profile.md:2) as "97.531"',
+      'fixtures/pdf/TEST-referinte.pdf#page=1:2: company figure "7.9 years" (company/business/TEST-profile.md:3) as "7,9 ani"',
+    ],
+    notExpect: ['fixtures/xlsx/TEST-echipamente.xlsx:', 'fixtures/pdf/TEST-referinte.pdf:'],
+  },
 ];
 
-/** Runs the check on one seeded tree, with the real scope. */
-export function runCase(seededCase: SeededCase): Promise<CheckResult> {
-  const root = join(SEEDED, seededCase.id);
-  const listFile = seededCase.list === undefined ? join(SHARED, 'company-figures.txt') : join(root, seededCase.list);
-  return checkCompanyFigures({
-    root,
-    listFile,
-    listName: seededCase.list ?? 'seeded/_shared/company-figures.txt',
-    specRoot: SHARED,
-    scope: SCOPE,
-    label: seededCase.id,
-  });
+/** Runs the check on one seeded tree, with the real scope (in a temporary copy when the case writes files at run time). */
+export async function runCase(seededCase: SeededCase): Promise<CheckResult> {
+  const seeded = join(SEEDED, seededCase.base ?? seededCase.id);
+  const listFile = seededCase.list === undefined ? join(SHARED, 'company-figures.txt') : join(seeded, seededCase.list);
+  const temporary = seededCase.extraFiles === undefined ? undefined : mkdtempSync(join(tmpdir(), 'sovitech-company-figures-'));
+  try {
+    if (temporary !== undefined) {
+      cpSync(seeded, temporary, { recursive: true });
+      for (const [path, content] of Object.entries(seededCase.extraFiles ?? {})) {
+        mkdirSync(dirname(join(temporary, path)), { recursive: true });
+        writeFileSync(join(temporary, path), content);
+      }
+    }
+    return await checkCompanyFigures({
+      root: temporary ?? seeded,
+      listFile,
+      listName: seededCase.list ?? 'seeded/_shared/company-figures.txt',
+      specRoot: SHARED,
+      scope: SCOPE,
+      label: seededCase.id,
+    });
+  } finally {
+    if (temporary !== undefined) rmSync(temporary, { recursive: true, force: true });
+  }
 }
 
 /** A product name written another way: upper case, letter and digit groups run together, other neighbours joined by a hyphen ("EY-RU 310" as "EY-RU310"). */

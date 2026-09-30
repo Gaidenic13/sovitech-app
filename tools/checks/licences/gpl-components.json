@@ -1,0 +1,24 @@
+{
+  "about": "GPL components the licence check searches native binaries and WebAssembly modules for, in Python wheels (python_dists.py) and npm packages (licences.ts). Each has namespace markers, one of which must be present, and package markers that name a GPL package of that component, as they appear inside mangled C++ symbol names. The CGAL packages are those CGAL's Package Overview lists with 'License: GPL' (https://doc.cgal.org/latest/Manual/packages.html, read 2026-09-25); its kernel and support packages are LGPL and are not listed. Adding a marker tightens the check; removing one lets more through and is listed for review first.",
+  "components": [
+    {
+      "component": "CGAL",
+      "namespace": ["4CGAL", "CGAL::"],
+      "packages": {
+        "Nef_polyhedron_3": "3D Boolean Operations on Nef Polyhedra",
+        "Nef_polyhedron_2": "2D Boolean Operations on Nef Polygons",
+        "Polygon_mesh_processing": "Polygon Mesh Processing",
+        "Straight_skeleton_2": "2D Straight Skeleton and Polygon Offsetting",
+        "Arrangement_on_surface_2": "2D Arrangements",
+        "General_polygon_set_2": "2D Regularized Boolean Set-Operations",
+        "Gps_segment_traits_2": "2D Regularized Boolean Set-Operations",
+        "AABB_tree": "2D and 3D Fast Intersection and Distance Computation (AABB Tree)",
+        "AABB_traits": "2D and 3D Fast Intersection and Distance Computation (AABB Tree)",
+        "Box_intersection_d": "Intersecting Sequences of dD Iso-oriented Boxes",
+        "Constrained_triangulation_2": "2D Triangulations",
+        "Delaunay_triangulation_2": "2D Triangulations",
+        "Polyhedron_3": "3D Polyhedral Surface"
+      }
+    }
+  ]
+}

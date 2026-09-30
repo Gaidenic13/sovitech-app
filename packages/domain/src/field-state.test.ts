@@ -1904,14 +1904,19 @@ describe('derive: the phase 1 round 5 fixes', () => {
       expect(statusOf(state, office.id)?.status).toBe('rejected');
     });
 
-    test('property: on an owner field, no set of an engineer\'s rejections changes a conflict routed to the owner, and each is listed', () => {
+    /**
+     * The rejections are made while the conflict is open: at or after the last reading's arrival. A rejection made
+     * before a disagreeing reading arrived is judged against the field as it stood then (phase 2, NP-A; the block
+     * "a rejection is judged against the field as it stood when it was made" below).
+     */
+    test('F-VALUE-04: property: on an owner field, no set of an engineer\'s rejections made while the conflict is open changes it, and each is listed', () => {
       fc.assert(
         fc.property(
           fc.array(fc.tuple(fc.constantFrom('TEST-type-hotel', 'TEST-type-office', 'TEST-type-other'), fc.constantFrom(0, 1, 2), fc.integer({ min: 0, max: 20 })), {
             minLength: 2,
             maxLength: 4,
           }),
-          fc.array(fc.tuple(fc.nat(), fc.integer({ min: 0, max: 30 })), { minLength: 1, maxLength: 4 }),
+          fc.array(fc.tuple(fc.nat(), fc.integer({ min: 0, max: 10 })), { minLength: 1, maxLength: 4 }),
           (reads, rejections) => {
             const candidates = reads.map(([choice, doc, minute], index) => {
               const document = documents[doc];
@@ -1920,10 +1925,11 @@ describe('derive: the phase 1 round 5 fixes', () => {
             });
             const before = derive(buildingType, candidates, none, context);
             fc.pre(before.state === 'conflict');
-            const events = rejections.map(([index, minute]) => {
+            const lastArrival = Math.max(...reads.map(([, , minute]) => minute));
+            const events = rejections.map(([index, after]) => {
               const target = candidates[index % candidates.length];
               if (target === undefined) throw new Error('candidates is not empty');
-              return rejection(target, 'sovitech_engineer', minute);
+              return rejection(target, 'sovitech_engineer', lastArrival + after);
             });
             const after = derive(buildingType, candidates, { ...none, candidate: events }, context);
             expect(after.state).toBe('conflict');
@@ -2019,5 +2025,419 @@ describe('derive: the phase 1 round 5 fixes', () => {
       expect(statusOf(state, office.id)?.status).toBe('withdrawn');
       expect(state).toMatchObject({ state: 'known', activeCandidateId: hotel.id, review: null, refusedEvents: [] });
     });
+  });
+});
+
+/**
+ * Phase 2, NP-A (round 5's closing verification, medium). Round 5 held back the rejections that may not take a side of
+ * an open conflict (an engineer's, and the owner's with no value of their own), but judged them against the field as it
+ * stands now. A rejection that held when it was made came undone when a disagreeing value arrived later (verify5 probes
+ * S2, S3 and the G4-33 timing probe): the rejected value was eligible again and the field went into a new conflict,
+ * putting to a person a value that had been rejected (rule 5, "Never ask twice"; rule 4; 2.4, "Eligible means not
+ * rejected, superseded or withdrawn"). Each rejection is now judged once, against the field as it stood when it was
+ * made: the candidates that existed then, the events up to then (verifications, so the routing then; resolutions;
+ * withdrawals; document events) and the rejections made before it, each as it was judged. Whatever arrives later
+ * leaves that judgement as it was: a later value forms its own comparison with the values still eligible.
+ */
+describe('derive: phase 2, a rejection is judged against the field as it stood when it was made (rule 4; rule 5; NP-A)', () => {
+  const [asBuilt, tender, design] = documents;
+  if (asBuilt === undefined || tender === undefined || design === undefined) throw new Error('fixture has documents');
+  const context = contextOf(new Map(), false);
+  const none: DeriveEvents = { candidate: [], field: [], document: [] };
+  const TYPES = ['TEST-type-hotel', 'TEST-type-office', 'TEST-type-retail'] as const;
+  const enumField = (confirmBy: FieldDefinition['confirmBy']): FieldDefinition => ({
+    key: FIELD_KEY,
+    label: 'TEST building type',
+    subject: 'building',
+    kind: 'enum',
+    options: TYPES,
+    confirmBy,
+    confirmByBasis: 'use_and_occupancy',
+    estimation: 'forbidden',
+    criticality: 'first_estimate',
+    affects: [],
+    impactRank: 1,
+  });
+  const buildingType = enumField('owner');
+  const found = (id: string, document: DocumentRecord, choice: string, minute: number): Candidate => ({
+    id,
+    subjectId: SUBJECT,
+    fieldKey: FIELD_KEY,
+    choice,
+    source: 'document',
+    evidence: [{ documentId: document.id, contentHash: document.contentHash, locator: { page: 1 }, excerpt: 'TEST', check: 'text_match' }],
+    createdBy: 'test-extractor',
+    authorRole: 'system',
+    createdAt: time(minute),
+  });
+  const rejection = (candidate: Candidate, role: 'owner' | 'sovitech_engineer', at: number | string): CandidateEvent => ({
+    candidateId: candidate.id,
+    type: 'rejected',
+    by: role === 'owner' ? 'test-owner' : 'test-engineer',
+    role,
+    at: typeof at === 'number' ? time(at) : at,
+    reason: 'TEST reason',
+  });
+  const engineerCheck = (candidate: Candidate, minute: number): CandidateEvent => ({
+    candidateId: candidate.id,
+    type: 'engineer_verified',
+    by: 'test-engineer',
+    role: 'sovitech_engineer',
+    at: time(minute),
+  });
+  const statusOf = (state: FieldState, id: string) => state.candidates.find((candidate) => candidate.candidateId === id)?.status;
+  const hotel = found('test-read-hotel', design, 'TEST-type-hotel', 1);
+  const office = found('test-read-office', tender, 'TEST-type-office', 2);
+  const officeLater = found('test-read-office-later', tender, 'TEST-type-office', 5);
+  const expectForTheOwner = (state: FieldState, ids: readonly string[], label: string): void => {
+    expect(state.state, label).toBe('conflict');
+    expect(state.activeCandidateId, label).toBeNull();
+    expect(state.conflict?.routedTo, label).toBe('owner');
+    expect(state.conflict?.candidateIds, label).toEqual([...ids].sort());
+    expect(state.review, label).toEqual({ list: 'for_you', reason: 'conflict' });
+  };
+
+  test('F-VALUE-02 · F-VALUE-04: an engineer rejects the only reading, and a reading that disagrees arrives later: the rejected value stays out (verify5 S2)', () => {
+    const event = rejection(hotel, 'sovitech_engineer', 3);
+    const then = derive(buildingType, [hotel], { ...none, candidate: [event] }, context);
+    expect(then).toMatchObject({ state: 'unknown', refusedEvents: [] });
+    expect(statusOf(then, hotel.id)).toBe('rejected');
+
+    const later = derive(buildingType, [hotel, officeLater], { ...none, candidate: [event] }, context);
+    expect(later).toMatchObject({ state: 'known', activeCandidateId: officeLater.id, conflict: null, review: null, refusedEvents: [] });
+    expect(statusOf(later, hotel.id)).toBe('rejected');
+  });
+
+  test('F-VALUE-02 · F-VALUE-04: the owner rejects the only reading with no value of their own, and a reading that disagrees arrives, with an engineer\'s `engineer_verified` event or without: the owner\'s rejection keeps holding (verify5 S3)', () => {
+    const event = rejection(office, 'owner', 3);
+    const hotelLater = found('test-read-hotel-later', design, 'TEST-type-hotel', 5);
+    for (const extra of [[], [engineerCheck(hotelLater, 6)]]) {
+      const state = derive(buildingType, [office, hotelLater], { ...none, candidate: [event, ...extra] }, context);
+      expect(state, String(extra.length)).toMatchObject({ state: 'known', activeCandidateId: hotelLater.id, conflict: null, review: null, refusedEvents: [] });
+      expect(statusOf(state, office.id), String(extra.length)).toBe('rejected');
+    }
+  });
+
+  test('F-VALUE-02 · F-VALUE-05: the owner enters a value of their own after an engineer rejected the only reading: the owner\'s value stands, and nobody is asked about the rejected one (verify5 S2b)', () => {
+    const own: Candidate = {
+      id: 'test-owner-office',
+      subjectId: SUBJECT,
+      fieldKey: FIELD_KEY,
+      choice: 'TEST-type-office',
+      source: 'user',
+      evidence: [],
+      createdBy: 'test-owner',
+      authorRole: 'owner',
+      createdAt: time(5),
+    };
+    const answer: CandidateEvent = { candidateId: own.id, type: 'user_confirmed', by: 'test-owner', role: 'owner', at: time(5) };
+    const state = derive(buildingType, [hotel, own], { ...none, candidate: [rejection(hotel, 'sovitech_engineer', 2), answer] }, context);
+    expect(state).toMatchObject({ state: 'known', activeCandidateId: own.id, conflict: null, review: null, refusedEvents: [] });
+    expect(statusOf(state, hotel.id)).toBe('rejected');
+  });
+
+  test('F-VALUE-02 · F-VALUE-04 · G4-33: in time, a rejection made while only one reading existed holds; one made when the reading that disagrees arrived, or dated before its own candidate existed, is refused (verify5 timing probe)', () => {
+    const early = rejection(hotel, 'sovitech_engineer', 1);
+    const alone = derive(buildingType, [hotel, office], { ...none, candidate: [early] }, context);
+    expect(alone).toMatchObject({ state: 'known', activeCandidateId: office.id, refusedEvents: [] });
+    expect(statusOf(alone, hotel.id)).toBe('rejected');
+
+    // A value that arrives at the same instant as the rejection is one the rejection is judged with.
+    const sameInstant = rejection(hotel, 'sovitech_engineer', 2);
+    // A rejection cannot be made before its candidate exists: it is judged when the candidate arrived.
+    const backdated = rejection(office, 'sovitech_engineer', 0);
+    for (const event of [sameInstant, backdated]) {
+      const state = derive(buildingType, [hotel, office], { ...none, candidate: [event] }, context);
+      expectForTheOwner(state, [hotel.id, office.id], event.at);
+      expect(state.refusedEvents, event.at).toEqual([{ kind: 'candidate', event, refusal: 'resolver_not_routed' }]);
+    }
+  });
+
+  test('F-VALUE-02 · F-VALUE-04: the routing then: the owner\'s rejection of one side of a conflict routed to the owner keeps holding after an engineer verifies the other side', () => {
+    const event = rejection(office, 'owner', 3);
+    const state = derive(buildingType, [hotel, office], { ...none, candidate: [event, engineerCheck(hotel, 5)] }, context);
+    expect(state).toMatchObject({ state: 'known', activeCandidateId: hotel.id, conflict: null, review: null, refusedEvents: [] });
+    expect(statusOf(state, office.id)).toBe('rejected');
+  });
+
+  test('F-VALUE-02 · F-VALUE-04: a rejection refused when it was made stays refused, after the owner resolves the conflict and after the other side\'s document is deleted', () => {
+    const event = rejection(office, 'sovitech_engineer', 3);
+    const listed = [{ kind: 'candidate', event, refusal: 'resolver_not_routed' }];
+    const resolved: FieldEvent = {
+      subjectId: SUBJECT,
+      fieldKey: FIELD_KEY,
+      type: 'conflict_resolved',
+      by: 'test-owner',
+      role: 'owner',
+      at: time(4),
+      reason: 'TEST reason',
+      chosenCandidateId: hotel.id,
+      coveredCandidateIds: [hotel.id, office.id],
+    };
+    const afterResolution = derive(buildingType, [hotel, office], { ...none, candidate: [event], field: [resolved] }, context);
+    expect(afterResolution).toMatchObject({ state: 'known', activeCandidateId: hotel.id, refusedEvents: listed });
+    expect(statusOf(afterResolution, office.id)).toBe('eligible');
+    expect(afterResolution.facts[0]?.setAsideIds).toEqual([office.id]);
+
+    const deleted: DocumentEvent = { documentId: design.id, type: 'withdrawn', by: 'test-owner', role: 'owner', at: time(10) };
+    const afterDeletion = derive(buildingType, [hotel, office], { ...none, candidate: [event], document: [deleted] }, context);
+    expect(afterDeletion).toMatchObject({ state: 'known', activeCandidateId: office.id, refusedEvents: listed });
+    expect(statusOf(afterDeletion, hotel.id)).toBe('withdrawn');
+  });
+
+  /**
+   * NP-B of round 5's closing verification (low, for the approver; with P-1-OWNER-FACT-REJECTION): after the owner
+   * resolves a conflict routed to the owner, no conflict is open, so an engineer's later rejection of the value the owner
+   * chose holds, and the field is known on the value the owner set aside, with no refused event and no "For you" entry.
+   * A proposal, not built (phase 2 NP-A fixer); this pins today's reading so that a change is visible.
+   */
+  test('F-VALUE-02 · F-VALUE-04: pinned until the approver decides NP-B: an engineer\'s rejection of the value the owner chose, made after the owner resolved, holds today', () => {
+    const resolved: FieldEvent = {
+      subjectId: SUBJECT,
+      fieldKey: FIELD_KEY,
+      type: 'conflict_resolved',
+      by: 'test-owner',
+      role: 'owner',
+      at: time(3),
+      reason: 'TEST reason',
+      chosenCandidateId: hotel.id,
+      coveredCandidateIds: [hotel.id, office.id],
+    };
+    const state = derive(buildingType, [hotel, office], { ...none, candidate: [rejection(hotel, 'sovitech_engineer', 4)], field: [resolved] }, context);
+    expect(state).toMatchObject({ state: 'known', activeCandidateId: office.id, conflict: null, review: null, refusedEvents: [] });
+    expect(statusOf(state, hotel.id)).toBe('rejected');
+  });
+
+  /**
+   * The NP-A consequence (phase 2 review, verifier finding 4, medium, for the approver; the extension of
+   * P-1-OWNER-FACT-REJECTION to document readings, proposed in the phase 2 report): on an owner field (`confirmBy`
+   * owner), an engineer's rejection of a document's reading made while no conflict was open holds for good. When a
+   * reading that disagrees arrives later, the field is known on the later reading, and the owner, who never saw either
+   * value, is not put the conflict rule 4 routes to them. Had the engineer rejected after that reading arrived, the
+   * rejection would be refused and the conflict routed to the owner. A proposal, not built; this pins today's reading
+   * so that a change is visible.
+   */
+  test('F-VALUE-02 · F-VALUE-04: pinned until the approver decides P-1-OWNER-FACT-REJECTION for document readings (NP-A): on an owner field an engineer\'s rejection made before a disagreeing reading arrives holds, and no conflict is routed to the owner', () => {
+    const early = derive(buildingType, [hotel, officeLater], { ...none, candidate: [rejection(hotel, 'sovitech_engineer', 2)] }, context);
+    expect(early).toMatchObject({ state: 'known', activeCandidateId: officeLater.id, conflict: null, review: null, refusedEvents: [] });
+    expect(statusOf(early, hotel.id)).toBe('rejected');
+
+    const late = rejection(hotel, 'sovitech_engineer', 6);
+    const afterArrival = derive(buildingType, [hotel, officeLater], { ...none, candidate: [late] }, context);
+    expectForTheOwner(afterArrival, [hotel.id, officeLater.id], late.at);
+    expect(afterArrival.refusedEvents).toEqual([{ kind: 'candidate', event: late, refusal: 'resolver_not_routed' }]);
+    expect(statusOf(afterArrival, hotel.id)).toBe('eligible');
+  });
+
+  test('F-VALUE-02 · F-VALUE-04: two rejections that each held when made stay applied: the field is unknown, never a conflict between two rejected values', () => {
+    const events = [rejection(hotel, 'sovitech_engineer', 3), rejection(officeLater, 'sovitech_engineer', 6)];
+    const state = derive(buildingType, [hotel, officeLater], { ...none, candidate: events }, context);
+    expect(state).toMatchObject({ state: 'unknown', activeCandidateId: null, conflict: null, review: null, refusedEvents: [] });
+    expect([statusOf(state, hotel.id), statusOf(state, officeLater.id)]).toEqual(['rejected', 'rejected']);
+  });
+
+  test('F-VALUE-02 · F-VALUE-04: a later value forms its own comparison with the values still eligible: a third reading that disagrees with the second puts only those two in conflict', () => {
+    const retailLater = found('test-read-retail-later', asBuilt, 'TEST-type-retail', 7);
+    const state = derive(buildingType, [hotel, officeLater, retailLater], { ...none, candidate: [rejection(hotel, 'sovitech_engineer', 3)] }, context);
+    expectForTheOwner(state, [officeLater.id, retailLater.id], 'three');
+    expect(statusOf(state, hotel.id)).toBe('rejected');
+    expect(state.refusedEvents).toEqual([]);
+  });
+
+  test('F-VALUE-02 · F-VALUE-04 · F-VALUE-05: rejections made at the same instant do not see each other: an engineer\'s rejection made as the owner corrects is judged against the conflict still open', () => {
+    const own: Candidate = {
+      id: 'test-owner-hotel',
+      subjectId: SUBJECT,
+      fieldKey: FIELD_KEY,
+      choice: 'TEST-type-hotel',
+      source: 'user',
+      evidence: [],
+      createdBy: 'test-owner',
+      authorRole: 'owner',
+      createdAt: time(3),
+    };
+    const answer: CandidateEvent = { candidateId: own.id, type: 'user_confirmed', by: 'test-owner', role: 'owner', at: time(3) };
+    const correction = rejection(office, 'owner', 3);
+    const engineers = rejection(office, 'sovitech_engineer', 3);
+    const state = derive(buildingType, [hotel, office, own], { ...none, candidate: [answer, correction, engineers] }, context);
+    expect(state).toMatchObject({ state: 'known', activeCandidateId: own.id, conflict: null });
+    expect(statusOf(state, office.id)).toBe('rejected');
+    expect(state.refusedEvents).toEqual([{ kind: 'candidate', event: engineers, refusal: 'resolver_not_routed' }]);
+
+    // A minute later the owner's correction is part of the field the engineer's rejection is judged against.
+    const later = rejection(office, 'sovitech_engineer', 4);
+    const afterwards = derive(buildingType, [hotel, office, own], { ...none, candidate: [answer, correction, later] }, context);
+    expect(afterwards).toMatchObject({ state: 'known', activeCandidateId: own.id, refusedEvents: [] });
+  });
+
+  test('F-VALUE-02 · F-VALUE-04: a rejection whose time does not parse is judged against the field as it stands', () => {
+    const event = rejection(hotel, 'sovitech_engineer', 'TEST-not-a-time');
+    const both = derive(buildingType, [hotel, office], { ...none, candidate: [event] }, context);
+    expectForTheOwner(both, [hotel.id, office.id], 'both');
+    expect(both.refusedEvents).toEqual([{ kind: 'candidate', event, refusal: 'resolver_not_routed' }]);
+    const alone = derive(buildingType, [hotel], { ...none, candidate: [event] }, context);
+    expect(statusOf(alone, hotel.id)).toBe('rejected');
+  });
+
+  /** A history for the arrival-order property: readings, rejections and engineer verifications, each at a minute. */
+  const historyArb = fc.record({
+    confirmBy: fc.constantFrom<FieldDefinition['confirmBy']>('owner', 'owner', 'engineer', 'either'),
+    reads: fc.array(fc.tuple(fc.constantFrom(...TYPES), fc.constantFrom(0, 1, 2), fc.integer({ min: 0, max: 20 })), { minLength: 1, maxLength: 5 }),
+    rejections: fc.array(fc.tuple(fc.nat(), fc.constantFrom<'owner' | 'sovitech_engineer'>('owner', 'sovitech_engineer'), fc.integer({ min: 0, max: 30 })), {
+      maxLength: 4,
+    }),
+    checks: fc.array(fc.tuple(fc.nat(), fc.integer({ min: 0, max: 30 })), { maxLength: 2 }),
+    order: fc.array(fc.nat(), { minLength: 1, maxLength: 12 }),
+  });
+
+  /**
+   * An independent model of the history, replayed in time order: each rejection is judged against the field just before
+   * it (the readings that had arrived, the verifications made by then, and the rejections made before it that held), by
+   * rule 4's routing and `mayResolve`'s resolvers. It reads a one-fact enum field with document readings only, so the
+   * conflict is simply two or more different keys among the values still eligible.
+   */
+  function replay(
+    confirmBy: FieldDefinition['confirmBy'],
+    reads: readonly Candidate[],
+    rejections: readonly CandidateEvent[],
+    checks: readonly CandidateEvent[],
+  ): { readonly status: Map<string, 'eligible' | 'rejected'>; readonly refused: string[]; readonly eligible: Candidate[]; readonly verifiedEver: Set<string> } {
+    const minute = (iso: string): number => new Date(iso).getUTCMinutes();
+    const created = new Map(reads.map((read) => [read.id, minute(read.createdAt)]));
+    const madeAt = (event: CandidateEvent): number => Math.max(minute(event.at), created.get(event.candidateId) ?? minute(event.at));
+    const verifiedBy = (id: string, at: number): boolean => checks.some((check) => check.candidateId === id && minute(check.at) <= at);
+    const verifiedEver = new Set(checks.map((check) => check.candidateId));
+    const engineerField = confirmBy === 'engineer';
+    const mayResolveThen = (route: 'owner' | 'engineer', role: CandidateEvent['role']): boolean =>
+      route === 'engineer' ? role === 'sovitech_engineer' : role === 'owner' || confirmBy === 'either';
+    /** Whether a rejection stands as a lone rejection at a point in time (an owner's is set aside by a verification then). */
+    const standsAt = (event: CandidateEvent, at: number): boolean =>
+      event.role === 'sovitech_engineer' || (!engineerField && !verifiedBy(event.candidateId, at));
+    const holds = new Map<CandidateEvent, boolean>();
+    for (const event of [...rejections].sort((a, b) => madeAt(a) - madeAt(b))) {
+      const at = madeAt(event);
+      const out = new Set(rejections.filter((earlier) => madeAt(earlier) < at && standsAt(earlier, at) && holds.get(earlier) === true).map((earlier) => earlier.candidateId));
+      const eligible = reads.filter((read) => (created.get(read.id) ?? Infinity) <= at && !out.has(read.id));
+      const inConflict = new Set(eligible.map((read) => read.choice)).size > 1;
+      const route = eligible.some((read) => verifiedBy(read.id, at)) || engineerField ? 'engineer' : 'owner';
+      const takesSide = inConflict && eligible.some((read) => read.id === event.candidateId);
+      holds.set(event, !(takesSide && !mayResolveThen(route, event.role)));
+    }
+    const refused: string[] = [];
+    const rejected = new Set<string>();
+    for (const event of rejections) {
+      let refusal: string | null = null;
+      if (event.role === 'owner' && verifiedEver.has(event.candidateId)) refusal = 'owner_overrules_engineer';
+      else if (event.role === 'owner' && engineerField) refusal = 'owner_rejection_without_value';
+      else if (holds.get(event) !== true) refusal = 'resolver_not_routed';
+      if (refusal === null) rejected.add(event.candidateId);
+      else refused.push(`${event.candidateId}|${event.role}|${event.at}|${refusal}`);
+    }
+    const status = new Map(reads.map((read) => [read.id, rejected.has(read.id) ? ('rejected' as const) : ('eligible' as const)]));
+    return { status, refused: refused.sort(), eligible: reads.filter((read) => !rejected.has(read.id)), verifiedEver };
+  }
+
+  /** The candidates and events of a drawn history. */
+  const historyOf = ({ confirmBy, reads, rejections, checks }: typeof historyArb extends fc.Arbitrary<infer T> ? T : never) => {
+    const field = enumField(confirmBy);
+    const candidates = reads.map(([choice, doc, minute], index) => {
+      const document = documents[doc];
+      if (document === undefined) throw new Error('fixture has documents');
+      return found(`test-read-${String(index)}`, document, choice, minute);
+    });
+    const pick = (index: number): Candidate => {
+      const target = candidates[index % candidates.length];
+      if (target === undefined) throw new Error('candidates is not empty');
+      return target;
+    };
+    const rejectionEvents = rejections.map(([index, role, minute]) => rejection(pick(index), role, minute));
+    const checkEvents = checks.map(([index, minute]) => engineerCheck(pick(index), minute));
+    return { field, candidates, rejectionEvents, checkEvents };
+  };
+
+  /** Arbitrary worlds (the invariants' `worldArb`) and drawn histories on an enum field, where rejections and later readings meet often. */
+  const timedWorldArb = fc.oneof(
+    worldArb,
+    historyArb.map((drawn) => {
+      const { field, candidates, rejectionEvents, checkEvents } = historyOf(drawn);
+      return { field, candidates, events: { ...none, candidate: [...rejectionEvents, ...checkEvents] }, context };
+    }),
+  );
+
+  /** A value that arrives after every record of either kind of world: any candidate, or a reading on the enum field. */
+  const lateArb = fc.oneof(
+    candidateArb(97),
+    fc.tuple(fc.constantFrom(...TYPES), fc.constantFrom(asBuilt, tender, design)).map(([choice, document]) => found('test-read-late', document, choice, 0)),
+  );
+
+  test('F-VALUE-02 · F-VALUE-04 · G4-33: property: over any arrival order, derive equals a replay of the history in time order, each rejection judged against the field just before it', () => {
+    fc.assert(
+      fc.property(historyArb, (drawn) => {
+        const { confirmBy, order } = drawn;
+        const { field, candidates, rejectionEvents, checkEvents } = historyOf(drawn);
+        const state = derive(field, shuffled(candidates, order), { ...none, candidate: shuffled([...rejectionEvents, ...checkEvents], order) }, context);
+        const model = replay(confirmBy, candidates, rejectionEvents, checkEvents);
+
+        for (const candidate of state.candidates) expect(candidate.status, candidate.candidateId).toBe(model.status.get(candidate.candidateId));
+        const refused = state.refusedEvents.map((entry) =>
+          entry.kind === 'candidate' ? `${entry.event.candidateId}|${entry.event.role}|${entry.event.at}|${entry.refusal}` : `other|${entry.refusal}`,
+        );
+        expect([...refused].sort()).toEqual(model.refused);
+        const keys = new Set(model.eligible.map((read) => read.choice));
+        if (keys.size > 1) {
+          const route = model.eligible.some((read) => model.verifiedEver.has(read.id)) || confirmBy === 'engineer' ? 'engineer' : 'owner';
+          expect(state.state).toBe('conflict');
+          expect(state.conflict?.candidateIds).toEqual(model.eligible.map((read) => read.id).sort());
+          expect(state.conflict?.routedTo).toBe(route);
+        } else {
+          expect(state.state).toBe(model.eligible.length > 0 ? 'known' : 'unknown');
+          expect(state.conflict).toBeNull();
+        }
+      }),
+      { numRuns: 400 },
+    );
+  });
+
+  test('F-VALUE-02 · F-VALUE-04: property: a value that arrives after everything else never brings a rejected value back, and leaves every engineer\'s rejection judged as it was', () => {
+    fc.assert(
+      fc.property(timedWorldArb, lateArb, ({ field, candidates, events, context: worldContext }, drawn) => {
+        const late: Candidate = { ...drawn, createdAt: time(61) };
+        const before = derive(field, candidates, events, worldContext);
+        const after = derive(field, [...candidates, late], events, worldContext);
+        for (const candidate of before.candidates) {
+          if (candidate.status === 'rejected') expect(statusOf(after, candidate.candidateId), candidate.candidateId).toBe('rejected');
+        }
+        const engineers = (state: FieldState) =>
+          state.refusedEvents.filter((entry) => entry.kind === 'candidate' && entry.event.type === 'rejected' && entry.event.role === 'sovitech_engineer');
+        expect(engineers(after)).toEqual(engineers(before));
+      }),
+      { numRuns: 300 },
+    );
+  });
+
+  test('F-VALUE-02 · F-VALUE-04: property: whatever arrives after a rejection, it is judged the same: cut the history at any minute, and each engineer\'s rejection made by then is judged as in the whole history', () => {
+    fc.assert(
+      fc.property(timedWorldArb, fc.integer({ min: 0, max: 60 }), ({ field, candidates, events, context: worldContext }, cut) => {
+        const byThen = (at: string): boolean => at <= time(cut);
+        const early = candidates.filter((candidate) => byThen(candidate.createdAt));
+        const prefix: DeriveEvents = {
+          candidate: events.candidate.filter((event) => byThen(event.at)),
+          field: events.field.filter((event) => byThen(event.at)),
+          document: events.document.filter((event) => byThen(event.at)),
+        };
+        const then = derive(field, early, prefix, worldContext);
+        const whole = derive(field, candidates, events, worldContext);
+        const judgement = (state: FieldState, event: CandidateEvent) =>
+          state.refusedEvents.find((entry) => entry.kind === 'candidate' && entry.event === event)?.refusal ?? 'holds';
+        const earlyIds = new Set(early.map((candidate) => candidate.id));
+        for (const event of prefix.candidate) {
+          if (event.type !== 'rejected' || event.role !== 'sovitech_engineer' || !earlyIds.has(event.candidateId)) continue;
+          const judged = judgement(then, event);
+          expect(judgement(whole, event), `${event.candidateId} at ${event.at}`).toBe(judged);
+          if (judged === 'holds') expect(statusOf(whole, event.candidateId), event.candidateId).not.toBe('eligible');
+        }
+      }),
+      { numRuns: 300 },
+    );
   });
 });

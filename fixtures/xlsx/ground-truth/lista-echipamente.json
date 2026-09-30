@@ -1,0 +1,751 @@
+{
+  "about": "TEST ground truth of a synthetic XLSX fixture (fictitious building, not a real project), written by fixtures/generators/xlsx/companions.py with the workbook. Each cell is given with its cached value (what a reader with data_only=True sees), its number format and, for formulas, the formula text. Case ids name what a row is for; they are not app outputs.",
+  "file": "fixtures/xlsx/lista-echipamente.xlsx",
+  "testMarking": {
+    "cell": "Echipamente!A1",
+    "text": "DOCUMENT DE TEST: document sintetic, clădire fictivă. Nu este un proiect real."
+  },
+  "properties": {
+    "creator": "Studio Exemplu SRL (fictiv)",
+    "created": "2026-01-15T09:00:00Z",
+    "modified": "2026-01-15T09:00:00Z"
+  },
+  "sheets": [
+    "Echipamente",
+    "Date producător"
+  ],
+  "headerRow": {
+    "sheet": "Echipamente",
+    "row": 3,
+    "cells": [
+      "Tag",
+      "Denumire",
+      "Tip",
+      "Nivel",
+      "Sistem",
+      "Parametru",
+      "Valoare",
+      "Unitate",
+      "Observații"
+    ]
+  },
+  "rows": [
+    {
+      "row": 4,
+      "tag": "CTA-01",
+      "name": "Centrală tratare aer",
+      "level": "Subsol 1",
+      "system": "Ventilare CTA-01",
+      "parameter": "Debit aer",
+      "value": {
+        "cell": "G4",
+        "type": "number",
+        "value": "9000",
+        "numberFormat": "#,##0"
+      },
+      "unit": "m³/h",
+      "remark": null,
+      "cases": [
+        "G3-1",
+        "G4-3"
+      ]
+    },
+    {
+      "row": 5,
+      "tag": "CTA-01",
+      "name": "Centrală tratare aer",
+      "level": "Subsol 1",
+      "system": "Ventilare CTA-01",
+      "parameter": "Putere ventilator",
+      "value": {
+        "cell": "G5",
+        "type": "number",
+        "value": "7.5",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G4-3"
+      ]
+    },
+    {
+      "row": 6,
+      "tag": "CTA-02",
+      "name": "Centrală tratare aer",
+      "level": "Subsol 1",
+      "system": null,
+      "parameter": "Debit aer",
+      "value": {
+        "cell": "G6",
+        "type": "text",
+        "value": "cca. 8.000",
+        "numberFormat": "General"
+      },
+      "unit": "m³/h",
+      "remark": "valoare aproximativă",
+      "cases": [
+        "rule 8 approximate"
+      ]
+    },
+    {
+      "row": 7,
+      "tag": "CTA-03",
+      "name": "Centrală tratare aer",
+      "level": "Subsol 1",
+      "system": "Ventilare parcare",
+      "parameter": "Debit aer",
+      "value": {
+        "cell": "G7",
+        "type": "empty",
+        "value": null,
+        "numberFormat": "General"
+      },
+      "unit": "m³/h",
+      "remark": "în curs de stabilire",
+      "cases": [
+        "G1-1"
+      ]
+    },
+    {
+      "row": 8,
+      "tag": "CH-01",
+      "name": "Chiller răcit cu apă",
+      "level": "Subsol 1",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G8",
+        "type": "number",
+        "value": "430",
+        "numberFormat": "0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G8-5"
+      ]
+    },
+    {
+      "row": 9,
+      "tag": "CH-01",
+      "name": "Chiller răcit cu apă",
+      "level": "Subsol 1",
+      "system": "Apă răcită",
+      "parameter": "Putere electrică absorbită",
+      "value": {
+        "cell": "G9",
+        "type": "number",
+        "value": "135",
+        "numberFormat": "0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G8-5"
+      ]
+    },
+    {
+      "row": 10,
+      "tag": "CH-02",
+      "name": "Chiller răcit cu aer",
+      "level": "Subsol 1",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G10",
+        "type": "empty",
+        "value": null,
+        "numberFormat": "0"
+      },
+      "unit": "kW",
+      "remark": "nefurnizat de producător",
+      "cases": [
+        "G1-1"
+      ]
+    },
+    {
+      "row": 11,
+      "tag": "P1.1",
+      "name": "Pompă circulație",
+      "level": "Subsol 1",
+      "system": "Apă răcită",
+      "parameter": "Configurație",
+      "value": {
+        "cell": "G11",
+        "type": "text",
+        "value": "1+1R",
+        "numberFormat": "General"
+      },
+      "unit": null,
+      "remark": null,
+      "cases": [
+        "G4-4"
+      ]
+    },
+    {
+      "row": 12,
+      "tag": "P1.1",
+      "name": "Pompă circulație",
+      "level": "Subsol 1",
+      "system": "Apă răcită",
+      "parameter": "Putere electrică absorbită",
+      "value": {
+        "cell": "G12",
+        "type": "number",
+        "value": "5.5",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": []
+    },
+    {
+      "row": 13,
+      "tag": "P1.2",
+      "name": "Pompă circulație",
+      "level": "Subsol 1",
+      "system": "Apă răcită",
+      "parameter": "Configurație",
+      "value": {
+        "cell": "G13",
+        "type": "text",
+        "value": "1+1R",
+        "numberFormat": "General"
+      },
+      "unit": null,
+      "remark": null,
+      "cases": [
+        "G4-4"
+      ]
+    },
+    {
+      "row": 14,
+      "tag": "P2",
+      "name": "Pompă circulație",
+      "level": "Subsol 1",
+      "system": "Încălzire",
+      "parameter": "Configurație",
+      "value": {
+        "cell": "G14",
+        "type": "text",
+        "value": "pompă dublă",
+        "numberFormat": "General"
+      },
+      "unit": null,
+      "remark": null,
+      "cases": [
+        "G4-4"
+      ]
+    },
+    {
+      "row": 15,
+      "tag": "P2",
+      "name": "Pompă circulație",
+      "level": "Subsol 1",
+      "system": "Încălzire",
+      "parameter": "Putere motor",
+      "value": {
+        "cell": "G15",
+        "type": "text",
+        "value": "1.500 kW",
+        "numberFormat": "General"
+      },
+      "unit": null,
+      "remark": "unitate în text",
+      "cases": [
+        "G8-3"
+      ]
+    },
+    {
+      "row": 16,
+      "tag": "VE-P1",
+      "name": "Ventilator parcare",
+      "level": "Subsol 1",
+      "system": "Ventilare parcare; Desfumare parcare",
+      "parameter": "Funcție",
+      "value": {
+        "cell": "G16",
+        "type": "text",
+        "value": "ventilare CO și desfumare",
+        "numberFormat": "General"
+      },
+      "unit": null,
+      "remark": null,
+      "cases": [
+        "G11-4"
+      ]
+    },
+    {
+      "row": 17,
+      "tag": "VCV-1.01",
+      "name": "Ventiloconvector",
+      "level": "Etaj 1",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G17",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8"
+      ]
+    },
+    {
+      "row": 18,
+      "tag": "VCV-1.02",
+      "name": "Ventiloconvector",
+      "level": "Etaj 1",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G18",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8"
+      ]
+    },
+    {
+      "row": 19,
+      "tag": "VCV-1.03",
+      "name": "Ventiloconvector",
+      "level": "Etaj 1",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G19",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8"
+      ]
+    },
+    {
+      "row": 20,
+      "tag": "VCV-1.04",
+      "name": "Ventiloconvector",
+      "level": "Etaj 1",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G20",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8"
+      ]
+    },
+    {
+      "row": 21,
+      "tag": "VCV-1.05",
+      "name": "Ventiloconvector",
+      "level": "Etaj 1",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G21",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8"
+      ]
+    },
+    {
+      "row": 22,
+      "tag": "VCV-1.06",
+      "name": "Ventiloconvector",
+      "level": "Etaj 1",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G22",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8"
+      ]
+    },
+    {
+      "row": 23,
+      "tag": "VCV-1.07",
+      "name": "Ventiloconvector",
+      "level": "Etaj 1",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G23",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8"
+      ]
+    },
+    {
+      "row": 24,
+      "tag": "VCV-1.08",
+      "name": "Ventiloconvector",
+      "level": "Etaj 1",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G24",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8"
+      ]
+    },
+    {
+      "row": 25,
+      "tag": "VCV-2.01",
+      "name": "Ventiloconvector",
+      "level": "Etaj 2",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G25",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8",
+        "IFC-10 second version"
+      ]
+    },
+    {
+      "row": 26,
+      "tag": "VCV-2.02",
+      "name": "Ventiloconvector",
+      "level": "Etaj 2",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G26",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8",
+        "IFC-10 second version"
+      ]
+    },
+    {
+      "row": 27,
+      "tag": "VCV-2.03",
+      "name": "Ventiloconvector",
+      "level": "Etaj 2",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G27",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8",
+        "IFC-10 second version"
+      ]
+    },
+    {
+      "row": 28,
+      "tag": "VCV-2.04",
+      "name": "Ventiloconvector",
+      "level": "Etaj 2",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G28",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8",
+        "IFC-10 second version"
+      ]
+    },
+    {
+      "row": 29,
+      "tag": "VCV-2.05",
+      "name": "Ventiloconvector",
+      "level": "Etaj 2",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G29",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8",
+        "IFC-10 second version"
+      ]
+    },
+    {
+      "row": 30,
+      "tag": "VCV-2.06",
+      "name": "Ventiloconvector",
+      "level": "Etaj 2",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G30",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8",
+        "IFC-10 second version"
+      ]
+    },
+    {
+      "row": 31,
+      "tag": "VCV-2.07",
+      "name": "Ventiloconvector",
+      "level": "Etaj 2",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G31",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8",
+        "IFC-10 second version"
+      ]
+    },
+    {
+      "row": 32,
+      "tag": "VCV-2.08",
+      "name": "Ventiloconvector",
+      "level": "Etaj 2",
+      "system": "Apă răcită",
+      "parameter": "Putere frigorifică",
+      "value": {
+        "cell": "G32",
+        "type": "number",
+        "value": "2.1",
+        "numberFormat": "0.0"
+      },
+      "unit": "kW",
+      "remark": null,
+      "cases": [
+        "G3-8",
+        "IFC-10 second version"
+      ]
+    },
+    {
+      "row": 33,
+      "tag": "TA-01",
+      "name": "Tablou automatizare",
+      "level": "Subsol 1",
+      "system": "Automatizare",
+      "parameter": "Interfață",
+      "value": {
+        "cell": "G33",
+        "type": "text",
+        "value": "Compatibil BMS",
+        "numberFormat": "General"
+      },
+      "unit": null,
+      "remark": null,
+      "cases": [
+        "G1-6"
+      ]
+    },
+    {
+      "row": 34,
+      "tag": "CDI-01",
+      "name": "Centrală detecţie incendiu",
+      "level": "Parter",
+      "system": "Detecţie incendiu",
+      "parameter": "Funcție",
+      "value": {
+        "cell": "G34",
+        "type": "text",
+        "value": "monitorizare stare și alarme",
+        "numberFormat": "General"
+      },
+      "unit": null,
+      "remark": null,
+      "cases": [
+        "G11-3"
+      ]
+    },
+    {
+      "row": 35,
+      "tag": "CET-01",
+      "name": "Contor energie termică",
+      "level": "Subsol 1",
+      "system": "Încălzire",
+      "parameter": "Tip",
+      "value": {
+        "cell": "G35",
+        "type": "text",
+        "value": "contor de energie termică",
+        "numberFormat": "General"
+      },
+      "unit": null,
+      "remark": null,
+      "cases": []
+    },
+    {
+      "row": 36,
+      "tag": "DG-CT-01",
+      "name": "Detector de gaz",
+      "level": "Subsol 1",
+      "system": "Detecție gaz",
+      "parameter": "Funcție",
+      "value": {
+        "cell": "G36",
+        "type": "text",
+        "value": "detecție gaz metan",
+        "numberFormat": "General"
+      },
+      "unit": null,
+      "remark": null,
+      "cases": []
+    }
+  ],
+  "manufacturerSheet": {
+    "sheet": "Date producător",
+    "locale": "en",
+    "note": "English number format in text cells, numbers with number formats beside them (rule 8: locale per table)",
+    "rows": [
+      {
+        "row": 4,
+        "item": "Model",
+        "text": {
+          "cell": "B4",
+          "value": "EXC-AHU-12",
+          "locale": "en"
+        },
+        "number": null,
+        "tag": "CTA-01",
+        "cases": [
+          "G8-2",
+          "G8-3"
+        ]
+      },
+      {
+        "row": 5,
+        "item": "Airflow",
+        "text": {
+          "cell": "B5",
+          "value": "9,000 m³/h",
+          "locale": "en"
+        },
+        "number": {
+          "cell": "C5",
+          "value": "9000",
+          "numberFormat": "#,##0"
+        },
+        "tag": "CTA-01",
+        "cases": [
+          "G8-2",
+          "G8-3"
+        ]
+      },
+      {
+        "row": 6,
+        "item": "Fan power",
+        "text": {
+          "cell": "B6",
+          "value": "7.5 kW",
+          "locale": "en"
+        },
+        "number": {
+          "cell": "C6",
+          "value": "7.5",
+          "numberFormat": "0.0"
+        },
+        "tag": "CTA-01",
+        "cases": [
+          "G8-2",
+          "G8-3"
+        ]
+      },
+      {
+        "row": 7,
+        "item": "Supply air temperature",
+        "text": {
+          "cell": "B7",
+          "value": "18.0 °C",
+          "locale": "en"
+        },
+        "number": {
+          "cell": "C7",
+          "value": "18",
+          "numberFormat": "0.0"
+        },
+        "tag": "CTA-01",
+        "cases": [
+          "G8-2",
+          "G8-3"
+        ]
+      }
+    ]
+  },
+  "diacritics": {
+    "commaBelow": [
+      "Echipamente!I3 header Observații (ț)"
+    ],
+    "cedilla": [
+      "Echipamente CDI-01 Denumire and Sistem (ţ)"
+    ]
+  }
+}

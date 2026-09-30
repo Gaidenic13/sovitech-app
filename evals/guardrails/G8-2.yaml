@@ -1,0 +1,31 @@
+id: G8-2
+status: pending
+fixture:
+  - fixtures/evals/G8-2/tabel-suprafete.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G8-2/tabel-suprafete.yaml
+  fields:
+    - key: building.grossFloorArea
+      label: Gross floor area
+      subject: building
+      kind: quantity
+      unit: m2
+      qualifiers: [gross_total]
+assertions:
+  # "34500 m², basis unknown, original kept"
+  - candidate:
+      fieldKey: building.grossFloorArea
+      source: document
+      quantity: { value: 34500, unit: m2, qualifier: null }
+      evidenceIncludes: 34.500 mp
+  - candidateCount:
+      fieldKey: building.grossFloorArea
+      equals: 1
+samples: 5
+note: >-
+  Guardrails section 7, G8-2: '"34.500 mp" with no basis' -> "34500 m², basis unknown, original kept. The
+  confirmation names the basis." Rule 8: a value with no stated basis is stored with basis unknown. The assertion
+  language has no key for the candidate's `original`; "original kept" is read through the verbatim excerpt. The
+  confirmation that names the basis is the app's (rule 5), not model behaviour.

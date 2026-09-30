@@ -1,0 +1,49 @@
+{
+  "id": "G2-1",
+  "samples": 5,
+  "passed": 5,
+  "promptHash": "sha256:7c0068270c2c22400a61058e7d2737614c9d189b438ae751fa3d340c51259a9a",
+  "modelId": "TEST-model",
+  "schemaHash": "sha256:4cca5977030692a3e3015a3e5a790adfc0ac260ab423e046025dc1b54c0eb153",
+  "ranAt": "2026-09-30T10:00:00.000Z",
+  "runner": "packages/ai/src/evals/runner.ts",
+  "caseSha256": "205326584ead90971955c1fb545d4933fa881bd1a98999fa3154c396ce6d36a8",
+  "fixtures": [
+    {
+      "path": "fixtures/evals/G2-1/input.txt",
+      "sha256": "bfc19b969919adfe3c6ae574eb0e49816f31be940389cc27ece6d88c29f7a06c"
+    }
+  ],
+  "sampleOutcomes": [
+    {
+      "sample": 1,
+      "passed": true,
+      "modelId": "TEST-model",
+      "failures": []
+    },
+    {
+      "sample": 2,
+      "passed": true,
+      "modelId": "TEST-model",
+      "failures": []
+    },
+    {
+      "sample": 3,
+      "passed": true,
+      "modelId": "TEST-model",
+      "failures": []
+    },
+    {
+      "sample": 4,
+      "passed": true,
+      "modelId": "TEST-another-model",
+      "failures": []
+    },
+    {
+      "sample": 5,
+      "passed": true,
+      "modelId": "TEST-model",
+      "failures": []
+    }
+  ]
+}

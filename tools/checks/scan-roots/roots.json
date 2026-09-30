@@ -75,6 +75,10 @@
   "serviceSubfolders": {
     "src": { "scans": ["python-bans", "ruff-pytest", "mockup-figures"] },
     "tests": { "scans": ["ruff-pytest"] },
+    "schemas": {
+      "scans": ["ruff-pytest", "mockup-figures"],
+      "note": "Third-party standard schemas with their source and SHA-256 (the IDS 1.0 XSD; ADR 0018)."
+    },
     ".venv": { "excluded": "The service's Python virtual environment, installed from the hashed lock: not the repository's own content." },
     ".pytest_cache": { "excluded": "pytest's cache (git-ignored)." },
     ".ruff_cache": { "excluded": "ruff's cache (git-ignored)." },

@@ -50,6 +50,7 @@ export const STORE_REFUSALS = {
   SVX13: 'system_event_not_allowed',
   SVX14: 'withdrawal_not_own_value',
   SVX15: 'system_withdrawal_without_request',
+  SVX16: 'ingestion_record_not_from_its_writer',
   SVG01: 'guard_would_be_lost',
   '42501': 'insufficient_privilege',
 } as const;

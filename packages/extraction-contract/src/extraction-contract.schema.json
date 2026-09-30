@@ -1,0 +1,1166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sovitech:extraction-contract:1.0.0",
+  "title": "SOVITECH extraction contract",
+  "description": "The one source of the JSON exchanged between the Python extractor (services/extractor) and the API (apps/api): the extraction request, the extraction output per file, and the strict shape of Evidence.locator that the evidence verifier reads. The zod schemas (packages/extraction-contract/src/generated/zod.ts) and the Python dataclasses (services/extractor/src/sovitech_extractor/contract/_generated.py, with a copy of this file as schema.json) are generated from it; edit this file and run the generator. Every object is closed: a key this file does not name is refused. No engineering value travels as a JSON number: numbers read from a document stay text (PDF text, XLSX cached values, STEP literal tokens) for the rule 8 parser in packages/registry. JSON numbers are only page numbers, character offsets, STEP instance ids, model-check counts and PDF coordinates. See packages/extraction-contract/README.md.",
+  "x-contract-version": "1.0.0",
+  "x-entry-points": ["ExtractionOutput", "ExtractionRequest", "EvidenceLocator"],
+  "$defs": {
+    "Uuid": {
+      "description": "A lower-case UUID, as the app generates ids (UUIDv7 in app code).",
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "ContentHash": {
+      "description": "SHA-256 of a file's bytes, in the store's form: 'sha256:' and 64 lower-case hex digits.",
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "Code": {
+      "description": "A machine code (a reason, a detector or a validator rule), never document text.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)*$",
+      "maxLength": 120
+    },
+    "VersionText": {
+      "description": "A version as its tool writes it.",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z][0-9A-Za-z.+_-]{0,39}$"
+    },
+    "ToolVersion": {
+      "description": "A tool or library and its version.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$" },
+        "version": { "$ref": "#/$defs/VersionText" }
+      },
+      "required": ["name", "version"],
+      "additionalProperties": false
+    },
+    "DatasetRef": {
+      "description": "A dataset and its version (a mapping table, the glossary, the asset taxonomy). Naming one approves nothing: approval is read from stored approval records (G1-12).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$" },
+        "version": { "$ref": "#/$defs/VersionText" }
+      },
+      "required": ["id", "version"],
+      "additionalProperties": false
+    },
+    "Format": {
+      "description": "The file format, set by code from the file content (ifc-input 6.2.2 lists the same formats, with images split by type so that the G12-1 line can name them).",
+      "type": "string",
+      "enum": ["pdf", "xlsx", "ifc", "rvt", "dwg", "docx", "jpg", "png", "zip", "other"]
+    },
+    "PageNumber": {
+      "description": "A PDF page, counted from 1.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100000
+    },
+    "Coordinate": {
+      "description": "A PDF coordinate in points, in the page space PDFium reports.",
+      "type": "number",
+      "minimum": -10000000,
+      "maximum": 10000000
+    },
+    "Box": {
+      "description": "[left, bottom, right, top] in the PDF page space PDFium reports (points, y upwards). Left is never past right, and bottom never above top.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/Coordinate" },
+      "minItems": 4,
+      "maxItems": 4,
+      "x-invariants": ["box_ordered"]
+    },
+    "SheetName": {
+      "description": "An XLSX sheet name as written: 1 to 31 characters, none of the characters Excel refuses in a sheet name.",
+      "type": "string",
+      "pattern": "^[^\\u0000-\\u001f\\[\\]:*?/\\\\]{1,31}$"
+    },
+    "CellRef": {
+      "description": "An A1 cell reference, upper case, no $ signs.",
+      "type": "string",
+      "pattern": "^[A-Z]{1,3}[1-9][0-9]{0,6}$"
+    },
+    "RangeRef": {
+      "description": "An A1 range, for merged cells.",
+      "type": "string",
+      "pattern": "^[A-Z]{1,3}[1-9][0-9]{0,6}:[A-Z]{1,3}[1-9][0-9]{0,6}$"
+    },
+    "AnchorId": {
+      "description": "The id of one text block, unique in one extraction output. The AI may cite it; the API turns it into a page and a bbox for Evidence.locator.",
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]{0,63}$"
+    },
+    "GlobalId": {
+      "description": "An IFC GlobalId: 22 characters of the IFC base-64 alphabet. Never an identity across models (ifc-identity gate).",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z_$]{22}$"
+    },
+    "StepId": {
+      "description": "A STEP instance id (#n) in the file with the output's content hash.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 999999999999
+    },
+    "IfcSchemaId": {
+      "description": "The schema the file header declares, as written: IFC2X3, IFC4, IFC4X3_ADD2 and so on.",
+      "type": "string",
+      "pattern": "^IFC[0-9A-Z_]{1,24}$"
+    },
+    "IfcClassName": {
+      "description": "An IFC entity class as IfcOpenShell names it (IfcPump, IfcBuildingElementProxy).",
+      "type": "string",
+      "pattern": "^Ifc[A-Za-z0-9]{1,80}$"
+    },
+    "IfcTypeName": {
+      "description": "The defined type of a typed STEP literal as the STEP file writes it (IFCPOWERMEASURE, IFCLABEL).",
+      "type": "string",
+      "pattern": "^IFC[A-Z0-9]{1,80}$"
+    },
+    "FactId": {
+      "description": "The id of one IFC fact, unique in one extraction output.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "ProposalId": {
+      "description": "The id of one IFC candidate proposal, unique in one extraction output.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "FieldKey": {
+      "description": "A field registry key (packages/registry), such as building.grossFloorArea.",
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]*(\\.[A-Za-z0-9_-]+)+$"
+    },
+    "IfcGateId": {
+      "description": "A gate an IFC candidate proposal waits for (prompt 3 section 5.4; packages/registry/gates/). Every one is a registry gate id.",
+      "type": "string",
+      "enum": [
+        "ifc-values",
+        "ifc-code-inference",
+        "ifc-identity",
+        "ifc-untagged-count",
+        "ifc-areas",
+        "ifc-geometry",
+        "ifc-units",
+        "ifc-hidden-content",
+        "dataset-asset-taxonomy",
+        "dataset-glossary"
+      ]
+    },
+    "DerivativeKind": {
+      "description": "A viewing derivative: converted geometry (Fragments, GLB), a storey plan as SVG with no text, a thumbnail, a PDF page image.",
+      "type": "string",
+      "enum": ["fragments", "glb", "svg_plan", "thumbnail", "page_image"]
+    },
+
+    "ExtractionRequest": {
+      "description": "What the API asks of the extractor for one stored file (one job; ADR 0020: job payloads carry ids, and the worker mounts the file read-only at a fixed path).",
+      "type": "object",
+      "properties": {
+        "contractVersion": { "type": "string", "const": "1.0.0" },
+        "job": { "$ref": "#/$defs/Job" },
+        "declaredFormat": { "$ref": "#/$defs/Format" },
+        "ifcValues": {
+          "description": "Emit IFC facts and candidate proposals. The API sets it from readGate('ifc-values'): false while the gate is closed, so no mapping table is consulted (PRD R-027, 'Until decided').",
+          "type": "boolean"
+        },
+        "datasets": {
+          "description": "Datasets mounted for the IFC candidate proposals (mapping tables, glossary, taxonomy). Empty unless ifcValues is true.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/DatasetRef" },
+          "maxItems": 32
+        },
+        "ids": { "$ref": "#/$defs/IdsRef" },
+        "derivatives": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/DerivativeKind" },
+          "uniqueItems": true,
+          "maxItems": 5
+        },
+        "limits": { "$ref": "#/$defs/Limits" }
+      },
+      "required": ["contractVersion", "job", "declaredFormat", "ifcValues", "datasets", "derivatives", "limits"],
+      "additionalProperties": false,
+      "x-invariants": ["request_consistent"]
+    },
+    "Limits": {
+      "description": "Work limits for one job; the sandbox also kills the container on its wall clock (ADR 0018). Reaching a limit is coverage, never silence (rule 12).",
+      "type": "object",
+      "properties": {
+        "maxPages": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "maxCellsPerSheet": { "type": "integer", "minimum": 1, "maximum": 20000000 },
+        "wallClockSeconds": { "type": "integer", "minimum": 1, "maximum": 86400 }
+      },
+      "required": ["maxPages", "maxCellsPerSheet", "wallClockSeconds"],
+      "additionalProperties": false
+    },
+    "Job": {
+      "description": "The file the job read: its project, its document record and the content hash of the bytes it read.",
+      "type": "object",
+      "properties": {
+        "projectId": { "$ref": "#/$defs/Uuid" },
+        "documentId": { "$ref": "#/$defs/Uuid" },
+        "contentHash": { "$ref": "#/$defs/ContentHash" }
+      },
+      "required": ["projectId", "documentId", "contentHash"],
+      "additionalProperties": false
+    },
+
+    "ExtractionOutput": {
+      "description": "Everything the extractor read from one file. It never writes the database and proposes nothing from PDF or XLSX content: those candidates come from the AI and the verifier (prompt 3 section 6).",
+      "type": "object",
+      "properties": {
+        "contractVersion": { "type": "string", "const": "1.0.0" },
+        "producer": { "$ref": "#/$defs/Producer" },
+        "job": { "$ref": "#/$defs/Job" },
+        "format": { "$ref": "#/$defs/Format" },
+        "analysis": { "$ref": "#/$defs/AnalysisStatus" },
+        "coverage": { "$ref": "#/$defs/Coverage" },
+        "pdf": { "$ref": "#/$defs/PdfContent" },
+        "xlsx": { "$ref": "#/$defs/XlsxContent" },
+        "ifcModel": { "$ref": "#/$defs/IfcModelRecord" },
+        "ifcValues": { "$ref": "#/$defs/IfcValues" },
+        "findings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Finding" },
+          "maxItems": 100000
+        },
+        "derivatives": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Derivative" },
+          "maxItems": 100000
+        }
+      },
+      "required": ["contractVersion", "producer", "job", "format", "analysis", "coverage", "findings", "derivatives"],
+      "additionalProperties": false,
+      "x-invariants": [
+        "format_sections",
+        "status_matches_format",
+        "page_coverage",
+        "text_blocks",
+        "sheet_coverage",
+        "hidden_reported",
+        "finding_locators",
+        "ifc_model_record",
+        "ifc_value_locators",
+        "ifc_proposals",
+        "derivatives_keyed"
+      ],
+      "x-format-rules": {
+        "pdf": { "statuses": ["analysed", "partly_analysed", "stored_only", "failed"], "partlyAnalysedUnit": "pages", "storedOnlyWord": "PDF scan", "sections": ["pdf"], "findingLocators": ["pdf", "file"], "derivatives": ["thumbnail", "page_image"] },
+        "xlsx": { "statuses": ["analysed", "partly_analysed", "failed"], "partlyAnalysedUnit": "sheets", "sections": ["xlsx"], "findingLocators": ["xlsx", "file"], "derivatives": ["thumbnail"] },
+        "ifc": { "statuses": ["stored_only"], "storedOnlyWord": "IFC model", "sections": ["ifcModel", "ifcValues"], "findingLocators": ["ifc", "file"], "derivatives": ["fragments", "glb", "svg_plan", "thumbnail"] },
+        "rvt": { "statuses": ["stored_only"], "storedOnlyWord": "RVT model", "sections": [], "findingLocators": ["file"], "derivatives": [] },
+        "dwg": { "statuses": ["stored_only"], "storedOnlyWord": "DWG drawing", "sections": [], "findingLocators": ["file"], "derivatives": [] },
+        "docx": { "statuses": ["stored_only"], "storedOnlyWord": "DOCX file", "sections": [], "findingLocators": ["file"], "derivatives": [] },
+        "jpg": { "statuses": ["stored_only"], "storedOnlyWord": "JPG image", "sections": [], "findingLocators": ["file"], "derivatives": ["thumbnail"] },
+        "png": { "statuses": ["stored_only"], "storedOnlyWord": "PNG image", "sections": [], "findingLocators": ["file"], "derivatives": ["thumbnail"] },
+        "zip": { "statuses": ["stored_only"], "storedOnlyWord": "ZIP archive", "sections": [], "findingLocators": ["file"], "derivatives": [] },
+        "other": { "statuses": ["failed"], "sections": [], "findingLocators": ["file"], "derivatives": [] }
+      }
+    },
+    "Producer": {
+      "description": "The extractor build that wrote the output, with the libraries that read the file.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "const": "sovitech-extractor" },
+        "version": { "$ref": "#/$defs/VersionText" },
+        "libraries": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ToolVersion" },
+          "maxItems": 32
+        }
+      },
+      "required": ["name", "version", "libraries"],
+      "additionalProperties": false
+    },
+
+    "AnalysisStatus": {
+      "description": "The file's analysis status in the terms of the 2.8 status lines, as code recorded it (F-INGEST-05). An IFC file is always stored_only with 'IFC model' under guardrails v1.6: its values are not read, so it never counts as analysed coverage (G12-5). What the extractor could process in a model is ifcModel.processing, for the engineer.",
+      "oneOf": [
+        { "$ref": "#/$defs/AnalysedStatus" },
+        { "$ref": "#/$defs/PartlyAnalysedStatus" },
+        { "$ref": "#/$defs/StoredOnlyStatus" },
+        { "$ref": "#/$defs/AnalysisFailedStatus" }
+      ],
+      "discriminator": { "propertyName": "status" }
+    },
+    "AnalysedStatus": {
+      "description": "Every page or sheet was read.",
+      "type": "object",
+      "properties": { "status": { "type": "string", "const": "analysed" } },
+      "required": ["status"],
+      "additionalProperties": false
+    },
+    "PartlyAnalysedStatus": {
+      "description": "Some of the file was read and some was not (rule 12, 'Partial processing is shown with its coverage'; 2.3 'partly_analysed'). For a PDF, the pages read of its pages: 'Partly analysed (<read> of <total> pages)' (2.8; G12-3). For an XLSX workbook, the sheets read of its sheets; the owner-facing line for sheets waits for the approver (build log, P-2-XLSX-SHEETS), so the status is stored, not shown as new wording. Both numbers are recorded by code and bound on screen to the document's coverage.",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "const": "partly_analysed" },
+        "unit": { "type": "string", "enum": ["pages", "sheets"] },
+        "read": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "total": { "type": "integer", "minimum": 2, "maximum": 100000 }
+      },
+      "required": ["status", "unit", "read", "total"],
+      "additionalProperties": false,
+      "x-invariants": ["read_below_total"]
+    },
+    "StoredOnlyStatus": {
+      "description": "'Not analysed: <formatWord> stored, not analysed' (2.8; G12-1). The word fills the slot the way G12-1 names RVT; the words other than 'RVT model' are substitutions listed for the approver as a wording clarification (prompt 3 section 5.3).",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "const": "stored_only" },
+        "formatWord": {
+          "type": "string",
+          "enum": ["IFC model", "RVT model", "DWG drawing", "DOCX file", "JPG image", "PNG image", "ZIP archive", "PDF scan"]
+        }
+      },
+      "required": ["status", "formatWord"],
+      "additionalProperties": false
+    },
+    "AnalysisFailedStatus": {
+      "description": "'Analysis failed' (2.8). The reason is a code for the engineer and the logs; it is never shown as its own status wording.",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "const": "failed" },
+        "reason": {
+          "type": "string",
+          "enum": ["unreadable_file", "encrypted", "unrecognised_format", "format_mismatch", "time_limit", "memory_limit", "internal_error"]
+        }
+      },
+      "required": ["status", "reason"],
+      "additionalProperties": false
+    },
+
+    "Coverage": {
+      "description": "What code read and what it could not read, and why (rule 12; F-INGEST-05). A page, sheet or model part listed as not read supports no 'Not found in the analysed documents' statement (G12-4).",
+      "type": "object",
+      "properties": {
+        "pages": { "$ref": "#/$defs/PageCoverage" },
+        "sheets": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SheetCoverage" },
+          "maxItems": 4096
+        },
+        "ifc": { "$ref": "#/$defs/IfcCoverage" }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "PageCoverage": {
+      "description": "Pages read and not read. Together they cover pages 1 to total, each page once.",
+      "type": "object",
+      "properties": {
+        "total": { "$ref": "#/$defs/PageNumber" },
+        "read": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/PageRange" },
+          "maxItems": 100000
+        },
+        "unread": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/UnreadPageRange" },
+          "maxItems": 100000
+        }
+      },
+      "required": ["total", "read", "unread"],
+      "additionalProperties": false
+    },
+    "PageRange": {
+      "type": "object",
+      "properties": {
+        "first": { "$ref": "#/$defs/PageNumber" },
+        "last": { "$ref": "#/$defs/PageNumber" }
+      },
+      "required": ["first", "last"],
+      "additionalProperties": false
+    },
+    "UnreadPageRange": {
+      "description": "Pages not read. With no OCR (prompt 3 section 5.2), a page with no text layer is not read (G12-3 is built with such pages).",
+      "type": "object",
+      "properties": {
+        "first": { "$ref": "#/$defs/PageNumber" },
+        "last": { "$ref": "#/$defs/PageNumber" },
+        "reason": {
+          "type": "string",
+          "enum": ["no_text_layer", "render_error", "page_limit", "time_limit", "truncated"]
+        }
+      },
+      "required": ["first", "last", "reason"],
+      "additionalProperties": false
+    },
+    "SheetCoverage": {
+      "description": "One sheet of the workbook, read or not, with the reason when not.",
+      "type": "object",
+      "properties": {
+        "sheet": { "$ref": "#/$defs/SheetName" },
+        "status": { "type": "string", "enum": ["read", "not_read"] },
+        "reason": { "type": "string", "enum": ["chart_sheet", "unsupported_sheet", "cell_limit", "read_error"] }
+      },
+      "required": ["sheet", "status"],
+      "additionalProperties": false
+    },
+    "IfcCoverage": {
+      "description": "For the engineer's view only (R-023): the entity classes read, and what could not be read. It is not an owner-facing coverage line and never counts the model as searched (G12-5).",
+      "type": "object",
+      "properties": {
+        "classesRead": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/IfcClassName" },
+          "uniqueItems": true,
+          "maxItems": 2000
+        },
+        "notRead": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/IfcUnread" },
+          "maxItems": 100000
+        }
+      },
+      "required": ["classesRead", "notRead"],
+      "additionalProperties": false
+    },
+    "IfcUnread": {
+      "description": "A part of the model that could not be read, with a code for why. Codes, GlobalIds and STEP ids only, never model text (prompt 3 section 8).",
+      "type": "object",
+      "properties": {
+        "scope": { "type": "string", "enum": ["header", "class", "element", "property_set", "geometry"] },
+        "reason": { "$ref": "#/$defs/Code" },
+        "ifcClass": { "$ref": "#/$defs/IfcClassName" },
+        "globalIds": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/GlobalId" },
+          "uniqueItems": true,
+          "maxItems": 1000
+        },
+        "stepIds": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/StepId" },
+          "uniqueItems": true,
+          "maxItems": 1000
+        }
+      },
+      "required": ["scope", "reason", "globalIds", "stepIds"],
+      "additionalProperties": false
+    },
+
+    "PdfContent": {
+      "description": "The native text layer of each page read (pypdfium2; F-EXTRACT-01). No OCR.",
+      "type": "object",
+      "properties": {
+        "pages": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/PdfPage" },
+          "maxItems": 100000
+        }
+      },
+      "required": ["pages"],
+      "additionalProperties": false
+    },
+    "PdfPage": {
+      "description": "One page read: its media box, its rotation and its text blocks in reading order.",
+      "type": "object",
+      "properties": {
+        "page": { "$ref": "#/$defs/PageNumber" },
+        "mediaBox": { "$ref": "#/$defs/Box" },
+        "rotation": { "type": "integer", "enum": [0, 90, 180, 270] },
+        "blocks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TextBlock" },
+          "maxItems": 100000
+        }
+      },
+      "required": ["page", "mediaBox", "rotation", "blocks"],
+      "additionalProperties": false
+    },
+    "TextBlock": {
+      "description": "A run of text as the page's text layer holds it, raw: the extractor never reads a number out of it. A block with hidden reasons is reported as a hidden_text finding and gives no values (rule 14): it is never part of the text evidence is checked against.",
+      "type": "object",
+      "properties": {
+        "anchorId": { "$ref": "#/$defs/AnchorId" },
+        "text": { "type": "string", "minLength": 1, "maxLength": 200000 },
+        "bbox": { "$ref": "#/$defs/Box" },
+        "charBoxes": {
+          "description": "Character boxes: each covers the code points start (inclusive) to end (exclusive) of text. Characters the text layer does not place (inserted spaces, line breaks) have none.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/CharBox" },
+          "maxItems": 200000
+        },
+        "hidden": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/PdfHiddenReason" },
+          "uniqueItems": true,
+          "maxItems": 6
+        },
+        "layer": {
+          "description": "The optional-content group (layer) name as written, when the block is on one.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        }
+      },
+      "required": ["anchorId", "text", "bbox", "charBoxes", "hidden"],
+      "additionalProperties": false
+    },
+    "CharBox": {
+      "type": "object",
+      "properties": {
+        "start": { "type": "integer", "minimum": 0, "maximum": 199999 },
+        "end": { "type": "integer", "minimum": 1, "maximum": 200000 },
+        "box": { "$ref": "#/$defs/Box" }
+      },
+      "required": ["start", "end", "box"],
+      "additionalProperties": false
+    },
+    "PdfHiddenReason": {
+      "description": "Why a text block counts as hidden text (rule 14: white or tiny text, content outside the page, hidden layers).",
+      "type": "string",
+      "enum": ["invisible_render_mode", "fill_matches_background", "tiny_text", "outside_page", "hidden_layer", "clipped"]
+    },
+
+    "XlsxContent": {
+      "description": "Each sheet of the workbook with its cells (openpyxl; F-EXTRACT-01).",
+      "type": "object",
+      "properties": {
+        "sheets": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/XlsxSheet" },
+          "maxItems": 4096
+        }
+      },
+      "required": ["sheets"],
+      "additionalProperties": false
+    },
+    "XlsxSheet": {
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#/$defs/SheetName" },
+        "visibility": { "type": "string", "enum": ["visible", "hidden", "very_hidden"] },
+        "cells": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/XlsxCell" },
+          "maxItems": 20000000
+        },
+        "mergedRanges": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/RangeRef" },
+          "uniqueItems": true,
+          "maxItems": 100000
+        }
+      },
+      "required": ["name", "visibility", "cells", "mergedRanges"],
+      "additionalProperties": false
+    },
+    "XlsxCell": {
+      "description": "One cell with a cached value. raw is the cached value exactly as the file stores it (the text of a number cell as written in the sheet XML, the string of a string cell), never a number the extractor computed or reformatted; numberFormat is the format code as written.",
+      "type": "object",
+      "properties": {
+        "ref": { "$ref": "#/$defs/CellRef" },
+        "valueType": {
+          "type": "string",
+          "enum": ["number", "shared_string", "inline_string", "formula_string", "boolean", "error", "date"]
+        },
+        "raw": { "type": "string", "maxLength": 32767 },
+        "numberFormat": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "formula": {
+          "description": "The formula as written, when the cell has one. Data, never evaluated.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "hidden": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/XlsxHiddenReason" },
+          "uniqueItems": true,
+          "maxItems": 5
+        }
+      },
+      "required": ["ref", "valueType", "raw", "numberFormat", "hidden"],
+      "additionalProperties": false
+    },
+    "XlsxHiddenReason": {
+      "description": "Why a cell counts as hidden text (rule 14).",
+      "type": "string",
+      "enum": ["hidden_sheet", "very_hidden_sheet", "hidden_row", "hidden_column", "font_matches_fill"]
+    },
+
+    "IfcModelRecord": {
+      "description": "The engineer-only record of a stored model (R-023, F-IFC-01, F-IFC-09): the header as written, the classes present, what the extractor could process, the schema check and the IDS results. Not a DocumentRecord field (DocumentRecord.model is ifc-input 6.2.2, behind ifc-values), never a value, never evidence, never an owner-facing line, count or task. Readable while ifc-values is closed.",
+      "type": "object",
+      "properties": {
+        "header": { "$ref": "#/$defs/IfcHeader" },
+        "classesPresent": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/IfcClassName" },
+          "uniqueItems": true,
+          "maxItems": 2000
+        },
+        "processing": { "type": "string", "enum": ["complete", "partial", "failed"] },
+        "schemaCheck": { "$ref": "#/$defs/SchemaCheck" },
+        "ids": { "$ref": "#/$defs/IdsResults" }
+      },
+      "required": ["header", "classesPresent", "processing", "schemaCheck"],
+      "additionalProperties": false
+    },
+    "IfcHeader": {
+      "type": "object",
+      "properties": {
+        "schema": { "$ref": "#/$defs/IfcSchemaId" },
+        "authoringTool": {
+          "description": "The originating system from the file header, as written. Data (rule 14), never logged (rule 13).",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "ifcProjectGlobalId": { "$ref": "#/$defs/GlobalId" }
+      },
+      "required": ["schema"],
+      "additionalProperties": false
+    },
+    "SchemaCheck": {
+      "description": "Whether ifcopenshell.validate ran and whether it found problems. The problems themselves are schema_error findings with codes.",
+      "type": "object",
+      "properties": {
+        "tool": { "$ref": "#/$defs/ToolVersion" },
+        "outcome": { "type": "string", "enum": ["no_problems", "problems", "not_run"] }
+      },
+      "required": ["tool", "outcome"],
+      "additionalProperties": false
+    },
+    "IdsRef": {
+      "description": "An IDS file by id, version and hash. The SOVITECH IDS stays 'draft' until the approver accepts it (ifc-input 5.5).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$" },
+        "version": { "$ref": "#/$defs/VersionText" },
+        "draft": { "type": "boolean" },
+        "sha256": { "$ref": "#/$defs/ContentHash" }
+      },
+      "required": ["id", "version", "draft", "sha256"],
+      "additionalProperties": false
+    },
+    "IdsResults": {
+      "description": "IDS results as spec ids, counts and failing GlobalIds, never report text (prompt 3 section 8). Engineer's view only; never a candidate, a question, an open item or a coverage line (ifc-values, while closed).",
+      "type": "object",
+      "properties": {
+        "ids": { "$ref": "#/$defs/IdsRef" },
+        "tool": { "$ref": "#/$defs/ToolVersion" },
+        "specifications": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/IdsSpecResult" },
+          "maxItems": 1000
+        }
+      },
+      "required": ["ids", "tool", "specifications"],
+      "additionalProperties": false
+    },
+    "IdsSpecResult": {
+      "type": "object",
+      "properties": {
+        "specId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$" },
+        "outcome": { "type": "string", "enum": ["pass", "fail", "not_applicable"] },
+        "applicable": { "type": "integer", "minimum": 0, "maximum": 100000000 },
+        "passed": { "type": "integer", "minimum": 0, "maximum": 100000000 },
+        "failed": { "type": "integer", "minimum": 0, "maximum": 100000000 },
+        "failingGlobalIds": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/GlobalId" },
+          "uniqueItems": true,
+          "maxItems": 1000000
+        }
+      },
+      "required": ["specId", "outcome", "applicable", "passed", "failed", "failingGlobalIds"],
+      "additionalProperties": false
+    },
+
+    "IfcValues": {
+      "description": "SEALED. IFC facts and the table-driven IFC candidate proposals. The API reads them only through openIfcValues() with a gate source, and only while ifc-values is open; each proposal also waits for its own gates. Under guardrails v1.6 Evidence.locator has no IFC field, so nothing here becomes a candidate while ifc-values is closed (ifc-input 6.2.1; G1-13). The IFC locator lives here and nowhere else: it is never written into page, sheet, cell or bbox (prompt 3 section 8).",
+      "type": "object",
+      "properties": {
+        "facts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/IfcFact" },
+          "maxItems": 10000000
+        },
+        "candidateProposals": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/IfcCandidateProposal" },
+          "maxItems": 10000000
+        }
+      },
+      "required": ["facts", "candidateProposals"],
+      "additionalProperties": false
+    },
+    "IfcFact": {
+      "description": "One value read from the model, with its IFC locator and the verbatim STEP text of the lines that hold it (ifc-input 4.1 item 3). The excerpt keeps STEP string escapes as written (\\X2\\...\\X0\\).",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/FactId" },
+        "locator": { "$ref": "#/$defs/IfcLocator" },
+        "value": { "$ref": "#/$defs/StepValue" },
+        "declaredUnit": { "$ref": "#/$defs/DeclaredUnit" },
+        "excerpt": { "type": "string", "minLength": 1, "maxLength": 20000 }
+      },
+      "required": ["id", "locator", "value", "excerpt"],
+      "additionalProperties": false
+    },
+    "IfcLocator": {
+      "description": "The IFC locator of ifc-input 6.2.1 (a proposal): the file by content hash, its declared schema, the element's GlobalId, the STEP instance ids of the quoted lines, and the path to the value.",
+      "type": "object",
+      "properties": {
+        "contentHash": { "$ref": "#/$defs/ContentHash" },
+        "schema": { "$ref": "#/$defs/IfcSchemaId" },
+        "globalId": { "$ref": "#/$defs/GlobalId" },
+        "stepIds": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/StepId" },
+          "uniqueItems": true,
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "path": { "$ref": "#/$defs/IfcPath" }
+      },
+      "required": ["contentHash", "schema", "globalId", "stepIds", "path"],
+      "additionalProperties": false
+    },
+    "IfcPath": {
+      "description": "Where the value sits, from the element: an attribute, a property of a property set, a quantity of a quantity set (each on the occurrence or through its type object), or a relation to another element.",
+      "oneOf": [
+        { "$ref": "#/$defs/IfcAttributePath" },
+        { "$ref": "#/$defs/IfcPropertyPath" },
+        { "$ref": "#/$defs/IfcQuantityPath" },
+        { "$ref": "#/$defs/IfcRelationPath" }
+      ],
+      "discriminator": { "propertyName": "kind" }
+    },
+    "IfcPathThrough": {
+      "type": "string",
+      "enum": ["occurrence", "type_object"]
+    },
+    "IfcAttributePath": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "attribute" },
+        "through": { "$ref": "#/$defs/IfcPathThrough" },
+        "attribute": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]{0,63}$" }
+      },
+      "required": ["kind", "through", "attribute"],
+      "additionalProperties": false
+    },
+    "IfcPropertyPath": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "property" },
+        "through": { "$ref": "#/$defs/IfcPathThrough" },
+        "propertySet": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "property": { "type": "string", "minLength": 1, "maxLength": 255 }
+      },
+      "required": ["kind", "through", "propertySet", "property"],
+      "additionalProperties": false
+    },
+    "IfcQuantityPath": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "quantity" },
+        "through": { "$ref": "#/$defs/IfcPathThrough" },
+        "quantitySet": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "quantity": { "type": "string", "minLength": 1, "maxLength": 255 }
+      },
+      "required": ["kind", "through", "quantitySet", "quantity"],
+      "additionalProperties": false
+    },
+    "IfcRelationPath": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "relation" },
+        "relation": {
+          "type": "string",
+          "enum": [
+            "contained_in_spatial_structure",
+            "aggregates",
+            "assigns_to_group",
+            "defines_by_type",
+            "services_buildings",
+            "referenced_in_spatial_structure",
+            "flow_control_elements",
+            "nests",
+            "connects_ports",
+            "associates_classification"
+          ]
+        },
+        "relatedGlobalId": { "$ref": "#/$defs/GlobalId" }
+      },
+      "required": ["kind", "relation", "relatedGlobalId"],
+      "additionalProperties": false
+    },
+
+    "StepValue": {
+      "description": "A typed STEP literal, kept as its token. A real or an integer stays text here; the API reads it, never the extractor (prompt 3 section 6).",
+      "oneOf": [
+        { "$ref": "#/$defs/StepReal" },
+        { "$ref": "#/$defs/StepInteger" },
+        { "$ref": "#/$defs/StepString" },
+        { "$ref": "#/$defs/StepBoolean" },
+        { "$ref": "#/$defs/StepLogical" },
+        { "$ref": "#/$defs/StepEnumeration" },
+        { "$ref": "#/$defs/StepBinary" },
+        { "$ref": "#/$defs/StepReference" },
+        { "$ref": "#/$defs/StepUnset" },
+        { "$ref": "#/$defs/StepDerived" },
+        { "$ref": "#/$defs/StepList" }
+      ],
+      "discriminator": { "propertyName": "kind" }
+    },
+    "StepScalar": {
+      "description": "A STEP literal that is not a list, for the items of a list.",
+      "oneOf": [
+        { "$ref": "#/$defs/StepReal" },
+        { "$ref": "#/$defs/StepInteger" },
+        { "$ref": "#/$defs/StepString" },
+        { "$ref": "#/$defs/StepBoolean" },
+        { "$ref": "#/$defs/StepLogical" },
+        { "$ref": "#/$defs/StepEnumeration" },
+        { "$ref": "#/$defs/StepBinary" },
+        { "$ref": "#/$defs/StepReference" }
+      ],
+      "discriminator": { "propertyName": "kind" }
+    },
+    "StepReal": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "real" },
+        "ifcType": { "$ref": "#/$defs/IfcTypeName" },
+        "token": { "type": "string", "pattern": "^[+-]?[0-9]+\\.[0-9]*([Ee][+-]?[0-9]+)?$", "maxLength": 64 }
+      },
+      "required": ["kind", "token"],
+      "additionalProperties": false
+    },
+    "StepInteger": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "integer" },
+        "ifcType": { "$ref": "#/$defs/IfcTypeName" },
+        "token": { "type": "string", "pattern": "^[+-]?[0-9]+$", "maxLength": 32 }
+      },
+      "required": ["kind", "token"],
+      "additionalProperties": false
+    },
+    "StepString": {
+      "description": "token is the STEP string as written, quotes and escapes included; text is the decoded string (the Candidate's original.text).",
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "string" },
+        "ifcType": { "$ref": "#/$defs/IfcTypeName" },
+        "token": { "type": "string", "pattern": "^'([^']|'')*'$", "maxLength": 20000 },
+        "text": { "type": "string", "maxLength": 20000 }
+      },
+      "required": ["kind", "token", "text"],
+      "additionalProperties": false
+    },
+    "StepBoolean": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "boolean" },
+        "ifcType": { "$ref": "#/$defs/IfcTypeName" },
+        "token": { "type": "string", "enum": [".T.", ".F."] }
+      },
+      "required": ["kind", "token"],
+      "additionalProperties": false
+    },
+    "StepLogical": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "logical" },
+        "ifcType": { "$ref": "#/$defs/IfcTypeName" },
+        "token": { "type": "string", "enum": [".T.", ".F.", ".U."] }
+      },
+      "required": ["kind", "token"],
+      "additionalProperties": false
+    },
+    "StepEnumeration": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "enumeration" },
+        "ifcType": { "$ref": "#/$defs/IfcTypeName" },
+        "token": { "type": "string", "pattern": "^\\.[A-Z][A-Z0-9_]*\\.$", "maxLength": 128 }
+      },
+      "required": ["kind", "token"],
+      "additionalProperties": false
+    },
+    "StepBinary": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "binary" },
+        "ifcType": { "$ref": "#/$defs/IfcTypeName" },
+        "token": { "type": "string", "pattern": "^\"[0-3][0-9A-F]*\"$", "maxLength": 20000 }
+      },
+      "required": ["kind", "token"],
+      "additionalProperties": false
+    },
+    "StepReference": {
+      "description": "A reference to another instance (#n) of the same file.",
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "reference" },
+        "stepId": { "$ref": "#/$defs/StepId" }
+      },
+      "required": ["kind", "stepId"],
+      "additionalProperties": false
+    },
+    "StepUnset": {
+      "description": "$: the attribute is not set. Unknown, never zero (rule 1).",
+      "type": "object",
+      "properties": { "kind": { "type": "string", "const": "unset" } },
+      "required": ["kind"],
+      "additionalProperties": false
+    },
+    "StepDerived": {
+      "description": "*: the value is derived by the schema, not written in the file.",
+      "type": "object",
+      "properties": { "kind": { "type": "string", "const": "derived" } },
+      "required": ["kind"],
+      "additionalProperties": false
+    },
+    "StepList": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "list" },
+        "ifcType": { "$ref": "#/$defs/IfcTypeName" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/StepScalar" },
+          "maxItems": 10000
+        }
+      },
+      "required": ["kind", "items"],
+      "additionalProperties": false
+    },
+    "DeclaredUnit": {
+      "description": "The unit the file declares for a value, as written: from the project's unit assignment or from the value's own Unit (ifc-input 4.1 item 4). Mapping it to a registry unit, with the dimension check, is the API's (2.7); an unmapped unit gives no quantity candidate.",
+      "type": "object",
+      "properties": {
+        "source": { "type": "string", "enum": ["project_unit_assignment", "value_unit"] },
+        "stepId": { "$ref": "#/$defs/StepId" },
+        "unitKind": { "type": "string", "enum": ["si", "conversion_based", "derived", "monetary", "context_dependent"] },
+        "unitType": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{0,63}$" },
+        "prefix": { "type": "string", "pattern": "^[A-Z]{1,16}$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 255 }
+      },
+      "required": ["source", "stepId", "unitKind", "unitType", "name"],
+      "additionalProperties": false
+    },
+
+    "IfcCandidateProposal": {
+      "description": "A table-driven candidate proposal from the model (ifc-input 4.1 item 2). A proposal, never a candidate: the API verifies it and decides its source (rule 1; 2.1). It carries no parsed number: a quantity comes from its fact's STEP token through the API.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/ProposalId" },
+        "subject": { "$ref": "#/$defs/ProposalSubject" },
+        "fieldKey": { "$ref": "#/$defs/FieldKey" },
+        "sourceClaim": {
+          "description": "The source the extractor claims. Code decides the source (2.1): 'calculated' only with the geometry mechanism (ifc-input 6.2.7, behind ifc-geometry).",
+          "type": "string",
+          "enum": ["document", "ai_inference", "calculated"]
+        },
+        "mechanism": { "$ref": "#/$defs/IfcProposalMechanism" },
+        "requiresGates": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/IfcGateId" },
+          "uniqueItems": true,
+          "minItems": 1,
+          "maxItems": 10
+        },
+        "datasets": {
+          "description": "The mapping tables and other datasets that shaped the proposal, with their versions (ifc-input 6.2.10).",
+          "type": "array",
+          "items": { "$ref": "#/$defs/DatasetRef" },
+          "maxItems": 8
+        },
+        "value": { "$ref": "#/$defs/ProposalValue" },
+        "evidenceFactIds": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/FactId" },
+          "uniqueItems": true,
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "confidence": {
+          "description": "For ai_inference only; code caps it again against the evidence (rule 3).",
+          "type": "string",
+          "enum": ["high", "medium", "low"]
+        }
+      },
+      "required": ["id", "subject", "fieldKey", "sourceClaim", "mechanism", "requiresGates", "datasets", "value", "evidenceFactIds"],
+      "additionalProperties": false
+    },
+    "ProposalSubject": {
+      "description": "The subject kind and the model element the proposal is about. Resolving it to a subject is the API's, under ifc-identity (GlobalId is not an identity across models).",
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "enum": ["project", "building", "level", "zone", "asset", "metering_point"] },
+        "elementGlobalId": { "$ref": "#/$defs/GlobalId" }
+      },
+      "required": ["kind", "elementGlobalId"],
+      "additionalProperties": false
+    },
+    "IfcProposalMechanism": {
+      "description": "How the extractor made the proposal. x-mechanism-rules gives the gates each mechanism waits for at least, and whether it needs a dataset.",
+      "type": "string",
+      "enum": ["direct_read", "relation", "tag_source", "class_mapping", "name_term", "quantity_set_area", "geometry"],
+      "x-mechanism-rules": {
+        "direct_read": { "gates": ["ifc-values"], "needsDataset": true },
+        "relation": { "gates": ["ifc-values"], "needsDataset": false },
+        "tag_source": { "gates": ["ifc-values", "ifc-identity"], "needsDataset": false },
+        "class_mapping": { "gates": ["ifc-values", "ifc-code-inference", "dataset-asset-taxonomy"], "needsDataset": true },
+        "name_term": { "gates": ["ifc-values", "ifc-code-inference", "dataset-glossary"], "needsDataset": true },
+        "quantity_set_area": { "gates": ["ifc-values", "ifc-areas"], "needsDataset": true },
+        "geometry": { "gates": ["ifc-values", "ifc-geometry"], "needsDataset": false }
+      }
+    },
+    "ProposalValue": {
+      "oneOf": [
+        { "$ref": "#/$defs/FactProposalValue" },
+        { "$ref": "#/$defs/ChoiceProposalValue" }
+      ],
+      "discriminator": { "propertyName": "kind" }
+    },
+    "FactProposalValue": {
+      "description": "The value is one of the evidence facts' value, read by the API (a STEP token through the rule 8 parser or the typed literal reader).",
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "fact" },
+        "factId": { "$ref": "#/$defs/FactId" }
+      },
+      "required": ["kind", "factId"],
+      "additionalProperties": false
+    },
+    "ChoiceProposalValue": {
+      "description": "An enum key from a mapping table (an asset type, a level type, a system).",
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "choice" },
+        "choice": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" }
+      },
+      "required": ["kind", "choice"],
+      "additionalProperties": false
+    },
+
+    "Finding": {
+      "description": "An item for the engineer (rule 14; F-EXTRACT-10, F-IFC-01, F-IFC-02). A code and a location, never document text. A finding creates no candidate, badge, verification or field state. Readable while ifc-values is closed (G14-3).",
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "enum": ["embedded_instruction", "hidden_text", "schema_error", "hidden_content"] },
+        "code": { "$ref": "#/$defs/Code" },
+        "locator": { "$ref": "#/$defs/FindingLocator" }
+      },
+      "required": ["kind", "code", "locator"],
+      "additionalProperties": false
+    },
+    "FindingLocator": {
+      "description": "Where a finding is. An IFC finding names GlobalIds and STEP ids for the engineer; this is not Evidence.locator.",
+      "oneOf": [
+        { "$ref": "#/$defs/PdfFindingLocator" },
+        { "$ref": "#/$defs/XlsxFindingLocator" },
+        { "$ref": "#/$defs/IfcFindingLocator" },
+        { "$ref": "#/$defs/FileFindingLocator" }
+      ],
+      "discriminator": { "propertyName": "kind" }
+    },
+    "PdfFindingLocator": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "pdf" },
+        "page": { "$ref": "#/$defs/PageNumber" },
+        "anchorId": { "$ref": "#/$defs/AnchorId" },
+        "bbox": { "$ref": "#/$defs/Box" }
+      },
+      "required": ["kind", "page"],
+      "additionalProperties": false
+    },
+    "XlsxFindingLocator": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "xlsx" },
+        "sheet": { "$ref": "#/$defs/SheetName" },
+        "cell": { "$ref": "#/$defs/CellRef" }
+      },
+      "required": ["kind", "sheet"],
+      "additionalProperties": false
+    },
+    "IfcFindingLocator": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "const": "ifc" },
+        "globalId": { "$ref": "#/$defs/GlobalId" },
+        "stepIds": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/StepId" },
+          "uniqueItems": true,
+          "maxItems": 64
+        },
+        "ifcClass": { "$ref": "#/$defs/IfcClassName" }
+      },
+      "required": ["kind", "stepIds"],
+      "additionalProperties": false
+    },
+    "FileFindingLocator": {
+      "description": "The file as a whole (its header or metadata).",
+      "type": "object",
+      "properties": { "kind": { "type": "string", "const": "file" } },
+      "required": ["kind"],
+      "additionalProperties": false
+    },
+
+    "Derivative": {
+      "description": "A viewing file derived from the document, stored under <projectId>/<contentHash>/derived/ and keyed by project id plus content hash (G13-4): never shared between projects, served only after the project access check, removed by the erasure job with its document (ifc-input 6.2.16, a stricter build choice). Never cited as evidence (prompt 3 section 8).",
+      "type": "object",
+      "properties": {
+        "kind": { "$ref": "#/$defs/DerivativeKind" },
+        "projectId": { "$ref": "#/$defs/Uuid" },
+        "contentHash": { "$ref": "#/$defs/ContentHash" },
+        "relativePath": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/sha256:[0-9a-f]{64}/derived/[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "sha256": { "$ref": "#/$defs/ContentHash" },
+        "mediaType": {
+          "type": "string",
+          "enum": ["application/octet-stream", "model/gltf-binary", "image/svg+xml", "image/png", "image/webp"]
+        },
+        "producer": { "$ref": "#/$defs/ToolVersion" },
+        "storeyGlobalId": { "$ref": "#/$defs/GlobalId" },
+        "page": { "$ref": "#/$defs/PageNumber" }
+      },
+      "required": ["kind", "projectId", "contentHash", "relativePath", "sha256", "mediaType", "producer"],
+      "additionalProperties": false
+    },
+
+    "EvidenceLocator": {
+      "description": "The strict runtime shape of guardrails 2.4 Evidence.locator that the evidence verifier reads (rule 1, 'The locator exists'; G1-13). A PDF locator (page, with an optional bbox) or an XLSX locator (sheet, with an optional cell). Any other key is refused: there is no IFC field (no GlobalId, STEP id or path) until the approver accepts ifc-input 6.2.1. x-ifc-locator-keys lists the keys that would carry one; both parsers refuse them with the code ifc_field, for the verifier's log (G1-13).",
+      "x-ifc-locator-keys": ["ifc", "globalId", "globalIds", "guid", "stepId", "stepIds", "step", "path"],
+      "oneOf": [
+        { "$ref": "#/$defs/PdfEvidenceLocator" },
+        { "$ref": "#/$defs/XlsxEvidenceLocator" }
+      ]
+    },
+    "PdfEvidenceLocator": {
+      "type": "object",
+      "properties": {
+        "page": { "$ref": "#/$defs/PageNumber" },
+        "bbox": { "$ref": "#/$defs/Box" }
+      },
+      "required": ["page"],
+      "additionalProperties": false
+    },
+    "XlsxEvidenceLocator": {
+      "type": "object",
+      "properties": {
+        "sheet": { "$ref": "#/$defs/SheetName" },
+        "cell": { "$ref": "#/$defs/CellRef" }
+      },
+      "required": ["sheet"],
+      "additionalProperties": false
+    }
+  }
+}

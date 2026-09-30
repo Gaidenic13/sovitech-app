@@ -1,0 +1,175 @@
+{
+  "about": "TEST ground truth of a synthetic PDF fixture (fictitious building, not a real project), written by fixtures/generators/pdf/companions.py with the PDF. `text` is exactly what the page's text layer holds (compare after normalising whitespace); pages with no text layer hold only an image. Case ids name what each value is for; they are not app outputs.",
+  "file": "fixtures/pdf/lista-echipamente.pdf",
+  "testMarking": "DOCUMENT DE TEST: document sintetic, cladire fictiva. Nu este un proiect real.",
+  "pageCount": 2,
+  "pagesWithTextLayer": [
+    1,
+    2
+  ],
+  "pagesWithoutTextLayer": [],
+  "values": [
+    {
+      "page": 1,
+      "text": "CTA-01 Centrala de tratare aer Debit aer 9.000 m³/h; putere ventilator 7,5 kW",
+      "tag": "CTA-01",
+      "locale": "ro",
+      "cases": [
+        "G3-1",
+        "G4-3"
+      ],
+      "note": "Schedule row naming the type: Likely AHU; merges with the IFC's CTA-01 by tag"
+    },
+    {
+      "page": 1,
+      "text": "CTA-02 Centrala de tratare aer Debit aer cca. 8.000 m³/h",
+      "tag": "CTA-02",
+      "locale": "ro",
+      "cases": [
+        "rule 8 approximate"
+      ],
+      "note": "cca. is kept as approximate"
+    },
+    {
+      "page": 1,
+      "text": "CH-01 Chiller racit cu apa Putere frigorifica 430 kW / putere electrica absorbita 135 kW",
+      "tag": "CH-01",
+      "locale": "ro",
+      "cases": [
+        "G8-5"
+      ],
+      "note": "Two fields: cooling output and electrical input. Agrees with rev A of the MEP model; rev B says 450 kW"
+    },
+    {
+      "page": 1,
+      "text": "CH-02 Chiller racit cu aer date nefurnizate de producator",
+      "tag": "CH-02",
+      "locale": "ro",
+      "cases": [
+        "G1-1"
+      ],
+      "note": "No capacity stated: Unknown, never zero"
+    },
+    {
+      "page": 1,
+      "text": "P1 Pompa circulatie 1+1R H = 8 mCA; putere 5,5 kW",
+      "tag": "P1",
+      "locale": "ro",
+      "cases": [
+        "G4-4",
+        "G8-6"
+      ],
+      "note": "1+1R is two pumps; H = 8 mCA is 8 m head, original kept"
+    },
+    {
+      "page": 1,
+      "text": "P2 Pompa dubla putere motor 1,5 kW",
+      "tag": "P2",
+      "locale": "ro",
+      "cases": [
+        "G8-3"
+      ],
+      "note": "Romanian decimal comma: 1,5 kW is unambiguous"
+    },
+    {
+      "page": 1,
+      "text": "VE-P1 Ventilator parcare ventilare CO si desfumare (dubla functiune)",
+      "tag": "VE-P1",
+      "locale": "ro",
+      "cases": [
+        "G11-4"
+      ],
+      "note": "Dual use"
+    },
+    {
+      "page": 1,
+      "text": "TA-01 Tablou automatizare Interfata: compatibil BMS",
+      "tag": "TA-01",
+      "locale": "ro",
+      "cases": [
+        "G1-6"
+      ],
+      "note": "compatibil BMS names no protocol: interface stays unknown"
+    },
+    {
+      "page": 1,
+      "text": "CDI-01 Centrala detectie incendiu monitorizare stare si alarme",
+      "tag": "CDI-01",
+      "locale": "ro",
+      "cases": [
+        "G11-3"
+      ],
+      "note": "Fire detection panel: fire-alarm input and fire-mode status stay in the point list"
+    },
+    {
+      "page": 2,
+      "text": "Model EXC-AHU-12",
+      "tag": "CTA-01",
+      "locale": "en",
+      "cases": [
+        "G8-2",
+        "G8-3"
+      ],
+      "note": "English number format in a Romanian document: locale is detected per table (rule 8)"
+    },
+    {
+      "page": 2,
+      "text": "Airflow 9,000 m³/h",
+      "tag": "CTA-01",
+      "locale": "en",
+      "cases": [
+        "G8-2",
+        "G8-3"
+      ],
+      "note": "English number format in a Romanian document: locale is detected per table (rule 8)"
+    },
+    {
+      "page": 2,
+      "text": "Fan power 7.5 kW",
+      "tag": "CTA-01",
+      "locale": "en",
+      "cases": [
+        "G8-2",
+        "G8-3"
+      ],
+      "note": "English number format in a Romanian document: locale is detected per table (rule 8)"
+    },
+    {
+      "page": 2,
+      "text": "Supply air temperature 18.0 °C",
+      "tag": "CTA-01",
+      "locale": "en",
+      "cases": [
+        "G8-2",
+        "G8-3"
+      ],
+      "note": "English number format in a Romanian document: locale is detected per table (rule 8)"
+    },
+    {
+      "page": 2,
+      "text": "Putere motor: 1.500 kW",
+      "tag": "VE-P1",
+      "locale": "unknown",
+      "cases": [
+        "G8-3"
+      ],
+      "readings": [
+        {
+          "value": "1.5",
+          "unit": "kW"
+        },
+        {
+          "value": "1500",
+          "unit": "kW"
+        }
+      ],
+      "note": "A table whose locale is unknown: one candidate with two alternatives, low confidence"
+    }
+  ],
+  "titleBlock": {
+    "stage": "PT",
+    "revision": "Rev. 01",
+    "code": "M-001",
+    "kind": "mep"
+  }
+}

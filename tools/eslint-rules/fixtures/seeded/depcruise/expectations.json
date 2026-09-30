@@ -107,6 +107,16 @@
       "db-testing-only-from-tests"
     ],
     "packages/db/src/good-imports-testing.test.ts": [],
-    "tests/guardrails/good-imports-db-testing.test.ts": []
+    "tests/guardrails/good-imports-db-testing.test.ts": [],
+    "apps/web/src/imports-extraction-contract.ts": [
+      "browser-code-reaches-no-server-code",
+      "web-imports-only-browser-entries"
+    ],
+    "packages/viewer/src/imports-ifc-reader.ts": [
+      "browser-code-reaches-no-server-code"
+    ],
+    "packages/ui/src/imports-extraction-contract-type-only.ts": [
+      "browser-code-reaches-no-server-code"
+    ]
   }
 }

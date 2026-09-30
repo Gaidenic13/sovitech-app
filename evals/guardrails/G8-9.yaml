@@ -1,0 +1,42 @@
+id: G8-9
+status: pending
+fixture:
+  - fixtures/evals/G8-9/memoriu-arhitectura.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G8-9/memoriu-arhitectura.yaml
+  fields:
+    - key: building.floors
+      label: Floors
+      subject: building
+      kind: count
+      unit: count
+      qualifiers: [below_ground, semi_basement, ground, mezzanine, upper, setback_or_technical, attic, roof_plant]
+assertions:
+  # "Parsed into the floor structure, with the original kept": one count per level type, from the notation
+  - candidate:
+      fieldKey: building.floors
+      quantity: { value: 3, unit: count, qualifier: below_ground }
+      evidenceIncludes: 3S+P+Mz+12E+Er
+  - candidate:
+      fieldKey: building.floors
+      quantity: { value: 1, unit: count, qualifier: ground }
+  - candidate:
+      fieldKey: building.floors
+      quantity: { value: 1, unit: count, qualifier: mezzanine }
+  - candidate:
+      fieldKey: building.floors
+      quantity: { value: 12, unit: count, qualifier: upper }
+  - candidate:
+      fieldKey: building.floors
+      quantity: { value: 1, unit: count, qualifier: setback_or_technical }
+  - candidateCount:
+      fieldKey: building.floors
+      equals: 5
+samples: 5
+note: >-
+  Guardrails section 7, G8-9: '"3S+P+Mz+12E+Er"' -> "Parsed into the floor structure, with the original kept". Rule
+  8, "Floors": floors are stored as counts by level type, and the regim de înălțime is the first source. The
+  assertion language has no key for the candidate's `original`; "original kept" is read through the verbatim
+  excerpt. Exactly five counts: no total and no level type the notation does not state.

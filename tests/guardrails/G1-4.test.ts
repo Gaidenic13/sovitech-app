@@ -1,11 +1,10 @@
-// @pending-until: phase 2 verify-proposal
 /**
  * G1-4 (docs/guardrails.md section 7; rule 1 "Enforced by", check 4).
  * Situation: the cited excerpt does not occur on the cited page.
  * Expected: rejected and logged. The field stays unknown.
  */
 import fc from 'fast-check';
-import { expect } from 'vitest';
+import { expect, test } from 'vitest';
 import {
   NO_EVENTS,
   derive,
@@ -18,9 +17,6 @@ import {
   type ProposalContext,
 } from '@sovitech/domain';
 import { unitByCode } from '@sovitech/registry';
-import { pendingCase } from './_support/pending';
-
-const pending = pendingCase(import.meta.url);
 
 const PROJECT = 'test-project-g1-4';
 const BUILDING = 'test-building-g1-4';
@@ -113,7 +109,7 @@ function expectRejectedLoggedUnknown(page: number): void {
   expect(derive(areaField, stored, NO_EVENTS, deriveContext).state).toBe('unknown');
 }
 
-pending('F-EXTRACT-04 · G1-4: the cited excerpt does not occur on the cited page: rejected and logged, field unknown', () => {
+test('F-EXTRACT-04 · G1-4: the cited excerpt does not occur on the cited page: rejected and logged, field unknown', () => {
   expectRejectedLoggedUnknown(4);
 
   // Property: every cited page of the schedule that does not hold the excerpt.

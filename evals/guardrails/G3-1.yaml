@@ -1,0 +1,28 @@
+id: G3-1
+status: pending
+fixture:
+  - fixtures/evals/G3-1/lista-echipamente.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G3-1/lista-echipamente.yaml
+  fields:
+    - key: TEST.asset.type
+      label: Asset type
+      subject: asset
+      kind: enum
+      options: [ahu, fcu, fan, pump, chiller, vav, damper, sensor]
+assertions:
+  # "ai_inference, high, with the row as evidence"
+  - candidate:
+      fieldKey: TEST.asset.type
+      subject: { kind: asset, ref: CTA-01 }
+      source: ai_inference
+      confidence: high
+      choice: ahu
+      evidenceIncludes: Centrală de tratare aer
+samples: 5
+note: >-
+  Guardrails section 7, G3-1: 'A schedule row "CTA-01 … centrală de tratare aer"' -> "ai_inference, high, with
+  the row as evidence. The badge reads Likely." Rule 3, high: "an equipment-schedule row". Likely is the app's
+  badge for a high inference (2.8), not model behaviour.

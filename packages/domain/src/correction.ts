@@ -123,6 +123,9 @@ export function planOwnerCorrection(input: OwnerCorrectionInput): OwnerCorrectio
   const shownIsFound = shown.source === 'document' || shown.source === 'ai_inference';
   const engineerQueue = !rejectsShown ? 'conflict' : engineerChecks && shownIsFound ? 'rejected_value' : 'none';
 
+  // The tier the owner was shown: derive's, which the evidence that remains caps (rule 3; 2.3), or the stored one for a
+  // state that carries none.
+  const tier = derived.confidence ?? shown.confidence;
   const guardrailEvents: GuardrailEvent[] =
     shown.source === 'ai_inference'
       ? [
@@ -131,7 +134,7 @@ export function planOwnerCorrection(input: OwnerCorrectionInput): OwnerCorrectio
             projectId: input.projectId,
             subjectId: shown.subjectId,
             fieldKey: field.key,
-            reason: `confidence:${shown.confidence === undefined ? 'unstated' : shown.confidence}`,
+            reason: `confidence:${tier === undefined ? 'unstated' : tier}`,
           },
         ]
       : [];

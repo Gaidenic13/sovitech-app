@@ -1,0 +1,71 @@
+{
+  "about": "TEST ground truth of a synthetic PDF fixture (fictitious building, not a real project), written by fixtures/generators/pdf/companions.py with the PDF. `text` is exactly what the page's text layer holds (compare after normalising whitespace); pages with no text layer hold only an image. Case ids name what each value is for; they are not app outputs.",
+  "file": "fixtures/pdf/memoriu-tehnic.pdf",
+  "testMarking": "DOCUMENT DE TEST: document sintetic, cladire fictiva. Nu este un proiect real.",
+  "pageCount": 3,
+  "pagesWithTextLayer": [
+    1,
+    2,
+    3
+  ],
+  "pagesWithoutTextLayer": [],
+  "values": [
+    {
+      "page": 1,
+      "text": "Regim de inaltime: 2S+P+2E",
+      "field": "building.floorStructure",
+      "original": "2S+P+2E",
+      "cases": [
+        "G8-9",
+        "G4-11"
+      ],
+      "note": "The regim de inaltime is the first source for floors (rule 8); it reads 2 below ground, ground, 2 upper floors"
+    },
+    {
+      "page": 2,
+      "text": "Sc 1.234 mp, Scd 6.170 mp, Su 4.321 mp",
+      "field": "building.area",
+      "cases": [
+        "G8-1"
+      ],
+      "locale": "ro",
+      "readings": [
+        {
+          "text": "Sc 1.234 mp",
+          "basis": "footprint",
+          "value": "1234",
+          "unit": "m2"
+        },
+        {
+          "text": "Scd 6.170 mp",
+          "basis": "gross_total",
+          "value": "6170",
+          "unit": "m2"
+        },
+        {
+          "text": "Su 4.321 mp",
+          "basis": "usable",
+          "value": "4321",
+          "unit": "m2"
+        }
+      ],
+      "note": "Three fields with their bases; Sc never feeds a benchmark (G8-1)"
+    },
+    {
+      "page": 3,
+      "text": "Parcarea are ventilatorul VE-P1 cu dubla functiune: ventilare CO si desfumare.",
+      "field": "asset.lifeSafety",
+      "tag": "VE-P1",
+      "cases": [
+        "G11-4"
+      ],
+      "note": "Dual-use car-park fan: life-safety equipment (rule 11)"
+    }
+  ],
+  "titleBlock": {
+    "stage": "PT",
+    "revision": "Rev. 01",
+    "code": "MT-01",
+    "kind": "specification"
+  }
+}

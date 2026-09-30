@@ -39,6 +39,10 @@ export default defineConfig({
             'packages/*/src/**/*.test.tsx',
             'apps/*/src/**/*.test.ts',
             'tools/**/*.test.ts',
+            // The API's integration tests over a TEST database (phase 2): outside tests/guardrails,
+            // so they are not case files, and under tests/, where the store's test machinery may be
+            // reached (dependency-cruiser's db-testing-only-from-tests).
+            'tests/api/**/*.test.ts',
           ],
         },
       },

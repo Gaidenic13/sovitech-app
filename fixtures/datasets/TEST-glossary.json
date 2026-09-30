@@ -1,0 +1,11 @@
+{
+  "id": "TEST-glossary",
+  "version": "TEST-1",
+  "description": "TEST glossary: synthetic abbreviation entries for the G3-8 eval. Not the SOVITECH Romanian glossary; not approved reference data.",
+  "entries": {
+    "CTA": "centrală de tratare a aerului: air handling unit (TEST entry)",
+    "UTA": "unitate de tratare a aerului: air handling unit (TEST entry)",
+    "VCV": "ventiloconvector: fan coil unit (TEST entry)",
+    "TGBT": "tablou general de joasă tensiune: main low-voltage distribution board (TEST entry)"
+  }
+}

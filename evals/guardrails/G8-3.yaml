@@ -1,0 +1,32 @@
+id: G8-3
+status: pending
+fixture:
+  - fixtures/evals/G8-3/tabel-motor.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G8-3/tabel-motor.yaml
+  fields:
+    - key: TEST.asset.motorPower
+      label: Motor power (electrical input)
+      subject: asset
+      kind: quantity
+      unit: kW
+      qualifiers: [electrical_input]
+assertions:
+  # "One candidate with two alternatives, low confidence": two readings, 1.5 and 1500, in one candidate
+  - candidate:
+      fieldKey: TEST.asset.motorPower
+      subject: { kind: asset, ref: P2 }
+      quantity: { unit: kW }
+      alternatives: 1
+      readings: [1.5, 1500]
+      confidence: low
+  - candidateCount:
+      fieldKey: TEST.asset.motorPower
+      equals: 1
+samples: 5
+note: >-
+  Guardrails section 7, G8-3: '"1.500 kW" in a table whose locale is unknown' -> "One candidate with two
+  alternatives, low confidence". Rule 8, "Ambiguous readings keep both". The two alternatives are the two readings
+  (the runner's `alternatives` counts the readings besides the first).

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info>
+    <title>SOVITECH IFC minimum information for a preliminary BMS proposal (draft v0.1)</title>
+    <version>0.1</version>
+    <description>DRAFT REFERENCE DATA, version 0.1: not approved, awaiting the approver and SOVITECH engineering review. Results inform coverage and engineer review only: they never block the owner, never create values and never become owner questions.</description>
+    <purpose>Minimum model information for a preliminary BMS proposal</purpose>
+  </info>
+  <specifications>
+    <specification name="S01 Storeys carry a name" ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" identifier="S01" description="At least one building storey; each storey has a Name. Feeds the level register.">
+      <applicability minOccurs="1" maxOccurs="unbounded"><entity><name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name></entity></applicability>
+      <requirements><attribute cardinality="required"><name><simpleValue>Name</simpleValue></name></attribute></requirements>
+    </specification>
+    <specification name="S02 Spaces sit on storeys and carry a name" ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" identifier="S02" description="At least one space; each space is aggregated into a building storey and has a Name.">
+      <applicability minOccurs="1" maxOccurs="unbounded"><entity><name><simpleValue>IFCSPACE</simpleValue></name></entity></applicability>
+      <requirements><partOf relation="IFCRELAGGREGATES" cardinality="required"><entity><name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name></entity></partOf><attribute cardinality="required"><name><simpleValue>Name</simpleValue></name></attribute></requirements>
+    </specification>
+    <specification name="S03 Space net floor area" ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" identifier="S03" description="Each space has Qto_SpaceBaseQuantities.NetFloorArea as an area measure.">
+      <applicability minOccurs="1" maxOccurs="unbounded"><entity><name><simpleValue>IFCSPACE</simpleValue></name></entity></applicability>
+      <requirements><property dataType="IFCAREAMEASURE" cardinality="required"><propertySet><simpleValue>Qto_SpaceBaseQuantities</simpleValue></propertySet><baseName><simpleValue>NetFloorArea</simpleValue></baseName></property></requirements>
+    </specification>
+    <specification name="S04 Space gross floor area" ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" identifier="S04" description="Each space has Qto_SpaceBaseQuantities.GrossFloorArea as an area measure.">
+      <applicability minOccurs="1" maxOccurs="unbounded"><entity><name><simpleValue>IFCSPACE</simpleValue></name></entity></applicability>
+      <requirements><property dataType="IFCAREAMEASURE" cardinality="required"><propertySet><simpleValue>Qto_SpaceBaseQuantities</simpleValue></propertySet><baseName><simpleValue>GrossFloorArea</simpleValue></baseName></property></requirements>
+    </specification>
+    <specification name="S05 Equipment carries an engineering tag" ifcVersion="IFC4 IFC4X3_ADD2" identifier="S05" description="Building-services equipment has a Tag that contains at least one letter; an all-digit Tag is an authoring-tool id, not an engineering tag.">
+      <applicability minOccurs="0" maxOccurs="unbounded"><entity><name><xs:restriction base="xs:string"><xs:enumeration value="IFCUNITARYEQUIPMENT"/><xs:enumeration value="IFCCHILLER"/><xs:enumeration value="IFCBOILER"/><xs:enumeration value="IFCPUMP"/><xs:enumeration value="IFCFAN"/><xs:enumeration value="IFCAIRTERMINALBOX"/><xs:enumeration value="IFCDAMPER"/><xs:enumeration value="IFCFLOWMETER"/></xs:restriction></name></entity></applicability>
+      <requirements><attribute cardinality="required"><name><simpleValue>Tag</simpleValue></name><value><xs:restriction base="xs:string"><xs:pattern value=".*[A-Za-z].*"/></xs:restriction></value></attribute></requirements>
+    </specification>
+    <specification name="S06 Equipment is contained in a storey" ifcVersion="IFC4 IFC4X3_ADD2" identifier="S06" description="Building-services equipment is contained in a building storey.">
+      <applicability minOccurs="0" maxOccurs="unbounded"><entity><name><xs:restriction base="xs:string"><xs:enumeration value="IFCUNITARYEQUIPMENT"/><xs:enumeration value="IFCCHILLER"/><xs:enumeration value="IFCBOILER"/><xs:enumeration value="IFCPUMP"/><xs:enumeration value="IFCFAN"/><xs:enumeration value="IFCAIRTERMINALBOX"/><xs:enumeration value="IFCDAMPER"/><xs:enumeration value="IFCFLOWMETER"/></xs:restriction></name></entity></applicability>
+      <requirements><partOf relation="IFCRELCONTAINEDINSPATIALSTRUCTURE" cardinality="required"><entity><name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name></entity></partOf></requirements>
+    </specification>
+    <specification name="S07 Equipment belongs to a distribution system" ifcVersion="IFC4 IFC4X3_ADD2" identifier="S07" description="Building-services equipment is assigned to a distribution system.">
+      <applicability minOccurs="0" maxOccurs="unbounded"><entity><name><xs:restriction base="xs:string"><xs:enumeration value="IFCUNITARYEQUIPMENT"/><xs:enumeration value="IFCCHILLER"/><xs:enumeration value="IFCBOILER"/><xs:enumeration value="IFCPUMP"/><xs:enumeration value="IFCFAN"/><xs:enumeration value="IFCAIRTERMINALBOX"/><xs:enumeration value="IFCDAMPER"/><xs:enumeration value="IFCFLOWMETER"/></xs:restriction></name></entity></applicability>
+      <requirements><partOf relation="IFCRELASSIGNSTOGROUP" cardinality="required"><entity><name><simpleValue>IFCDISTRIBUTIONSYSTEM</simpleValue></name></entity></partOf></requirements>
+    </specification>
+    <specification name="S07b Equipment belongs to a system (IFC2X3)" ifcVersion="IFC2X3" identifier="S07b" description="IFC2X3: flow and energy-conversion equipment is assigned to a system.">
+      <applicability minOccurs="0" maxOccurs="unbounded"><entity><name><xs:restriction base="xs:string"><xs:enumeration value="IFCENERGYCONVERSIONDEVICE"/><xs:enumeration value="IFCFLOWMOVINGDEVICE"/><xs:enumeration value="IFCFLOWCONTROLLER"/></xs:restriction></name></entity></applicability>
+      <requirements><partOf relation="IFCRELASSIGNSTOGROUP" cardinality="required"><entity><name><simpleValue>IFCSYSTEM</simpleValue></name></entity></partOf></requirements>
+    </specification>
+    <specification name="S08 Proxies state what they are" ifcVersion="IFC2X3 IFC4 IFC4X3_ADD2" identifier="S08" description="A building element proxy has an ObjectType.">
+      <applicability minOccurs="0" maxOccurs="unbounded"><entity><name><simpleValue>IFCBUILDINGELEMENTPROXY</simpleValue></name></entity></applicability>
+      <requirements><attribute cardinality="required"><name><simpleValue>ObjectType</simpleValue></name></attribute></requirements>
+    </specification>
+    <specification name="S09 Dampers state their kind" ifcVersion="IFC4 IFC4X3_ADD2" identifier="S09" description="A damper has a specific PredefinedType, so fire and smoke dampers can be told apart.">
+      <applicability minOccurs="0" maxOccurs="unbounded"><entity><name><simpleValue>IFCDAMPER</simpleValue></name></entity></applicability>
+      <requirements><entity><name><simpleValue>IFCDAMPER</simpleValue></name><predefinedType><xs:restriction base="xs:string"><xs:enumeration value="BACKDRAFTDAMPER"/><xs:enumeration value="BALANCINGDAMPER"/><xs:enumeration value="BLASTDAMPER"/><xs:enumeration value="CONTROLDAMPER"/><xs:enumeration value="FIREDAMPER"/><xs:enumeration value="FIRESMOKEDAMPER"/><xs:enumeration value="FUMEHOODEXHAUST"/><xs:enumeration value="GRAVITYDAMPER"/><xs:enumeration value="GRAVITYRELIEFDAMPER"/><xs:enumeration value="RELIEFDAMPER"/><xs:enumeration value="SMOKEDAMPER"/></xs:restriction></predefinedType></entity></requirements>
+    </specification>
+    <specification name="S10 Chiller capacity" ifcVersion="IFC4X3_ADD2" identifier="S10" description="A chiller has Pset_ChillerTypeCommon.ChillerCapacity as a power measure. IFC4X3 only until the IFC4 property name has been checked (ifc-input 5.5).">
+      <applicability minOccurs="0" maxOccurs="unbounded"><entity><name><simpleValue>IFCCHILLER</simpleValue></name></entity></applicability>
+      <requirements><property dataType="IFCPOWERMEASURE" cardinality="required"><propertySet><simpleValue>Pset_ChillerTypeCommon</simpleValue></propertySet><baseName><simpleValue>ChillerCapacity</simpleValue></baseName></property></requirements>
+    </specification>
+  </specifications>
+</ids>

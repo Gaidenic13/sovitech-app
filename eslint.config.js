@@ -78,6 +78,51 @@ export default defineConfig(
     languageOptions: { globals: { ...globals.browser } },
   },
 
+  {
+    // The Anthropic SDK is imported only by the AI boundary's transport (prompt 3 section 6:
+    // packages/ai is "the Anthropic boundary"; ADRs 0021 and 0023), and by that file's own test.
+    // dependency-cruiser cannot see the import: its options.exclude hides third-party modules from
+    // the boundaries, and narrowing that allow list is an allow-entry change the loosening check
+    // refuses without the approver (phase 2). packages/ai/src/transport.test.ts pins the same
+    // boundary over the sources; tools/eslint-rules/anthropic-sdk-boundary.test.ts proves this block.
+    // A specifier computed at run time is outside this block's sight; in apps/ and packages/
+    // sovitech/no-computed-import refuses it, elsewhere only the source-text scan in
+    // packages/ai/src/transport.test.ts does (tools/eslint-rules/anthropic-sdk-boundary.test.ts, header).
+    name: 'sovitech/anthropic-sdk-boundary',
+    files: ['**/*.{js,mjs,cjs,ts,tsx,mts,cts}'],
+    ignores: ['packages/ai/src/transport.ts', 'packages/ai/src/transport.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@anthropic-ai/*', '@anthropic-ai/**'],
+              message: 'The Anthropic SDK is reached only through packages/ai/src/transport.ts (the AI boundary; ADR 0023).',
+            },
+          ],
+        },
+      ],
+      // no-restricted-imports sees static imports and re-exports only: a dynamic import(), a
+      // require() (plain, through module or createRequire) and TypeScript's `import x = require()`
+      // reach the SDK too (phase 2 review, adversarial finding "The SDK boundary misses dynamic
+      // imports and require").
+      'no-restricted-syntax': [
+        'error',
+        ...[
+          "ImportExpression[source.value=/^@anthropic-ai\\W/]",
+          "ImportExpression[source.type='TemplateLiteral'][source.quasis.0.value.cooked=/^@anthropic-ai\\W/]",
+          "CallExpression[arguments.0.value=/^@anthropic-ai\\W/]",
+          "CallExpression[arguments.0.type='TemplateLiteral'][arguments.0.quasis.0.value.cooked=/^@anthropic-ai\\W/]",
+          "TSExternalModuleReference[expression.value=/^@anthropic-ai\\W/]",
+        ].map((selector) => ({
+          selector,
+          message: 'The Anthropic SDK is reached only through packages/ai/src/transport.ts (the AI boundary; ADR 0023), by no route: import, import(), require().',
+        })),
+      ],
+    },
+  },
+
   // The SOVITECH lint bans (tools/eslint-rules/index.js). Keep this entry last.
   ...sovitech.configs.recommended,
 );

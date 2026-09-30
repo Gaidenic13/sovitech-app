@@ -1,0 +1,33 @@
+id: G3-5
+status: pending
+fixture:
+  - fixtures/evals/G3-5/dali.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G3-5/dali.yaml
+  fields:
+    - key: TEST.document.stage
+      label: Document stage
+      subject: document
+      kind: enum
+      options: [feasibility, permit, technical_design, tender, execution, shop_drawing, as_built, site_survey]
+    - key: TEST.building.lightingControlProtocol
+      label: Lighting control protocol
+      subject: building
+      kind: enum
+      options: [dali, dali_2, knx, bacnet_ip, modbus_rtu, proprietary]
+assertions:
+  # "Classified as a feasibility-stage document"
+  - candidate:
+      fieldKey: TEST.document.stage
+      subject: { kind: document, ref: TEST-G3-5-dali }
+      choice: feasibility
+  # "No lighting-protocol candidate"
+  - noCandidate:
+      fieldKey: TEST.building.lightingControlProtocol
+samples: 5
+note: >-
+  Guardrails section 7, G3-5: 'A document titled "DALI - Documentație de avizare…"' -> "Classified as a
+  feasibility-stage document. No lighting-protocol candidate." Rule 8, "Abbreviations": DALI means documentație de
+  avizare or the lighting protocol; 2.3 maps DALI to feasibility.

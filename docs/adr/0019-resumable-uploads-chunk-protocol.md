@@ -1,0 +1,44 @@
+# 0019. Resumable uploads: a small chunk protocol on Fastify
+
+- **Status:** Accepted: default, reversible
+- **Date:** 2026-09-26
+
+## Context
+
+- **Prompt 3 section 10, phase 2, "Uploads":** chunked and resumable, up to the 500 MB per file shown on step 2 (5.2 "500 MB limit": per file), content-hashed; the storage root outside the repository (`SOVITECH_DATA_DIR`, by default under the user's application-support folder); every file and derived file under `<projectId>/<contentHash>/`; a job queue for analysis (ADR 0020). Section 11, "Performance budgets": files up to 500 MB, resumable, the wizard usable during upload and analysis. Section 11, "Security basics": session cookies with CSRF protection on state-changing routes; upload type and size checks.
+- **PRD:** R-013 and R-016 (upload on step 2 and "Upload Document"), R-021 (no total limit until decided), D-22 (whether the limit is per file or total; the 5.2 default is per file). No D row covers the upload mechanism itself.
+- **Owner decision, 2026-09-25** (build log, "Owner answers during the run"): the local development app accepts only uploads whose content hash is in `fixtures/manifest.json`, refusing others with a clear message. That guard is its own ADR, "Accepted: owner decision 2026-09-25", written with the upload code; this ADR only fixes where it sits in the protocol.
+- **The store** (ADR 0012): `documents.content_hash` accepts `sha256:` plus 64 hex digits, so the hash can name a storage folder under the project without escaping.
+- **Options weighed:** tus (`@tus/server` 2.4.5 with `@tus/file-store` 2.1.1, both MIT, Node 20.19 or later) against a small protocol written here.
+
+## Decision
+
+1. **A small chunk protocol, not tus.** tus would bring its own request handling (it runs on `srvx`) outside Fastify's hooks, so project access, the session and CSRF would be re-implemented in tus callbacks; its stores key a file by upload id, while every stored file here must live under project id plus content hash, which is only known when the last byte arrives; and the browser would need a tus client too. The protocol below is five routes on the same Fastify instance, behind the same access checks. No tus package is installed.
+2. **The protocol** (paths are the builder's to name; the shape is fixed here):
+   - **Create:** `POST` with the file name as uploaded, its declared size and the project. The server checks the project access, the accepted-format list and the per-file limit, and refuses with an inline, per-file reason; Continue is never blocked (rule 7). It returns an upload id, the chunk size it accepts and the bytes received so far (none).
+   - **Append:** `PUT` of one chunk as a raw `application/octet-stream` body, with the offset it starts at. The server appends only when the offset equals the bytes it holds, streams the body straight to the staged file (no buffering of the whole file, no multipart parsing, no temporary copies), and refuses a chunk larger than the size it named or one that would pass the declared size. A wrong offset returns the right one, so the client resumes from there.
+   - **One writer at a time** (phase 2 review; migration 0011). Each append and the completion first take the upload's lease, in one database update under the session row's lock (`sovitech_work.upload_sessions.state`: `open`, `appending` or `completing`, with a lease id and an end time). While one request holds it, another append or a completion is refused with `409 upload_busy`, and the client asks for the status and resumes. The offset (and, at completion, the size) is checked again under the lease. A chunk must arrive within 120 seconds (`APPEND_DEADLINE_SECONDS`), or it is dropped and cut back, so an append always ends before its lease (180 seconds); a lease whose request died ends on its own time and frees the upload. The attack this closes: two appends at one offset both passed the offset check, and after the completion hashed the fixture's bytes and moved the staged file, the second one, still open, appended bytes no guard saw into the stored original under the fixture's hash.
+   - **Status:** `HEAD` (or `GET`) returns the bytes received, for resuming after a dropped connection or a reload.
+   - **Complete:** `POST` when every byte is in. Under the lease, the server checks the size, copies exactly the declared bytes of the staged file into a new sealed file (created by the completion alone, `staging/<uploadId>.sealed`) while computing their SHA-256, applies the **fixtures-only guard** (owner decision 2026-09-25) to that hash before anything is stored, moves the sealed file (never the staged one, which another descriptor could still hold) to `<SOVITECH_DATA_DIR>/<projectId>/<contentHash>/original`, registers the `DocumentRecord`, queues its analysis (ADR 0026), and then removes the staged file. The stored original is always the bytes the guard checked. A refused file is deleted from staging, with the clear message, and nothing is registered.
+   - **Abort:** `DELETE` removes the staged file. An upload with no append or completion for 30 minutes (`ABANDONED_UPLOAD_SECONDS`), and no lease held, is abandoned: `sweepAbandonedUploads` takes the session under a lease, removes its staged bytes and sealed copy first, then deletes the session with its file name; a removal that fails gives the session back still abandoned, and the next sweep removes the bytes (`UploadSweepIncomplete` is logged as a code; phase 2 fix round 3, the verifier's finding that the sweep deleted the session before its bytes). The API process runs it when an upload is opened, at most once a minute; the worker runs its own sweep too (ADR 0026 decision 5).
+   - **Staging** lives under the same project folder (`<projectId>/` plus a staging subfolder), never in a shared folder, so a project's erasure also reaches bytes still in flight (rule 13).
+3. **Fastify plugins installed for the upload routes** (all MIT, pinned in `apps/api/package.json`):
+   - **`@fastify/cookie` 11.1.2** and **`@fastify/csrf-protection` 8.0.1** (with `@fastify/csrf` 8.1.0): CSRF protection on every state-changing route, uploads first (section 11). The development login that sets the session is phase 3; the upload routes register the check from the start.
+   - **`@fastify/multipart` 10.1.2** (with `@fastify/busboy` 3.2.2 and `@fastify/deepmerge` 3.2.1): installed because the phase 2 plan names it. The chunk protocol does not need it. If no route imports it when phase 2 closes, the integrator removes it; a dependency nothing uses is attack surface for nothing. **Done in phase 2:** nothing imports it, so it is removed from `apps/api/package.json` and the lockfile, with `pg-boss` (ADR 0026); the phase 2 integrator confirmed both are gone from `pnpm-lock.yaml`.
+   - Shared by the three: `fastify-plugin` 6.0.0; `@fastify/cookie` brings `cookie` 2.0.1.
+   - Checked together with Fastify 5.12.5: the three plugins register and the server becomes ready.
+4. **Nothing in the protocol shows a digit the render test would flag:** no upload percentage, no byte count and no file size on screen (prompt 3 section 7; R-017's "Until decided" line). Progress is shown without numbers.
+
+## Consequences
+
+- One code path serves step 2 and "Upload Document" (DB-15), and resuming works across reloads because the server holds the offset.
+- The whole file is copied once more at completion, into the sealed file, while it is hashed (not measured yet; phase 2 measures uploads on the `perf` fixture, prompt 3 section 11). A hash computed while chunks arrive would not survive a restart of the server between chunks, and would not bind the stored bytes to the hashed ones.
+- A client that sends two chunks at once gets `upload_busy` for one of them, and resumes from the status; a client slower than 120 seconds per chunk sends smaller chunks. Neither blocks anything else (rule 7).
+- The request timeouts of Fastify itself are not set here (`apps/api/src/server.ts`); the per-chunk deadline bounds how long an append holds its upload.
+- The fixtures-only guard runs on the complete file's hash, so a refused upload has spent its transfer; the message says why. A client-side pre-check would need the same manifest in the browser and is not built.
+- The per-file limit is a constant the upload code defines once; the "Max file size 500 MB" copy on the render allowlist (ADR 0006) states it.
+
+## How to reverse
+
+- **To tus:** install `@tus/server` and `@tus/file-store` (MIT), mount the tus handler on the raw request under the same access and CSRF checks in its hooks, and move the completed file to `<projectId>/<contentHash>/` in its finish hook, where the guard runs. Add a tus browser client. Remove the five routes.
+- **To single-request uploads:** register `@fastify/multipart` with a 500 MB file limit on one route; resuming is then lost, which misses prompt 3's "resumable".

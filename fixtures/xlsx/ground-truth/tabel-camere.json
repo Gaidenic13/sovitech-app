@@ -1,0 +1,440 @@
+{
+  "about": "TEST ground truth of a synthetic XLSX fixture (fictitious building, not a real project), written by fixtures/generators/xlsx/companions.py with the workbook. Each cell is given with its cached value (what a reader with data_only=True sees), its number format and, for formulas, the formula text. Case ids name what a row is for; they are not app outputs.",
+  "file": "fixtures/xlsx/tabel-camere.xlsx",
+  "testMarking": {
+    "cell": "Camere!A1",
+    "text": "DOCUMENT DE TEST: document sintetic, clădire fictivă. Nu este un proiect real."
+  },
+  "properties": {
+    "creator": "Studio Exemplu SRL (fictiv)",
+    "created": "2026-01-15T09:00:00Z",
+    "modified": "2026-01-15T09:00:00Z"
+  },
+  "sheets": [
+    "Camere",
+    "Sumar"
+  ],
+  "headerRow": {
+    "sheet": "Camere",
+    "row": 3,
+    "cells": [
+      "Nivel",
+      "Nr.",
+      "Denumire",
+      "Categorie",
+      "Suprafață utilă (m²)"
+    ]
+  },
+  "rooms": [
+    {
+      "row": 4,
+      "number": "S1-01",
+      "name": "Parcare",
+      "category": "parcare",
+      "area": {
+        "cell": "E4",
+        "value": "800",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": false
+    },
+    {
+      "row": 5,
+      "number": "S1-02",
+      "name": "Cameră tehnică ventilare",
+      "category": "spațiu tehnic",
+      "area": {
+        "cell": "E5",
+        "value": "80",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": false
+    },
+    {
+      "row": 6,
+      "number": "S1-03",
+      "name": "Centrală termică",
+      "category": "spațiu tehnic",
+      "area": {
+        "cell": "E6",
+        "value": "93.6",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": false
+    },
+    {
+      "row": 7,
+      "number": "P-01",
+      "name": "Recepție",
+      "category": "spațiu public",
+      "area": {
+        "cell": "E7",
+        "value": "240",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": false
+    },
+    {
+      "row": 8,
+      "number": "P-02",
+      "name": "Restaurant",
+      "category": "spațiu public",
+      "area": {
+        "cell": "E8",
+        "value": "336",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": false
+    },
+    {
+      "row": 9,
+      "number": "P-03",
+      "name": "Hol",
+      "category": "circulație",
+      "area": {
+        "cell": "E9",
+        "value": "160",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": false
+    },
+    {
+      "row": 10,
+      "number": "101",
+      "name": "Cameră 101",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E10",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 11,
+      "number": "102",
+      "name": "Cameră 102",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E11",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 12,
+      "number": "103",
+      "name": "Cameră 103",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E12",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 13,
+      "number": "104",
+      "name": "Cameră 104",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E13",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 14,
+      "number": "105",
+      "name": "Cameră 105",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E14",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 15,
+      "number": "106",
+      "name": "Cameră 106",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E15",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 16,
+      "number": "107",
+      "name": "Cameră 107",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E16",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 17,
+      "number": "108",
+      "name": "Cameră 108",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E17",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 18,
+      "number": "E1-H",
+      "name": "Hol E1",
+      "category": "circulație",
+      "area": {
+        "cell": "E18",
+        "value": "57.6",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": false
+    },
+    {
+      "row": 19,
+      "number": "201",
+      "name": "Cameră 201",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E19",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 20,
+      "number": "202",
+      "name": "Cameră 202",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E20",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 21,
+      "number": "203",
+      "name": "Cameră 203",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E21",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 22,
+      "number": "204",
+      "name": "Cameră 204",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E22",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 23,
+      "number": "205",
+      "name": "Cameră 205",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E23",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 24,
+      "number": "206",
+      "name": "Cameră 206",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E24",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 25,
+      "number": "207",
+      "name": "Cameră 207",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E25",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 26,
+      "number": "208",
+      "name": "Cameră 208",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E26",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 27,
+      "number": "209",
+      "name": "Cameră 209",
+      "category": "cameră de oaspeți",
+      "area": {
+        "cell": "E27",
+        "value": "26.4",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": true
+    },
+    {
+      "row": 28,
+      "number": "E2-H",
+      "name": "Hol E2",
+      "category": "circulație",
+      "area": {
+        "cell": "E28",
+        "value": "57.6",
+        "unit": "m²",
+        "basis": "usable",
+        "numberFormat": "#,##0.00"
+      },
+      "guestRoom": false
+    }
+  ],
+  "counts": {
+    "guestRooms": {
+      "value": 17,
+      "cell": "Sumar!B3",
+      "rowsCounted": "Camere rows with category 'cameră de oaspeți'",
+      "cases": [
+        "G4-9"
+      ],
+      "note": "The model has 16 guest rooms (Cameră 101-108 and 201-208); this schedule lists 209 too: a counts conflict, zero tolerance"
+    },
+    "allSpaces": {
+      "value": 25,
+      "cell": "Sumar!B4",
+      "cases": [
+        "G9-6"
+      ],
+      "note": "all_spaces, never room controllers"
+    }
+  },
+  "cells": [
+    {
+      "sheet": "Camere",
+      "cell": "E29",
+      "numberFormat": "#,##0.00",
+      "formula": "=SUM(E4:E28)",
+      "cachedValue": "2273.6",
+      "type": "formula"
+    },
+    {
+      "sheet": "Sumar",
+      "cell": "B3",
+      "numberFormat": "0",
+      "value": "17",
+      "type": "number"
+    },
+    {
+      "sheet": "Sumar",
+      "cell": "B4",
+      "numberFormat": "0",
+      "value": "25",
+      "type": "number"
+    },
+    {
+      "sheet": "Sumar",
+      "cell": "B5",
+      "numberFormat": "#,##0.00",
+      "formula": "=Camere!E29",
+      "cachedValue": "2273.6",
+      "type": "formula"
+    }
+  ],
+  "diacritics": {
+    "commaBelow": [
+      "Sumar!A4 (ț)",
+      "Camere!C7 (ț)"
+    ],
+    "cedilla": [
+      "Sumar!A3 (ţ)"
+    ]
+  }
+}

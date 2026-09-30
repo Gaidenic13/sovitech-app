@@ -11,6 +11,22 @@
  *   says LGPL, the licence files inside the installed wheel are read too: GPL
  *   text in a folder with no LGPL text beside it fails, because a bundled
  *   component may be GPL although the package metadata says LGPL.
+ * - Python native binaries (phase 2, 2026-09-25): every shared library,
+ *   extension module and WebAssembly file a wheel installs, and those inside an
+ *   archive it ships, is searched for the symbol names of GPL components
+ *   (python_dists.py, GPL_COMPONENTS). Any hit fails, whatever the metadata
+ *   says. An LGPL wheel that installs native binaries and no licence file
+ *   fails too: the licences of what it bundles are not stated. The IfcOpenShell
+ *   0.8.5 wheel is both (docs/adr/0018-extractor-dependencies-and-sandbox-image.md).
+ * - npm native binaries and WebAssembly (phase 2 review, adversarial finding 16):
+ *   every .wasm, .node, .so, .dylib and .dll file an installed npm package holds
+ *   is searched for the same GPL markers (gpl-components.json, shared with
+ *   python_dists.py). Any hit fails. The same files are searched for the
+ *   components bundled-notices.json lists for the third-party notices page
+ *   (D-94): a component found in a package's binary that its entry does not
+ *   list, a listed component not found, or a listed package installed at
+ *   another version fails, so the list cannot go stale unnoticed. The listed
+ *   components are reported with their licences.
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs';
@@ -254,6 +270,13 @@ export function loadNpm(root: string): NpmSource {
 // ---------------------------------------------------------------------------
 // Python distributions.
 
+/** A GPL component found inside a native binary a wheel installed (python_dists.py). */
+export interface BundledGpl {
+  readonly file: string;
+  readonly component: string;
+  readonly packages: readonly string[];
+}
+
 export interface PythonDist {
   readonly name: string | null;
   readonly version: string | null;
@@ -261,6 +284,9 @@ export interface PythonDist {
   readonly license: string | null;
   readonly classifiers: readonly string[];
   readonly licenseFiles: readonly string[];
+  /** Native binaries the wheel installed; archive members as `<archive>!<member>`. */
+  readonly nativeFiles?: readonly string[];
+  readonly bundledGpl?: readonly BundledGpl[];
 }
 
 export type PythonSource =
@@ -306,11 +332,170 @@ export function loadPython(root: string, sitePackages: readonly string[], label:
 }
 
 // ---------------------------------------------------------------------------
+// npm native binaries and WebAssembly (phase 2 review, adversarial finding 16).
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+
+/** Native code an npm package can hold: WebAssembly, Node addons and shared libraries. Executables with no extension are not searched. */
+const NPM_NATIVE = /\.(?:wasm|node|so(?:\.\d+)*|dylib|dll)$/iu;
+
+/** A GPL component and its markers (gpl-components.json, shared with python_dists.py). */
+export interface GplComponent {
+  readonly component: string;
+  readonly namespace: readonly string[];
+  readonly packages: Readonly<Record<string, string>>;
+}
+
+export function loadGplComponents(path: string = join(HERE, 'gpl-components.json')): GplComponent[] {
+  return (JSON.parse(readFileSync(path, 'utf8')) as { components: GplComponent[] }).components;
+}
+
+/** A component compiled into an npm package's binaries, listed for the notices page (bundled-notices.json; D-94). */
+export interface NoticeComponent {
+  readonly licence: string;
+  readonly markers: readonly string[];
+  readonly source: string;
+  readonly what?: string;
+}
+
+export interface NoticePackage {
+  readonly package: string;
+  readonly version: string;
+  readonly licence?: string;
+  readonly components: readonly string[];
+  readonly note?: string;
+}
+
+export interface BundledNotices {
+  readonly components: Readonly<Record<string, NoticeComponent>>;
+  readonly packages: readonly NoticePackage[];
+}
+
+export const NO_NOTICES: BundledNotices = { components: {}, packages: [] };
+
+export function loadBundledNotices(path: string = join(HERE, 'bundled-notices.json')): BundledNotices {
+  return JSON.parse(readFileSync(path, 'utf8')) as BundledNotices;
+}
+
+/** One native binary or WebAssembly module of an installed npm package, and what was found inside it. */
+export interface NpmBinary {
+  readonly name: string;
+  readonly version: string;
+  readonly file: string;
+  readonly bundledGpl: readonly BundledGpl[];
+  /** Components of the notices list whose markers the file holds. */
+  readonly components: readonly string[];
+}
+
+export type NpmBinarySource =
+  | { readonly kind: 'binaries'; readonly binaries: readonly NpmBinary[]; readonly from: string }
+  | { readonly kind: 'unavailable'; readonly reason: string };
+
+function gplMarkersIn(data: Buffer, components: readonly GplComponent[], file: string): BundledGpl[] {
+  const found: BundledGpl[] = [];
+  for (const spec of components) {
+    if (!spec.namespace.some((marker) => data.includes(marker))) continue;
+    const packages = [...new Set(Object.entries(spec.packages).filter(([marker]) => data.includes(marker)).map(([, name]) => name))].sort();
+    if (packages.length > 0) found.push({ file, component: spec.component, packages });
+  }
+  return found;
+}
+
+function nativeFilesUnder(directory: string): string[] {
+  const found: string[] = [];
+  for (const name of readdirSync(directory)) {
+    if (name === 'node_modules') continue;
+    const path = join(directory, name);
+    const stat = lstatSync(path);
+    if (stat.isSymbolicLink()) continue;
+    if (stat.isDirectory()) found.push(...nativeFilesUnder(path));
+    else if (stat.isFile() && NPM_NATIVE.test(name)) found.push(path);
+  }
+  return found;
+}
+
+/**
+ * Searches every native binary and WebAssembly module of the installed npm
+ * packages (pnpm's virtual store when present, else a flat node_modules) for
+ * the GPL markers and for the notices list's component markers.
+ */
+export function scanNpmBinaries(nodeModules: string, notices: BundledNotices, gpl: readonly GplComponent[] = loadGplComponents()): NpmBinarySource {
+  if (!existsSync(nodeModules)) return { kind: 'unavailable', reason: `${nodeModules} does not exist` };
+  const store = join(nodeModules, '.pnpm');
+  const directories = existsSync(store)
+    ? readdirSync(store)
+        .filter((entry) => entry !== 'node_modules' && lstatSync(join(store, entry)).isDirectory())
+        .flatMap((entry) => packageDirectories(join(store, entry, 'node_modules')))
+    : packageDirectories(nodeModules);
+  const binaries: NpmBinary[] = [];
+  for (const directory of directories) {
+    const manifestPath = join(directory, 'package.json');
+    if (!existsSync(manifestPath)) continue;
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as Record<string, unknown>;
+    const name = typeof manifest['name'] === 'string' ? manifest['name'] : directory;
+    const version = typeof manifest['version'] === 'string' ? manifest['version'] : '';
+    for (const file of nativeFilesUnder(directory)) {
+      const data = readFileSync(file);
+      const components = Object.entries(notices.components)
+        .filter(([, component]) => component.markers.some((marker) => data.includes(marker)))
+        .map(([component]) => component)
+        .sort();
+      binaries.push({ name, version, file, bundledGpl: gplMarkersIn(data, gpl, file), components });
+    }
+  }
+  return { kind: 'binaries', binaries: binaries.sort((left, right) => left.file.localeCompare(right.file)), from: 'installed npm packages' };
+}
+
+/** The notices list against what the binaries hold: failures, and the report lines for the notices page. */
+function noticeFindings(binaries: readonly NpmBinary[], notices: BundledNotices, root: string): { failures: string[]; reports: string[] } {
+  const failures: string[] = [];
+  const reports: string[] = [];
+  const shown = (path: string): string => relative(root, path);
+  const described = (component: string): string => `${component} (${notices.components[component]?.licence ?? 'licence not listed'})`;
+  for (const entry of notices.packages) {
+    const unknown = entry.components.filter((component) => notices.components[component] === undefined);
+    for (const component of unknown) failures.push(`bundled-notices.json: ${entry.package} ${entry.version} lists ${component}, which has no entry under "components" (licence, markers, source)`);
+    const installed = binaries.filter((binary) => binary.name === entry.package);
+    const same = installed.filter((binary) => binary.version === entry.version);
+    if (same.length === 0) {
+      const versions = [...new Set(installed.map((binary) => binary.version))];
+      failures.push(
+        versions.length > 0
+          ? `bundled-notices.json lists ${entry.package} ${entry.version}, but ${entry.package} ${versions.join(', ')} is installed: search its binaries again and update the list for the notices page (D-94)`
+          : `bundled-notices.json lists ${entry.package} ${entry.version}, which is not installed with a native binary or WebAssembly module: update the list for the notices page (D-94)`,
+      );
+      continue;
+    }
+    const found = new Set(same.flatMap((binary) => binary.components));
+    for (const component of entry.components) {
+      if (notices.components[component] !== undefined && !found.has(component)) {
+        failures.push(`bundled-notices.json lists ${component} for ${entry.package} ${entry.version}, but none of its binaries holds its markers: correct the list for the notices page (D-94)`);
+      }
+    }
+    reports.push(`bundled (for the notices page, D-94): npm ${entry.package} ${entry.version}${entry.licence === undefined ? '' : ` (${entry.licence})`}: ${entry.components.map(described).join(', ')}`);
+  }
+  for (const binary of binaries) {
+    const entry = notices.packages.find((item) => item.package === binary.name && item.version === binary.version);
+    for (const component of binary.components) {
+      if (entry?.components.includes(component) === true) continue;
+      failures.push(
+        `npm ${binary.name} ${binary.version}: ${shown(binary.file)} bundles ${described(component)}, which bundled-notices.json does not list for this package: add it for the third-party notices page (D-94)`,
+      );
+    }
+  }
+  return { failures, reports };
+}
+
+// ---------------------------------------------------------------------------
 // The verdict.
 
 export interface LicenceInputs {
   readonly npm: NpmSource;
   readonly python: PythonSource;
+  /** npm native binaries and WebAssembly, searched (scanNpmBinaries); left out only by seeded inputs that hold no npm tree. */
+  readonly npmBinaries?: NpmBinarySource;
+  /** The components listed for the notices page (bundled-notices.json); none when left out. */
+  readonly notices?: BundledNotices;
   /** Paths in findings are shown relative to this folder. */
   readonly root: string;
   readonly label?: string;
@@ -324,6 +509,30 @@ function pythonClass(dist: PythonDist): { licence: string; kind: LicenceClass } 
   if (fromClassifiers !== undefined) return { licence: dist.classifiers.join('; '), kind: fromClassifiers };
   const text = dist.license ?? '';
   return { licence: text.split('\n')[0]?.slice(0, 80) ?? '', kind: classifyFreeText(text) };
+}
+
+/**
+ * Native binaries: a GPL component inside any wheel's binary fails, and an LGPL
+ * wheel with native binaries and no licence file fails (its bundled licences are
+ * not stated).
+ */
+function binaryFindings(dist: PythonDist, lesser: boolean, root: string): string[] {
+  const who = `${dist.name ?? '?'} ${dist.version ?? ''}`;
+  const shown = (path: string): string => {
+    const [archive, member] = path.split('!');
+    return member === undefined ? relative(root, path) : `${relative(root, archive ?? path)}!${member}`;
+  };
+  const failures = (dist.bundledGpl ?? []).map(
+    (hit) =>
+      `${who}: a native binary bundles GPL components that the package metadata does not declare: ${hit.component} ${hit.packages.join('; ')} (GPL per its publisher), at ${shown(hit.file)}; a GPL dependency needs the owner's decision (prompt 3 section 13 item 7)`,
+  );
+  const natives = dist.nativeFiles ?? [];
+  if (lesser && natives.length > 0 && dist.licenseFiles.length === 0) {
+    failures.push(
+      `${who}: an LGPL wheel that installs native binaries (${natives.length === 1 ? shown(natives[0] ?? '') : `${natives.length} files`}) ships no licence file, so the licences of what it bundles are not stated; read them and settle it by hand`,
+    );
+  }
+  return failures;
 }
 
 /** Licence files inside an LGPL wheel: GPL text with no LGPL text in the same folder fails. */
@@ -379,6 +588,22 @@ export function evaluateLicences(inputs: LicenceInputs): CheckResult {
     for (const item of inputs.npm.packages) judge('npm', item.name, item.version, item.licence, classifyLicence(item.licence));
   }
 
+  let binaryCount = 0;
+  if (inputs.npmBinaries?.kind === 'unavailable') failures.push(`npm: native binaries and WebAssembly could not be searched: ${inputs.npmBinaries.reason}`);
+  else if (inputs.npmBinaries !== undefined) {
+    binaryCount = inputs.npmBinaries.binaries.length;
+    for (const binary of inputs.npmBinaries.binaries) {
+      for (const hit of binary.bundledGpl) {
+        failures.push(
+          `npm ${binary.name} ${binary.version}: a native binary or WebAssembly module bundles GPL components that the package metadata does not declare: ${hit.component} ${hit.packages.join('; ')} (GPL per its publisher), at ${relative(inputs.root, hit.file)}; a GPL dependency needs the owner's decision (prompt 3 section 13 item 7)`,
+        );
+      }
+    }
+    const notices = noticeFindings(inputs.npmBinaries.binaries, inputs.notices ?? NO_NOTICES, inputs.root);
+    failures.push(...notices.failures);
+    notes.push(...notices.reports);
+  }
+
   let pythonCount = 0;
   let pythonFrom = '';
   if (inputs.python.kind === 'unavailable') failures.push(`python: licences could not be read: ${inputs.python.reason}`);
@@ -393,11 +618,13 @@ export function evaluateLicences(inputs: LicenceInputs): CheckResult {
         failures.push(...wheel.failures);
         notes.push(...wheel.reports.map((report) => `note: ${report}`));
       }
+      failures.push(...binaryFindings(dist, kind === 'lgpl', inputs.root));
     }
   }
 
   const listed = (label: string, items: readonly string[]): string => `${label} ${items.length}${items.length > 0 ? ` (${items.map((item) => item.replace(/ \(.*\)$/, '')).join(', ')})` : ''}`;
-  const scope = `${npmCount} npm packages${npmFrom === '' ? '' : ` from ${npmFrom}`}, ${pythonCount} Python distributions${pythonFrom === '' ? '' : ` in ${pythonFrom}`}`;
+  const binaries = inputs.npmBinaries === undefined ? '' : `, ${binaryCount} npm native binaries and WebAssembly modules searched`;
+  const scope = `${npmCount} npm packages${npmFrom === '' ? '' : ` from ${npmFrom}`}${binaries}, ${pythonCount} Python distributions${pythonFrom === '' ? '' : ` in ${pythonFrom}`}`;
   const report = [listed('LGPL', reported.lgpl), listed('MPL', reported.mpl), ...(reported.copyleft.length > 0 ? [listed('other copyleft', reported.copyleft)] : [])].join('; ');
   const details = [
     ...reported.lgpl.map((item) => `LGPL: ${item}`),

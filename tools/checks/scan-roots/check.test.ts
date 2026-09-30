@@ -98,6 +98,7 @@ describe('the list', () => {
       'packages/*/templates/**',
       'fixtures/**',
       'services/*/src/**',
+      'services/*/schemas/**',
     ]);
     expect(scanGlobs('python-bans', list)).toEqual(['services/*/src/**']);
   });

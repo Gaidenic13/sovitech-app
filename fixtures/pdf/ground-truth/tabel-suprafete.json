@@ -1,0 +1,284 @@
+{
+  "about": "TEST ground truth of a synthetic PDF fixture (fictitious building, not a real project), written by fixtures/generators/pdf/companions.py with the PDF. `text` is exactly what the page's text layer holds (compare after normalising whitespace); pages with no text layer hold only an image. Case ids name what each value is for; they are not app outputs.",
+  "file": "fixtures/pdf/tabel-suprafete.pdf",
+  "testMarking": "DOCUMENT DE TEST: document sintetic, cladire fictiva. Nu este un proiect real.",
+  "pageCount": 2,
+  "pagesWithTextLayer": [
+    1,
+    2
+  ],
+  "pagesWithoutTextLayer": [],
+  "values": [
+    {
+      "page": 1,
+      "text": "Suprafata cladirii: 6.170 mp",
+      "field": "building.area",
+      "cases": [
+        "G8-2"
+      ],
+      "locale": "ro",
+      "reading": {
+        "value": "6170",
+        "unit": "m2",
+        "basis": "unknown",
+        "original": "6.170 mp"
+      },
+      "note": "No basis stated: stored with basis unknown, original kept; the confirmation names the basis (G8-2)"
+    },
+    {
+      "page": 1,
+      "text": "S1-01 Parcare 800,00",
+      "field": "zone.area",
+      "room": "S1-01",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "800,00",
+      "cases": [
+        "G8-2",
+        "G8-3"
+      ]
+    },
+    {
+      "page": 1,
+      "text": "S1-02 Camera tehnica ventilare 80,00",
+      "field": "zone.area",
+      "room": "S1-02",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "80,00",
+      "cases": [
+        "G8-2",
+        "G8-3"
+      ]
+    },
+    {
+      "page": 1,
+      "text": "S1-03 Centrala termica 93,60",
+      "field": "zone.area",
+      "room": "S1-03",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "93,60",
+      "cases": [
+        "G8-2",
+        "G8-3"
+      ]
+    },
+    {
+      "page": 1,
+      "text": "P-01 Receptie 240,00",
+      "field": "zone.area",
+      "room": "P-01",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "240,00",
+      "cases": [
+        "G8-2",
+        "G8-3"
+      ]
+    },
+    {
+      "page": 1,
+      "text": "P-02 Restaurant 336,00",
+      "field": "zone.area",
+      "room": "P-02",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "336,00",
+      "cases": [
+        "G8-2",
+        "G8-3"
+      ]
+    },
+    {
+      "page": 1,
+      "text": "P-03 Hol 160,00",
+      "field": "zone.area",
+      "room": "P-03",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "160,00",
+      "cases": [
+        "G8-2",
+        "G8-3"
+      ]
+    },
+    {
+      "page": 2,
+      "text": "101 Camera 101 26,40",
+      "field": "zone.area",
+      "room": "101",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "102 Camera 102 26,40",
+      "field": "zone.area",
+      "room": "102",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "103 Camera 103 26,40",
+      "field": "zone.area",
+      "room": "103",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "104 Camera 104 26,40",
+      "field": "zone.area",
+      "room": "104",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "105 Camera 105 26,40",
+      "field": "zone.area",
+      "room": "105",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "106 Camera 106 26,40",
+      "field": "zone.area",
+      "room": "106",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "107 Camera 107 26,40",
+      "field": "zone.area",
+      "room": "107",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "108 Camera 108 26,40",
+      "field": "zone.area",
+      "room": "108",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "E1-H Hol E1 57,60",
+      "field": "zone.area",
+      "room": "E1-H",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "57,60"
+    },
+    {
+      "page": 2,
+      "text": "201 Camera 201 26,40",
+      "field": "zone.area",
+      "room": "201",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "202 Camera 202 26,40",
+      "field": "zone.area",
+      "room": "202",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "203 Camera 203 26,40",
+      "field": "zone.area",
+      "room": "203",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "204 Camera 204 26,40",
+      "field": "zone.area",
+      "room": "204",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "205 Camera 205 26,40",
+      "field": "zone.area",
+      "room": "205",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "206 Camera 206 26,40",
+      "field": "zone.area",
+      "room": "206",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "207 Camera 207 26,40",
+      "field": "zone.area",
+      "room": "207",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "208 Camera 208 26,40",
+      "field": "zone.area",
+      "room": "208",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "26,40"
+    },
+    {
+      "page": 2,
+      "text": "E2-H Hol E2 57,60",
+      "field": "zone.area",
+      "room": "E2-H",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "57,60"
+    },
+    {
+      "page": 2,
+      "text": "Total Su spatii: 2.247,20 mp",
+      "field": "building.area",
+      "basis": "usable",
+      "locale": "ro",
+      "original": "2.247,20 mp",
+      "note": "Sum of the listed rooms only; Su of the building is 4.321 mp in the memoriu"
+    }
+  ],
+  "titleBlock": {
+    "stage": "PT",
+    "revision": "Rev. 01",
+    "code": "AS-01",
+    "kind": "specification"
+  }
+}

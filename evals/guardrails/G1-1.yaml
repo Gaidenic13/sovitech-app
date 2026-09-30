@@ -1,0 +1,28 @@
+id: G1-1
+# Held out until it has run 5 of 5 against the current prompt, model id and schema (evals/guardrails/README.md, "Status").
+status: pending
+fixture:
+  - fixtures/evals/G1-1/lista-echipamente.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G1-1/lista-echipamente.yaml
+  fields:
+    - key: TEST.asset.coolingCapacity
+      label: Cooling capacity
+      subject: asset
+      kind: quantity
+      unit: kW
+      qualifiers: [cooling_output]
+assertions:
+  # "not_found with what was searched"
+  - notFound:
+      fieldKey: TEST.asset.coolingCapacity
+  # "The field is unknown": nothing is proposed for it, refused or not
+  - noCandidate:
+      fieldKey: TEST.asset.coolingCapacity
+samples: 5
+note: >-
+  Guardrails section 7, G1-1: "No document states the chiller capacity" -> "not_found with what was searched.
+  The field is unknown and shows 'Unknown'." The equipment list names the chiller CH-02 and gives no capacity.
+  "Shows 'Unknown'" is the app's rendering of a field with no candidate (2.4), not model behaviour.

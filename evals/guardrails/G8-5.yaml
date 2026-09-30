@@ -1,0 +1,44 @@
+id: G8-5
+status: pending
+fixture:
+  - fixtures/evals/G8-5/fisa-tehnica.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G8-5/fisa-tehnica.yaml
+  fields:
+    - key: TEST.asset.coolingCapacity
+      label: Cooling capacity
+      subject: asset
+      kind: quantity
+      unit: kW
+      qualifiers: [cooling_output]
+    - key: TEST.asset.electricalInput
+      label: Electrical input power
+      subject: asset
+      kind: quantity
+      unit: kW
+      qualifiers: [electrical_input]
+assertions:
+  # "Two fields: cooling output and electrical input"
+  - candidate:
+      fieldKey: TEST.asset.coolingCapacity
+      subject: { kind: asset, ref: CH-01 }
+      source: document
+      quantity: { value: 1200, unit: kW, qualifier: cooling_output }
+  - candidate:
+      fieldKey: TEST.asset.electricalInput
+      subject: { kind: asset, ref: CH-01 }
+      source: document
+      quantity: { value: 380, unit: kW, qualifier: electrical_input }
+  - candidateCount:
+      fieldKey: TEST.asset.coolingCapacity
+      equals: 1
+  - candidateCount:
+      fieldKey: TEST.asset.electricalInput
+      equals: 1
+samples: 5
+note: >-
+  Guardrails section 7, G8-5: '"Putere frigorifică 1.200 kW / putere electrică absorbită 380 kW"' -> "Two fields:
+  cooling output and electrical input". Rule 8, "Power": a chiller's cooling capacity and its electrical input are
+  two fields.

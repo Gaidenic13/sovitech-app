@@ -55,6 +55,10 @@ Eval files that stand for a good case in the other folders hold the full body to
 | `reviewed-double-stale/` | A reviewed-list entry (`tools/checks/index/reviewed-test-doubles.json` in the seed) that matches no use |
 | `eval-runner-no-results/` | The eval runner module exists (a seeded stand-in, with a seeded prompt, model id and schema), and a full eval has no results record: the old hand-set switch would have counted it real |
 | `eval-runner-stale-results/` | The same, with a results record made against another prompt and schema |
+| `eval-runner-case-changed/` | A results record made against the current prompt, model id and schema, with its fixtures and 5 passing samples, whose `caseSha256` is not the current case file's (phase 2 review, "eval results integrity") |
+| `eval-runner-fixture-changed/` | The same, with a fixture's SHA-256 other than the seeded `fixtures/manifest.json` lists |
+| `eval-runner-no-sample-outcomes/` | The same, a hand-written record with `passed: 5` and no sample outcomes |
+| `eval-runner-sample-other-model/` | The same, with one sample outcome naming another model id |
 | `process-child-process/` | A case that runs the code under test in a child Node process (`node:child_process`) and asserts only on the exit status, where the stub guard cannot count a stub error (phase 1, round 2 residual) |
 | `process-worker-threads/` | The same through a worker thread (`node:worker_threads`) |
 | `support-finally-return/` | A `_support/` helper with no catch clause whose `finally` block returns, which replaces the body's failure (phase 1, round 2 residual) |

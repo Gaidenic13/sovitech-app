@@ -1,0 +1,50 @@
+id: G8-1
+status: pending
+fixture:
+  - fixtures/evals/G8-1/memoriu.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G8-1/memoriu.yaml
+  fields:
+    - key: TEST.building.footprintArea
+      label: Footprint area (Sc)
+      subject: building
+      kind: quantity
+      unit: m2
+      qualifiers: [footprint]
+    - key: building.grossFloorArea
+      label: Gross floor area
+      subject: building
+      kind: quantity
+      unit: m2
+      qualifiers: [gross_total]
+    - key: TEST.building.usableArea
+      label: Usable area (Su)
+      subject: building
+      kind: quantity
+      unit: m2
+      qualifiers: [usable]
+assertions:
+  # "Three fields with their bases."
+  - candidate:
+      fieldKey: TEST.building.footprintArea
+      source: document
+      quantity: { value: 2350, unit: m2, qualifier: footprint }
+  - candidate:
+      fieldKey: building.grossFloorArea
+      source: document
+      quantity: { value: 34500, unit: m2, qualifier: gross_total }
+  - candidate:
+      fieldKey: TEST.building.usableArea
+      source: document
+      quantity: { value: 27600, unit: m2, qualifier: usable }
+  # "Sc never feeds a benchmark": the gross floor area, the field the benchmarks read, holds the Scd reading only
+  - candidateCount:
+      fieldKey: building.grossFloorArea
+      equals: 1
+samples: 5
+note: >-
+  Guardrails section 7, G8-1: '"Sc 2.350 mp, Scd 34.500 mp, Su 27.600 mp" in the memoriu' -> "Three fields with
+  their bases. Sc never feeds a benchmark." building.grossFloorArea is the registry field that the estimate's
+  formulas read; a footprint reading there would be refused by its qualifier list and fail the sample.

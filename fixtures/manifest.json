@@ -4,6 +4,267 @@
     {
       "path": "fixtures/datasets/generate.ts",
       "role": "generator"
+    },
+    {
+      "path": "fixtures/generators/ifc/demo_hotel.py",
+      "role": "generator"
+    },
+    {
+      "path": "fixtures/generators/ids/sovitech_ids.py",
+      "role": "generator"
+    },
+    {
+      "path": "fixtures/generators/pdf/companions.py",
+      "role": "generator"
+    },
+    {
+      "path": "fixtures/generators/xlsx/companions.py",
+      "role": "generator"
+    },
+    {
+      "path": "fixtures/generators/build_all.py",
+      "role": "generator"
+    },
+    {
+      "path": "fixtures/generators/ifc/spec/test.yaml",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/generators/ifc/demo_hotel.py",
+        "fixtures/generators/ids/sovitech_ids.py",
+        "fixtures/generators/pdf/companions.py",
+        "fixtures/generators/xlsx/companions.py"
+      ]
+    },
+    {
+      "path": "fixtures/generators/fixturelib/__init__.py",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/generators/ifc/demo_hotel.py",
+        "fixtures/generators/ids/sovitech_ids.py",
+        "fixtures/generators/pdf/companions.py",
+        "fixtures/generators/xlsx/companions.py"
+      ]
+    },
+    {
+      "path": "fixtures/generators/fixturelib/common.py",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/generators/ifc/demo_hotel.py",
+        "fixtures/generators/ids/sovitech_ids.py",
+        "fixtures/generators/pdf/companions.py",
+        "fixtures/generators/xlsx/companions.py"
+      ]
+    },
+    {
+      "path": "fixtures/generators/fixturelib/spec.py",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/generators/ifc/demo_hotel.py",
+        "fixtures/generators/ids/sovitech_ids.py"
+      ]
+    },
+    {
+      "path": "fixtures/generators/fixturelib/step.py",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/generators/ifc/demo_hotel.py",
+        "fixtures/generators/ids/sovitech_ids.py"
+      ]
+    },
+    {
+      "path": "fixtures/generators/fixturelib/ifc_model.py",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/generators/ifc/demo_hotel.py",
+        "fixtures/generators/ids/sovitech_ids.py"
+      ]
+    },
+    {
+      "path": "fixtures/generators/fixturelib/perf.py",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/generators/ifc/demo_hotel.py"
+      ]
+    },
+    {
+      "path": "fixtures/generators/fixturelib/ids_model.py",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/generators/ids/sovitech_ids.py"
+      ]
+    },
+    {
+      "path": "fixtures/generators/fixturelib/pdf_tools.py",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/generators/pdf/companions.py"
+      ]
+    },
+    {
+      "path": "fixtures/generators/fixturelib/zip_tools.py",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/generators/xlsx/companions.py"
+      ]
+    },
+    {
+      "path": "fixtures/README.md",
+      "role": "documentation"
+    },
+    {
+      "path": "fixtures/demo/generate.ts",
+      "role": "generator"
+    },
+    {
+      "path": "fixtures/evals/generate.ts",
+      "role": "generator"
+    },
+    {
+      "path": "fixtures/evals/format.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G1-1/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G1-6/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G1-11/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G3-1/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G3-2/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G3-5/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G3-8/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G6-3/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G8-1/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G8-2/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G8-3/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G8-5/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G8-6/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G8-9/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G11-1/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G11-4/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G11-5/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G12-2/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G14-1/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G14-2/source.ts",
+      "role": "generator-input",
+      "usedBy": [
+        "fixtures/evals/generate.ts"
+      ]
     }
   ],
   "files": [
@@ -53,6 +314,770 @@
       "generator": "fixtures/datasets/generate.ts",
       "cases": [
         "G1-12"
+      ]
+    },
+    {
+      "path": "fixtures/datasets/TEST-glossary.json",
+      "sha256": "6ef5cfa4e8907c311975fd3d9c1a399dd08eaec78994b1c1e353e6ffb5470faf",
+      "generator": "fixtures/datasets/generate.ts",
+      "cases": [
+        "G3-8"
+      ]
+    },
+    {
+      "path": "fixtures/ifc/demo-hotel-arh.ifc",
+      "sha256": "f4139bd6bb92d62747de3cdcdda356a6f40020433c119d3d3d1c4e714d967063",
+      "generator": "fixtures/generators/ifc/demo_hotel.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G4-11",
+        "G8-2",
+        "G8-11",
+        "G9-6",
+        "G12-2",
+        "G12-5",
+        "G13-4",
+        "IFC-2",
+        "IFC-3",
+        "IFC-4",
+        "IFC-5",
+        "IFC-12"
+      ],
+      "groundTruth": "fixtures/ifc/ground-truth/demo-hotel-arh.json",
+      "profile": "test",
+      "schema": "IFC4",
+      "toolVersions": {
+        "python": "3.12",
+        "writer": "fixtures/generators/fixturelib/step.py (no IfcOpenShell: docs/adr/0018)",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/ifc/ground-truth/demo-hotel-arh.json",
+      "sha256": "5d1bf9c0590bebb1f7a127f872348159c932767c191f9fff555e7540f2b3c7d9",
+      "generator": "fixtures/generators/ifc/demo_hotel.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G4-11",
+        "G8-2",
+        "G8-11",
+        "G9-6",
+        "G12-2",
+        "G12-5",
+        "G13-4",
+        "IFC-2",
+        "IFC-3",
+        "IFC-4",
+        "IFC-5",
+        "IFC-12"
+      ],
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "writer": "fixtures/generators/fixturelib/step.py (no IfcOpenShell: docs/adr/0018)",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/ifc/demo-hotel-mep-rev-a.ifc",
+      "sha256": "20ce820dc245d4dcaec81fc571e7f162fb01068d6de07bcc9fd8dbb231f89246",
+      "generator": "fixtures/generators/ifc/demo_hotel.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G1-1",
+        "G1-6",
+        "G1-13",
+        "G3-1",
+        "G3-8",
+        "G4-3",
+        "G4-4",
+        "G4-16",
+        "G8-3",
+        "G8-5",
+        "G11-3",
+        "G11-4",
+        "G12-2",
+        "G12-5",
+        "G12-6",
+        "G14-1",
+        "G14-3",
+        "IFC-1",
+        "IFC-6",
+        "IFC-7",
+        "IFC-8",
+        "IFC-9",
+        "IFC-10",
+        "IFC-14"
+      ],
+      "groundTruth": "fixtures/ifc/ground-truth/demo-hotel-mep-rev-a.json",
+      "profile": "test",
+      "schema": "IFC4",
+      "toolVersions": {
+        "python": "3.12",
+        "writer": "fixtures/generators/fixturelib/step.py (no IfcOpenShell: docs/adr/0018)",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/ifc/ground-truth/demo-hotel-mep-rev-a.json",
+      "sha256": "813ba817297d94e93bd0d0970b93604b368e501e32b954529b6f4f99bad90254",
+      "generator": "fixtures/generators/ifc/demo_hotel.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G1-1",
+        "G1-6",
+        "G1-13",
+        "G3-1",
+        "G3-8",
+        "G4-3",
+        "G4-4",
+        "G4-16",
+        "G8-3",
+        "G8-5",
+        "G11-3",
+        "G11-4",
+        "G12-2",
+        "G12-5",
+        "G12-6",
+        "G14-1",
+        "G14-3",
+        "IFC-1",
+        "IFC-6",
+        "IFC-7",
+        "IFC-8",
+        "IFC-9",
+        "IFC-10",
+        "IFC-14"
+      ],
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "writer": "fixtures/generators/fixturelib/step.py (no IfcOpenShell: docs/adr/0018)",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/ifc/demo-hotel-mep-rev-b.ifc",
+      "sha256": "636b1925fac08ef3c3b0aa60db365919bd44d7d9508094c0af7b23d8c122e56a",
+      "generator": "fixtures/generators/ifc/demo_hotel.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G4-13",
+        "G4-14",
+        "G12-5",
+        "IFC-13"
+      ],
+      "groundTruth": "fixtures/ifc/ground-truth/demo-hotel-mep-rev-b.json",
+      "profile": "test",
+      "schema": "IFC4",
+      "toolVersions": {
+        "python": "3.12",
+        "writer": "fixtures/generators/fixturelib/step.py (no IfcOpenShell: docs/adr/0018)",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/ifc/ground-truth/demo-hotel-mep-rev-b.json",
+      "sha256": "ebf92e1186faf008c567313f131e25b598584d53626b43a3424099102ed3bc49",
+      "generator": "fixtures/generators/ifc/demo_hotel.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G4-13",
+        "G4-14",
+        "G12-5",
+        "IFC-13"
+      ],
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "writer": "fixtures/generators/fixturelib/step.py (no IfcOpenShell: docs/adr/0018)",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/ifc/demo-hotel-mep-ifc2x3.ifc",
+      "sha256": "2da23c2858a8dbe7eb8dd2c4547e3a5c1fd8eed2baa5043e99da1e3a737945ea",
+      "generator": "fixtures/generators/ifc/demo_hotel.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G12-5",
+        "IFC-11"
+      ],
+      "groundTruth": "fixtures/ifc/ground-truth/demo-hotel-mep-ifc2x3.json",
+      "profile": "test",
+      "schema": "IFC2X3",
+      "toolVersions": {
+        "python": "3.12",
+        "writer": "fixtures/generators/fixturelib/step.py (no IfcOpenShell: docs/adr/0018)",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/ifc/ground-truth/demo-hotel-mep-ifc2x3.json",
+      "sha256": "ce0b8ed2bf476cf9b253f46d3084ea898dbed476fccc1e7c4b311d67b227633d",
+      "generator": "fixtures/generators/ifc/demo_hotel.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G12-5",
+        "IFC-11"
+      ],
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "writer": "fixtures/generators/fixturelib/step.py (no IfcOpenShell: docs/adr/0018)",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/ids/sovitech-ifc-minimum-v0.1.ids",
+      "sha256": "422821bbf86214fff03546cbf187c0a677dffffbbd8bc1a6617c589834e8df26",
+      "generator": "fixtures/generators/ids/sovitech_ids.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G12-6",
+        "IFC-14"
+      ],
+      "profile": "draft-reference-data",
+      "schema": "IDS 1.0",
+      "toolVersions": {
+        "python": "3.12",
+        "writer": "fixtures/generators/fixturelib/step.py (no IfcOpenShell: docs/adr/0018)",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/ids/expected/demo-hotel-arh.json",
+      "sha256": "3ce29f47ab6de0018f684373d1718bcf879b81f9c37ad06c9cb7be2cf78c4f32",
+      "generator": "fixtures/generators/ids/sovitech_ids.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G12-6"
+      ],
+      "profile": "test",
+      "groundTruth": "fixtures/ifc/ground-truth/demo-hotel-arh.json",
+      "toolVersions": {
+        "python": "3.12",
+        "writer": "fixtures/generators/fixturelib/step.py (no IfcOpenShell: docs/adr/0018)",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/ids/expected/demo-hotel-mep-rev-a.json",
+      "sha256": "c50e16179f02704488a92bae03bb515c553948817c92f4c2c84a319780b1afa7",
+      "generator": "fixtures/generators/ids/sovitech_ids.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G12-6"
+      ],
+      "profile": "test",
+      "groundTruth": "fixtures/ifc/ground-truth/demo-hotel-mep-rev-a.json",
+      "toolVersions": {
+        "python": "3.12",
+        "writer": "fixtures/generators/fixturelib/step.py (no IfcOpenShell: docs/adr/0018)",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/ids/expected/demo-hotel-mep-rev-b.json",
+      "sha256": "af18070b87a277410bf190c74709761b039a85bc8323c460c0956b028f69835f",
+      "generator": "fixtures/generators/ids/sovitech_ids.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G12-6"
+      ],
+      "profile": "test",
+      "groundTruth": "fixtures/ifc/ground-truth/demo-hotel-mep-rev-b.json",
+      "toolVersions": {
+        "python": "3.12",
+        "writer": "fixtures/generators/fixturelib/step.py (no IfcOpenShell: docs/adr/0018)",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/ids/expected/demo-hotel-mep-ifc2x3.json",
+      "sha256": "67c9caeb0a0809aaad871a08b9a7bb7541522922d8a41379f89733ea641f99a8",
+      "generator": "fixtures/generators/ids/sovitech_ids.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G12-6"
+      ],
+      "profile": "test",
+      "groundTruth": "fixtures/ifc/ground-truth/demo-hotel-mep-ifc2x3.json",
+      "toolVersions": {
+        "python": "3.12",
+        "writer": "fixtures/generators/fixturelib/step.py (no IfcOpenShell: docs/adr/0018)",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/pdf/memoriu-tehnic.pdf",
+      "sha256": "be0a3244f673d6909d9c831b97f76d06c88615a0126319e42236190d95e3ebbb",
+      "generator": "fixtures/generators/pdf/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G4-11",
+        "G8-1",
+        "G8-9",
+        "G11-4"
+      ],
+      "groundTruth": "fixtures/pdf/ground-truth/memoriu-tehnic.json",
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "reportlab": "5.0.1",
+        "pillow": "12.3.0",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/pdf/ground-truth/memoriu-tehnic.json",
+      "sha256": "089393b0fb9a2d2d4d012c4032fc8716190cb9c9c8847e4acf7b3f0dd9350ba3",
+      "generator": "fixtures/generators/pdf/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G4-11",
+        "G8-1",
+        "G8-9",
+        "G11-4"
+      ],
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "reportlab": "5.0.1",
+        "pillow": "12.3.0",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/pdf/tabel-suprafete.pdf",
+      "sha256": "12baddb82241e2191d408bbc7eaf7410af6bdb9ff1150cd6a6085b111b701470",
+      "generator": "fixtures/generators/pdf/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G8-2",
+        "G8-3"
+      ],
+      "groundTruth": "fixtures/pdf/ground-truth/tabel-suprafete.json",
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "reportlab": "5.0.1",
+        "pillow": "12.3.0",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/pdf/ground-truth/tabel-suprafete.json",
+      "sha256": "5944834fcc2eeb20498eb4228e84f5778782a5c0298382c8480d33e725bc813b",
+      "generator": "fixtures/generators/pdf/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G8-2",
+        "G8-3"
+      ],
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "reportlab": "5.0.1",
+        "pillow": "12.3.0",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/pdf/lista-echipamente.pdf",
+      "sha256": "f793bc77022baea033ae40c5b97802bf27ba0350fdfe33b50c745aed630ffdc1",
+      "generator": "fixtures/generators/pdf/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G1-1",
+        "G1-6",
+        "G3-1",
+        "G4-3",
+        "G4-4",
+        "G8-3",
+        "G8-5",
+        "G8-6",
+        "G11-3"
+      ],
+      "groundTruth": "fixtures/pdf/ground-truth/lista-echipamente.json",
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "reportlab": "5.0.1",
+        "pillow": "12.3.0",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/pdf/ground-truth/lista-echipamente.json",
+      "sha256": "569f55dd716dad3f615370b87046696e239f142044174bd605ecff01d08e0af8",
+      "generator": "fixtures/generators/pdf/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G1-1",
+        "G1-6",
+        "G3-1",
+        "G4-3",
+        "G4-4",
+        "G8-3",
+        "G8-5",
+        "G8-6",
+        "G11-3"
+      ],
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "reportlab": "5.0.1",
+        "pillow": "12.3.0",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/pdf/plan-subsol.pdf",
+      "sha256": "d36f82c4bbfa00589aa9b37b235ca50887909427d93d4a8f353bf188d3875ed7",
+      "generator": "fixtures/generators/pdf/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G3-1",
+        "G14-2"
+      ],
+      "groundTruth": "fixtures/pdf/ground-truth/plan-subsol.json",
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "reportlab": "5.0.1",
+        "pillow": "12.3.0",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/pdf/ground-truth/plan-subsol.json",
+      "sha256": "f19da283fbb37bcfac243b13d4dc9f8bb9531f22a5188e575d2dccb8eb963cb7",
+      "generator": "fixtures/generators/pdf/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G3-1",
+        "G14-2"
+      ],
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "reportlab": "5.0.1",
+        "pillow": "12.3.0",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/pdf/nota-proiectant.pdf",
+      "sha256": "eaf0fc7e749bc536df721a9f8f713af74bad581161f7836a7cda572c3c837bf5",
+      "generator": "fixtures/generators/pdf/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G14-1"
+      ],
+      "groundTruth": "fixtures/pdf/ground-truth/nota-proiectant.json",
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "reportlab": "5.0.1",
+        "pillow": "12.3.0",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/pdf/ground-truth/nota-proiectant.json",
+      "sha256": "420908daf8624215f6dbef09663a50bde005817e5ad93725c343677204182970",
+      "generator": "fixtures/generators/pdf/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G14-1"
+      ],
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "reportlab": "5.0.1",
+        "pillow": "12.3.0",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/pdf/caiet-de-sarcini.pdf",
+      "sha256": "0659c17bda03429c7af17b09568510c73273f38eb0e65df83791079eefecdea6",
+      "generator": "fixtures/generators/pdf/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G12-3"
+      ],
+      "groundTruth": "fixtures/pdf/ground-truth/caiet-de-sarcini.json",
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "reportlab": "5.0.1",
+        "pillow": "12.3.0",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/pdf/ground-truth/caiet-de-sarcini.json",
+      "sha256": "68ecca64b19ab1c6e498dc8189abde388c68e9651e629b82ee27bff2ed8e1e27",
+      "generator": "fixtures/generators/pdf/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G12-3"
+      ],
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "reportlab": "5.0.1",
+        "pillow": "12.3.0",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/xlsx/tabel-camere.xlsx",
+      "sha256": "c22fd539cf9abac32d1c87352839790ec7147aa81978f12b2936089db6575db3",
+      "generator": "fixtures/generators/xlsx/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G4-9",
+        "G9-6"
+      ],
+      "groundTruth": "fixtures/xlsx/ground-truth/tabel-camere.json",
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "openpyxl": "3.1.5",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/xlsx/ground-truth/tabel-camere.json",
+      "sha256": "714944af39e0ee5cebeecf37946725366ff79ecb5ff48c518ad9c6e882c23111",
+      "generator": "fixtures/generators/xlsx/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G4-9",
+        "G9-6"
+      ],
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "openpyxl": "3.1.5",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/xlsx/lista-echipamente.xlsx",
+      "sha256": "c9120d734ef4d0f1fc34022e7f853924e83e7ec7ffadc8a332abbd42244a15e0",
+      "generator": "fixtures/generators/xlsx/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G1-1",
+        "G1-6",
+        "G3-8",
+        "G4-3",
+        "G4-4",
+        "G8-3",
+        "G8-5",
+        "G11-3"
+      ],
+      "groundTruth": "fixtures/xlsx/ground-truth/lista-echipamente.json",
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "openpyxl": "3.1.5",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/xlsx/ground-truth/lista-echipamente.json",
+      "sha256": "f9bc55230703068d6d379ca42e7d7670decfb04e651fff121a8eb8311b9e755c",
+      "generator": "fixtures/generators/xlsx/companions.py",
+      "generatorVersion": "1",
+      "cases": [
+        "G1-1",
+        "G1-6",
+        "G3-8",
+        "G4-3",
+        "G4-4",
+        "G8-3",
+        "G8-5",
+        "G11-3"
+      ],
+      "profile": "test",
+      "toolVersions": {
+        "python": "3.12",
+        "openpyxl": "3.1.5",
+        "PyYAML": "6.0.3"
+      }
+    },
+    {
+      "path": "fixtures/demo/owner-answers.json",
+      "sha256": "0ebfb02d9e8c1a7cd1cc0abf6c8b1d7539c4b342a92602854d7a8dc7191ff1e1",
+      "generator": "fixtures/demo/generate.ts",
+      "cases": [
+        "GS-1"
+      ],
+      "profile": "demo"
+    },
+    {
+      "path": "fixtures/evals/G1-1/lista-echipamente.yaml",
+      "sha256": "0c1e3d614858b08a2817a40d5762fe95aa2444fdf030baf8de7991d19c3b7386",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G1-1"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G1-6/fisa-tehnica-chiller.yaml",
+      "sha256": "b4855e18c24c4ae95567c2a941892fe5453b39071c8a0be03fcab28310b293ff",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G1-6"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G1-11/memoriu-tehnic.yaml",
+      "sha256": "264fc9c4aca813695e72bab2f9490316144d24effd7d15cef80031126d6f7317",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G1-11"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G3-1/lista-echipamente.yaml",
+      "sha256": "9b9509c61dddc3a452870a000bcad9bdebbb786667906edd01688072c57d48bc",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G3-1"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G3-2/plan-subsol.yaml",
+      "sha256": "445b4ff88ea43c50075589db77a94d188df4d3f3aa2300d3909b0beec7718ea5",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G3-2"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G3-5/dali.yaml",
+      "sha256": "d84fb1ea50720a5cbc826fbb89599d80719efbca9c6994734a15a7954a2bfef1",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G3-5"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G3-8/lista-echipamente.yaml",
+      "sha256": "c7876e4a0234cc34e49dc040fc2b77ffd1cba54b8d1a13dce598e8c4d6369cc9",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G3-8"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G6-3/memoriu.yaml",
+      "sha256": "c39557c0b329372abf837eed4ae105363b8446247d73c0a3b2b0773a71b2b466",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G6-3"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G8-1/memoriu.yaml",
+      "sha256": "be86684530eac2c5132ca638e14a15822fe8c51e3284a5bedf6ccee0ada25532",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G8-1"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G8-2/tabel-suprafete.yaml",
+      "sha256": "303adb5ddfeb1d07867068e404c66e37f72639a548fb7352f29d70410c880f8e",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G8-2"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G8-3/tabel-motor.yaml",
+      "sha256": "8e748d3cf0dfc4ff7da8daac55c0a4853479e16e3d403db0d7828043dc50a512",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G8-3"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G8-5/fisa-tehnica.yaml",
+      "sha256": "ca8233d8e063482c3e715329f243f1a3942156bf01bac3058dc7de8855d98a93",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G8-5"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G8-6/fisa-pompa.yaml",
+      "sha256": "aaf3f1889118363d603efd23dca4e1e3c484f2a8fb71e2feadd38bfeba8ff500",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G8-6"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G8-9/memoriu-arhitectura.yaml",
+      "sha256": "fb21e5f434c5ce51fb3b0e09856af539167746631f434c659b92b7b76e4c5693",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G8-9"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G11-1/drafting.yaml",
+      "sha256": "5bee6360408fad60021f743f2ef9a0173504b32655961d2e538e15a4a7c9f1ab",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G11-1"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G11-4/drafting.yaml",
+      "sha256": "55a076e700ee6e27f30540290beef24f355bb44d8f3fb419d5e66a13618b5ce4",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G11-4"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G11-5/certificat-energetic.yaml",
+      "sha256": "952b7aa90e51ee805e8798847c6ce7472e7921533a194c974e891b874e63875a",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G11-5"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G12-2/plan-iluminat.yaml",
+      "sha256": "83f827a19aeb8bc585bb9969ef03e4c25fd566f10b13f8008f19afb722c2524b",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G12-2"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G14-1/nota-proiectant.yaml",
+      "sha256": "d3eca80fd7b1645a0f781b46ee6b9116236780c3fece792277e1b8deb4a0ff83",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G14-1"
+      ]
+    },
+    {
+      "path": "fixtures/evals/G14-2/plan-subsol.yaml",
+      "sha256": "fab51fd64412a3e7f58219b26c7fb2be30a21791a73817f9de9eaa1bdd8bf0ba",
+      "generator": "fixtures/evals/generate.ts",
+      "cases": [
+        "G14-2"
       ]
     }
   ]

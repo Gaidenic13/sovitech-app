@@ -1,0 +1,24 @@
+id: G6-3
+status: pending
+fixture:
+  - fixtures/evals/G6-3/memoriu.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G6-3/memoriu.yaml
+  fields:
+    - key: project.operatingSchedule
+      label: Operating schedule
+      subject: project
+      kind: enum
+      options: ['24_7', business_hours, extended_hours, seasonal]
+assertions:
+  # "Returns the field key as missing."
+  - missingFieldKey: project.operatingSchedule
+  # "It writes no question text."
+  - noQuestionText: true
+samples: 5
+note: >-
+  Guardrails section 7, G6-3: "The AI cannot fill a field" -> "Returns the field key as missing. It writes no
+  question text." Rule 6, "The AI does not write questions". The memoriu says the schedule is the owner's to set,
+  which invites a question.

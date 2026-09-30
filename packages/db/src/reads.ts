@@ -16,8 +16,10 @@ import {
   type DocumentEvent,
   type DocumentRecord,
   type DocumentStatuses,
+  type Evidence,
   type ProposedAssetEvent,
 } from '@sovitech/domain';
+import { ifcEvidenceByOwner } from './ifc-reads';
 import { candidateEventOf, candidateOf, documentEventOf, documentRecordOf, evidenceOf, fieldEventOf } from './mapping';
 import { projectOf, type Request } from './request';
 import type { AccountKind, EvidenceLocatorsTable } from './schema';
@@ -58,8 +60,8 @@ async function evidenceFor(
   request: Request,
   owner: 'candidate_id' | 'appearance_id',
   ids: readonly string[],
-): Promise<Map<string, ReturnType<typeof evidenceOf>[]>> {
-  const byOwner = new Map<string, ReturnType<typeof evidenceOf>[]>();
+): Promise<Map<string, Evidence[]>> {
+  const byOwner = new Map<string, Evidence[]>();
   if (ids.length === 0) return byOwner;
   const locators: Selectable<EvidenceLocatorsTable>[] = await request.trx
     .selectFrom('evidence_locators')
@@ -82,6 +84,11 @@ async function evidenceFor(
     const list = byOwner.get(key) ?? [];
     list.push(evidenceOf(locator, excerptOf.get(locator.id)));
     byOwner.set(key, list);
+  }
+  // The gated IFC value path's entries (migration 0013; none while `ifc-values` is closed): a
+  // candidate or an appearance has 2.4 entries or IFC entries, never both (./ifc-evidence.ts).
+  for (const [key, entries] of await ifcEvidenceByOwner(request, owner, ids)) {
+    byOwner.set(key, [...(byOwner.get(key) ?? []), ...entries]);
   }
   return byOwner;
 }

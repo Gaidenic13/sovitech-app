@@ -1,7 +1,17 @@
-# Development tools for services/extractor: the top-level pins (prompt 3 section 12).
-# This is the input. The installable file is requirements-dev.lock, compiled from
-# it with every transitive dependency pinned and hashed. After changing a pin here,
-# regenerate the lock as docs/adr/0001-toolchain-and-monorepo.md describes, and
-# install only from the lock, with --require-hashes.
+# The extractor's local development environment (services/extractor/.venv):
+# the runtime and fixture-generator dependencies, plus the development tools
+# (prompt 3 section 12). This is the input. The installable file is
+# requirements-dev.lock, compiled from it with every transitive dependency pinned
+# and hashed, constrained by the two other locks so that every shared dependency
+# keeps one version. After changing a pin here or in the other .in files,
+# regenerate the locks in order (requirements.lock, requirements-fixtures.lock,
+# requirements-dev.lock) as docs/adr/0001-toolchain-and-monorepo.md and
+# docs/adr/0018-extractor-dependencies-and-sandbox-image.md describe, and install
+# only from the lock, with --require-hashes (pnpm setup:py).
+-c requirements.lock
+-c requirements-fixtures.lock
+-r requirements.in
+-r requirements-fixtures.in
+
 ruff==0.16.9
 pytest==9.1.1

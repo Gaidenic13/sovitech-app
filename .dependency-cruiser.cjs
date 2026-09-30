@@ -72,13 +72,22 @@ const WEB_ALLOWED = [
 /** Code that ends up in the browser bundle. */
 const BROWSER_SIDE = `^apps/web/|^packages/(?:ui|viewer)/|^packages/view-model/src/browser${MODULE_END}`;
 
-/** Code that must never reach the browser bundle. */
-const SERVER_SIDE = [pkg('(?:domain|engine|registry|db|ai)'), VIEW_MODEL_SERVER, '^apps/api/|(^|/)node_modules/@sovitech/api/|^@sovitech/api(/|$)'].join(
+/**
+ * Code that must never reach the browser bundle. extraction-contract (phase 2) parses the
+ * extractor's output, document text and sealed IFC values included, on the server only; the
+ * IFC reader (phase 2, web-ifc; ADR 0031) reads owner models in its sandbox only: the browser
+ * never parses the owner's IFC (prompt 3 section 8).
+ */
+const SERVER_SIDE = [pkg('(?:domain|engine|registry|db|ai|extraction-contract|ifc-reader)'), VIEW_MODEL_SERVER, '^apps/api/|(^|/)node_modules/@sovitech/api/|^@sovitech/api(/|$)'].join(
   '|',
 );
 
-/** Guardrail case folders: indexed cases and gated proposed cases. Not tests/e2e/, which drives the app from outside. */
-const CASE_FOLDERS = 'tests/(?:guardrails|proposed)/';
+/**
+ * Guardrail case folders: indexed cases and gated proposed cases; and, since phase 2, the API's
+ * integration tests (tests/api/), which drive the API over a TEST database as the API's cases do.
+ * Not tests/e2e/, which drives the app from outside.
+ */
+const CASE_FOLDERS = 'tests/(?:guardrails|proposed|api)/';
 
 const TEST_UTILS =
   '^packages/registry/src/test-utils/|(^|/)node_modules/@sovitech/registry/src/test-utils/|^@sovitech/registry/test-utils(/|$)';

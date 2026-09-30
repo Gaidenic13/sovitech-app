@@ -10,10 +10,19 @@ describe('migration files', () => {
     for (const migration of migrations) expect(migration.checksum).toBe(checksumOf(migration.sql));
   });
 
-  it('installs the guards last, so every later migration runs under the event trigger', () => {
-    const last = loadMigrations().at(-1);
-    expect(last?.id).toBe('0009_guards.admin');
-    expect(last?.sql).toMatch(/CREATE EVENT TRIGGER sovitech_guard_after_ddl ON ddl_command_end/);
+  it('F-VALUE-01: installs the guards in 0009, and every later migration runs under the event trigger and never pauses it', () => {
+    const migrations = loadMigrations();
+    const guards = migrations.findIndex((migration) => migration.id === '0009_guards.admin');
+    expect(guards).toBeGreaterThan(0);
+    expect(migrations[guards]?.sql).toMatch(/CREATE EVENT TRIGGER sovitech_guard_after_ddl ON ddl_command_end/);
+    const later = migrations.slice(guards + 1);
+    // Phase 2 added 0010 (the ingestion tables and the work schema), an admin migration that
+    // registers its tables' guards and records the shape (packages/db/README.md).
+    expect(later.map((migration) => migration.id)).toContain('0010_ingestion.admin');
+    for (const migration of later) {
+      expect(migration.sql, migration.id).not.toMatch(/ALTER EVENT TRIGGER[^;]*DISABLE/i);
+      expect(migration.sql, migration.id).not.toMatch(/DROP EVENT TRIGGER/i);
+    }
   });
 
   it('refuses a file name that is not NNNN_name.sql or NNNN_name.admin.sql', () => {

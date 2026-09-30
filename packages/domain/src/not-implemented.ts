@@ -37,8 +37,11 @@
  * The domain functions whose body is not built yet and that throw
  * NotImplementedError, by feature name. Phase 1 built `derive` and removed it
  * here together with its `declareNotImplemented` call (ADR 0004): a marker that
- * still names it fails at load. `verify-proposal` stays until phase 2 builds
- * checks 2 to 5 (check 1 is built).
+ * still names it fails at load. Phase 2 built the verifier (all five checks);
+ * `verify-proposal` stays declared only as the probe the harness's own self-tests
+ * reach, a call of verifyProposal with no proposal (evidence.ts). No guardrail
+ * case waits for it. Retiring it, and with it the pending wrapper, is a harness
+ * change (tools/vitest/README.md, "Which stub the harness's own tests reach").
  */
 export const DOMAIN_FEATURES = ['verify-proposal'] as const;
 export type DomainFeature = (typeof DOMAIN_FEATURES)[number];

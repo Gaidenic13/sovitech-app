@@ -183,10 +183,29 @@ const productListStandIn: TestDataset = {
   ),
 };
 
+/**
+ * G3-8's TEST glossary (prompt 3 section 10, phase 2: "G3-8 (with a TEST glossary in
+ * fixtures/datasets/)"): a few abbreviations of rule 8's list ("Abbreviations"), each with its
+ * expansion in words. It stands in for the Romanian glossary, which is not approved
+ * (`dataset-glossary`); only the eval runner sends it (EVAL_POLICY), and the app refuses any
+ * glossary while that gate is closed. It holds no number.
+ */
+const glossary: TestDataset = {
+  id: 'TEST-glossary',
+  version: 'TEST-1',
+  description: 'TEST glossary: synthetic abbreviation entries for the G3-8 eval. Not the SOVITECH Romanian glossary; not approved reference data.',
+  entries: {
+    CTA: 'centrală de tratare a aerului: air handling unit (TEST entry)',
+    UTA: 'unitate de tratare a aerului: air handling unit (TEST entry)',
+    VCV: 'ventiloconvector: fan coil unit (TEST entry)',
+    TGBT: 'tablou general de joasă tensiune: main low-voltage distribution board (TEST entry)',
+  },
+};
+
 // Versions: TEST-2 for the four tables whose numbers moved into the synthetic band in the phase 1
-// review (a dataset version never changes its values); the function set and the stand-in hold no
-// number and stay TEST-1.
-export const TEST_DATASETS: readonly TestDataset[] = [costRanges, pointTemplates, energyBenchmarks, savingsFactors, functionSet, productListStandIn];
+// review (a dataset version never changes its values); the function set, the stand-in and the
+// glossary hold no number and stay TEST-1.
+export const TEST_DATASETS: readonly TestDataset[] = [costRanges, pointTemplates, energyBenchmarks, savingsFactors, functionSet, productListStandIn, glossary];
 
 function main(argv: readonly string[]): void {
   const at = argv.indexOf('--out');

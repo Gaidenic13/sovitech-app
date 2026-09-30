@@ -1,0 +1,22 @@
+# The build context of images built from the repository root: only the IFC
+# reader's sandbox image today (services/ifc-reader/Dockerfile; ADR 0031). An
+# allow list: everything is left out, then the lockfile, the workspace manifests
+# and the sources the image bundles are let back in. company/, fixtures, owner
+# documents, node_modules, .env and the other packages never reach a build.
+# The Python extractor's image builds from services/extractor with its own
+# .dockerignore.
+*
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!packages/ifc-reader/package.json
+!packages/ifc-reader/src/
+!packages/extraction-contract/package.json
+!packages/extraction-contract/src/
+!packages/registry/package.json
+!packages/registry/src/
+!packages/domain/package.json
+!packages/domain/src/
+**/*.test.ts
+**/*.test.tsx
+**/node_modules

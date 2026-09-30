@@ -252,14 +252,14 @@ export function reportToResult(report: IndexReport): CheckResult {
   }
   details.push(`Real cases present (${report.present.length}): ${report.present.join(' ') || 'none'}`);
   details.push(
-    `Pending (${report.pending.length}): held out of the green run (code tests by the pending wrapper; evals until the eval runner exists), ` +
+    `Pending (${report.pending.length}): held out of the green run (code tests by the pending wrapper; evals until a current 5-of-5 run record exists), ` +
       'reported as "pending: no automated check yet", never as passing' +
       (report.pending.length > 0 ? `: ${report.pending.join(' ')}` : ''),
   );
   const pendingEvals = report.pending.filter((id) => report.index.byId.get(id)?.type === 'E');
   if (pendingEvals.length > 0) {
     details.push(
-      `Of these, ${plural(pendingEvals.length, 'eval')}: no eval runs before the phase 2 eval runner exists, so an eval counts as pending at most`,
+      `Of these, ${plural(pendingEvals.length, 'eval')}: an eval counts as pending while its file says \`status: pending\` or no current 5-of-5 record exists for it (evals/guardrails/_results/; prompt, model id and schema hashes as the runner writes them)`,
     );
   }
   if (report.stubs.length > 0) {

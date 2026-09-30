@@ -1,0 +1,2364 @@
+{
+  "about": "TEST ground truth of a synthetic IFC fixture (fictitious building, not a real project). Written by fixtures/generators/ifc/demo_hotel.py from fixtures/generators/ifc/spec/test.yaml together with the model, so it states what the file contains: every GlobalId, STEP instance id and verbatim STEP line (the excerpt) that an extractor must find. It is not an expected app output: which values may be stored is decided by the guardrails and the closed gates.",
+  "file": "fixtures/ifc/demo-hotel-arh.ifc",
+  "profile": "test",
+  "schema": "IFC4",
+  "discipline": "architectural",
+  "variant": "arh",
+  "header": {
+    "fileName": "demo-hotel-arh.ifc",
+    "viewDefinition": "ViewDefinition [ReferenceView_V1.2]",
+    "description": "TEST FIXTURE: synthetic document of a fictitious building. Not a real project.",
+    "author": "SOVITECH fixture generator",
+    "organization": "Studio Exemplu SRL (fictitious)",
+    "preprocessor": "fixtures/generators STEP writer (no IfcOpenShell; docs/adr/0018)",
+    "originatingSystem": "SOVITECH TEST fixture generator 1",
+    "timeStamp": "2026-01-15T09:00:00"
+  },
+  "instanceCount": 541,
+  "units": {
+    "assignment": {
+      "stepId": 100017,
+      "excerpt": "#100017=IFCUNITASSIGNMENT((#100007,#100008,#100009,#100010,#100011,#100012,#100016));"
+    },
+    "LENGTHUNIT": {
+      "stepId": 100007,
+      "symbol": "mm",
+      "excerpt": "#100007=IFCSIUNIT(*,.LENGTHUNIT.,.MILLI.,.METRE.);"
+    },
+    "AREAUNIT": {
+      "stepId": 100008,
+      "symbol": "m²",
+      "excerpt": "#100008=IFCSIUNIT(*,.AREAUNIT.,$,.SQUARE_METRE.);"
+    },
+    "VOLUMEUNIT": {
+      "stepId": 100009,
+      "symbol": "m³",
+      "excerpt": "#100009=IFCSIUNIT(*,.VOLUMEUNIT.,$,.CUBIC_METRE.);"
+    },
+    "PLANEANGLEUNIT": {
+      "stepId": 100010,
+      "symbol": "rad",
+      "excerpt": "#100010=IFCSIUNIT(*,.PLANEANGLEUNIT.,$,.RADIAN.);"
+    },
+    "POWERUNIT": {
+      "stepId": 100011,
+      "symbol": "W",
+      "excerpt": "#100011=IFCSIUNIT(*,.POWERUNIT.,$,.WATT.);"
+    },
+    "THERMODYNAMICTEMPERATUREUNIT": {
+      "stepId": 100012,
+      "symbol": "°C",
+      "excerpt": "#100012=IFCSIUNIT(*,.THERMODYNAMICTEMPERATUREUNIT.,$,.DEGREE_CELSIUS.);"
+    },
+    "VOLUMETRICFLOWRATEUNIT": {
+      "stepId": 100016,
+      "symbol": "m³/s",
+      "excerpt": "#100016=IFCDERIVEDUNIT((#100014,#100015),.VOLUMETRICFLOWRATEUNIT.,$);",
+      "note": "m³/s is not in the unit registry (ifc-input GAP-J, 6.2.11)"
+    }
+  },
+  "extraUnits": [
+    {
+      "stepId": 100018,
+      "symbol": "kW",
+      "excerpt": "#100018=IFCSIUNIT(*,.POWERUNIT.,.KILO.,.WATT.);",
+      "note": "not in the unit assignment: carried by one property's own Unit"
+    }
+  ],
+  "project": {
+    "globalId": "2a9EYp83HS7gsGYPSjusOS",
+    "stepId": 100028,
+    "name": "Demo Hotel Bucharest",
+    "phase": null,
+    "excerpt": "#100028=IFCPROJECT('2a9EYp83HS7gsGYPSjusOS',#100006,'Demo Hotel Bucharest','TEST fixture: synthetic model of a fictitious hotel. Not a real project.',$,$,$,(#100022),#100017);",
+    "note": "Phase is empty: the stage is unknown until declared (ifc-input 6.2.2)"
+  },
+  "site": {
+    "globalId": "3So33CGwPOp9uBy2n$EP1B",
+    "stepId": 100029,
+    "name": "Amplasament Demo Hotel Bucharest (fictiv)",
+    "georeference": {
+      "IfcMapConversion": false,
+      "trueNorth": false
+    }
+  },
+  "building": {
+    "globalId": "2YLPJDjU9GhRNuZz3hQfIP",
+    "stepId": 100030,
+    "name": "Demo Hotel Bucharest",
+    "psets": {
+      "Pset_BuildingCommon": {
+        "globalId": "3d5FVmRXbHywhmD5x4lMsK",
+        "stepId": 100060,
+        "properties": {
+          "NumberOfStoreys": {
+            "stepId": 100057,
+            "type": "IfcInteger",
+            "literal": "IFCINTEGER(5)",
+            "value": "5",
+            "unit": null,
+            "excerpt": "#100057=IFCPROPERTYSINGLEVALUE('NumberOfStoreys',$,IFCINTEGER(5),$);",
+            "exercises": [
+              "G4-11"
+            ]
+          },
+          "OccupancyType": {
+            "stepId": 100058,
+            "type": "IfcLabel",
+            "literal": "IFCLABEL('Hotel')",
+            "value": "Hotel",
+            "unit": null,
+            "excerpt": "#100058=IFCPROPERTYSINGLEVALUE('OccupancyType',$,IFCLABEL('Hotel'),$);"
+          },
+          "GrossPlannedArea": {
+            "stepId": 100059,
+            "type": "IfcAreaMeasure",
+            "literal": "IFCAREAMEASURE(6170.)",
+            "value": "6170",
+            "unit": {
+              "source": "project units",
+              "symbol": "m²"
+            },
+            "excerpt": "#100059=IFCPROPERTYSINGLEVALUE('GrossPlannedArea',$,IFCAREAMEASURE(6170.),$);",
+            "exercises": [
+              "G8-2"
+            ]
+          }
+        },
+        "relStepId": 100061
+      }
+    }
+  },
+  "storeys": [
+    {
+      "key": "S2",
+      "globalId": "06SDPASPTM$e15RWSw_e1V",
+      "stepId": 100034,
+      "name": "Subsol 2",
+      "elevation": {
+        "literal": "-6500.",
+        "unit": "mm"
+      },
+      "excerpt": "#100034=IFCBUILDINGSTOREY('06SDPASPTM$e15RWSw_e1V',#100006,'Subsol 2',$,$,#100033,$,$,.ELEMENT.,-6500.);",
+      "spaces": [],
+      "containedElements": [
+        "0oAmGFkSLLVPZ3TfWpQpsn"
+      ],
+      "exercises": [
+        "IFC-3"
+      ]
+    },
+    {
+      "key": "S1",
+      "globalId": "2iJ1N9JojOph52jnJY$Doa",
+      "stepId": 100038,
+      "name": "Subsol 1",
+      "elevation": {
+        "literal": "-3250.",
+        "unit": "mm"
+      },
+      "excerpt": "#100038=IFCBUILDINGSTOREY('2iJ1N9JojOph52jnJY$Doa',#100006,'Subsol 1',$,$,#100037,$,$,.ELEMENT.,-3250.);",
+      "spaces": [
+        "27ZjyqLOXJlQxTlEtOO7PU",
+        "1yEL02i$LUWvotAPWc1TbI",
+        "1ueP89usrHLOInVcwhhdEu"
+      ],
+      "containedElements": [
+        "1$GpH706zI1AmtUeN5n$2g"
+      ],
+      "exercises": []
+    },
+    {
+      "key": "P",
+      "globalId": "1uTlaQt5LJue$X3BUU0Hai",
+      "stepId": 100041,
+      "name": "Parter",
+      "elevation": {
+        "literal": "0.",
+        "unit": "mm"
+      },
+      "excerpt": "#100041=IFCBUILDINGSTOREY('1uTlaQt5LJue$X3BUU0Hai',#100006,'Parter',$,$,#100040,$,$,.ELEMENT.,0.);",
+      "spaces": [
+        "2qIRN3ktXLlgQRccgg4nOo",
+        "25e0qMbWzUPvi6AtdGe$xR",
+        "1QXKLiF3jMQfZw0B$xAzzS",
+        "0MVN3ztWvMFxNPnhZuAo4H"
+      ],
+      "containedElements": [
+        "08XFG4nSvI3Qsn8kJo63fB",
+        "1MasBnzQ5TIQ8ZxtQqCRuG",
+        "0wdwTlpuzGkARjVbL0F0PE",
+        "2HfSiDxjHO4fYSgNFprGlX",
+        "1JnfP28qPPCOInWz0kPEnc"
+      ],
+      "exercises": []
+    },
+    {
+      "key": "E1",
+      "globalId": "1_cW$36CXNbwaB4SDZbNjL",
+      "stepId": 100045,
+      "name": "Etaj 1",
+      "elevation": {
+        "literal": "4500.",
+        "unit": "mm"
+      },
+      "excerpt": "#100045=IFCBUILDINGSTOREY('1_cW$36CXNbwaB4SDZbNjL',#100006,'Etaj 1',$,$,#100044,$,$,.ELEMENT.,4500.);",
+      "spaces": [
+        "3Jkyb$bFHQQwZPia2eTSaI",
+        "38y4EK$1XMge8M5DZzcwaR",
+        "3xsvxDzhnIJAAg1ouwMDal",
+        "04zJ$hIRTOfQh6Q_b7IdH3",
+        "23lTUKdE5PdwUsHYY9SR_5",
+        "0gs85uoHzIbP5S219ap8PQ",
+        "0SLwQJhS5LmAJF8NT3hkNh",
+        "1zhM$dW1TTyvo5ESMBNRA_",
+        "2XJRuIBqzNpOkflYjT$dbj"
+      ],
+      "containedElements": [
+        "3xPREqpJfPbx4oEMlC8XUS"
+      ],
+      "exercises": []
+    },
+    {
+      "key": "E2",
+      "globalId": "3Et8Nz$2PI7hU$xz2UaFm4",
+      "stepId": 100049,
+      "name": "Etaj 2",
+      "elevation": {
+        "literal": "7700.",
+        "unit": "mm"
+      },
+      "excerpt": "#100049=IFCBUILDINGSTOREY('3Et8Nz$2PI7hU$xz2UaFm4',#100006,'Etaj 2',$,$,#100048,$,$,.ELEMENT.,7700.);",
+      "spaces": [
+        "3S5pwgI85HIxRYkGTvL3tA",
+        "1nxNRLzTTUG8TJRsaCCu3u",
+        "2rTezj7M5R2AQwfsiS3_Sy",
+        "2hvcX2eRzQyehezRjyPkbf",
+        "1nWYrlyZbPaeQK4pHWfvf7",
+        "3HveNzQljHu9o0w2E$Mln_",
+        "0XTxJARKvJFgPlyNKs0zZo",
+        "07SW7ZiGjJHhMmI9S_QZcJ",
+        "2qHVHCn9DPUwzzkWAdCdVs"
+      ],
+      "containedElements": [
+        "3c$JUZrpjLVOeYt8PejEvD"
+      ],
+      "exercises": []
+    },
+    {
+      "key": "AT",
+      "globalId": "3U1jFuAn5RqBFJMgIKSKSh",
+      "stepId": 100053,
+      "name": "Cotă atic",
+      "elevation": {
+        "literal": "11000.",
+        "unit": "mm"
+      },
+      "excerpt": "#100053=IFCBUILDINGSTOREY('3U1jFuAn5RqBFJMgIKSKSh',#100006,'Cot\\X2\\0103\\X0\\ atic',$,$,#100052,$,$,.ELEMENT.,11000.);",
+      "spaces": [],
+      "containedElements": [],
+      "exercises": [
+        "IFC-4"
+      ]
+    }
+  ],
+  "spaces": [
+    {
+      "key": "S1-01",
+      "globalId": "27ZjyqLOXJlQxTlEtOO7PU",
+      "stepId": 100070,
+      "name": "S1-01",
+      "longName": "Parcare",
+      "predefinedType": "PARKING",
+      "storey": "2iJ1N9JojOph52jnJY$Doa",
+      "excerpt": "#100070=IFCSPACE('27ZjyqLOXJlQxTlEtOO7PU',#100006,'S1-01',$,$,#100063,#100069,'Parcare',.ELEMENT.,.PARKING.,$);",
+      "geometry": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 40000,
+          "depth": 20000,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 2800,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "800",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100073,
+        "relStepId": 100074,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100071,
+            "literal": "800.",
+            "value": "800",
+            "unit": "m²",
+            "excerpt": "#100071=IFCQUANTITYAREA('NetFloorArea',$,$,800.,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100072,
+            "literal": "815.2",
+            "value": "815.2",
+            "unit": "m²",
+            "excerpt": "#100072=IFCQUANTITYAREA('GrossFloorArea',$,$,815.2,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "2DJq8WJeHVDxmp7fUkS83Z",
+          "stepId": 100077,
+          "properties": {
+            "Reference": {
+              "stepId": 100075,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('S1-01')",
+              "value": "S1-01",
+              "unit": null,
+              "excerpt": "#100075=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('S1-01'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100076,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100076=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100078
+        }
+      }
+    },
+    {
+      "key": "S1-02",
+      "globalId": "1yEL02i$LUWvotAPWc1TbI",
+      "stepId": 100088,
+      "name": "S1-02",
+      "longName": "Cameră tehnică ventilare",
+      "predefinedType": "SPACE",
+      "storey": "2iJ1N9JojOph52jnJY$Doa",
+      "excerpt": "#100088=IFCSPACE('1yEL02i$LUWvotAPWc1TbI',#100006,'S1-02',$,$,#100081,#100087,'Camer\\X2\\0103\\X0\\ tehnic\\X2\\0103\\X0\\ ventilare',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 40000,
+          "y": 0,
+          "width": 10000,
+          "depth": 8000,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 2800,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "80",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100091,
+        "relStepId": 100092,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100089,
+            "literal": "80.",
+            "value": "80",
+            "unit": "m²",
+            "excerpt": "#100089=IFCQUANTITYAREA('NetFloorArea',$,$,80.,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100090,
+            "literal": "82.4",
+            "value": "82.4",
+            "unit": "m²",
+            "excerpt": "#100090=IFCQUANTITYAREA('GrossFloorArea',$,$,82.4,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "0Bc611uoDJi9CG7gpR_avE",
+          "stepId": 100095,
+          "properties": {
+            "Reference": {
+              "stepId": 100093,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('S1-02')",
+              "value": "S1-02",
+              "unit": null,
+              "excerpt": "#100093=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('S1-02'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100094,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100094=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100096
+        }
+      }
+    },
+    {
+      "key": "S1-03",
+      "globalId": "1ueP89usrHLOInVcwhhdEu",
+      "stepId": 100106,
+      "name": "S1-03",
+      "longName": "Centrală termică",
+      "predefinedType": "SPACE",
+      "storey": "2iJ1N9JojOph52jnJY$Doa",
+      "excerpt": "#100106=IFCSPACE('1ueP89usrHLOInVcwhhdEu',#100006,'S1-03',$,$,#100099,#100105,'Central\\X2\\0103\\X0\\ termic\\X2\\0103\\X0\\',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 50000,
+          "y": 0,
+          "width": 11700,
+          "depth": 8000,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 2800,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "93.6",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100109,
+        "relStepId": 100110,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100107,
+            "literal": "93.6",
+            "value": "93.6",
+            "unit": "m²",
+            "excerpt": "#100107=IFCQUANTITYAREA('NetFloorArea',$,$,93.6,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100108,
+            "literal": "96.3",
+            "value": "96.3",
+            "unit": "m²",
+            "excerpt": "#100108=IFCQUANTITYAREA('GrossFloorArea',$,$,96.3,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "2yBrfczyrQkh36m75iSl$Y",
+          "stepId": 100113,
+          "properties": {
+            "Reference": {
+              "stepId": 100111,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('S1-03')",
+              "value": "S1-03",
+              "unit": null,
+              "excerpt": "#100111=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('S1-03'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100112,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100112=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100114
+        }
+      }
+    },
+    {
+      "key": "P-01",
+      "globalId": "2qIRN3ktXLlgQRccgg4nOo",
+      "stepId": 100123,
+      "name": "P-01",
+      "longName": "Recepție",
+      "predefinedType": "SPACE",
+      "storey": "1uTlaQt5LJue$X3BUU0Hai",
+      "excerpt": "#100123=IFCSPACE('2qIRN3ktXLlgQRccgg4nOo',#100006,'P-01',$,$,#100116,#100122,'Recep\\X2\\021B\\X0\\ie',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 20000,
+          "depth": 12000,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3600,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "240",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100126,
+        "relStepId": 100127,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100124,
+            "literal": "240.",
+            "value": "240",
+            "unit": "m²",
+            "excerpt": "#100124=IFCQUANTITYAREA('NetFloorArea',$,$,240.,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100125,
+            "literal": "246.1",
+            "value": "246.1",
+            "unit": "m²",
+            "excerpt": "#100125=IFCQUANTITYAREA('GrossFloorArea',$,$,246.1,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "2mB8Ga8jTK4Od11jQ44GQ4",
+          "stepId": 100130,
+          "properties": {
+            "Reference": {
+              "stepId": 100128,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('P-01')",
+              "value": "P-01",
+              "unit": null,
+              "excerpt": "#100128=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('P-01'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100129,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100129=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100131
+        }
+      }
+    },
+    {
+      "key": "P-02",
+      "globalId": "25e0qMbWzUPvi6AtdGe$xR",
+      "stepId": 100141,
+      "name": "P-02",
+      "longName": "Restaurant",
+      "predefinedType": "SPACE",
+      "storey": "1uTlaQt5LJue$X3BUU0Hai",
+      "excerpt": "#100141=IFCSPACE('25e0qMbWzUPvi6AtdGe$xR',#100006,'P-02',$,$,#100134,#100140,'Restaurant',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 20000,
+          "y": 0,
+          "width": 24000,
+          "depth": 14000,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3600,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "336",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100144,
+        "relStepId": 100145,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100142,
+            "literal": "336.",
+            "value": "336",
+            "unit": "m²",
+            "excerpt": "#100142=IFCQUANTITYAREA('NetFloorArea',$,$,336.,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100143,
+            "literal": "344.7",
+            "value": "344.7",
+            "unit": "m²",
+            "excerpt": "#100143=IFCQUANTITYAREA('GrossFloorArea',$,$,344.7,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "3wsrTtibzMVufbGTr1ZzL_",
+          "stepId": 100148,
+          "properties": {
+            "Reference": {
+              "stepId": 100146,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('P-02')",
+              "value": "P-02",
+              "unit": null,
+              "excerpt": "#100146=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('P-02'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100147,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100147=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100149
+        }
+      }
+    },
+    {
+      "key": "P-03",
+      "globalId": "1QXKLiF3jMQfZw0B$xAzzS",
+      "stepId": 100159,
+      "name": "P-03",
+      "longName": "Hol",
+      "predefinedType": "SPACE",
+      "storey": "1uTlaQt5LJue$X3BUU0Hai",
+      "excerpt": "#100159=IFCSPACE('1QXKLiF3jMQfZw0B$xAzzS',#100006,'P-03',$,$,#100152,#100158,'Hol',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 0,
+          "y": 12000,
+          "width": 20000,
+          "depth": 8000,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3600,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "160",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100162,
+        "relStepId": 100163,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100160,
+            "literal": "160.",
+            "value": "160",
+            "unit": "m²",
+            "excerpt": "#100160=IFCQUANTITYAREA('NetFloorArea',$,$,160.,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100161,
+            "literal": "164.3",
+            "value": "164.3",
+            "unit": "m²",
+            "excerpt": "#100161=IFCQUANTITYAREA('GrossFloorArea',$,$,164.3,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "2Ux41r6VnKjwKeYnT8CoTo",
+          "stepId": 100166,
+          "properties": {
+            "Reference": {
+              "stepId": 100164,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('P-03')",
+              "value": "P-03",
+              "unit": null,
+              "excerpt": "#100164=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('P-03'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100165,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100165=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100167
+        }
+      }
+    },
+    {
+      "key": "P-GFA",
+      "globalId": "0MVN3ztWvMFxNPnhZuAo4H",
+      "stepId": 100176,
+      "name": "P-GFA",
+      "longName": "Parter arie construită (GFA)",
+      "predefinedType": "GFA",
+      "storey": "1uTlaQt5LJue$X3BUU0Hai",
+      "excerpt": "#100176=IFCSPACE('0MVN3ztWvMFxNPnhZuAo4H',#100006,'P-GFA',$,$,#100169,#100175,'Parter arie construit\\X2\\0103\\X0\\ (GFA)',.ELEMENT.,.GFA.,$);",
+      "geometry": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 61700,
+          "depth": 20000,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3600,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "1234",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100179,
+        "relStepId": 100180,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100177,
+            "literal": "1234.",
+            "value": "1234",
+            "unit": "m²",
+            "excerpt": "#100177=IFCQUANTITYAREA('NetFloorArea',$,$,1234.,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100178,
+            "literal": "1234.",
+            "value": "1234",
+            "unit": "m²",
+            "excerpt": "#100178=IFCQUANTITYAREA('GrossFloorArea',$,$,1234.,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "3A9zGx$i5Tp9$kcN6gIOPk",
+          "stepId": 100183,
+          "properties": {
+            "Reference": {
+              "stepId": 100181,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('P-GFA')",
+              "value": "P-GFA",
+              "unit": null,
+              "excerpt": "#100181=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('P-GFA'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100182,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100182=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100184
+        }
+      },
+      "exercises": [
+        "GFA space never summed with rooms"
+      ]
+    },
+    {
+      "key": "101",
+      "globalId": "3Jkyb$bFHQQwZPia2eTSaI",
+      "stepId": 100193,
+      "name": "101",
+      "longName": "Cameră 101",
+      "predefinedType": "SPACE",
+      "storey": "1_cW$36CXNbwaB4SDZbNjL",
+      "excerpt": "#100193=IFCSPACE('3Jkyb$bFHQQwZPia2eTSaI',#100006,'101',$,$,#100186,#100192,'Camer\\X2\\0103\\X0\\ 101',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100196,
+        "relStepId": 100197,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100194,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100194=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100195,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100195=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "1po8q2$RPNius86DmOWhMa",
+          "stepId": 100200,
+          "properties": {
+            "Reference": {
+              "stepId": 100198,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('101')",
+              "value": "101",
+              "unit": null,
+              "excerpt": "#100198=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('101'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100199,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100199=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100201
+        }
+      }
+    },
+    {
+      "key": "102",
+      "globalId": "38y4EK$1XMge8M5DZzcwaR",
+      "stepId": 100208,
+      "name": "102",
+      "longName": "Cameră 102",
+      "predefinedType": "SPACE",
+      "storey": "1_cW$36CXNbwaB4SDZbNjL",
+      "excerpt": "#100208=IFCSPACE('38y4EK$1XMge8M5DZzcwaR',#100006,'102',$,$,#100204,#100207,'Camer\\X2\\0103\\X0\\ 102',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 4800,
+          "y": 0,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100211,
+        "relStepId": 100212,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100209,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100209=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100210,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100210=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "3Xyj9D6BjHdPDNdK6cgita",
+          "stepId": 100215,
+          "properties": {
+            "Reference": {
+              "stepId": 100213,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('102')",
+              "value": "102",
+              "unit": null,
+              "excerpt": "#100213=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('102'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100214,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100214=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100216
+        }
+      }
+    },
+    {
+      "key": "103",
+      "globalId": "3xsvxDzhnIJAAg1ouwMDal",
+      "stepId": 100223,
+      "name": "103",
+      "longName": "Cameră 103",
+      "predefinedType": "SPACE",
+      "storey": "1_cW$36CXNbwaB4SDZbNjL",
+      "excerpt": "#100223=IFCSPACE('3xsvxDzhnIJAAg1ouwMDal',#100006,'103',$,$,#100219,#100222,'Camer\\X2\\0103\\X0\\ 103',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 9600,
+          "y": 0,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100226,
+        "relStepId": 100227,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100224,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100224=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100225,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100225=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "37NqfK_hzGQx005ZcUtN2o",
+          "stepId": 100230,
+          "properties": {
+            "Reference": {
+              "stepId": 100228,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('103')",
+              "value": "103",
+              "unit": null,
+              "excerpt": "#100228=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('103'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100229,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100229=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100231
+        }
+      }
+    },
+    {
+      "key": "104",
+      "globalId": "04zJ$hIRTOfQh6Q_b7IdH3",
+      "stepId": 100241,
+      "name": "104",
+      "longName": "Cameră 104",
+      "predefinedType": "SPACE",
+      "storey": "1_cW$36CXNbwaB4SDZbNjL",
+      "excerpt": "#100241=IFCSPACE('04zJ$hIRTOfQh6Q_b7IdH3',#100006,'104',$,$,#100234,#100240,'Camer\\X2\\0103\\X0\\ 104',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 14400,
+          "y": 0,
+          "width": 4820,
+          "depth": 5000,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "24.1",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100244,
+        "relStepId": 100245,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100242,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100242=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100243,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100243=IFCQUANTITYAREA('GrossFloorArea',$,$,26.4,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "0eBAxtwWzQE9E1$H30ZV6O",
+          "stepId": 100248,
+          "properties": {
+            "Reference": {
+              "stepId": 100246,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('104')",
+              "value": "104",
+              "unit": null,
+              "excerpt": "#100246=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('104'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100247,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100247=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100249
+        }
+      },
+      "exercises": [
+        "G8-11",
+        "IFC-2"
+      ],
+      "note": "Quantity set says 26.4 m2 (net and gross); the shape gives 24.1 m2"
+    },
+    {
+      "key": "105",
+      "globalId": "23lTUKdE5PdwUsHYY9SR_5",
+      "stepId": 100256,
+      "name": "105",
+      "longName": "Cameră 105",
+      "predefinedType": "SPACE",
+      "storey": "1_cW$36CXNbwaB4SDZbNjL",
+      "excerpt": "#100256=IFCSPACE('23lTUKdE5PdwUsHYY9SR_5',#100006,'105',$,$,#100252,#100255,'Camer\\X2\\0103\\X0\\ 105',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 0,
+          "y": 8500,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100259,
+        "relStepId": 100260,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100257,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100257=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100258,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100258=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "2KHHjvny9KdfbGe4jdWu8w",
+          "stepId": 100263,
+          "properties": {
+            "Reference": {
+              "stepId": 100261,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('105')",
+              "value": "105",
+              "unit": null,
+              "excerpt": "#100261=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('105'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100262,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100262=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100264
+        }
+      }
+    },
+    {
+      "key": "106",
+      "globalId": "0gs85uoHzIbP5S219ap8PQ",
+      "stepId": 100271,
+      "name": "106",
+      "longName": "Cameră 106",
+      "predefinedType": "SPACE",
+      "storey": "1_cW$36CXNbwaB4SDZbNjL",
+      "excerpt": "#100271=IFCSPACE('0gs85uoHzIbP5S219ap8PQ',#100006,'106',$,$,#100267,#100270,'Camer\\X2\\0103\\X0\\ 106',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 4800,
+          "y": 8500,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100274,
+        "relStepId": 100275,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100272,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100272=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100273,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100273=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "3NzuvBhyLNGgOiJWFHOt_o",
+          "stepId": 100278,
+          "properties": {
+            "Reference": {
+              "stepId": 100276,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('106')",
+              "value": "106",
+              "unit": null,
+              "excerpt": "#100276=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('106'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100277,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100277=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100279
+        }
+      }
+    },
+    {
+      "key": "107",
+      "globalId": "0SLwQJhS5LmAJF8NT3hkNh",
+      "stepId": 100286,
+      "name": "107",
+      "longName": "Cameră 107",
+      "predefinedType": "SPACE",
+      "storey": "1_cW$36CXNbwaB4SDZbNjL",
+      "excerpt": "#100286=IFCSPACE('0SLwQJhS5LmAJF8NT3hkNh',#100006,'107',$,$,#100282,#100285,'Camer\\X2\\0103\\X0\\ 107',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 9600,
+          "y": 8500,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100289,
+        "relStepId": 100290,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100287,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100287=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100288,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100288=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "0h01xtELzIRwyqBjpPqeU5",
+          "stepId": 100293,
+          "properties": {
+            "Reference": {
+              "stepId": 100291,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('107')",
+              "value": "107",
+              "unit": null,
+              "excerpt": "#100291=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('107'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100292,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100292=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100294
+        }
+      }
+    },
+    {
+      "key": "108",
+      "globalId": "1zhM$dW1TTyvo5ESMBNRA_",
+      "stepId": 100301,
+      "name": "108",
+      "longName": "Cameră 108",
+      "predefinedType": "SPACE",
+      "storey": "1_cW$36CXNbwaB4SDZbNjL",
+      "excerpt": "#100301=IFCSPACE('1zhM$dW1TTyvo5ESMBNRA_',#100006,'108',$,$,#100297,#100300,'Camer\\X2\\0103\\X0\\ 108',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 14400,
+          "y": 8500,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100304,
+        "relStepId": 100305,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100302,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100302=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100303,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100303=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "1vKjP411XOZ83OiXHz3QJA",
+          "stepId": 100308,
+          "properties": {
+            "Reference": {
+              "stepId": 100306,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('108')",
+              "value": "108",
+              "unit": null,
+              "excerpt": "#100306=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('108'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100307,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100307=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100309
+        }
+      }
+    },
+    {
+      "key": "E1-H",
+      "globalId": "2XJRuIBqzNpOkflYjT$dbj",
+      "stepId": 100319,
+      "name": "E1-H",
+      "longName": "Hol E1",
+      "predefinedType": "SPACE",
+      "storey": "1_cW$36CXNbwaB4SDZbNjL",
+      "excerpt": "#100319=IFCSPACE('2XJRuIBqzNpOkflYjT$dbj',#100006,'E1-H',$,$,#100312,#100318,'Hol E1',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 0,
+          "y": 5500,
+          "width": 19200,
+          "depth": 3000,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "57.6",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100322,
+        "relStepId": 100323,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100320,
+            "literal": "57.6",
+            "value": "57.6",
+            "unit": "m²",
+            "excerpt": "#100320=IFCQUANTITYAREA('NetFloorArea',$,$,57.6,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100321,
+            "literal": "59.",
+            "value": "59",
+            "unit": "m²",
+            "excerpt": "#100321=IFCQUANTITYAREA('GrossFloorArea',$,$,59.,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "0rRk7VoSPTJPIiZUcY$Omf",
+          "stepId": 100326,
+          "properties": {
+            "Reference": {
+              "stepId": 100324,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('E1-H')",
+              "value": "E1-H",
+              "unit": null,
+              "excerpt": "#100324=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('E1-H'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100325,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100325=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100327
+        }
+      }
+    },
+    {
+      "key": "201",
+      "globalId": "3S5pwgI85HIxRYkGTvL3tA",
+      "stepId": 100333,
+      "name": "201",
+      "longName": "Cameră 201",
+      "predefinedType": "SPACE",
+      "storey": "3Et8Nz$2PI7hU$xz2UaFm4",
+      "excerpt": "#100333=IFCSPACE('3S5pwgI85HIxRYkGTvL3tA',#100006,'201',$,$,#100329,#100332,'Camer\\X2\\0103\\X0\\ 201',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100336,
+        "relStepId": 100337,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100334,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100334=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100335,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100335=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "2$UNVo40XPx8auBgEBZF6V",
+          "stepId": 100340,
+          "properties": {
+            "Reference": {
+              "stepId": 100338,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('201')",
+              "value": "201",
+              "unit": null,
+              "excerpt": "#100338=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('201'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100339,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100339=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100341
+        }
+      }
+    },
+    {
+      "key": "202",
+      "globalId": "1nxNRLzTTUG8TJRsaCCu3u",
+      "stepId": 100348,
+      "name": "202",
+      "longName": "Cameră 202",
+      "predefinedType": "SPACE",
+      "storey": "3Et8Nz$2PI7hU$xz2UaFm4",
+      "excerpt": "#100348=IFCSPACE('1nxNRLzTTUG8TJRsaCCu3u',#100006,'202',$,$,#100344,#100347,'Camer\\X2\\0103\\X0\\ 202',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 4800,
+          "y": 0,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100351,
+        "relStepId": 100352,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100349,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100349=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100350,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100350=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "11NgkQyMXSoRZ$vvjx9bi2",
+          "stepId": 100355,
+          "properties": {
+            "Reference": {
+              "stepId": 100353,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('202')",
+              "value": "202",
+              "unit": null,
+              "excerpt": "#100353=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('202'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100354,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100354=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100356
+        }
+      }
+    },
+    {
+      "key": "203",
+      "globalId": "2rTezj7M5R2AQwfsiS3_Sy",
+      "stepId": 100363,
+      "name": "203",
+      "longName": "Cameră 203",
+      "predefinedType": "SPACE",
+      "storey": "3Et8Nz$2PI7hU$xz2UaFm4",
+      "excerpt": "#100363=IFCSPACE('2rTezj7M5R2AQwfsiS3_Sy',#100006,'203',$,$,#100359,#100362,'Camer\\X2\\0103\\X0\\ 203',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 9600,
+          "y": 0,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100366,
+        "relStepId": 100367,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100364,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100364=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100365,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100365=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "2mJkmG7P1UUvCTDgIP75fz",
+          "stepId": 100370,
+          "properties": {
+            "Reference": {
+              "stepId": 100368,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('203')",
+              "value": "203",
+              "unit": null,
+              "excerpt": "#100368=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('203'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100369,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100369=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100371
+        }
+      }
+    },
+    {
+      "key": "204",
+      "globalId": "2hvcX2eRzQyehezRjyPkbf",
+      "stepId": 100378,
+      "name": "204",
+      "longName": "Cameră 204",
+      "predefinedType": "SPACE",
+      "storey": "3Et8Nz$2PI7hU$xz2UaFm4",
+      "excerpt": "#100378=IFCSPACE('2hvcX2eRzQyehezRjyPkbf',#100006,'204',$,$,#100374,#100377,'Camer\\X2\\0103\\X0\\ 204',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 14400,
+          "y": 0,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100381,
+        "relStepId": 100382,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100379,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100379=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100380,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100380=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "1Jmb7Ep9jOhPVgoWqA2ck1",
+          "stepId": 100385,
+          "properties": {
+            "Reference": {
+              "stepId": 100383,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('204')",
+              "value": "204",
+              "unit": null,
+              "excerpt": "#100383=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('204'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100384,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100384=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100386
+        }
+      }
+    },
+    {
+      "key": "205",
+      "globalId": "1nWYrlyZbPaeQK4pHWfvf7",
+      "stepId": 100393,
+      "name": "205",
+      "longName": "Cameră 205",
+      "predefinedType": "SPACE",
+      "storey": "3Et8Nz$2PI7hU$xz2UaFm4",
+      "excerpt": "#100393=IFCSPACE('1nWYrlyZbPaeQK4pHWfvf7',#100006,'205',$,$,#100389,#100392,'Camer\\X2\\0103\\X0\\ 205',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 0,
+          "y": 8500,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100396,
+        "relStepId": 100397,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100394,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100394=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100395,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100395=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "0uLIXuE$zOMfQwOwaaxUzj",
+          "stepId": 100400,
+          "properties": {
+            "Reference": {
+              "stepId": 100398,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('205')",
+              "value": "205",
+              "unit": null,
+              "excerpt": "#100398=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('205'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100399,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100399=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100401
+        }
+      }
+    },
+    {
+      "key": "206",
+      "globalId": "3HveNzQljHu9o0w2E$Mln_",
+      "stepId": 100408,
+      "name": "206",
+      "longName": "Cameră 206",
+      "predefinedType": "SPACE",
+      "storey": "3Et8Nz$2PI7hU$xz2UaFm4",
+      "excerpt": "#100408=IFCSPACE('3HveNzQljHu9o0w2E$Mln_',#100006,'206',$,$,#100404,#100407,'Camer\\X2\\0103\\X0\\ 206',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 4800,
+          "y": 8500,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100411,
+        "relStepId": 100412,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100409,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100409=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100410,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100410=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "3f_GbsYi1PE8Ll2x5ldhGK",
+          "stepId": 100415,
+          "properties": {
+            "Reference": {
+              "stepId": 100413,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('206')",
+              "value": "206",
+              "unit": null,
+              "excerpt": "#100413=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('206'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100414,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100414=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100416
+        }
+      }
+    },
+    {
+      "key": "207",
+      "globalId": "0XTxJARKvJFgPlyNKs0zZo",
+      "stepId": 100423,
+      "name": "207",
+      "longName": "Cameră 207",
+      "predefinedType": "SPACE",
+      "storey": "3Et8Nz$2PI7hU$xz2UaFm4",
+      "excerpt": "#100423=IFCSPACE('0XTxJARKvJFgPlyNKs0zZo',#100006,'207',$,$,#100419,#100422,'Camer\\X2\\0103\\X0\\ 207',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 9600,
+          "y": 8500,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": null,
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "0FhU4aWFDU0ukYZUWEaVXQ",
+          "stepId": 100426,
+          "properties": {
+            "Reference": {
+              "stepId": 100424,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('207')",
+              "value": "207",
+              "unit": null,
+              "excerpt": "#100424=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('207'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100425,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100425=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100427
+        }
+      },
+      "exercises": [
+        "IFC-3 / 6.2.7: area only from the shape"
+      ]
+    },
+    {
+      "key": "208",
+      "globalId": "07SW7ZiGjJHhMmI9S_QZcJ",
+      "stepId": 100434,
+      "name": "208",
+      "longName": "Cameră 208",
+      "predefinedType": "SPACE",
+      "storey": "3Et8Nz$2PI7hU$xz2UaFm4",
+      "excerpt": "#100434=IFCSPACE('07SW7ZiGjJHhMmI9S_QZcJ',#100006,'208',$,$,#100430,#100433,'Camer\\X2\\0103\\X0\\ 208',.ELEMENT.,.SPACE.,$);",
+      "geometry": {
+        "rect": {
+          "x": 14400,
+          "y": 8500,
+          "width": 4800,
+          "depth": 5500,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 3000,
+          "unit": "mm"
+        },
+        "footprintArea": {
+          "value": "26.4",
+          "unit": "m²"
+        }
+      },
+      "quantitySet": {
+        "set": "Qto_SpaceBaseQuantities",
+        "stepId": 100437,
+        "relStepId": 100438,
+        "quantities": {
+          "NetFloorArea": {
+            "stepId": 100435,
+            "literal": "26.4",
+            "value": "26.4",
+            "unit": "m²",
+            "excerpt": "#100435=IFCQUANTITYAREA('NetFloorArea',$,$,26.4,$);"
+          },
+          "GrossFloorArea": {
+            "stepId": 100436,
+            "literal": "27.6",
+            "value": "27.6",
+            "unit": "m²",
+            "excerpt": "#100436=IFCQUANTITYAREA('GrossFloorArea',$,$,27.6,$);"
+          }
+        }
+      },
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "2nZQnQBr1JFOsy54WbAuNp",
+          "stepId": 100441,
+          "properties": {
+            "Reference": {
+              "stepId": 100439,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('208')",
+              "value": "208",
+              "unit": null,
+              "excerpt": "#100439=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('208'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100440,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100440=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100442
+        }
+      }
+    },
+    {
+      "key": "E2-H",
+      "globalId": "2qHVHCn9DPUwzzkWAdCdVs",
+      "stepId": 100445,
+      "name": "E2-H",
+      "longName": "Hol E2",
+      "predefinedType": "SPACE",
+      "storey": "3Et8Nz$2PI7hU$xz2UaFm4",
+      "excerpt": "#100445=IFCSPACE('2qHVHCn9DPUwzzkWAdCdVs',#100006,'E2-H',$,$,#100444,$,'Hol E2',.ELEMENT.,.SPACE.,$);",
+      "geometry": null,
+      "quantitySet": null,
+      "psets": {
+        "Pset_SpaceCommon": {
+          "globalId": "1LlM_ChyzPtghj0kQnnD9e",
+          "stepId": 100448,
+          "properties": {
+            "Reference": {
+              "stepId": 100446,
+              "type": "IfcIdentifier",
+              "literal": "IFCIDENTIFIER('E2-H')",
+              "value": "E2-H",
+              "unit": null,
+              "excerpt": "#100446=IFCPROPERTYSINGLEVALUE('Reference',$,IFCIDENTIFIER('E2-H'),$);"
+            },
+            "IsExternal": {
+              "stepId": 100447,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100447=IFCPROPERTYSINGLEVALUE('IsExternal',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100449
+        }
+      },
+      "exercises": [
+        "IFC-3: no quantity set and no shape, area unknown"
+      ]
+    }
+  ],
+  "zones": [
+    {
+      "globalId": "23W3_r8$nTDPcNpSXU0kfk",
+      "stepId": 100454,
+      "name": "Compartiment de incendiu C1",
+      "relStepId": 100455,
+      "members": [
+        "2qIRN3ktXLlgQRccgg4nOo",
+        "25e0qMbWzUPvi6AtdGe$xR",
+        "1QXKLiF3jMQfZw0B$xAzzS"
+      ],
+      "excerpt": "#100454=IFCZONE('23W3_r8$nTDPcNpSXU0kfk',#100006,'Compartiment de incendiu C1',$,$,$);",
+      "exercises": [
+        "fire compartment known only from its name"
+      ]
+    }
+  ],
+  "systems": [],
+  "types": [],
+  "elements": [
+    {
+      "key": "slab:S2",
+      "globalId": "0oAmGFkSLLVPZ3TfWpQpsn",
+      "stepId": 100462,
+      "class": "IfcSlab",
+      "predefinedType": "FLOOR",
+      "name": "Placă Subsol 2",
+      "tag": null,
+      "container": {
+        "globalId": "06SDPASPTM$e15RWSw_e1V",
+        "class": "IfcBuildingStorey"
+      },
+      "systems": [],
+      "psets": {},
+      "lifeSafetySignals": [],
+      "excerpt": "#100462=IFCSLAB('0oAmGFkSLLVPZ3TfWpQpsn',#100006,'Plac\\X2\\0103\\X0\\ Subsol 2',$,$,#100458,#100461,$,.FLOOR.);"
+    },
+    {
+      "key": "slab:S1",
+      "globalId": "1$GpH706zI1AmtUeN5n$2g",
+      "stepId": 100469,
+      "class": "IfcSlab",
+      "predefinedType": "FLOOR",
+      "name": "Placă Subsol 1",
+      "tag": null,
+      "container": {
+        "globalId": "2iJ1N9JojOph52jnJY$Doa",
+        "class": "IfcBuildingStorey"
+      },
+      "systems": [],
+      "psets": {},
+      "lifeSafetySignals": [],
+      "excerpt": "#100469=IFCSLAB('1$GpH706zI1AmtUeN5n$2g',#100006,'Plac\\X2\\0103\\X0\\ Subsol 1',$,$,#100465,#100468,$,.FLOOR.);"
+    },
+    {
+      "key": "slab:P",
+      "globalId": "08XFG4nSvI3Qsn8kJo63fB",
+      "stepId": 100476,
+      "class": "IfcSlab",
+      "predefinedType": "FLOOR",
+      "name": "Placă Parter",
+      "tag": null,
+      "container": {
+        "globalId": "1uTlaQt5LJue$X3BUU0Hai",
+        "class": "IfcBuildingStorey"
+      },
+      "systems": [],
+      "psets": {},
+      "lifeSafetySignals": [],
+      "excerpt": "#100476=IFCSLAB('08XFG4nSvI3Qsn8kJo63fB',#100006,'Plac\\X2\\0103\\X0\\ Parter',$,$,#100472,#100475,$,.FLOOR.);"
+    },
+    {
+      "key": "slab:E1",
+      "globalId": "3xPREqpJfPbx4oEMlC8XUS",
+      "stepId": 100483,
+      "class": "IfcSlab",
+      "predefinedType": "FLOOR",
+      "name": "Placă Etaj 1",
+      "tag": null,
+      "container": {
+        "globalId": "1_cW$36CXNbwaB4SDZbNjL",
+        "class": "IfcBuildingStorey"
+      },
+      "systems": [],
+      "psets": {},
+      "lifeSafetySignals": [],
+      "excerpt": "#100483=IFCSLAB('3xPREqpJfPbx4oEMlC8XUS',#100006,'Plac\\X2\\0103\\X0\\ Etaj 1',$,$,#100479,#100482,$,.FLOOR.);"
+    },
+    {
+      "key": "slab:E2",
+      "globalId": "3c$JUZrpjLVOeYt8PejEvD",
+      "stepId": 100490,
+      "class": "IfcSlab",
+      "predefinedType": "FLOOR",
+      "name": "Placă Etaj 2",
+      "tag": null,
+      "container": {
+        "globalId": "3Et8Nz$2PI7hU$xz2UaFm4",
+        "class": "IfcBuildingStorey"
+      },
+      "systems": [],
+      "psets": {},
+      "lifeSafetySignals": [],
+      "excerpt": "#100490=IFCSLAB('3c$JUZrpjLVOeYt8PejEvD',#100006,'Plac\\X2\\0103\\X0\\ Etaj 2',$,$,#100486,#100489,$,.FLOOR.);"
+    },
+    {
+      "key": "door:U-P-01",
+      "globalId": "1MasBnzQ5TIQ8ZxtQqCRuG",
+      "stepId": 100500,
+      "class": "IfcDoor",
+      "predefinedType": "DOOR",
+      "name": "Ușă evacuare",
+      "tag": "U-P-01",
+      "container": {
+        "globalId": "1uTlaQt5LJue$X3BUU0Hai",
+        "class": "IfcBuildingStorey"
+      },
+      "systems": [],
+      "psets": {
+        "Pset_DoorCommon": {
+          "globalId": "2FXTrlx0TKQBU$9qnZ8NuZ",
+          "stepId": 100503,
+          "properties": {
+            "FireExit": {
+              "stepId": 100501,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.T.)",
+              "value": true,
+              "unit": null,
+              "excerpt": "#100501=IFCPROPERTYSINGLEVALUE('FireExit',$,IFCBOOLEAN(.T.),$);"
+            },
+            "HasDrive": {
+              "stepId": 100502,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.T.)",
+              "value": true,
+              "unit": null,
+              "excerpt": "#100502=IFCPROPERTYSINGLEVALUE('HasDrive',$,IFCBOOLEAN(.T.),$);"
+            }
+          },
+          "relStepId": 100504
+        }
+      },
+      "lifeSafetySignals": [
+        "Pset_DoorCommon FireExit and HasDrive: door release on an escape route"
+      ],
+      "excerpt": "#100500=IFCDOOR('1MasBnzQ5TIQ8ZxtQqCRuG',#100006,'U\\X2\\02190103\\X0\\ evacuare',$,$,#100493,#100499,'U-P-01',2100.,1000.,.DOOR.,.SINGLE_SWING_LEFT.,$);"
+    },
+    {
+      "key": "door:U-P-02",
+      "globalId": "0wdwTlpuzGkARjVbL0F0PE",
+      "stepId": 100511,
+      "class": "IfcDoor",
+      "predefinedType": "DOOR",
+      "name": "Uşă evacuare",
+      "tag": "U-P-02",
+      "container": {
+        "globalId": "1uTlaQt5LJue$X3BUU0Hai",
+        "class": "IfcBuildingStorey"
+      },
+      "systems": [],
+      "psets": {
+        "Pset_DoorCommon": {
+          "globalId": "2SugVMLhnRiPL3G15LLGif",
+          "stepId": 100514,
+          "properties": {
+            "FireExit": {
+              "stepId": 100512,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.T.)",
+              "value": true,
+              "unit": null,
+              "excerpt": "#100512=IFCPROPERTYSINGLEVALUE('FireExit',$,IFCBOOLEAN(.T.),$);"
+            },
+            "HasDrive": {
+              "stepId": 100513,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.T.)",
+              "value": true,
+              "unit": null,
+              "excerpt": "#100513=IFCPROPERTYSINGLEVALUE('HasDrive',$,IFCBOOLEAN(.T.),$);"
+            }
+          },
+          "relStepId": 100515
+        }
+      },
+      "lifeSafetySignals": [
+        "Pset_DoorCommon FireExit and HasDrive: door release on an escape route"
+      ],
+      "excerpt": "#100511=IFCDOOR('0wdwTlpuzGkARjVbL0F0PE',#100006,'U\\X2\\015F0103\\X0\\ evacuare',$,$,#100507,#100510,'U-P-02',2100.,1000.,.DOOR.,.SINGLE_SWING_LEFT.,$);",
+      "note": "ş with a cedilla (U+015F)"
+    },
+    {
+      "key": "door:U-P-03",
+      "globalId": "2HfSiDxjHO4fYSgNFprGlX",
+      "stepId": 100522,
+      "class": "IfcDoor",
+      "predefinedType": "DOOR",
+      "name": "Ușă acces restaurant",
+      "tag": "U-P-03",
+      "container": {
+        "globalId": "1uTlaQt5LJue$X3BUU0Hai",
+        "class": "IfcBuildingStorey"
+      },
+      "systems": [],
+      "psets": {
+        "Pset_DoorCommon": {
+          "globalId": "11YnDf5UjP7gWSwoV8KgGW",
+          "stepId": 100525,
+          "properties": {
+            "FireExit": {
+              "stepId": 100523,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100523=IFCPROPERTYSINGLEVALUE('FireExit',$,IFCBOOLEAN(.F.),$);"
+            },
+            "HasDrive": {
+              "stepId": 100524,
+              "type": "IfcBoolean",
+              "literal": "IFCBOOLEAN(.F.)",
+              "value": false,
+              "unit": null,
+              "excerpt": "#100524=IFCPROPERTYSINGLEVALUE('HasDrive',$,IFCBOOLEAN(.F.),$);"
+            }
+          },
+          "relStepId": 100526
+        }
+      },
+      "lifeSafetySignals": [],
+      "excerpt": "#100522=IFCDOOR('2HfSiDxjHO4fYSgNFprGlX',#100006,'U\\X2\\02190103\\X0\\ acces restaurant',$,$,#100518,#100521,'U-P-03',2100.,1000.,.DOOR.,.SINGLE_SWING_LEFT.,$);"
+    },
+    {
+      "key": "transport:ASC-01",
+      "globalId": "1JnfP28qPPCOInWz0kPEnc",
+      "stepId": 100536,
+      "class": "IfcTransportElement",
+      "predefinedType": "ELEVATOR",
+      "name": "Ascensor pompieri",
+      "tag": "ASC-01",
+      "container": {
+        "globalId": "1uTlaQt5LJue$X3BUU0Hai",
+        "class": "IfcBuildingStorey"
+      },
+      "systems": [],
+      "psets": {},
+      "lifeSafetySignals": [
+        "glossary in Name: ascensor pompieri (fire-fighter lift)"
+      ],
+      "excerpt": "#100536=IFCTRANSPORTELEMENT('1JnfP28qPPCOInWz0kPEnc',#100006,'Ascensor pompieri',$,$,#100529,#100535,'ASC-01',.ELEVATOR.);"
+    }
+  ],
+  "relations": {
+    "flowControl": []
+  },
+  "layers": [],
+  "coverage": {
+    "storeyCount": 6,
+    "storeysWithSpaces": [
+      "Subsol 1",
+      "Parter",
+      "Etaj 1",
+      "Etaj 2"
+    ],
+    "storeysWithSpacesCount": 4,
+    "storeysWithoutSpaces": [
+      "Subsol 2",
+      "Cotă atic"
+    ],
+    "buildingServicesElements": false,
+    "lightingOnStoreys": [],
+    "entityClassesPresent": [
+      "IFCAPPLICATION",
+      "IFCAXIS2PLACEMENT2D",
+      "IFCAXIS2PLACEMENT3D",
+      "IFCBUILDING",
+      "IFCBUILDINGSTOREY",
+      "IFCCARTESIANPOINT",
+      "IFCDERIVEDUNIT",
+      "IFCDERIVEDUNITELEMENT",
+      "IFCDIRECTION",
+      "IFCDOOR",
+      "IFCELEMENTQUANTITY",
+      "IFCEXTRUDEDAREASOLID",
+      "IFCGEOMETRICREPRESENTATIONCONTEXT",
+      "IFCGEOMETRICREPRESENTATIONSUBCONTEXT",
+      "IFCLOCALPLACEMENT",
+      "IFCORGANIZATION",
+      "IFCOWNERHISTORY",
+      "IFCPERSON",
+      "IFCPERSONANDORGANIZATION",
+      "IFCPRODUCTDEFINITIONSHAPE",
+      "IFCPROJECT",
+      "IFCPROPERTYSET",
+      "IFCPROPERTYSINGLEVALUE",
+      "IFCQUANTITYAREA",
+      "IFCRECTANGLEPROFILEDEF",
+      "IFCRELAGGREGATES",
+      "IFCRELASSIGNSTOGROUP",
+      "IFCRELCONTAINEDINSPATIALSTRUCTURE",
+      "IFCRELDEFINESBYPROPERTIES",
+      "IFCSHAPEREPRESENTATION",
+      "IFCSITE",
+      "IFCSIUNIT",
+      "IFCSLAB",
+      "IFCSPACE",
+      "IFCTRANSPORTELEMENT",
+      "IFCUNITASSIGNMENT",
+      "IFCZONE"
+    ]
+  },
+  "findings": []
+}

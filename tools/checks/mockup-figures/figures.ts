@@ -36,6 +36,7 @@ import Decimal from 'decimal.js';
 import { fail, listFiles, pass } from '../lib';
 import type { CheckResult } from '../types';
 import { scanGlobs } from '../scan-roots/roots';
+import { documentKind, documentTexts } from './document-text';
 
 export const NAME = 'mockup-figures';
 
@@ -475,6 +476,8 @@ export interface FigureCheckInputs {
   readonly specRoot: string;
   readonly scope: FigureScope;
   readonly label?: string;
+  /** The Python that reads PDF text (document-text.ts); by default the extractor's, which holds pypdfium2. */
+  readonly pdfPython?: string;
 }
 
 /** A check that scans a scope for the entries of one check list (the mockup and company-figure checks). */
@@ -533,6 +536,10 @@ export async function checkFigureList(inputs: FigureListCheck): Promise<CheckRes
   let read = 0;
   let binary = 0;
   let found = 0;
+  // PDFs and ZIP archives (XLSX, DOCX, PPTX, ODF) are also read by their text (document-text.ts;
+  // phase 2 review, adversarial finding 16): as raw bytes a figure in a cell, a compressed stream
+  // or a kerned text array is never seen.
+  const documents: Array<{ name: string; path: string; bytes: Buffer }> = [];
   for (const path of files) {
     let buffer: Buffer;
     try {
@@ -541,8 +548,10 @@ export async function checkFigureList(inputs: FigureListCheck): Promise<CheckRes
       problems.push(`${path}: could not be read: ${error instanceof Error ? error.message : String(error)}`);
       continue;
     }
+    const kind = documentKind(buffer);
+    if (kind !== undefined) documents.push({ name: path, path: join(inputs.root, path), bytes: buffer });
     if (isBinary(buffer)) {
-      binary += 1;
+      if (kind === undefined) binary += 1;
       continue;
     }
     read += 1;
@@ -551,9 +560,20 @@ export async function checkFigureList(inputs: FigureListCheck): Promise<CheckRes
       problems.push(`${path}:${hit.line}: ${inputs.describeHit(hit)}`);
     }
   }
-  if (read === 0) problems.push('0 files were read: a scan that reads nothing never passes');
+  const texts = documentTexts(documents, inputs.pdfPython);
+  problems.push(...texts.problems);
+  for (const part of texts.parts) {
+    for (const hit of matcher.find(part.where, part.text)) {
+      found += 1;
+      problems.push(`${part.where}:${hit.line}: ${inputs.describeHit(hit)}`);
+    }
+  }
+  if (read === 0 && documents.length === 0) problems.push('0 files were read: a scan that reads nothing never passes');
 
-  const counts = `${entries.length} listed ${inputs.entryNoun}; ${read} files read${binary > 0 ? `, ${binary} binary files not read` : ''}`;
+  const pdfs = documents.filter((document) => documentKind(document.bytes) === 'pdf').length;
+  const readDocuments = documents.length > 0 ? `, ${documents.length} documents read by their text (${pdfs} PDF, ${documents.length - pdfs} ZIP-based)` : '';
+  const unread = texts.unread > 0 ? `, ${texts.unread} archive members not read (images or binary)` : '';
+  const counts = `${entries.length} listed ${inputs.entryNoun}; ${read} files read${readDocuments}${binary > 0 ? `, ${binary} binary files not read` : ''}${unread}`;
   if (problems.length === 0) return pass(inputs.name, `${prefix}${inputs.passSummary} (${counts})`);
   const other = problems.length - found;
   return fail(inputs.name, `${prefix}${found} ${inputs.hitNoun} found${other > 0 ? `, ${other} other problems` : ''} (${counts})`, problems);

@@ -2,7 +2,7 @@
   "name": "unapproved baseline v0 (exception lists)",
   "status": "unapproved",
   "version": 0,
-  "recordedOn": "2026-09-25",
+  "recordedOn": "2026-09-26",
   "approvalRef": "",
   "note": "Not approved: no approver is named in docs/guardrails.md section 10 (D-05). Every exception list the checks use, recorded by key and SHA-256 (figure lists by hash only). Against it, an entry added to an allow list, changed in one, or removed from a deny list is a loosening that fails the loosening check. Written by tools/checks/loosening/write-baseline.ts, which refuses any loosening.",
   "lists": {
@@ -4221,6 +4221,12 @@
         },
         "packageSubfolders.test-formulas mockup-figures": {
           "recordedOn": "2026-09-25"
+        },
+        "serviceSubfolders.schemas mockup-figures": {
+          "recordedOn": "2026-09-26"
+        },
+        "serviceSubfolders.schemas ruff-pytest": {
+          "recordedOn": "2026-09-26"
         },
         "serviceSubfolders.src mockup-figures": {
           "recordedOn": "2026-09-25"

@@ -17,34 +17,36 @@ describe('api scaffold', () => {
     await app.close();
   });
 
-  it('answers the health route', async () => {
+  it('ADR 0002: answers the health route', async () => {
     const response = await app.inject({ method: 'GET', url: '/health' });
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({ status: 'ok' });
   });
 
-  it('keeps the start-up checked gate source for its routes, every gate closed', () => {
+  it('US-ADMIN-18 · F-REGISTRY-06 · prompt 3 5.4: keeps the start-up checked gate source for its routes, every gate closed', () => {
     expect(readGate(app.gates, 'ifc-values').open).toBe(false);
   });
 });
 
 describe('buildServer refuses to build without the start-up gate check', () => {
-  it('refuses no options at all', () => {
+  it('US-ADMIN-18 · F-REGISTRY-06 · prompt 3 5.4: refuses no options at all', () => {
     expect(() => buildServer(undefined as unknown as ServerOptions)).toThrow(/assertGatesStartupSafe/);
     expect(() => buildServer({} as ServerOptions)).toThrow(/assertGatesStartupSafe/);
   });
 
-  it('refuses the plain production source, which skipped the start-up check', () => {
+  it('US-ADMIN-18 · F-REGISTRY-06 · prompt 3 5.4: refuses the plain production source, which skipped the start-up check', () => {
     expect(() => buildServer({ gates: productionGateSource() })).toThrow(/assertGatesStartupSafe/);
   });
 
-  it('refuses a look-alike object', () => {
+  it('US-ADMIN-18 · F-REGISTRY-06 · prompt 3 5.4: refuses a look-alike object', () => {
     const forged = Object.freeze({ kind: 'production' }) as GateSource;
     expect(() => buildServer({ gates: forged })).toThrow(/assertGatesStartupSafe/);
   });
 
-  it('is started from src/index.ts only with the source that assertGatesStartupSafe() returns', () => {
+  it('US-ADMIN-18 · F-REGISTRY-06 · prompt 3 5.4: is started from src/index.ts only with the source that assertGatesStartupSafe() returns', () => {
     const index = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'index.ts'), 'utf8');
-    expect(index).toMatch(/buildServer\(\{\s*gates:\s*assertGatesStartupSafe\(\)\s*\}\)/);
+    // Phase 2: the services follow the gate source; the gate source is still the start-up check's.
+    expect(index).toMatch(/buildServer\(\{\s*gates:\s*assertGatesStartupSafe\(\)\s*[,}]/);
+    expect(index.match(/buildServer\(\{/g)).toHaveLength(1);
   });
 });

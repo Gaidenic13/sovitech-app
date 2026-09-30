@@ -89,6 +89,35 @@ function generatorSource(files: Readonly<Record<string, string>>, options: { rep
   ].join('\n');
 }
 
+/**
+ * A Python TEST generator, as the check runs it (`<python> -I -B <generator> --out <folder>`):
+ * it writes each of `files` under the folder. With `environment`, it appends the value of
+ * that environment variable to every file, so its bytes depend on the caller's environment,
+ * as reportlab's dates depend on SOURCE_DATE_EPOCH (phase 2: the check runs generators with
+ * SOURCE_DATE_EPOCH=0, and a PDF generator that did not pin it gave other bytes than the
+ * committed ones). `exitCode` ends it early.
+ */
+function pythonGeneratorSource(files: Readonly<Record<string, string>>, options: { environment?: string; exitCode?: number } = {}): string {
+  return [
+    '"""TEST generator for the fixture-manifest self-test."""',
+    'import json',
+    'import os',
+    'import sys',
+    'from pathlib import Path',
+    ...(options.exitCode === undefined ? [] : [`sys.exit(${options.exitCode})`]),
+    "out = Path(sys.argv[sys.argv.index('--out') + 1])",
+    `files = json.loads(${JSON.stringify(JSON.stringify(files))})`,
+    `suffix = ${options.environment === undefined ? "''" : `'epoch:' + os.environ.get(${JSON.stringify(options.environment)}, 'unset') + '\\n'`}`,
+    'for path, content in files.items():',
+    '    target = out / path',
+    '    target.parent.mkdir(parents=True, exist_ok=True)',
+    "    target.write_bytes((content + suffix).encode('utf-8'))",
+    '',
+  ].join('\n');
+}
+const PYTHON_GENERATOR = 'fixtures/generators/make_test.py';
+const PYTHON_FIXTURES: Readonly<Record<string, string>> = { 'fixtures/data/meters.csv': 'id,reading\nTEST,1\n' };
+
 /** A PDF-shaped TEST stand-in: the signature and a TEST line, never a real document. */
 const PDF_STAND_IN = '%PDF-1.7\n% TEST stand-in for an owner document\n';
 const base64 = (content: string | Uint8Array): string => Buffer.from(content).toString('base64');
@@ -105,6 +134,17 @@ function familyCase(id: string, paths: readonly string[]): SeededCase {
 
 export const GOOD_CASES: readonly SeededCase[] = [
   { id: 'good', expect: [], tracked: [] },
+  // Phase 2: the fixture generators are Python; a listed file its Python generator reproduces passes.
+  {
+    id: 'good-python-generator',
+    expect: [],
+    tracked: [],
+    tree: {
+      'fixtures/manifest.json': manifestOf(PYTHON_GENERATOR, PYTHON_FIXTURES),
+      [PYTHON_GENERATOR]: pythonGeneratorSource(PYTHON_FIXTURES),
+      ...PYTHON_FIXTURES,
+    },
+  },
   {
     id: 'good-document-homes',
     expect: [],
@@ -232,6 +272,39 @@ export const BAD_CASES: readonly SeededCase[] = [
       'fixtures/manifest.json': manifestOf('fixtures/generators/make.ts', { 'fixtures/data/meters.csv': 'id,reading\nTEST,1\n' }),
       'fixtures/generators/make.ts': generatorSource({ 'fixtures/data/meters.csv': 'id,reading\nTEST,1\n' }, { exitCode: 3 }),
       'fixtures/data/meters.csv': 'id,reading\nTEST,1\n',
+    },
+  },
+  // Phase 2 (a seed for the Python runner, build log phase 1 "Next"): a Python generator whose bytes differ.
+  {
+    id: 'bad-python-generator-output-differs',
+    expect: ['fixtures/data/meters.csv: the bytes its generator fixtures/generators/make_test.py produces differ from the SHA-256'],
+    tracked: [],
+    tree: {
+      'fixtures/manifest.json': manifestOf(PYTHON_GENERATOR, PYTHON_FIXTURES),
+      [PYTHON_GENERATOR]: pythonGeneratorSource({ 'fixtures/data/meters.csv': 'id,reading\nTEST,2\n' }),
+      ...PYTHON_FIXTURES,
+    },
+  },
+  // Phase 2: a generator whose bytes depend on the caller's environment (reportlab reads
+  // SOURCE_DATE_EPOCH) matched a hash recorded without it; the check's run sets it to 0.
+  {
+    id: 'bad-python-generator-depends-on-environment',
+    expect: ['fixtures/data/meters.csv: the bytes its generator fixtures/generators/make_test.py produces differ from the SHA-256'],
+    tracked: [],
+    tree: {
+      'fixtures/manifest.json': manifestOf(PYTHON_GENERATOR, { 'fixtures/data/meters.csv': 'id,reading\nTEST,1\nepoch:unset\n' }),
+      [PYTHON_GENERATOR]: pythonGeneratorSource(PYTHON_FIXTURES, { environment: 'SOURCE_DATE_EPOCH' }),
+      'fixtures/data/meters.csv': 'id,reading\nTEST,1\nepoch:unset\n',
+    },
+  },
+  {
+    id: 'bad-python-generator-fails',
+    expect: ['fixtures/generators/make_test.py: the generator failed when run into a temporary folder (exit 4)'],
+    tracked: [],
+    tree: {
+      'fixtures/manifest.json': manifestOf(PYTHON_GENERATOR, PYTHON_FIXTURES),
+      [PYTHON_GENERATOR]: pythonGeneratorSource(PYTHON_FIXTURES, { exitCode: 4 }),
+      ...PYTHON_FIXTURES,
     },
   },
   {

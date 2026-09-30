@@ -6,6 +6,11 @@
  * time: every entry of the real list, planted in a temporary tree outside the
  * repository, must be found. It proves that each real entry is detectable,
  * without committing a second copy of the mockups' figures or hotel name.
+ *
+ * The document cases (phase 2 review, adversarial finding 16) write TEST
+ * workbooks, PDFs and archives into a temporary copy of the good tree at run
+ * time (seeded-documents.ts), because a document-type file may not be
+ * committed outside fixtures/.
  */
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -15,6 +20,7 @@ import { repoRoot } from '../lib';
 import type { CheckResult } from '../types';
 import { LIST_NAME } from './check';
 import { SCOPE, checkMockupFigures, parseList, type FigureEntry } from './figures';
+import { pdfBytes, textContent, workbookBytes, zipBytes } from './seeded-documents';
 
 const SEEDED = join(dirname(fileURLToPath(import.meta.url)), 'seeded');
 const SHARED = join(SEEDED, '_shared');
@@ -29,18 +35,46 @@ export interface SeededCase {
   readonly list?: string;
   /**
    * Files written at run time into a temporary copy of the tree, for inputs that
-   * may not sit in the repository (an .svg would be a document-type file outside
-   * its home for the fixture-manifest check).
+   * may not sit in the repository (an .svg, a workbook or a PDF would be a
+   * document-type file outside its home for the fixture-manifest check).
    */
-  readonly extraFiles?: Readonly<Record<string, string>>;
+  readonly extraFiles?: Readonly<Record<string, string | Buffer>>;
+  /** The seeded tree the case starts from, when it is not seeded/<id>/ (the document cases start from the good tree). */
+  readonly base?: string;
+  /** The Python that reads PDF text, instead of the extractor's (the case with no PDF reader). */
+  readonly pdfPython?: string;
 }
+
+/** A clean TEST workbook and PDF: near misses of the TEST figures, and the scaffolding every such file carries. */
+const CLEAN_DOCUMENTS: Readonly<Record<string, Buffer>> = {
+  'fixtures/xlsx/TEST-clean.xlsx': workbookBytes('TEST Suprafete', [
+    { shared: 'Hotel Somewhere Testville' },
+    { number: '98766' },
+    { number: '0.1375', style: 1 },
+    { number: '611.4', style: 2 },
+    { inline: 'Regim 7Q + GF + 31' },
+  ]),
+  'fixtures/pdf/TEST-clean.pdf': pdfBytes([{ content: textContent(['Suprafata desfasurata: 98.766 mp', 'Camere: 7390', 'Recuperare 8,4 ani']), deflate: true }], {
+    Title: 'TEST memoriu (sintetic)',
+    Producer: 'TEST seeded-documents.ts',
+  }),
+};
 
 export const GOOD_CASE: SeededCase = {
   id: 'good',
   expect: [],
-  // SVG geometry holds coordinates, not figures; the icon is written at run time.
-  extraFiles: { 'apps/web/src/icon.svg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 739 98765"><path d="M739 98765L612 9876"/></svg>\n' },
+  // SVG geometry holds coordinates, not figures; the icon is written at run time. So are the clean workbook and PDF.
+  extraFiles: { 'apps/web/src/icon.svg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 739 98765"><path d="M739 98765L612 9876"/></svg>\n', ...CLEAN_DOCUMENTS },
 };
+
+/** A ZIP archive whose one member claims a compression method this reader does not read (12, bzip2). */
+function archiveWithMethod12(): Buffer {
+  const bytes = zipBytes({ 'notes.txt': 'TEST notes' });
+  bytes.writeUInt16LE(12, 8);
+  const central = bytes.indexOf(Buffer.from([0x50, 0x4b, 0x01, 0x02]));
+  bytes.writeUInt16LE(12, central + 10);
+  return bytes;
+}
 
 export const BAD_CASES: readonly SeededCase[] = [
   {
@@ -106,11 +140,65 @@ export const BAD_CASES: readonly SeededCase[] = [
   },
   // The extractor's sources are in scope since the phase 0 round 2 review (they were not read).
   { id: 'bad-extractor-hits', expect: ['services/extractor/src/sovitech_extractor/defaults.py:3: mockup figure "98,765" (design/test-spec.md:3) as "98765"', 'defaults.py:4: mockup figure "8.3 years"'] },
+  // Phase 2 review, adversarial finding 16: a workbook was skipped as binary and a PDF read only as raw bytes,
+  // so each of these passed. The raw bytes show none of them (notExpect: no finding on the files' own lines).
+  {
+    id: 'bad-document-hits',
+    base: 'good',
+    extraFiles: {
+      'fixtures/xlsx/TEST-suprafete.xlsx': workbookBytes('TEST Suprafete', [
+        { shared: 'Hotel Nowhere Testville' },
+        { number: '98765' },
+        { number: '0.137', style: 1 },
+        { number: '612.4', style: 2 },
+      ]),
+      'fixtures/pdf/TEST-memoriu.pdf': pdfBytes([{ content: textContent(['Suprafata desfasurata: 98.765 mp', '[(Regim 7Q + GF )-40(+ 3)]']), deflate: true }], { Title: 'TEST recuperare 8,3 ani' }),
+      'fixtures/demo/TEST-anexe.zip': zipBytes({
+        'plan/TEST-plan.pdf': pdfBytes([{ content: textContent(['Camere: 739']), deflate: true }]),
+        'anexe/TEST-costuri.xlsx': workbookBytes('TEST Costuri', [{ inline: 'Cost 47 €/mp' }]),
+      }),
+    },
+    expect: [
+      'fixtures/xlsx/TEST-suprafete.xlsx!xl/sharedStrings.xml:1: mockup figure "Hotel Nowhere Testville" (design/test-spec.md:2)',
+      'fixtures/xlsx/TEST-suprafete.xlsx!xl/worksheets/sheet1.xml:2: mockup figure "98,765" (design/test-spec.md:3) as "98765"',
+      'fixtures/xlsx/TEST-suprafete.xlsx!xl/worksheets/sheet1.xml (as displayed):1: mockup figure "13.7%" (design/test-spec.md:4) as "13.7%"',
+      'fixtures/xlsx/TEST-suprafete.xlsx!xl/worksheets/sheet1.xml (as displayed):2: mockup figure "612 kW" (design/test-spec.md:5) as "612 kW"',
+      'fixtures/pdf/TEST-memoriu.pdf#page=1:1: mockup figure "98,765" (design/test-spec.md:3) as "98.765"',
+      'fixtures/pdf/TEST-memoriu.pdf#page=1:2: mockup figure "7Q + GF + 3"',
+      'fixtures/pdf/TEST-memoriu.pdf#metadata:1: mockup figure "8.3 years" (design/test-spec.md:4) as "8,3 ani"',
+      'fixtures/demo/TEST-anexe.zip!plan/TEST-plan.pdf#page=1:1: mockup figure "739"',
+      'fixtures/demo/TEST-anexe.zip!anexe/TEST-costuri.xlsx!xl/worksheets/sheet1.xml:1: mockup figure "€47 / m²"',
+    ],
+    notExpect: ['fixtures/xlsx/TEST-suprafete.xlsx:', 'fixtures/pdf/TEST-memoriu.pdf:', 'fixtures/demo/TEST-anexe.zip:', 'TEST-clean'],
+  },
+  // A document whose text cannot be read never passes: a damaged PDF, a truncated archive, a member in another compression.
+  {
+    id: 'bad-document-unreadable',
+    base: 'good',
+    extraFiles: {
+      'fixtures/pdf/TEST-damaged.pdf': Buffer.from('%PDF-1.4\nTEST damaged: no objects, no cross-reference table\n', 'latin1'),
+      'fixtures/xlsx/TEST-truncated.xlsx': workbookBytes('TEST', [{ number: '1' }]).subarray(0, 200),
+      'fixtures/demo/TEST-method.zip': archiveWithMethod12(),
+    },
+    expect: [
+      'fixtures/pdf/TEST-damaged.pdf: a PDF whose text could not be read: PDFium could not open it',
+      'fixtures/xlsx/TEST-truncated.xlsx: not a readable ZIP archive',
+      'fixtures/demo/TEST-method.zip!notes.txt: compressed with method 12',
+    ],
+  },
+  // With no PDF reader (no extractor environment), a PDF in scope fails the check instead of passing unread.
+  {
+    id: 'bad-document-no-pdf-reader',
+    base: 'good',
+    pdfPython: '/nonexistent/TEST/python',
+    extraFiles: { 'fixtures/pdf/TEST-clean.pdf': CLEAN_DOCUMENTS['fixtures/pdf/TEST-clean.pdf'] ?? Buffer.alloc(0) },
+    expect: ['fixtures/pdf/TEST-clean.pdf: a PDF whose text could not be read: no extractor environment at /nonexistent/TEST/python'],
+  },
 ];
 
 /** Runs the check on one seeded tree, with the real scope (in a temporary copy when the case writes files at run time). */
 export async function runCase(seededCase: SeededCase): Promise<CheckResult> {
-  const seeded = join(SEEDED, seededCase.id);
+  const seeded = join(SEEDED, seededCase.base ?? seededCase.id);
   const listFile = seededCase.list === undefined ? join(SHARED, 'mockup-figures.txt') : join(seeded, seededCase.list);
   const temporary = seededCase.extraFiles === undefined ? undefined : mkdtempSync(join(tmpdir(), 'sovitech-mockup-figures-'));
   try {
@@ -128,6 +216,7 @@ export async function runCase(seededCase: SeededCase): Promise<CheckResult> {
       specRoot: SHARED,
       scope: SCOPE,
       label: seededCase.id,
+      ...(seededCase.pdfPython === undefined ? {} : { pdfPython: seededCase.pdfPython }),
     });
   } finally {
     if (temporary !== undefined) rmSync(temporary, { recursive: true, force: true });

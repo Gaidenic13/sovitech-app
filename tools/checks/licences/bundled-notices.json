@@ -1,0 +1,32 @@
+{
+  "about": "Third-party components compiled into the native binaries and WebAssembly modules of installed npm packages, for the app's third-party notices page (prompt 3 section 8, 'Licences'; ifc-input 2.3; D-94, open). The licence check (licences.ts) searches every such file for each component's markers (names as they appear inside mangled C++ symbols) and fails when a binary shows a component its package's entry does not list, when a listed component is not found, or when the installed version differs from the listed one, so the list cannot go stale unnoticed. The licences are as the phase 2 review stated them after its hand search of the binaries, not yet checked against each component's repository (the source named): confirm them there before the notices page ships. The package ships none of their licence texts, so the notices page must carry them. Counsel's review before release belongs to the owner (D-94). A list for the notices page, not app data and not an approval of anything.",
+  "components": {
+    "CDT": {
+      "licence": "MPL-2.0",
+      "markers": ["3CDT"],
+      "source": "https://github.com/artem-ogre/CDT",
+      "what": "constrained Delaunay triangulation"
+    },
+    "glm": {
+      "licence": "MIT",
+      "markers": ["3glm"],
+      "source": "https://github.com/g-truc/glm",
+      "what": "OpenGL Mathematics, vector and matrix types (offered under the Happy Bunny licence or MIT; MIT applies)"
+    },
+    "tinynurbs": {
+      "licence": "BSD-3-Clause",
+      "markers": ["9tinynurbs"],
+      "source": "https://github.com/pradeep-pyro/tinynurbs",
+      "what": "NURBS curves and surfaces"
+    }
+  },
+  "packages": [
+    {
+      "package": "web-ifc",
+      "version": "0.0.78",
+      "licence": "MPL-2.0",
+      "components": ["CDT", "glm", "tinynurbs"],
+      "note": "The IFC reader's sandbox image copies web-ifc-api-node.js, web-ifc-node.wasm and LICENSE.md (services/ifc-reader/Dockerfile; ADR 0031); web-ifc.wasm and web-ifc-mt.wasm, for browsers, bundle the same three. web-ifc's own licence text (MPL-2.0) ships as LICENSE.md; the three components' texts do not."
+    }
+  ]
+}

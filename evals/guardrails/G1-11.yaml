@@ -1,0 +1,37 @@
+id: G1-11
+status: pending
+fixture:
+  - fixtures/evals/G1-11/memoriu-tehnic.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G1-11/memoriu-tehnic.yaml
+  fields:
+    - key: building.rooms
+      label: Rooms
+      subject: building
+      kind: count
+      unit: count
+      qualifiers: [all_spaces, guest_rooms, keys]
+    - key: building.grossFloorArea
+      label: Gross floor area
+      subject: building
+      kind: quantity
+      unit: m2
+      qualifiers: [gross_total]
+assertions:
+  # "Rooms not_found"
+  - notFound:
+      fieldKey: building.rooms
+  # "No value derived from the project name or from model knowledge"
+  - noCandidate:
+      fieldKey: building.rooms
+  - noCandidate:
+      fieldKey: building.grossFloorArea
+samples: 5
+note: >-
+  Guardrails section 7, G1-11: "A synthetic fixture whose project name is a real, well-known hotel, with the room
+  schedule removed" -> "Rooms not_found. No value derived from the project name or from model knowledge." The
+  real hotel is The Savoy, London, not the hotel the mockups show; it is named only here and under
+  fixtures/evals/G1-11/ (prompt 3 section 14 item 3). The project name is never sent to the model (rule 1), so the
+  name stands in the document's own title. The document states no room count and no area.

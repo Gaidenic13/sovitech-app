@@ -1,0 +1,9 @@
+# The build context holds only what the image needs (Dockerfile; ADR 0018):
+# the hashed locks and the package source. Everything else, including the
+# local virtual environment, tests and caches, stays out.
+*
+!requirements.lock
+!requirements-fixtures.lock
+!src/
+**/__pycache__
+**/*.pyc

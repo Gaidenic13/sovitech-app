@@ -121,6 +121,12 @@ const BAD_INPUTS: ReadonlyArray<{ name: string; reason: (result: CheckResult) =>
   // The eval switch is no longer a hand-set flag: with the runner present, an eval counts only with a current 5-of-5 record.
   { name: 'eval-runner-no-results', reason: evalNotReal('no results record at evals/guardrails/_results/G2-1.json') },
   { name: 'eval-runner-stale-results', reason: evalNotReal('ran against another prompt: prompts/ changed since') },
+  // Phase 2 review, adversarial finding "eval results integrity": a record whose prompt, model and schema
+  // hashes are current still counts only for the case file and fixtures it ran on, with its 5 samples.
+  { name: 'eval-runner-case-changed', reason: evalNotReal('ran against another case file: evals/guardrails/G2-1.yaml changed since (caseSha256)') },
+  { name: 'eval-runner-fixture-changed', reason: evalNotReal('with another SHA-256 than fixtures/manifest.json lists: the fixture changed since') },
+  { name: 'eval-runner-no-sample-outcomes', reason: evalNotReal('records 0 sample outcomes') },
+  { name: 'eval-runner-sample-other-model', reason: evalNotReal('sample outcome 4 names model "TEST-another-model", not TEST-model') },
 ];
 
 /** The seeded case file G1-2 fails with this kind and text, and is never counted (its id is no automated check yet). */

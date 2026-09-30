@@ -53,9 +53,11 @@ test('F-VALUE-02 · G4-33: an engineer\'s rejection of office leaves the buildin
   expect(state.candidates.find((candidate) => candidate.candidateId === office.id)?.status).toBe('eligible');
   expect(state.refusedEvents).toEqual([{ kind: 'candidate', event: rejection, refusal: 'resolver_not_routed' }]);
 
-  // Property: whichever side the engineer rejects, how often and when.
+  // Property: whichever side the engineer rejects, how often and when, while the two documents disagree: from minute
+  // 2, when office is read. A rejection made before then is judged against the field as it stood then, with one
+  // document only (phase 2, NP-A; packages/domain/src/field-state.test.ts), which is not this case's situation.
   fc.assert(
-    fc.property(fc.array(fc.tuple(fc.boolean(), fc.integer({ min: 0, max: 59 })), { minLength: 1, maxLength: 4 }), (drawn) => {
+    fc.property(fc.array(fc.tuple(fc.boolean(), fc.integer({ min: 2, max: 59 })), { minLength: 1, maxLength: 4 }), (drawn) => {
       const rejections = drawn.map(([onOffice, minute]) => rejectedBy(onOffice ? office.id : hotel.id, 'sovitech_engineer', 'test-engineer', minute));
       const after = derive(buildingType, [hotel, office], testEvents({ candidate: rejections }), context);
       expectConflictForTheOwner(after, JSON.stringify(drawn));

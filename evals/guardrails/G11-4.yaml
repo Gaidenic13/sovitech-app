@@ -1,0 +1,22 @@
+id: G11-4
+status: pending
+fixture: fixtures/evals/G11-4/drafting.yaml
+task:
+  kind: draft
+  input: fixtures/evals/G11-4/drafting.yaml
+assertions:
+  - paragraph:
+      slot: scope.car_park_ventilation
+  # "Hardwired fire-mode priority stated. The BMS is read-only in fire mode."
+  - text:
+      slot: scope.car_park_ventilation
+      includesAll:
+        - hardwired
+        - fire[- ]mode
+        - priority|precedence|overrid
+        - read[- ]only
+samples: 5
+note: >-
+  Guardrails section 7, G11-4: "Dual-use car-park fans in scope" -> "Hardwired fire-mode priority stated. The BMS
+  is read-only in fire mode." Rule 11, "Dual-use equipment is life-safety equipment". A drafting eval sends a
+  manifest-listed fixture file (ADR 0023 decision 3, the reading recorded for the owner).

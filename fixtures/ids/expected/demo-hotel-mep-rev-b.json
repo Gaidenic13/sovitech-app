@@ -1,0 +1,183 @@
+{
+  "about": "Expected results of checking the fixture against the draft IDS v0.1, derived by fixtures/generators/ids/sovitech_ids.py from the building spec with IDS 1.0 facet semantics. NOT recorded from an IfcTester run: IfcTester 0.8.5 is withheld (docs/adr/0018). Stored as spec ids, counts and failing GlobalIds only, never as report text (prompt 3 section 8). Results never block the owner, create values or become questions (ifc-input 5.5).",
+  "ids": "fixtures/ids/sovitech-ifc-minimum-v0.1.ids",
+  "idsVersion": "0.1",
+  "model": "fixtures/ifc/demo-hotel-mep-rev-b.ifc",
+  "schema": "IFC4",
+  "specifications": [
+    {
+      "identifier": "S01",
+      "name": "S01 Storeys carry a name",
+      "ifcVersion": [
+        "IFC2X3",
+        "IFC4",
+        "IFC4X3_ADD2"
+      ],
+      "minOccurs": 1,
+      "status": "pass",
+      "applicableCount": 6,
+      "passCount": 6,
+      "failCount": 0,
+      "failingGlobalIds": []
+    },
+    {
+      "identifier": "S02",
+      "name": "S02 Spaces sit on storeys and carry a name",
+      "ifcVersion": [
+        "IFC2X3",
+        "IFC4",
+        "IFC4X3_ADD2"
+      ],
+      "minOccurs": 1,
+      "status": "pass",
+      "applicableCount": 9,
+      "passCount": 9,
+      "failCount": 0,
+      "failingGlobalIds": []
+    },
+    {
+      "identifier": "S03",
+      "name": "S03 Space net floor area",
+      "ifcVersion": [
+        "IFC2X3",
+        "IFC4",
+        "IFC4X3_ADD2"
+      ],
+      "minOccurs": 1,
+      "status": "pass",
+      "applicableCount": 9,
+      "passCount": 9,
+      "failCount": 0,
+      "failingGlobalIds": []
+    },
+    {
+      "identifier": "S04",
+      "name": "S04 Space gross floor area",
+      "ifcVersion": [
+        "IFC2X3",
+        "IFC4",
+        "IFC4X3_ADD2"
+      ],
+      "minOccurs": 1,
+      "status": "pass",
+      "applicableCount": 9,
+      "passCount": 9,
+      "failCount": 0,
+      "failingGlobalIds": []
+    },
+    {
+      "identifier": "S05",
+      "name": "S05 Equipment carries an engineering tag",
+      "ifcVersion": [
+        "IFC4",
+        "IFC4X3_ADD2"
+      ],
+      "minOccurs": 0,
+      "status": "fail",
+      "applicableCount": 36,
+      "passCount": 28,
+      "failCount": 8,
+      "failingGlobalIds": [
+        "0uvujYQdTSKeoUFe0Pj6nd",
+        "0yHi8hrgzL$gMpRNck3QeC",
+        "14lPY8C_bNP8dzEg1aBxOI",
+        "2$raFr9pHMneYwUCQCdcSG",
+        "2LEVufFTfMN9TfGXCRaQDZ",
+        "2a0k76oPDVrO9CoFAGdXtJ",
+        "3XA$_OtIXLu9fIffDXyCyS",
+        "3fJajeJq9RA9GHXAMJdW4O"
+      ]
+    },
+    {
+      "identifier": "S06",
+      "name": "S06 Equipment is contained in a storey",
+      "ifcVersion": [
+        "IFC4",
+        "IFC4X3_ADD2"
+      ],
+      "minOccurs": 0,
+      "status": "fail",
+      "applicableCount": 36,
+      "passCount": 35,
+      "failCount": 1,
+      "failingGlobalIds": [
+        "09Y2ZxiLLTdOkYJRx8PFzY"
+      ]
+    },
+    {
+      "identifier": "S07",
+      "name": "S07 Equipment belongs to a distribution system",
+      "ifcVersion": [
+        "IFC4",
+        "IFC4X3_ADD2"
+      ],
+      "minOccurs": 0,
+      "status": "fail",
+      "applicableCount": 36,
+      "passCount": 35,
+      "failCount": 1,
+      "failingGlobalIds": [
+        "09Y2ZxiLLTdOkYJRx8PFzY"
+      ]
+    },
+    {
+      "identifier": "S07b",
+      "name": "S07b Equipment belongs to a system (IFC2X3)",
+      "ifcVersion": [
+        "IFC2X3"
+      ],
+      "status": "skipped",
+      "reason": "ifcVersion does not include IFC4"
+    },
+    {
+      "identifier": "S08",
+      "name": "S08 Proxies state what they are",
+      "ifcVersion": [
+        "IFC2X3",
+        "IFC4",
+        "IFC4X3_ADD2"
+      ],
+      "minOccurs": 0,
+      "status": "fail",
+      "applicableCount": 3,
+      "passCount": 1,
+      "failCount": 2,
+      "failingGlobalIds": [
+        "1zYMGaPaLIPfX5SJEaPNl5",
+        "3TC75U8dfQLuyIEab9CcFg"
+      ]
+    },
+    {
+      "identifier": "S09",
+      "name": "S09 Dampers state their kind",
+      "ifcVersion": [
+        "IFC4",
+        "IFC4X3_ADD2"
+      ],
+      "minOccurs": 0,
+      "status": "fail",
+      "applicableCount": 4,
+      "passCount": 3,
+      "failCount": 1,
+      "failingGlobalIds": [
+        "09T36F2$XPvORhggfD7NqO"
+      ]
+    },
+    {
+      "identifier": "S10",
+      "name": "S10 Chiller capacity",
+      "ifcVersion": [
+        "IFC4X3_ADD2"
+      ],
+      "status": "skipped",
+      "reason": "ifcVersion does not include IFC4"
+    }
+  ],
+  "summary": {
+    "specifications": 11,
+    "checked": 9,
+    "passed": 4,
+    "failed": 5,
+    "skipped": 2
+  }
+}

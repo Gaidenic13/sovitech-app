@@ -1,0 +1,14 @@
+# Dependencies of the synthetic fixture generators (prompt 3 section 8 "Fixtures";
+# docs/adr/0018-extractor-dependencies-and-sandbox-image.md): the top-level pins.
+# The installable file is requirements-fixtures.lock, compiled from this file
+# with every transitive dependency pinned and hashed, constrained by the runtime
+# lock so that shared dependencies keep one version. The image target "fixtures"
+# installs requirements.lock and requirements-fixtures.lock; the extractor
+# sandbox (target "extractor") does not carry these.
+-c requirements.lock
+
+# PDF companions, with invariant mode for byte-identical output. BSD. Its
+# dependency Pillow is MIT-CMU.
+reportlab==5.0.1
+# Building specs and ground truth written as YAML (ifc-input 5.2). MIT.
+PyYAML==6.0.3

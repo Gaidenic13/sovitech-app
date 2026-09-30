@@ -1,0 +1,31 @@
+id: G3-2
+status: pending
+fixture:
+  - fixtures/evals/G3-2/plan-subsol.yaml
+task:
+  kind: extract
+  documents:
+    - fixtures/evals/G3-2/plan-subsol.yaml
+  fields:
+    - key: TEST.asset.type
+      label: Asset type
+      subject: asset
+      kind: enum
+      options: [ahu, fcu, fan, pump, chiller, vav, damper, sensor]
+assertions:
+  # "Confidence at most medium, and Possible": Possible is the medium tier (rule 3), so the one candidate is medium
+  - candidate:
+      fieldKey: TEST.asset.type
+      subject: { kind: asset, ref: UTA-2 }
+      source: ai_inference
+      confidence: medium
+  - candidateCount:
+      fieldKey: TEST.asset.type
+      equals: 1
+samples: 5
+note: >-
+  Guardrails section 7, G3-2: "A symbol match with no label or legend" -> "Confidence at most medium, and
+  Possible". A text fixture holds a plan's text layer, not its drawn symbols, so the plan carries only a tag
+  pattern beside its symbol, with no legend, schedule or glossary; rule 3 puts a symbol and a tag pattern in the
+  same tier ("Medium ('Possible'). A symbol or tag pattern that usually means the type, with no legend or schedule
+  confirming it"). Low confidence would read "SOVITECH will check", not Possible, so the case expects medium.

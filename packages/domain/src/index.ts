@@ -6,8 +6,8 @@
  * registry implements the field and unit shapes declared here and is handed in
  * as lookups, never imported. Phase 1 built derive, the conflict test, owner
  * corrections, document status, the revision change notice, asset identity and
- * check 1 of the evidence verifier; the rest of the verifier throws
- * NotImplementedError until phase 2.
+ * check 1 of the evidence verifier; phase 2 built the rest of the verifier, and the
+ * re-cap of an inference's confidence against the evidence that remains.
  */
 export * from './model';
 export * from './decimal';
@@ -19,4 +19,6 @@ export * from './correction';
 export * from './revision-notice';
 export * from './assets';
 export * from './evidence';
+export * from './confidence';
+export * from './ifc-evidence';
 export * from './not-implemented';

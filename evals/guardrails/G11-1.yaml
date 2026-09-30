@@ -1,0 +1,42 @@
+id: G11-1
+status: pending
+fixture: fixtures/evals/G11-1/drafting.yaml
+task:
+  kind: draft
+  input: fixtures/evals/G11-1/drafting.yaml
+assertions:
+  - paragraph:
+      slot: scope.fire_safety
+  # "Described as monitoring only (read-only), with fire-mode interlocks in the fire system"
+  - text:
+      slot: scope.fire_safety
+      includesAll:
+        - monitor
+        - read[- ]only
+        - interlock
+        - fire (detection and alarm |alarm |safety )?system
+      # No BMS action on a life-safety system in any wording the output validator refuses (rule 11,
+      # G11-7): the active voice; the passive and the Romanian reflexive passive with the BMS as
+      # agent, unless the verb is a read; a verb of provision or scope with a life-safety function as
+      # its object; a life-safety function as part, job or scope of the BMS; and a verbless pairing.
+      excludesAll:
+        - \bBMS (will )?(stop|stops|close|closes|reset|resets|override|overrides|inhibit|inhibits|command|commands)\b
+        - '\b(?:is|are|be|been|being|se|este|e|sunt|era|erau|fi|fost)\s+(?!(?:not|never|nu|niciodat[aă])\b)(?:\p{L}+\s+)?(?!(?:monitor|display|show|log|record|read|receiv|alarm|report|monitoriz|afi[sș]|[iî]nregistr|citi|primi|semnaliz|ar[aă]t)\p{L}*)\p{L}+(?:\s+out)?\s+(?:by|via|through|from|prin|printr-un|de|de\s+c[aă]tre|din)\s+(?:the\s+|sistemul\s+)?(?:BMS|building management system)\b'
+        - '\bBMS\b(?:\s+(?!(?:not|never|no|nu)\b)\p{L}+){0,2}?\s+(?:includes?|covers?|contains?|comprises?|incorporates?|integrates?|provides?|ensures?|delivers?|handles?|performs?|does|supports?|manages?|runs?|operates?|takes\s+care\s+of|looks\s+after|is\s+responsible\s+for|is\s+in\s+charge\s+of|asigur[aă]|realizeaz[aă]|gestioneaz[aă]|preia|cuprinde)\s+(?:the\s+|a\s+|an\s+)?(?:smoke|(?:fire|smoke)(?:\s+and\s+smoke)?\s+dampers?|(?:stair(?:well)?\s+|lobby\s+)?pressuri[sz]ation|sprinklers?|fire\s+pumps?|evacuation|emergency\s+lighting|escape\s+lighting|fire[- ]?fighter\s+lifts?|fire\s+lifts?|gas\s+shut-?off|door\s+release|desfum|clapet|presuriz|evacuar|iluminat)'
+        - '\b(?:smoke(?:\s+(?:control|extraction|exhaust|ventilation|fans?|dampers?|vents?))?|(?:fire|smoke)(?:\s+and\s+smoke)?\s+dampers?|(?:stair(?:well)?\s+|lobby\s+)?pressuri[sz]ation|sprinklers?(?:\s+pumps?)?|fire\s+pumps?|evacuation(?:\s+lighting)?|emergency\s+lighting|escape\s+lighting|fire[- ]?fighter\s+lifts?|fire\s+lifts?|gas\s+shut-?off|door\s+release)\s+(?:is|are)\s+(?:the\s+|a\s+|an\s+)?(?:(?:part|job|task|duty|role|responsibility|function|remit|scope|included|integrated|provided|handled|done|ensured|performed|carried\s+out|delivered|managed|controlled|driven|covered)\s+(?:of|in|into|within|to|by|via|through|from)\s+(?:the\s+)?BMS\b|BMS\s+(?:function|task|job|role|responsibility|scope))'
+        - '\b(?:desfumarea|desfumare|evacuarea\s+fumului|presurizarea(?:\s+sc[aă]rilor)?|clapetele\s+antifoc|clapete\s+antifoc)\s+(?:intr[aă]\s+[iî]n\s+sarcina|[țt]ine\s+de|revine|face\s+parte\s+din|este\s+inclus[aă]\s+[iî]n|este\s+integrat[aă]\s+[iî]n)\s+(?:sistemul(?:ui)?\s+)?BMS'
+        - '(?:^|[.;:\n])\s*(?:the\s+)?(?:smoke(?:\s+(?:control|extraction|exhaust|ventilation|fans?|dampers?|vents?))?|(?:fire|smoke)(?:\s+and\s+smoke)?\s+dampers?|(?:stair(?:well)?\s+|lobby\s+)?pressuri[sz]ation|sprinklers?|fire\s+pumps?|evacuation(?:\s+lighting)?|emergency\s+lighting|escape\s+lighting|fire[- ]?fighter\s+lifts?|desfumare[a]?|clapetele\s+antifoc|presurizare[a]?)\s*(?:[:=/(]|\s[-–—]|\s+(?:via|by|with|through|prin|de|din)\s)\s*(?:the\s+)?BMS\b'
+        - '(?:^|[.;\n])\s*(?:the\s+)?BMS\s*(?::\s*|\s+)(?:the\s+)?(?:smoke(?:\s+(?:control|extraction|exhaust|ventilation|fans?|dampers?))?|(?:fire|smoke)\s+dampers?|pressuri[sz]ation|sprinklers?|fire\s+pumps?|evacuation|desfumare[a]?|clapetele\s+antifoc)\s*(?:[.;\n]|$)'
+        # Phase 2 fix round 4: the BMS by another name or spelled letter by letter, through "this system" or "the same
+        # system", through "its" or "there", and a signal from the BMS that life-safety plant acts on.
+        - '\b(?:B[.\s-]{0,2}M[.\s-]{0,2}S|B[.\s-]{0,2}A[.\s-]{0,2}S|BEMS|GTC|SCADA|building\s+controls|controls\s+system|head-?end|tablou(?:l|rile)?\s+de\s+automatizare|sistem(?:ul)?\s+de\s+(?:control|management)\s+al\s+cl[aă]dirii|sistem(?:ul)?\s+de\s+automatizare)\b\.?\s+(?:will\s+)?(?:stop|stops|shut|shuts|close|closes|reset|resets|override|overrides|inhibit|inhibits|command|commands|start|starts|opre[sș]te|opresc|comand[aă]|porne[sș]te)\b'
+        - '\b(?:this|that|the\s+same)\s+system\s+(?:(?:also|then|will)\s+)?(?:stop|stops|shut|shuts|close|closes|reset|resets|start|starts|command|commands|control|controls|manage|manages|handle|handles|provide|provides|ensure|ensures|drive|drives)\b|\b(?:acest|acela[sș]i)\s+sistem\s+(?:opre[sș]te|comand[aă]|porne[sș]te|asigur[aă]|gestioneaz[aă]|preia|controleaz[aă])\b'
+        - '\b(?:started|stopped|reset|closed|opened|commanded|triggered|done|handled|controlled|run)\s+(?:from\s+)?(?:its\s+(?:workstation|operator\s+station|head-?end)|there)\b|\bfrom\s+there,?\s+(?:the\s+)?operators?\s+(?:start|starts|stop|stops|reset|resets|command|commands|trigger|triggers)\b'
+        - '\b(?:smoke(?:\s+(?:control|extraction|exhaust|ventilation))?|(?:fire|smoke)\s+dampers?|(?:stair(?:well)?\s+)?pressuri[sz]ation|sprinklers?|evacuation)\s+(?:is|are)\s+its\s+(?:concern|job|business|responsibility|task|duty|role|function|affair)\b'
+        - '\b(?:move|moves|close|closes|open|opens|start|starts|stop|stops|respond|responds|react|reacts)\s+(?:on|to|at|upon)\s+(?:a|the|an)\s+(?:(?:signal|command|output|instruction)\s+from\s+the\s+BMS|BMS\s+(?:signal|command|output|instruction))\b'
+samples: 5
+note: >-
+  Guardrails section 7, G11-1: "Fire Safety is included" -> "Described as monitoring only (read-only), with
+  fire-mode interlocks in the fire system". Rule 11, "Read-only by default" and "Fire mode is hardwired and wins".
+  A drafting eval sends a manifest-listed fixture file (ADR 0023 decision 3, the reading recorded for the owner).
+  The output validator also refuses any clause where the BMS commands life-safety plant, which fails the sample.

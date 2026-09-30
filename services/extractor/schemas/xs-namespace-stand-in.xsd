@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SOVITECH-written stand-in. Not a W3C file, not part of the IDS standard, and not reference data.
+
+  Why it exists. ids-1.0.xsd (buildingSMART IDS 1.0, unchanged) imports three W3C schemas by URL:
+  http://www.w3.org/2001/xml.xsd, http://www.w3.org/2001/XMLSchema.xsd and
+  http://www.w3.org/2001/XMLSchema-instance. The validation test runs lxml offline (no_network),
+  and none of the three was downloaded (only ids.xsd is an approved download). Without the second
+  one, libxml2 cannot compile ids-1.0.xsd at all. So services/extractor/tests/test_ids_schema.py
+  resolves http://www.w3.org/2001/XMLSchema.xsd, and only that URL, to this file.
+
+  What it declares. ids-1.0.xsd uses two components of the XML Schema namespace, and this file
+  declares those two and nothing else:
+    - the element xs:restriction (ids:idsValue), and
+    - the attribute group xs:occurs (ids:applicabilityType).
+  Each is a subset of its W3C definition in XML Schema 1.0 Part 1 (Structures), Appendix A, the
+  schema for schemas: anything this file accepts, the W3C definition accepts too. Where it is
+  narrower, it is stricter, never looser:
+    - xs:restriction needs a base attribute and at least one facet; it takes no xs:annotation, no
+      nested xs:simpleType, no id and no attribute from another namespace;
+    - the facets are the twelve of XML Schema 1.0 Part 2 (Datatypes), section 4.3, each with its
+      required value; fixed is allowed only where W3C allows it (not on enumeration or pattern);
+      a facet takes no xs:annotation, no id and no attribute from another namespace;
+    - xs:occurs is the W3C attribute group as written (minOccurs, and maxOccurs as a number or
+      "unbounded", both defaulting to 1).
+  The two other imports are left unresolved: ids-1.0.xsd references no component of the xml or
+  xsi namespaces, and the test checks that.
+
+  Changing it. Adding a wildcard, an optional base or a facet XML Schema 1.0 does not define would
+  loosen the validation; the test pins this file's shape. Replace it with the W3C XMLSchema.xsd
+  only if the owner approves that download (services/extractor/schemas/README.md).
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+  <xs:element name="restriction">
+    <xs:complexType>
+      <xs:choice minOccurs="1" maxOccurs="unbounded">
+        <xs:element name="minExclusive">
+          <xs:complexType>
+            <xs:attribute name="value" type="xs:anySimpleType" use="required"/>
+            <xs:attribute name="fixed" type="xs:boolean" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="minInclusive">
+          <xs:complexType>
+            <xs:attribute name="value" type="xs:anySimpleType" use="required"/>
+            <xs:attribute name="fixed" type="xs:boolean" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="maxExclusive">
+          <xs:complexType>
+            <xs:attribute name="value" type="xs:anySimpleType" use="required"/>
+            <xs:attribute name="fixed" type="xs:boolean" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="maxInclusive">
+          <xs:complexType>
+            <xs:attribute name="value" type="xs:anySimpleType" use="required"/>
+            <xs:attribute name="fixed" type="xs:boolean" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="totalDigits">
+          <xs:complexType>
+            <xs:attribute name="value" type="xs:positiveInteger" use="required"/>
+            <xs:attribute name="fixed" type="xs:boolean" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="fractionDigits">
+          <xs:complexType>
+            <xs:attribute name="value" type="xs:nonNegativeInteger" use="required"/>
+            <xs:attribute name="fixed" type="xs:boolean" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="length">
+          <xs:complexType>
+            <xs:attribute name="value" type="xs:nonNegativeInteger" use="required"/>
+            <xs:attribute name="fixed" type="xs:boolean" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="minLength">
+          <xs:complexType>
+            <xs:attribute name="value" type="xs:nonNegativeInteger" use="required"/>
+            <xs:attribute name="fixed" type="xs:boolean" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="maxLength">
+          <xs:complexType>
+            <xs:attribute name="value" type="xs:nonNegativeInteger" use="required"/>
+            <xs:attribute name="fixed" type="xs:boolean" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="enumeration">
+          <xs:complexType>
+            <xs:attribute name="value" type="xs:anySimpleType" use="required"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="whiteSpace">
+          <xs:complexType>
+            <xs:attribute name="value" use="required">
+              <xs:simpleType>
+                <xs:restriction base="xs:NMTOKEN">
+                  <xs:enumeration value="preserve"/>
+                  <xs:enumeration value="replace"/>
+                  <xs:enumeration value="collapse"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="fixed" type="xs:boolean" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="pattern">
+          <xs:complexType>
+            <xs:attribute name="value" type="xs:string" use="required"/>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+      <xs:attribute name="base" type="xs:QName" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:attributeGroup name="occurs">
+    <xs:attribute name="minOccurs" type="xs:nonNegativeInteger" use="optional" default="1"/>
+    <xs:attribute name="maxOccurs" use="optional" default="1">
+      <xs:simpleType>
+        <xs:union memberTypes="xs:nonNegativeInteger">
+          <xs:simpleType>
+            <xs:restriction base="xs:NMTOKEN">
+              <xs:enumeration value="unbounded"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:union>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:attributeGroup>
+
+</xs:schema>

@@ -143,17 +143,22 @@ describe('guardrail index: the repository file', () => {
     expect(counts.E).toBe(rowLines.filter((line) => splitTableRow(line)[1] === 'E').length);
   });
 
-  it('holds the pinned count of ids for its version: 104 (84 T, 20 E) at 1.5, 143 (123 T, 20 E) at 1.6', () => {
+  it('ADR 0003: holds the pinned count of ids for its version: 104 (84 T, 20 E) at 1.5, 143 (123 T, 20 E) at 1.6, 169 (149 T, 20 E) at 1.7', () => {
     // 1.5 is the version prompt 3 and the PRD (R-156) name; 1.6 adds phase 1's cases: prompt 3's
     // G4-20, G10-8 and G13-5, the 20 cases of the phase 1 review round (G1-14, G1-15,
     // G3-9 to G3-11, G4-21 to G4-29, G8-12 to G8-14, G10-9, G13-6, G13-7), and the 14 of its
     // third round (G1-16, G1-17, G2-9, G3-12 to G3-15, G4-31, G7-7, G8-15 to G8-17, G12-7, G13-8),
     // G3-16 of its fourth, and G4-33 of its fifth (G4-32 was taken back in the fifth: its expected
-    // result rested on a reading, not on the rules as written).
+    // result rested on a reading, not on the rules as written). 1.7 adds phase 2's cases: prompt 3's
+    // G1-13, G12-5, G12-6 and G14-3, G4-34 (drafted in the phase 1 review's fifth round) and G4-35
+    // (NP-A of phase 1's closing verification), and the 16 of the phase 2 review's fix round (G1-18
+    // to G1-24, G2-10, G2-11, G3-17, G8-18 to G8-20, G11-7, G12-8 and G12-9), and the 4 of its
+    // second fix round (G1-25, G2-12, G3-18 and G11-8).
     // A later version adds its own pin here, so the count is never left unchecked.
     const pinned: Record<string, { total: number; T: number; E: number }> = {
       '1.5': { total: 104, T: 84, E: 20 },
       '1.6': { total: 143, T: 123, E: 20 },
+      '1.7': { total: 169, T: 149, E: 20 },
     };
     const version = index.version ?? '(no version)';
     expect(Object.keys(pinned)).toContain(version);

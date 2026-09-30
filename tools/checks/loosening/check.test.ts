@@ -95,7 +95,8 @@ describe('the loosening check', { timeout: 60_000 }, () => {
     for (const reason of expectedReasons(name)) expect(result.details.join('\n')).toContain(reason);
   });
 
-  it('self-test returns one failing result per bad seed', { timeout: 60_000 }, async () => {
+  // Every seed is checked in turn; under a full, loaded run this took longer than 60 s (phase 2).
+  it('self-test returns one failing result per bad seed', { timeout: 180_000 }, async () => {
     const results = await selfTest();
     const list = Array.isArray(results) ? results : [results];
     expect(list).toHaveLength(badSeeds().length);

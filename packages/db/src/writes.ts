@@ -10,6 +10,7 @@ import { sql } from 'kysely';
 import {
   assetEventRefusal,
   deriveAssetRegister,
+  isIfcEvidence,
   normaliseTag,
   planAssetIdentity,
   type AssetEvent,
@@ -301,6 +302,9 @@ async function evidenceRefusal(
  *   ai_inference candidate without evidence, fails at commit (rule 1).
  */
 export async function insertCandidate(request: Request, candidate: NewCandidate, field: UnitCheckedField): Promise<CandidateWrite> {
+  // 2.4's locator has no IFC field (G1-13): an IFC evidence entry is written only by the gated
+  // IFC value path (./ifc-evidence.ts, behind `ifc-values`), never through this function.
+  if (candidate.evidence.some(isIfcEvidence)) throw new Error('an IFC evidence entry is not a 2.4 evidence entry: insertCandidate refuses it');
   const projectId = projectOf(request);
   if (field.key !== candidate.fieldKey) {
     throw new Error(`insertCandidate was handed the field ${field.key} for a candidate of ${candidate.fieldKey}`);
@@ -470,6 +474,7 @@ export async function recordAssetAppearance(
 ): Promise<{ readonly appearanceId: string; readonly assetId: string | null }> {
   const projectId = projectOf(request);
   if (input.evidence.length === 0) throw new Error('an asset appearance is recorded with at least one evidence entry');
+  if (input.evidence.some(isIfcEvidence)) throw new Error('an IFC evidence entry is not a 2.4 evidence entry: recordAssetAppearance refuses it');
   const id = input.id ?? newId();
   const asset =
     input.tagAsWritten === undefined || normaliseTag(input.tagAsWritten) === null
