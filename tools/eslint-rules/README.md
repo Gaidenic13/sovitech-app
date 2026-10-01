@@ -143,7 +143,8 @@ An entry lets more code through. Add one only for a file that carries no enginee
 |---|---|---|
 | `no-company-imports` | any import that resolves into `company/` | prompt 3 section 6; build-readiness decision 12 |
 | `web-imports-only-browser-entries` | `apps/web` importing any workspace module other than its own files, `@sovitech/view-model/browser`, `@sovitech/ui` and `@sovitech/viewer` | prompt 3 section 6 |
-| `db-only-from-api` | `@sovitech/db` imported from outside `apps/api`, `packages/db` itself and the guardrail case folders (reading 2 below) | prompt 3 section 6 |
+| `db-only-from-api` | `@sovitech/db` imported from outside `apps/api`, `packages/db` itself and the guardrail case folders (reading 2 below); the e2e stack (`tests/e2e/setup/`) is let through only for the rule below | prompt 3 section 6 |
+| `e2e-setup-reaches-db-only-through-testing` | from `tests/e2e/setup/`, any `@sovitech/db` import other than `@sovitech/db/testing`. Added in phase 3 part B (V-13), when `db-only-from-api`'s exemption let the e2e stack import the whole store | prompt 3 section 6; `docs/adr/0037-e2e-setup.md` decisions 8 and 11 |
 | `view-model-server-only-from-api` | the view-model server side (everything in `packages/view-model/src` except `browser.ts` and `browser/`) imported from outside `apps/api`, the server side itself and the guardrail case folders (reading 2 below) | prompt 3 section 6 |
 | `ui-viewer-no-domain-engine-registry` | `packages/ui` or `packages/viewer` importing anything from domain, engine or registry | prompt 3 section 6; guardrails rule 2, "Enforced by" |
 | `gate-test-utils-only-from-proposed` | the registry `test-utils` entry, the only place a gate can be opened, reached from outside `tests/proposed/` directly or through any chain of imports (`reachable: true` since the phase 0 review round 2, which reached it through `apps/api` -> `tests/proposed/<helper>` -> `test-utils`) | prompt 3 section 5.4 |

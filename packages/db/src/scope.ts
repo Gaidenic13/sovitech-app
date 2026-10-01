@@ -40,11 +40,30 @@ export async function existingSubjects(request: Request, ids: readonly string[])
 }
 
 /**
+ * Makes the requests that decide a write on the project's stored state wait for each other until each
+ * one's transaction ends (a transaction-level advisory lock keyed by the project). An owner's write reads
+ * the project's state and decides on it: an answer from a screen that did not show the field's value is
+ * refused (rule 4, G4-36), and a skip is written only where it is asked now, once (rule 7, G7-10). Two
+ * such requests sent together (two tabs, a double click) both read the state before either wrote, and
+ * both wrote: two owner values in conflict, a skip written twice (phase 3 part B, the final verification).
+ * Taken before the state is read, the later request's reads see what the earlier one committed (the store
+ * runs in READ COMMITTED; its guards refuse any other level), so it decides on the earlier result as if it
+ * had been sent after it. Re-entrant in one transaction. It writes nothing and reads no row.
+ */
+export async function lockProjectWrites(request: Request): Promise<void> {
+  const projectId = projectOf(request);
+  await sql`SELECT pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(${`sovitech.project_writes:${projectId}`}, 0))`.execute(request.trx);
+}
+
+/**
  * The project's building subject (2.2): the first one recorded, or a new one. Taken under a
- * transaction lock of the project, so two requests never make two buildings of one project.
+ * transaction lock of the project, so two requests never make two buildings of one project. The
+ * project's write lock comes first, so every request that holds both took them in one order (an owner's
+ * write holds the write lock when it reads the state that may create the building).
  */
 export async function ensureBuildingSubject(request: Request, createdBy: string): Promise<string> {
   const projectId = projectOf(request);
+  await lockProjectWrites(request);
   await sql`SELECT pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(${`sovitech building ${projectId}`}, 0))`.execute(request.trx);
   const row = await request.trx
     .selectFrom('subjects')
@@ -55,4 +74,12 @@ export async function ensureBuildingSubject(request: Request, createdBy: string)
     .executeTakeFirst();
   if (row !== undefined) return row.id;
   return (await createSubject(request, { kind: 'building', createdBy })).id;
+}
+
+/** The database's clock now (clock_timestamp()), as the store writes times: an ISO 8601 string in UTC with microseconds. */
+export async function databaseTime(request: Pick<Request, 'trx'>): Promise<string> {
+  const result = await sql<{ now: string }>`SELECT pg_catalog.clock_timestamp() AS now`.execute(request.trx);
+  const now = result.rows[0]?.now;
+  if (now === undefined) throw new Error('the store gave no time');
+  return now;
 }

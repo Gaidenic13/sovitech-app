@@ -1,7 +1,7 @@
 import { openStore } from '@sovitech/db';
 import { assertGatesStartupSafe } from '@sovitech/registry/gates';
 import { SessionStore } from './auth/sessions';
-import { REPOSITORY_ROOT, localDatabaseUrl, readSettings } from './config';
+import { REPOSITORY_ROOT, databaseUrl, devAccountIds, readSettings, sessionLifetimes } from './config';
 import { readPort } from './port';
 import { buildServer } from './server';
 import { stderrApiLog, type ApiServices } from './services';
@@ -15,7 +15,7 @@ import { fixtureUploadGuard } from './uploads/fixture-guard';
  */
 function localServices(): ApiServices | undefined {
   const settings = readSettings();
-  const url = localDatabaseUrl(settings, 'sovitech_db_app');
+  const url = databaseUrl(settings, 'sovitech_db_app');
   const secret = settings.SOVITECH_SESSION_SECRET;
   const extraction = settings.SOVITECH_EXTRACTION_ACCOUNT_ID;
   if (url === undefined || secret === undefined || extraction === undefined) {
@@ -29,9 +29,12 @@ function localServices(): ApiServices | undefined {
     // The owner's decision of 2026-09-25: this development build stores fixtures only (docs/adr/0028).
     uploadGuard: fixtureUploadGuard(REPOSITORY_ROOT),
     extractionAccountId: extraction,
-    sessions: new SessionStore(),
+    // Sessions end when unused or too old (docs/adr/0038 decision 9).
+    sessions: new SessionStore({ lifetimes: sessionLifetimes(settings) }),
     cookieSecret: secret,
     log: stderrApiLog,
+    // The development login (docs/adr/0038): the accounts `pnpm --filter @sovitech/api dev-accounts` printed.
+    devAccounts: devAccountIds(settings),
   };
 }
 

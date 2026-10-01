@@ -23,7 +23,7 @@ import { openStore } from '@sovitech/db';
 import { assertGatesStartupSafe } from '@sovitech/registry/gates';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { REPOSITORY_ROOT, extractorImage, ifcReaderImage, localDatabaseUrl, readSettings } from './config';
+import { REPOSITORY_ROOT, extractorImage, ifcReaderImage, databaseUrl, readSettings } from './config';
 import { extractWithAi } from './ingestion/ai-extraction';
 import { AnalysisWorker } from './jobs/worker';
 import { DockerExtractorRunner } from './jobs/sandbox';
@@ -34,7 +34,7 @@ import { ABANDONED_UPLOAD_SECONDS, sweepAbandonedUploads } from './uploads/servi
 
 const gates = assertGatesStartupSafe();
 const settings = readSettings();
-const url = localDatabaseUrl(settings, 'sovitech_db_app');
+const url = databaseUrl(settings, 'sovitech_db_app');
 const serviceId = settings.SOVITECH_EXTRACTION_ACCOUNT_ID;
 if (url === undefined || serviceId === undefined) {
   throw new Error('The worker needs the local database settings and SOVITECH_EXTRACTION_ACCOUNT_ID (see .env.example).');

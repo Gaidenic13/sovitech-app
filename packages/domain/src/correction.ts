@@ -15,6 +15,7 @@ import type {
   CandidateEvent,
   FieldDefinition,
   GuardrailEvent,
+  OriginalText,
   Quantity,
 } from './model';
 import type { FieldState } from './field-state';
@@ -24,6 +25,12 @@ export interface OwnerValue {
   readonly quantity?: Quantity;
   readonly choice?: string;
   readonly text?: string;
+  /**
+   * A typed quantity's entry exactly as the owner wrote it (rule 8: "stored as a value, a unit and a
+   * qualifier, plus the original text exactly as written"; G8-23). The candidate keeps it; the owner's
+   * value is still shown formatted (rule 9: only document values display as written).
+   */
+  readonly original?: OriginalText;
 }
 
 export interface OwnerCorrectionInput {
@@ -94,6 +101,7 @@ export function planOwnerCorrection(input: OwnerCorrectionInput): OwnerCorrectio
     ...(quantity === undefined ? {} : { quantity }),
     ...(value.choice === undefined ? {} : { choice: value.choice }),
     ...(value.text === undefined ? {} : { text: value.text }),
+    ...(value.original === undefined ? {} : { original: value.original }),
     source: 'user',
     evidence: [],
     createdBy: input.by,

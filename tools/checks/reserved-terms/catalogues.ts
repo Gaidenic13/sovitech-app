@@ -1,7 +1,8 @@
 /**
  * String catalogues the reserved-term check reads in full: every string value
  * in each matching file is copy. Phase 3 registers the app's one UI string
- * catalogue here (prompt 3 section 5.2, "UI language").
+ * catalogue here (prompt 3 section 5.2, "UI language": English, every string in
+ * one catalogue so Romanian can be added).
  */
 export interface StringCatalogue {
   /** A short name for the catalogue, shown in findings. */
@@ -11,4 +12,4 @@ export interface StringCatalogue {
   readonly format: 'json' | 'yaml';
 }
 
-export const STRING_CATALOGUES: readonly StringCatalogue[] = [];
+export const STRING_CATALOGUES: readonly StringCatalogue[] = [{ id: 'web-ui', files: 'apps/web/src/copy/*.json', format: 'json' }];

@@ -5,13 +5,16 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./tokens.css": "./src/tokens.css"
+    "./components": "./src/components/index.ts",
+    "./tokens.css": "./src/tokens.css",
+    "./ui.css": "./src/ui.css"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@sovitech/view-model": "workspace:*",
+    "lucide-react": "1.48.0",
     "react": "19.3.0"
   }
 }

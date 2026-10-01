@@ -13,7 +13,9 @@
  *   import of packages/registry/src/gates/source.ts reached the gate issuer, which
  *   no entry exports);
  * - the store's TEST machinery, @sovitech/db/testing, is reached only from tests/ and the
- *   store's own *.test.ts files, through any chain of imports (phase 1 review).
+ *   store's own *.test.ts files, through any chain of imports (phase 1 review);
+ * - the e2e stack (tests/e2e/setup/) imports the store only through @sovitech/db/testing
+ *   (phase 3 part B, V-13).
  *
  * Two more rules close gaps the list above leaves open, and are recorded in
  * tools/eslint-rules/README.md: browser-side code never reaches server-side code
@@ -92,6 +94,9 @@ const CASE_FOLDERS = 'tests/(?:guardrails|proposed|api)/';
 const TEST_UTILS =
   '^packages/registry/src/test-utils/|(^|/)node_modules/@sovitech/registry/src/test-utils/|^@sovitech/registry/test-utils(/|$)';
 
+/** The store's TEST machinery, @sovitech/db/testing, in every resolved form. */
+const DB_TESTING = '^packages/db/src/testing/|(^|/)node_modules/@sovitech/db/src/testing/|^@sovitech/db/testing(/|$)';
+
 /** Escapes a path for use inside a regular expression. */
 function escapeRegExp(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -155,10 +160,18 @@ module.exports = {
     {
       name: 'db-only-from-api',
       comment:
-        'Only apps/api imports @sovitech/db (prompt 3 section 6). Guardrail cases (tests/guardrails/, tests/proposed/) may drive it directly; tools/eslint-rules/README.md records this reading.',
+        'Only apps/api imports @sovitech/db (prompt 3 section 6). Guardrail cases (tests/guardrails/, tests/proposed/) may drive it directly; tools/eslint-rules/README.md records this reading. The e2e stack (tests/e2e/setup/, phase 3, docs/adr/0037-e2e-setup.md) is let through here only for the store\'s TEST machinery: e2e-setup-reaches-db-only-through-testing refuses any other @sovitech/db import from it, and no spec imports the store.',
       severity: 'error',
-      from: { pathNot: `^(?:apps/api/|packages/db/|${CASE_FOLDERS})` },
+      from: { pathNot: `^(?:apps/api/|packages/db/|${CASE_FOLDERS}|tests/e2e/setup/)` },
       to: { path: pkg('db') },
+    },
+    {
+      name: 'e2e-setup-reaches-db-only-through-testing',
+      comment:
+        'The e2e stack (tests/e2e/setup/; docs/adr/0037-e2e-setup.md decisions 8 and 11) imports the store only through its TEST machinery, @sovitech/db/testing (a throwaway database, TEST accounts, statements on a login role in a request scope); any other @sovitech/db import from there is refused (phase 3 part B, V-13: db-only-from-api let tests/e2e/setup/ import the whole store while its comment and ADR 0037 said the stack imports only /testing).',
+      severity: 'error',
+      from: { path: '^tests/e2e/setup/' },
+      to: { path: pkg('db'), pathNot: DB_TESTING },
     },
     {
       name: 'view-model-server-only-from-api',
@@ -239,7 +252,7 @@ module.exports = {
       severity: 'error',
       from: { pathNot: ['^tests/', '^packages/db/src/testing/', '^packages/db/src/.*\\.test\\.ts$'] },
       to: {
-        path: '^packages/db/src/testing/|(^|/)node_modules/@sovitech/db/src/testing/|^@sovitech/db/testing(/|$)',
+        path: DB_TESTING,
         reachable: true,
       },
     },

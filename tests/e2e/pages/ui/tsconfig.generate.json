@@ -1,0 +1,5 @@
+{
+  "//": "Used only by `tsx --tsconfig` to write the UI kit's harness pages: tsx applies a tsconfig's JSX setting only to the files it includes, and the kit's components live in packages/ui.",
+  "extends": "../../../../tsconfig.json",
+  "include": ["./*.ts", "./*.tsx", "../../../../packages/ui/src/**/*.ts", "../../../../packages/ui/src/**/*.tsx"]
+}

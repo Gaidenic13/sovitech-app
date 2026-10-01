@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "worker": "tsx src/worker-main.ts",
     "extraction-account": "tsx src/cli/create-extraction-account.ts",
+    "dev-accounts": "tsx src/cli/create-dev-accounts.ts",
     "seed:demo": "tsx src/seed/cli.ts"
   },
   "dependencies": {

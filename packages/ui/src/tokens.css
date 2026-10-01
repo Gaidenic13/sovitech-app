@@ -1,22 +1,114 @@
 /*
- * SOVITECH app tokens: the one file where colour literals are allowed.
+ * SOVITECH app tokens: the one file where colour literals are allowed (prompt 3 sections 6 and 14,
+ * item 3; tools/eslint-rules, css-no-colour-literals).
  *
- * Source: the "App theme" section of the brand alignment note (decision of
- * 2026-09-24, prompt 3 section 5.1). Rows whose source is "Brand" are decided.
- * Every other row, when added, is proposed, pending the owner's OK
- * (prompt 3 section 5.2, "Extension tokens and title role").
+ * Source: the "App theme" section of the brand alignment note (company/brand/app-alignment.md,
+ * "App theme: the brand's dark variant"), whose VALUES are copied here by hand: nothing reads or
+ * imports company/ (build-readiness decision 12). docs/adr/0040-app-theme-tokens.md records the
+ * decision.
  *
- * Phase 0 holds only the Brand rows the placeholder page needs. Phase 3 writes
- * the full theme here.
+ * What is decided and what is not:
+ * - "Brand" rows: decided by the owner on 2026-09-24 ("treat the app as our brand tool"; OD-1 to
+ *   OD-4): surfaces #07201C and #0D2E2B, green #1F6B4A, mint #C8E6C9 as the single accent on dark,
+ *   white text and its brand range, white hairlines, the white primary button, 1px and 2px radii,
+ *   Inter, colour-only motion, no shadows.
+ * - "Brand value, new role" and "Extension" rows: proposed, pending the owner's OK (app-alignment
+ *   decision 7; PRD D-19). None of their COLOURS is used: no mint at 50%, no sand or lavender badge
+ *   family, no amber, no status or system colour, no white at 35% or 80% (the orchestrator's rule
+ *   for phase 3, stricter than PRD R-147's interim).
+ * - Where a role still needs a colour (WCAG 2.2 AA: a control boundary and a focus indicator need
+ *   3:1, text 4.5:1), the role below takes the nearest Brand value. Each such ROLE is marked
+ *   "proposed, pending the owner's OK"; its VALUE is a Brand value.
+ *
+ * Contrast (app-alignment "App theme", computed on 2026-09-24; bg / surface):
+ * white 17.04 / 14.56; mint 12.67 / 10.82; white 60% 6.82 / 6.14; white 55% 5.94 / 5.43
+ * (4.79 on the mint 8% selected fill); #0D2E2B on white 14.56 and on mint 10.82.
  */
 :root {
-  /* Brand: surfaces */
-  --sov-bg: #07201c;
-  --sov-surface: #0d2e2b;
-  /* Brand: the single accent on dark */
+  color-scheme: dark;
+
+  /* ---- Brand (decided 2026-09-24) ------------------------------------------------------------ */
+  /* Surfaces */
+  --sov-bg: #07201c; /* bg: page, header */
+  --sov-surface: #0d2e2b; /* surface: raised panels, dropzone, textarea, menus */
+  --sov-green: #1f6b4a; /* the brand green; a fill only on dark, never text (2.65:1) */
+  /* The single accent on dark: the current step, checked controls, the active segment, selected
+     borders, the focus ring, text selection and inline links (the "accent" row) */
   --sov-accent: #c8e6c9;
-  /* Brand: text */
-  --sov-text-primary: #ffffff;
-  /* Brand: green */
-  --sov-green: #1f6b4a;
+  --sov-on-accent: #0d2e2b; /* on-accent: text and icons on mint */
+  --sov-surface-selected: rgb(200 230 201 / 8%); /* surface-selected: mint at 8% */
+  /* Text */
+  --sov-text-primary: #ffffff; /* text-primary */
+  --sov-text-tertiary: rgb(255 255 255 / 60%); /* text-tertiary: the brand's body text on dark */
+  --sov-text-muted: rgb(255 255 255 / 55%); /* text-muted: "Brand range", 50-60% */
+  /* Lines */
+  --sov-border: rgb(255 255 255 / 10%); /* border and divider: the brand hairline on dark */
+  --sov-border-hover: rgb(255 255 255 / 25%); /* the hairline on hover */
+  /* Buttons */
+  --sov-primary-fill: #ffffff; /* primary button: white at rest */
+  --sov-primary-fill-hover: #c8e6c9; /* ... mint on hover */
+  --sov-primary-label: #0d2e2b;
+  --sov-secondary-border: rgb(255 255 255 / 15%); /* border-strong: the secondary button on dark */
+  --sov-secondary-label: rgb(255 255 255 / 50%); /* ... its label, white on hover */
+
+  /* ---- Roles the brand does not define: a Brand VALUE, the ROLE proposed, pending the owner's OK (D-19) */
+  /* Input, dropzone, checkbox and radio boundaries, the upcoming step's ring and the progress
+     track's outline ("Extension" border-input, border-dashed, control-off and the upcoming-step ring
+     are not used): white 55%, so a control boundary keeps 3:1 (WCAG 1.4.11). */
+  --sov-control-border: rgb(255 255 255 / 55%);
+  /* Focus ring: the accent ("accent" row lists the focus ring); 2px wide with a 2px offset
+     (prompt 3 section 11). */
+  --sov-focus-ring: #c8e6c9;
+  --sov-focus-width: 2px;
+  --sov-focus-offset: 2px;
+  /* Badges: one neutral pill for every 2.8 badge (the sand and lavender families are not used);
+     the words carry the meaning, never the colour (2.8 "Prominence"). */
+  --sov-badge-label: #ffffff;
+  --sov-badge-border: rgb(255 255 255 / 25%);
+  /* The late-findings dot on a step: white, never amber; its hidden text carries its meaning. */
+  --sov-dot: #ffffff;
+  /* Text selection: mint behind #0D2E2B ("Text selection" row). */
+  --sov-selection-bg: #c8e6c9;
+  --sov-selection-label: #0d2e2b;
+
+  /* ---- Shape (Brand) -------------------------------------------------------------------------- */
+  --sov-radius-control: 1px; /* buttons, chips, segmented controls, checkboxes, menu items */
+  --sov-radius-surface: 2px; /* surfaces, cards, panels, banners, inputs */
+  --sov-radius-pill: 9999px; /* badges, status dots, radios, avatars only */
+
+  /* ---- Type (Brand: Inter; weights 300, 400, 500, 600; no 700) ------------------------------- */
+  --sov-font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --sov-weight-light: 300; /* titles and long body text */
+  --sov-weight-regular: 400; /* UI text and values */
+  --sov-weight-medium: 500; /* buttons, badges */
+  --sov-weight-semibold: 600; /* labels, card titles */
+  /* The one page-title role: proposed, pending the owner's OK (dashboards 8.2; PRD R-147 interim). */
+  --sov-title-size: 34px;
+  --sov-title-weight: 300;
+  --sov-title-tracking: -0.05em;
+  /* Two heading roles under the page title (phase 3 design review, DR-18): ROLES proposed, pending
+     the owner's OK; their values are Brand type (Inter at a brand weight). Card titles keep 17px at
+     600 (onboarding-spec 2.3, "Selectable card title"; the Card component).
+     - Section heading: a heading inside a step ("What your proposal will show", "For you"): 20px,
+       light, as the brand's display headings (weight 300). Class `sov-heading-section`.
+     - Group or question label: a question's legend, a field's label, a group of choices: 16px at
+       500 (onboarding-spec 2.3, "Question label", 15-16.5px at 500-600). Class `sov-heading-group`. */
+  --sov-heading-section-size: 20px;
+  --sov-heading-section-weight: 300;
+  --sov-heading-section-leading: 28px;
+  --sov-heading-group-size: 16px;
+  --sov-heading-group-weight: 500;
+  --sov-heading-group-leading: 24px;
+
+  /* ---- Motion (Brand: colour-only hovers; no value animates, G2-8) -------------------------- */
+  --sov-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --sov-duration-text: 150ms;
+  --sov-duration-surface: 300ms;
+
+  /* ---- Shell sizes (app-alignment "Shell sizes": the specs' proposals) ---------------------- */
+  --sov-header-height: 64px;
+  --sov-button-height: 48px; /* part 1's primary: 190 x 48 */
+  --sov-button-width: 190px;
+  --sov-button-height-compact: 40px;
+  --sov-icon-size: 24px; /* icons on the 24px grid; the render test reads any drawing above 32px as unreadable */
 }

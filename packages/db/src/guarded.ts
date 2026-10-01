@@ -150,6 +150,19 @@ export async function addProjectMember(
 }
 
 /**
+ * Makes the requests of one project that may add a member wait for each other until each one's
+ * transaction ends (a transaction-level advisory lock keyed by the project). Two uploads completing
+ * at once in a new project both read the extraction service account as no member, and the second
+ * `add_project_member` then failed on the members' key (phase 3 integration; the e2e flow (b)).
+ * Under READ COMMITTED, the member read that follows the lock sees the other request's committed
+ * member. It writes nothing and reads no row.
+ */
+export async function lockProjectMembership(request: Request): Promise<void> {
+  if (request.projectId === null) throw new Error('lockProjectMembership needs a request scoped to a project');
+  await sql`SELECT pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(${`sovitech.project_members:${request.projectId}`}, 0))`.execute(request.trx);
+}
+
+/**
  * Creates an account (audited). Allowed on the operator's login, or in an app
  * request by a person holding sovitech_admin.
  */

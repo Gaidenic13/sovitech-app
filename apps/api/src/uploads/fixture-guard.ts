@@ -18,12 +18,20 @@ export const NOT_A_FIXTURE_MESSAGE =
 export interface UploadGuard {
   /** Whether a complete upload with this content hash may be stored. */
   readonly accepts: (contentHash: string) => boolean;
+  /**
+   * Set only by the owner's fixtures-only guard below: this API stores nothing but the synthetic
+   * fixtures. The development login is on only where it is set (docs/adr/0038; PRD R-133, "The
+   * development login is never enabled where real owner documents are stored"; traceability
+   * 10.3 near miss 43): any other guard may let a real owner document in, and turns it off.
+   */
+  readonly fixturesOnly?: true;
 }
 
 /** The guard over the manifest under the repository root, read once. A missing manifest accepts nothing (fails closed). */
 export function fixtureUploadGuard(repositoryRoot: string): UploadGuard {
   const manifest = loadFixtureManifest(repositoryRoot);
   return {
+    fixturesOnly: true,
     accepts: (contentHash) => {
       const hex = sha256Hex(contentHash);
       return hex !== undefined && manifest.hashes.has(hex);

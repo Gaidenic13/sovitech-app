@@ -43,4 +43,10 @@ export interface ApiServices {
   /** The secret that signs the session and CSRF cookies. */
   readonly cookieSecret: string;
   readonly log: ApiLog;
+  /**
+   * The development accounts the sign-in page offers (SOVITECH_DEV_ACCOUNTS; docs/adr/0038).
+   * Absent or empty: the development login is off. It is off too unless `uploadGuard` is the
+   * owner's fixtures-only guard (./auth/dev-login.ts).
+   */
+  readonly devAccounts?: readonly string[];
 }

@@ -16,6 +16,7 @@ import {
   enqueueAnalysis,
   eraseDocument,
   fileNamePart,
+  lockProjectMembership,
   projectVisible,
   readDocumentFiles,
   readDocumentFindings,
@@ -105,6 +106,8 @@ export async function registerUpload(
   await recordDocumentFile(request, { documentId: document.id, contentHash, format: session.format, byteSize: input.byteSize, createdBy: session.userId });
   await storeDocumentTexts(request, { contentHash, parts: [{ part: fileNamePart(document.id), text: session.fileName }], createdBy: session.userId });
   if (routing.kind === 'analyse' || (routing.engineerRecord && readsModels(services))) {
+    // Uploads completing together in a new project add the extraction account one at a time.
+    await lockProjectMembership(request);
     const members = await readVisibleAccounts(request);
     if (!members.some((account) => account.id === services.extractionAccountId)) {
       await addProjectMember(request, { projectId: session.projectId, userId: services.extractionAccountId });

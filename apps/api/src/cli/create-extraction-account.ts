@@ -5,9 +5,9 @@
  * owner's upload makes it a member of the project whose file it analyses (ADR 0025).
  */
 import { createAppUser, openStore } from '@sovitech/db';
-import { localDatabaseUrl, readSettings } from '../config';
+import { databaseUrl, readSettings } from '../config';
 
-const url = localDatabaseUrl(readSettings(), 'sovitech_db_admin');
+const url = databaseUrl(readSettings(), 'sovitech_db_admin');
 if (url === undefined) throw new Error('The operator login is not configured (SOVITECH_DB_OPERATOR_PASSWORD; see .env.example).');
 const store = openStore(url);
 try {

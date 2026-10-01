@@ -117,6 +117,10 @@
     ],
     "packages/ui/src/imports-extraction-contract-type-only.ts": [
       "browser-code-reaches-no-server-code"
-    ]
+    ],
+    "tests/e2e/setup/imports-db-main.ts": [
+      "e2e-setup-reaches-db-only-through-testing"
+    ],
+    "tests/e2e/setup/good-imports-db-testing.ts": []
   }
 }

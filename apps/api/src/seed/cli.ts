@@ -14,7 +14,7 @@
  */
 import { openStore } from '@sovitech/db';
 import { assertGatesStartupSafe } from '@sovitech/registry/gates';
-import { REPOSITORY_ROOT, extractorImage, ifcReaderImage, localDatabaseUrl, readSettings } from '../config';
+import { REPOSITORY_ROOT, extractorImage, ifcReaderImage, databaseUrl, readSettings } from '../config';
 import { DockerExtractorRunner } from '../jobs/sandbox';
 import { stderrApiLog } from '../services';
 import { dataDirectoryFromEnvironment } from '../storage/data-dir';
@@ -24,8 +24,8 @@ import { seedDemo } from './demo-seed';
 
 const gates = assertGatesStartupSafe();
 const settings = readSettings();
-const appUrl = localDatabaseUrl(settings, 'sovitech_db_app');
-const operatorUrl = localDatabaseUrl(settings, 'sovitech_db_admin');
+const appUrl = databaseUrl(settings, 'sovitech_db_app');
+const operatorUrl = databaseUrl(settings, 'sovitech_db_admin');
 const extractionAccountId = settings.SOVITECH_EXTRACTION_ACCOUNT_ID;
 if (appUrl === undefined || operatorUrl === undefined || extractionAccountId === undefined) {
   throw new Error('The demo seed needs the local database settings, both logins and SOVITECH_EXTRACTION_ACCOUNT_ID (see .env.example).');

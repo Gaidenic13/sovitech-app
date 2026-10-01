@@ -11,12 +11,15 @@ import {
   type AssetAppearance,
   type AssetIdentity,
   type Candidate,
+  type CandidateEvent,
   type DeriveContext,
   type DeriveEvents,
   type DocumentEvent,
   type DocumentRecord,
   type DocumentStatuses,
   type Evidence,
+  type FieldEvent,
+  type GuardrailEventType,
   type ProposedAssetEvent,
 } from '@sovitech/domain';
 import { ifcEvidenceByOwner } from './ifc-reads';
@@ -154,6 +157,85 @@ export async function readFieldInputs(
 }
 
 /**
+ * What derive needs for every field of the given subjects of the project in scope, read at once
+ * (the wizard's step views derive every field of the project and its building on each request;
+ * readFieldInputs per field would read the project's documents once per field). Each field's
+ * inputs are the same as readFieldInputs gives: its candidates with their evidence, its
+ * candidate and field events, and every document and document event of the project.
+ */
+export interface ProjectFieldInputs {
+  readonly documents: readonly DocumentRecord[];
+  readonly documentEvents: readonly DocumentEvent[];
+  /** The inputs of one field on one subject; empty candidates and events when none is stored. */
+  fieldInputs(subjectId: string, fieldKey: string): FieldInputs;
+  /** Every (subject, field) pair with a stored candidate or field event, in id order. */
+  readonly storedFields: readonly { readonly subjectId: string; readonly fieldKey: string }[];
+}
+
+const pairKey = (subjectId: string, fieldKey: string): string => `${subjectId}\u0000${fieldKey}`;
+
+export async function readProjectFieldInputs(request: Request, subjectIds: readonly string[]): Promise<ProjectFieldInputs> {
+  projectOf(request);
+  const ids = [...new Set(subjectIds)];
+  const [rows, fieldEventRows, projectDocuments] = await Promise.all([
+    ids.length === 0 ? Promise.resolve([]) : request.trx.selectFrom('candidates').selectAll().where('subject_id', 'in', ids).orderBy('id').execute(),
+    ids.length === 0
+      ? Promise.resolve([])
+      : request.trx.selectFrom('field_events').selectAll().where('subject_id', 'in', ids).orderBy('at').orderBy('id').execute(),
+    readProjectDocuments(request),
+  ]);
+  const candidateIds = rows.map((row) => row.id);
+  const [evidence, candidateEventRows] = await Promise.all([
+    evidenceFor(request, 'candidate_id', candidateIds),
+    candidateIds.length === 0
+      ? Promise.resolve([])
+      : request.trx.selectFrom('candidate_events').selectAll().where('candidate_id', 'in', candidateIds).orderBy('at').orderBy('id').execute(),
+  ]);
+  const candidatesByPair = new Map<string, Candidate[]>();
+  const pairOfCandidate = new Map<string, string>();
+  const stored = new Map<string, { subjectId: string; fieldKey: string }>();
+  for (const row of rows) {
+    const key = pairKey(row.subject_id, row.field_key);
+    const list = candidatesByPair.get(key) ?? [];
+    list.push(candidateOf(row, evidence.get(row.id) ?? []));
+    candidatesByPair.set(key, list);
+    pairOfCandidate.set(row.id, key);
+    if (!stored.has(key)) stored.set(key, { subjectId: row.subject_id, fieldKey: row.field_key });
+  }
+  const candidateEventsByPair = new Map<string, CandidateEvent[]>();
+  for (const row of candidateEventRows) {
+    const key = pairOfCandidate.get(row.candidate_id);
+    if (key === undefined) continue;
+    const list = candidateEventsByPair.get(key) ?? [];
+    list.push(candidateEventOf(row));
+    candidateEventsByPair.set(key, list);
+  }
+  const fieldEventsByPair = new Map<string, FieldEvent[]>();
+  for (const row of fieldEventRows) {
+    const key = pairKey(row.subject_id, row.field_key);
+    const list = fieldEventsByPair.get(key) ?? [];
+    list.push(fieldEventOf(row));
+    fieldEventsByPair.set(key, list);
+    if (!stored.has(key)) stored.set(key, { subjectId: row.subject_id, fieldKey: row.field_key });
+  }
+  return {
+    documents: projectDocuments.documents,
+    documentEvents: projectDocuments.events,
+    storedFields: [...stored.values()].sort((a, b) => (a.subjectId === b.subjectId ? a.fieldKey.localeCompare(b.fieldKey) : a.subjectId.localeCompare(b.subjectId))),
+    fieldInputs: (subjectId, fieldKey) => {
+      const key = pairKey(subjectId, fieldKey);
+      return {
+        subjectId,
+        fieldKey,
+        candidates: candidatesByPair.get(key) ?? [],
+        events: { candidate: candidateEventsByPair.get(key) ?? [], field: fieldEventsByPair.get(key) ?? [], document: projectDocuments.events },
+        documents: projectDocuments.documents,
+      };
+    },
+  };
+}
+
+/**
  * A DeriveContext for these inputs: the subject, and the document lookup over
  * every document of the project. The rest (input states, dataset approval, the
  * stage order, registry conditions) comes from the registry and the engine.
@@ -248,3 +330,22 @@ export async function readVisibleAccounts(request: Request): Promise<VisibleAcco
   return rows.map((row) => ({ id: row.id, displayName: row.display_name, kind: row.kind }));
 }
 
+/**
+ * The guardrail events of one type in the project in scope (section 8), oldest first: codes and ids
+ * only, never document text (rule 13). The wizard reads them so that a defect it logs on every
+ * rendering of a screen (a confirmation over the budget) is logged once per field.
+ */
+export async function readGuardrailEvents(
+  request: Request,
+  type: GuardrailEventType,
+): Promise<readonly { readonly id: string; readonly subjectId: string | null; readonly fieldKey: string | null; readonly reason: string | null; readonly at: string }[]> {
+  projectOf(request);
+  const rows = await request.trx
+    .selectFrom('guardrail_events')
+    .select(['id', 'subject_id', 'field_key', 'reason', 'at'])
+    .where('type', '=', type)
+    .orderBy('at')
+    .orderBy('id')
+    .execute();
+  return rows.map((row) => ({ id: row.id, subjectId: row.subject_id, fieldKey: row.field_key, reason: row.reason, at: row.at }));
+}

@@ -40,10 +40,12 @@ import {
 import type { DocumentRecord } from '@sovitech/domain';
 import { ApiRefusal, notFound, type ChunkCutCode } from '../errors';
 import { inProject, registerUpload, requireOwner } from '../documents/service';
+import { servedFileName } from '../documents/file-names';
 import { MAX_FILE_BYTES, formatOfFileName } from '../documents/formats';
 import type { ModelReadingServices } from '../documents/model-reading';
 import type { ApiServices } from '../services';
 import { FileStoreError } from '../storage/file-store';
+import { resolveUploadFileName } from '@sovitech/view-model/server';
 import { NOT_A_FIXTURE_MESSAGE } from './fixture-guard';
 
 /** The largest chunk the server takes in one request: 8 MiB. */
@@ -311,7 +313,9 @@ export async function completeUpload(services: ApiServices & ModelReadingService
       await services.files.removeStaged(scope.projectId, session.id);
       await withRequest(services.store, scope, (request) => deleteUploadSession(request.trx, { id: session.id, projectId: scope.projectId, userId: scope.userId }));
       services.log({ event: 'upload_refused', code: 'not_a_fixture', projectId: scope.projectId, uploadId });
-      throw new ApiRefusal(422, 'not_a_fixture', NOT_A_FIXTURE_MESSAGE);
+      // DR-10: the refused row names its file, bound (`upload:<id>.fileName`, the name as uploaded and served: servedFileName), never in the message (rule 13).
+      const fileName = resolveUploadFileName(uploadId, servedFileName(session.fileName) ?? '');
+      throw new ApiRefusal(422, 'not_a_fixture', NOT_A_FIXTURE_MESSAGE, undefined, undefined, { fileName: fileName.valueId, displayObjects: [fileName] });
     }
     await services.files.promoteSealed(scope.projectId, session.id, contentHash);
     const document = await inProject(services, scope, async (request) => {

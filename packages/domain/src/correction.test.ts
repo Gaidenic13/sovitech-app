@@ -85,6 +85,24 @@ describe('planOwnerCorrection', () => {
     expect(plan.engineerQueue).toBe('none');
   });
 
+  test('G8-23 · rule 8: the owner\'s value keeps its entry exactly as written on the candidate; without one, none is added', () => {
+    const f = field({ confirmBy: 'owner' });
+    const shown = shownReading('document');
+    const state = derive(f, [shown], { candidate: [], field: [], document: [] }, context);
+    const plan = planOwnerCorrection({
+      projectId: 'test-project',
+      field: f,
+      state,
+      shown,
+      value: { quantity: { value: 700, unit: 'kW', approximate: true }, original: { text: 'TEST cca. 700 kW' } },
+      candidateId: 'test-cand-owner',
+      by: 'test-owner',
+      at: '2026-09-25T10:00:00.000Z',
+    });
+    expect(plan.candidate.original).toEqual({ text: 'TEST cca. 700 kW' });
+    expect(correct({ confirmBy: 'owner' }).plan.candidate.original).toBeUndefined();
+  });
+
   test('on an engineer field the owner value stays unverified, and the rejected document value goes to the engineer queue', () => {
     const { plan, after } = correct({ confirmBy: 'engineer' });
     expect(plan.candidateEvents.map((event) => event.type)).toEqual(['rejected']);

@@ -189,6 +189,17 @@ async function existingDemoProject(operator: Store, seedId: string): Promise<str
   return row?.project_id ?? undefined;
 }
 
+/**
+ * The demo project the demo seed made, if any, found on the operator's login as the seed's second
+ * run finds it (the seed account by its name, then the project it created). Reads only: it creates
+ * no account. For the development accounts' CLI and the e2e setup (docs/adr/0038, 0037), which add
+ * development accounts as members of the demo (PRD R-136 interim).
+ */
+export async function findDemoProject(operator: Store, seedAccountName: string = DEMO_SEED_ACCOUNT_NAME): Promise<string | undefined> {
+  const seed = await operator.db.selectFrom('app_users').select('id').where('kind', '=', 'seed').where('display_name', '=', seedAccountName).orderBy('created_at').executeTakeFirst();
+  return seed === undefined ? undefined : existingDemoProject(operator, seed.id);
+}
+
 async function documentsOf(deps: DemoSeedDeps, scope: { readonly userId: string; readonly projectId: string }, files: readonly DemoFile[]): Promise<DemoSeedReport['documents']> {
   const rows = await withRequest(deps.app, scope, (request) => ownerDocumentList(request));
   return rows.map((row) => ({ ...row, path: files.find((file) => file.fileName === row.fileName)?.path ?? null }));

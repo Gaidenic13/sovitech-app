@@ -125,7 +125,8 @@ const PLAYWRIGHT_CLI = join(repoRoot, 'node_modules', '@playwright', 'test', 'cl
 /**
  * Runs one seeded Playwright spec as a render project, under the repository's
  * playwright.config.ts (its reporters, the run guard included, and forbidOnly), with no web
- * server. The config lives in a temporary directory, never in the repository.
+ * server and no global setup (the e2e stack, phase 3). The config lives in a temporary
+ * directory, never in the repository.
  */
 function runPlaywrightSeed(file: string, label: string): CheckResult {
   const directory = mkdtempSync(join(tmpdir(), 'sovitech-render-guard-'));
@@ -139,7 +140,8 @@ function runPlaywrightSeed(file: string, label: string): CheckResult {
         `const root = ${JSON.stringify(repoRoot)};`,
         `const reporter = (Array.isArray(base.reporter) ? base.reporter : []).map((entry) =>`,
         `  Array.isArray(entry) && typeof entry[0] === 'string' && entry[0].startsWith('.') ? [resolve(root, entry[0]), ...entry.slice(1)] : entry);`,
-        `export default { ...base, webServer: undefined, reporter, testDir: ${JSON.stringify(join(SEEDED_DIRECTORY, 'run-guard'))},`,
+        // No web server and no global setup: the seeds prove the run guard, and need neither the app nor the e2e stack (ADR 0037).
+        `export default { ...base, webServer: undefined, globalSetup: undefined, reporter, testDir: ${JSON.stringify(join(SEEDED_DIRECTORY, 'run-guard'))},`,
         `  outputDir: ${JSON.stringify(join(directory, 'out'))}, projects: [{ name: 'render', testMatch: ${JSON.stringify(`**/${basename(file)}`)} }] };`,
         '',
       ].join('\n'),

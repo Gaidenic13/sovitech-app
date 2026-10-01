@@ -28,7 +28,7 @@ export {
   type MigrationSettings,
 } from './migrate';
 export { withRequest, projectOf, type Request, type RequestScope } from './request';
-export { ensureBuildingSubject, existingSubjects, projectIsDemo, projectVisible, requestActsAs } from './scope';
+export { databaseTime, ensureBuildingSubject, existingSubjects, lockProjectWrites, projectIsDemo, projectVisible, requestActsAs } from './scope';
 export type { AccountKind, Database, StoredFormat } from './schema';
 export {
   AUTHORING_TOOL_PART,
@@ -81,6 +81,7 @@ export {
   openAnalysisJobs,
   readAnalysisJobs,
   readUploadSession,
+  readUserUploadSessions,
   releaseAbandonedUpload,
   releaseUploadLease,
   staleUploadSessions,
@@ -117,6 +118,7 @@ export {
   createProject,
   eraseDocument,
   grantAppRole,
+  lockProjectMembership,
   openReviewItem,
   revokeAppRole,
   verifyCandidate,
@@ -127,10 +129,14 @@ export {
   readAssetRegisterInputs,
   readCandidates,
   readFieldInputs,
+  readGuardrailEvents,
   readProjectDocuments,
+  readProjectFieldInputs,
   readUserRoles,
   readVisibleAccounts,
   type FieldInputs,
   type ProjectDocuments,
+  type ProjectFieldInputs,
   type VisibleAccount,
 } from './reads';
+export { readProjectSubjects, readUserProjects, type ProjectSubject, type UserProject } from './projects';

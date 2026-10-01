@@ -1,0 +1,324 @@
+{
+  "about": "The app's one UI string catalogue (prompt 3 5.2, UI language: English, every string in one catalogue so Romanian can be added). Fixed interface copy only: badges, status lines, rule lines, stage labels, the demo line, field labels and everything built from stored state come from the API in display objects, never from here. The reserved-term check reads every string of this file (tools/checks/reserved-terms/catalogues.ts). Copy for states with no approved design is marked draft in the phase 3 plan (docs/build-log.md).",
+  "app": {
+    "name": "SOVITECH",
+    "skipToContent": "Skip to content",
+    "loading": "Loading",
+    "loadFailed": "This page could not be loaded. Your answers are kept.",
+    "retry": "Try again",
+    "notFound": "This page does not exist.",
+    "projectNotFound": "This project is not in your list of projects.",
+    "toProjects": "Go to your projects",
+    "sessionFailed": "The app could not reach its server. Check that it is running, then try again."
+  },
+  "titles": {
+    "app": "SOVITECH",
+    "page": "{page} – SOVITECH",
+    "signIn": "Sign in",
+    "projects": "Your projects",
+    "newProject": "New project",
+    "project": "Your project",
+    "notFound": "Page not found"
+  },
+  "header": {
+    "menu": "Menu",
+    "account": "Account",
+    "projects": "Projects",
+    "signOut": "Sign out",
+    "signOutFailed": "Signing out did not reach the server. You are signed out on this page."
+  },
+  "roles": {
+    "owner": "Owner",
+    "sovitech_engineer": "SOVITECH engineer",
+    "sovitech_commercial_reviewer": "SOVITECH commercial reviewer",
+    "sovitech_admin": "SOVITECH admin"
+  },
+  "signIn": {
+    "title": "Sign in",
+    "intro": "Choose a development account. This build holds synthetic test data only.",
+    "off": "No sign-in is set up for this app.",
+    "offDetail": "The development accounts are set up by the person who runs the app.",
+    "action": "Sign in",
+    "accounts": "Development accounts",
+    "failed": "The sign-in accounts could not be loaded.",
+    "signInFailed": "Signing in did not work. Try again."
+  },
+  "projects": {
+    "title": "Projects",
+    "intro": "Open a project to continue its intake, or start a new one.",
+    "newProject": "New project",
+    "empty": "No projects yet.",
+    "emptyDetail": "A new project starts with its name, its type and where the building is.",
+    "open": "Open",
+    "listLabel": "Your projects"
+  },
+  "stepper": {
+    "label": "Intake steps",
+    "done": "Done",
+    "newFindings": "New findings on this step"
+  },
+  "nav": {
+    "back": "Back",
+    "continue": "Continue",
+    "next": "Next",
+    "generate": "Generate Proposal",
+    "backToReview": "Back to review",
+    "saving": "Saving",
+    "continueFailed": "This step could not be saved. Your other answers are kept. Try again."
+  },
+  "notice": {
+    "region": "Notices",
+    "dismiss": "Dismiss"
+  },
+  "edit": {
+    "label": "Change this answer",
+    "failed": "This answer could not be saved. Try again.",
+    "answerInvalid": "This answer could not be read. Check it and save again.",
+    "numberAmbiguous": "This number can be read more than one way. Write it again so it can be read only as you mean it.",
+    "unitMismatch": "This value is not in the unit this field takes.",
+    "qualifierRequired": "Choose what this value measures.",
+    "qualifier": "What it measures",
+    "inUnit": "{field}, in {unit}",
+    "chooseQualifier": "Choose",
+    "chooseOption": "Choose an answer",
+    "changed": "This value changed since the page showed it. The page shows it again now.",
+    "ownerOnly": "Only the project's owner can change this answer."
+  },
+  "actions": {
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "yes": "Yes",
+    "skip": "Skip for now",
+    "generateWithoutIt": "Generate without it",
+    "looksRight": "Looks right",
+    "somethingWrong": "Something's wrong",
+    "chooseThis": "Choose this value",
+    "viewAll": "View all extracted data"
+  },
+  "step1": {
+    "projectName": "Project name",
+    "projectType": "What type of project is this?",
+    "location": "Where is the building located?",
+    "country": "Country",
+    "chooseCountry": "Choose a country",
+    "city": "City",
+    "required": "Fill in this field to create the project.",
+    "typeRequired": "Choose a project type to create the project.",
+    "countryRequired": "Choose a country to create the project.",
+    "countryFirst": "Choose the country first, then type the city.",
+    "createFailed": "The project could not be created. What you entered is kept. Try again.",
+    "saveFailed": "This answer could not be saved. Try again.",
+    "answerInvalid": "This answer could not be read. Check it and save again."
+  },
+  "step2": {
+    "title": "Upload your project documents",
+    "subtitle": "Add the files you already have. We’ll extract the key information for you.",
+    "dropHere": "Drag and drop your files here",
+    "or": "or",
+    "browse": "Browse files",
+    "formats": "PDF, DWG, IFC, RVT, XLSX, DOCX, JPG, PNG, ZIP",
+    "maxSize": "Max file size 500 MB",
+    "filesHeading": "Your files",
+    "filesEmpty": "No files added yet. You can continue without documents and add them later.",
+    "uploading": "Uploading",
+    "stopUpload": "Stop uploading",
+    "formatRefused": "This format is not on the accepted list. The other files are kept.",
+    "sizeRefused": "This file is larger than the size limit. The other files are kept.",
+    "uploadFailed": "This file could not be uploaded. The other files are kept.",
+    "refusedFile": "A file was not added",
+    "refusedFileOfType": "A {extension} file was not added",
+    "dismiss": "Dismiss",
+    "listFailed": "The file list could not be loaded. Uploads that finished are kept.",
+    "stage": "Stage",
+    "revision": "Revision",
+    "commonTypes": "Common document types (optional)",
+    "tiles": {
+      "architectural": { "title": "Architectural", "description": "Plans, sections, elevations" },
+      "mep": { "title": "MEP", "description": "HVAC, electrical, plumbing" },
+      "existingBms": { "title": "Existing BMS", "description": "Schematics, point lists" },
+      "energy": { "title": "Energy", "description": "Utility bills, reports" },
+      "other": { "title": "Other", "description": "Specifications, BOQ" }
+    }
+  },
+  "step3": {
+    "title": "Your building",
+    "intro": {
+      "values_found": "We’ve analyzed your documents and found the following information about your building.",
+      "values_found_second": "Please review the details and correct any information if needed.",
+      "reading": "We are reading your documents. The facts below fill in as each file is read.",
+      "reading_only": "We are reading your documents.",
+      "no_documents": "No documents were uploaded, so nothing was read. You can add the facts later, or continue.",
+      "none_found": "No building facts have come from your documents yet. You can add them later, or continue."
+    },
+    "summaryHeading": "Building summary",
+    "details": "Extracted details",
+    "forYouRow": "Things for you to check",
+    "forYouRowBody": "They wait for you on the review step. Nothing here stops you from continuing.",
+    "filesHeading": "Files not fully read",
+    "viewerHeading": "Building model",
+    "addModel": "Upload a model",
+    "reading": "Reading your documents",
+    "equipment": "HVAC assets",
+    "valuesInConflict": "The values found",
+    "showExcerpt": "Show the excerpt",
+    "writeFailed": "This could not be saved. Your other answers are kept. Try again.",
+    "extracted": {
+      "title": "All extracted data",
+      "intro": "Every fact about your building, each with where it came from. Edit any of them.",
+      "back": "Back to your building"
+    }
+  },
+  "step4": {
+    "title": "Which systems should be included?",
+    "subtitle": {
+      "systems_named": "We've detected the following systems in your documents.",
+      "none_named": "Each card shows what your documents say about that system.",
+      "no_documents": "No documents were uploaded, so no system was read from them."
+    },
+    "instruction": "Select the systems you want to include in the BMS scope.",
+    "banner": "Some systems are optional or may require additional documentation. You can adjust these selections later.",
+    "detection": "In your documents",
+    "skipFailed": "Skipping did not save. Try again."
+  },
+  "systems": {
+    "hvac": { "title": "HVAC", "description": "Heating, ventilation and cooling systems" },
+    "lighting": { "title": "Lighting", "description": "Lighting control and DALI integration" },
+    "energy": { "title": "Energy", "description": "Energy metering and monitoring" },
+    "access_control": { "title": "Access Control", "description": "Integration with access control systems" },
+    "fire_safety": { "title": "Fire Safety", "description": "Monitoring only (read-only); fire logic and fire-mode interlocks remain in the fire system." },
+    "water": { "title": "Water", "description": "Water management and leak detection" },
+    "elevators": { "title": "Elevators", "description": "Monitoring and status integration" },
+    "cctv": { "title": "CCTV", "description": "Video surveillance integration" }
+  },
+  "step5": {
+    "title": "How does your building operate?",
+    "subtitle": "Help us understand how the building is used. You can refine this later."
+  },
+  "step6": {
+    "title": "What are your main goals?",
+    "subtitle": "Select what matters most for your project. You can choose multiple options."
+  },
+  "step7": {
+    "title": "What would you like to automate?",
+    "subtitle": "Select the areas you want SOVITECH to optimize. You can change this later.",
+    "banner": "You can select multiple areas. Our AI will tailor the solution to your building and goals."
+  },
+  "step8": {
+    "title": "Review and generate proposal",
+    "subtitle": "Here's a summary of your inputs. Review the details and generate your personalized proposal.",
+    "cards": {
+      "project": "Project",
+      "documents": "Documents",
+      "building": "Building",
+      "systems": "Systems",
+      "operations": "Operations",
+      "goals": "Goals",
+      "automation": "Automation",
+      "proposal": "Proposal"
+    },
+    "proposalBody": "Generate creates a preliminary proposal. Each output shows whether it will be a range or is not available yet, and what it still needs.",
+    "proposalLink": "See what each output still needs",
+    "forYou": "For you",
+    "forYouEmpty": "Nothing is waiting for your answer.",
+    "forYouReason": {
+      "confirmation": "Check what we found",
+      "first_estimate_missing": "Your estimate needs this"
+    },
+    "answerIt": "Answer it",
+    "sovitechWillCheck": "SOVITECH will check",
+    "outputsHeading": "What your proposal will show",
+    "outputsIntro": "Each output says whether it can be shown yet and what it still needs. You can generate at any time.",
+    "multiRequired": "Tick at least one system, or choose Generate without it.",
+    "revisionHeading": "Changed by a newer revision",
+    "loading": "Loading your answers",
+    "loadFailed": "Your summary could not be loaded. Your answers are kept. Try again, or go back a step.",
+    "generateFailed": "The proposal could not be opened. Your answers are kept. Try again.",
+    "bannerTitle": "Everything ready?",
+    "bannerBody": "Click “Generate Proposal” to let our AI create a customized solution for your project."
+  },
+  "questions": {
+    "q.project.name": { "title": "Project name", "helper": "" },
+    "q.project.type": { "title": "What type of project is this?", "helper": "" },
+    "q.project.location": { "title": "Where is the building located?", "helper": "" },
+    "q.project.systemsInScope": { "title": "Which systems should be included?", "helper": "Select the systems you want to include in the BMS scope." },
+    "q.building.type": { "title": "What type of building is it?", "helper": "This helps us tailor the BMS configuration to your needs." },
+    "q.project.occupancy": { "title": "How is it occupied?", "helper": "This helps us understand usage patterns and optimize control strategies." },
+    "q.project.operatingSchedule": { "title": "When does it operate?", "helper": "This helps us configure schedules and automation logic." },
+    "q.project.goals": { "title": "What are your main goals?", "helper": "Select what matters most for your project." },
+    "q.project.automationAreas": { "title": "What would you like to automate?", "helper": "Select the areas you want SOVITECH to optimize." },
+    "q.building.grossFloorArea": { "title": "Gross floor area", "helper": "" }
+  },
+  "options": {
+    "project.type": {
+      "new_construction": "New construction",
+      "renovation": "Renovation",
+      "existing_building": "Existing building",
+      "bms_modernization": "BMS modernization"
+    },
+    "building.type": {
+      "hotel": "Hotel",
+      "office": "Office",
+      "retail": "Retail",
+      "hospital": "Hospital",
+      "residential": "Residential",
+      "other": "Other"
+    },
+    "project.occupancy": {
+      "mostly_occupied": "Mostly occupied",
+      "mixed": "Mixed",
+      "low": "Low occupancy"
+    },
+    "project.operatingSchedule": {
+      "24_7": "Around the clock",
+      "business_hours": "Business hours",
+      "extended_hours": "Extended hours",
+      "seasonal": "Seasonal"
+    }
+  },
+  "goals": {
+    "reduce_energy": { "title": "Reduce energy consumption", "description": "Optimize energy use and lower operational costs." },
+    "lower_carbon": { "title": "Lower carbon emissions", "description": "Meet sustainability targets and ESG requirements." },
+    "occupant_comfort": { "title": "Improve guest comfort", "description": "Ensure a better indoor environment and experience." },
+    "operational_efficiency": { "title": "Increase operational efficiency", "description": "Streamline building operations and maintenance." },
+    "compliance": { "title": "Ensure compliance", "description": "Meet local regulations and industry standards." },
+    "asset_lifespan": { "title": "Extend asset lifespan", "description": "Protect your investment through predictive insights." },
+    "reduce_operating_costs": { "title": "Reduce operating costs", "description": "Identify and eliminate inefficiencies." }
+  },
+  "automation": {
+    "hvac": { "title": "HVAC", "description": "Automated climate control for comfort and efficiency." },
+    "lighting": { "title": "Lighting", "description": "Smart lighting control and scheduling." },
+    "energy_management": { "title": "Energy Management", "description": "Monitoring and optimization of energy use." },
+    "water_management": { "title": "Water Management", "description": "Leak detection and optimized water usage." },
+    "security_access": { "title": "Security & Access", "description": "Access control and safety monitoring." },
+    "predictive_maintenance": { "title": "Predictive Maintenance", "description": "Early detection of issues and automated alerts." }
+  },
+  "proposal": {
+    "generating": "Preparing your preliminary proposal",
+    "title": "Preliminary proposal",
+    "intro": "No investment figure is available yet. Each output below names what it still needs.",
+    "outputsHeading": "What each output still needs",
+    "loadFailed": "Your preliminary proposal could not be loaded. Your answers are kept. Try again, or go back to the review."
+  },
+  "outputs": {
+    "points.hardwareIo": "Control points: hardware inputs and outputs",
+    "points.integration": "Control points: links to other systems",
+    "points.virtual": "Control points: virtual points",
+    "energy.annualConsumption": "Energy use per year",
+    "savings.annualEnergy": "Energy savings per year",
+    "measures.priorityOrder": "Measures in order of priority"
+  },
+  "units": {
+    "m2": "square metres"
+  },
+  "qualifiers": {
+    "building.grossFloorArea": {
+      "gross_total": "gross total (Scd)"
+    }
+  },
+  "review": {
+    "showExcerpt": "Show the excerpt",
+    "outputUnnamed": "An output of the proposal",
+    "writeFailed": "This could not be saved. Your other answers are kept. Try again."
+  }
+}

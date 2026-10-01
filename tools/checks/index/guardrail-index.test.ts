@@ -143,7 +143,7 @@ describe('guardrail index: the repository file', () => {
     expect(counts.E).toBe(rowLines.filter((line) => splitTableRow(line)[1] === 'E').length);
   });
 
-  it('ADR 0003: holds the pinned count of ids for its version: 104 (84 T, 20 E) at 1.5, 143 (123 T, 20 E) at 1.6, 169 (149 T, 20 E) at 1.7', () => {
+  it('ADR 0003: holds the pinned count of ids for its version: 104 (84 T, 20 E) at 1.5, 143 (123 T, 20 E) at 1.6, 169 (149 T, 20 E) at 1.7, 188 (168 T, 20 E) at 1.8 (173 at phase 3 part A, 12 more from its part B, 3 more from its final verification)', () => {
     // 1.5 is the version prompt 3 and the PRD (R-156) name; 1.6 adds phase 1's cases: prompt 3's
     // G4-20, G10-8 and G13-5, the 20 cases of the phase 1 review round (G1-14, G1-15,
     // G3-9 to G3-11, G4-21 to G4-29, G8-12 to G8-14, G10-9, G13-6, G13-7), and the 14 of its
@@ -153,12 +153,16 @@ describe('guardrail index: the repository file', () => {
     // G1-13, G12-5, G12-6 and G14-3, G4-34 (drafted in the phase 1 review's fifth round) and G4-35
     // (NP-A of phase 1's closing verification), and the 16 of the phase 2 review's fix round (G1-18
     // to G1-24, G2-10, G2-11, G3-17, G8-18 to G8-20, G11-7, G12-8 and G12-9), and the 4 of its
-    // second fix round (G1-25, G2-12, G3-18 and G11-8).
+    // second fix round (G1-25, G2-12, G3-18 and G11-8). 1.8 adds phase 3's four (G7-8, G8-21, G10-10
+    // and G11-9), and the 12 of its part B fix round (G2-13, G3-19, G4-36, G5-4, G7-9 to G7-12, G8-22,
+    // G8-23, G10-11 and G10-12), and the 3 of the fix round after its final verification (G2-14, G4-38 and
+    // G7-13; G4-37 stays reserved for proposal P-3B-CONFLICT-NO-DOCUMENT).
     // A later version adds its own pin here, so the count is never left unchecked.
     const pinned: Record<string, { total: number; T: number; E: number }> = {
       '1.5': { total: 104, T: 84, E: 20 },
       '1.6': { total: 143, T: 123, E: 20 },
       '1.7': { total: 169, T: 149, E: 20 },
+      '1.8': { total: 188, T: 168, E: 20 },
     };
     const version = index.version ?? '(no version)';
     expect(Object.keys(pinned)).toContain(version);

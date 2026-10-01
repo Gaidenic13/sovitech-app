@@ -231,6 +231,23 @@ export async function readUploadSession(
   return row === undefined ? undefined : sessionOf(row);
 }
 
+/**
+ * The requesting user's open upload sessions in a project, oldest first (phase 3, step 2's file list:
+ * an upload still in progress shows its file name, bound, before it is stored; UD-33). Only the
+ * user's own: another user's upload in progress is not theirs to see.
+ */
+export async function readUserUploadSessions(
+  executor: Executor,
+  input: { readonly projectId: string; readonly userId: string },
+): Promise<UploadSession[]> {
+  const result = await sql<SessionRow>`
+    SELECT id, project_id, user_id, file_name, format, declared_size::integer AS declared_size, created_at
+    FROM sovitech_work.upload_sessions
+    WHERE project_id = ${input.projectId} AND user_id = ${input.userId}
+    ORDER BY created_at, id`.execute(executor);
+  return result.rows.map(sessionOf);
+}
+
 /** Deletes an upload session of this project and this user. Returns whether one was there. */
 export async function deleteUploadSession(
   executor: Executor,

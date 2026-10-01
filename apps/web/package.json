@@ -11,11 +11,14 @@
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "5.3.0",
     "@sovitech/ui": "workspace:*",
     "@sovitech/view-model": "workspace:*",
     "@sovitech/viewer": "workspace:*",
+    "lucide-react": "1.48.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "react-router": "7.18.4"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",

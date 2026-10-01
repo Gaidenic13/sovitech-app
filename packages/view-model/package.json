@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@sovitech/domain": "workspace:*",
-    "@sovitech/registry": "workspace:*"
+    "@sovitech/registry": "workspace:*",
+    "decimal.js": "10.6.0",
+    "zod": "4.6.5"
   }
 }

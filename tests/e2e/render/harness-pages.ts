@@ -17,6 +17,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { DisplayObjects, ViolationKind } from './contract';
 import { readDeclaredDisplayObjects } from './display-objects';
 import type { RenderCheckOptions, RunOptions } from './render-check';
+import { UI_KIT_PAGES as KIT_PAGE_LIST } from '../pages/ui/kit-pages';
 
 export interface HarnessPage {
   /** Path under tests/e2e/pages/. */
@@ -325,5 +326,12 @@ export const RESERVED_TERM_PAGES: readonly HarnessPage[] = [
   G3_11_PAGE,
 ];
 
+/**
+ * The UI kit's pages (packages/ui; phase 3): the kit's real components rendered in the states the
+ * wizard uses, each of which must pass (tests/e2e/pages/ui/kit-pages.ts; checked with axe too by
+ * tests/e2e/pages/ui/ui-kit.spec.ts).
+ */
+export const UI_KIT_PAGES: readonly HarnessPage[] = KIT_PAGE_LIST.map((page) => ({ file: page.file, about: page.about, expectKinds: [] }));
+
 /** Every harness page, each listed once. */
-export const ALL_HARNESS_PAGES: readonly HarnessPage[] = [CLEAN_PAGE, ...G2_1_PAGES, ...G2_8_PAGES, ...RESERVED_TERM_PAGES];
+export const ALL_HARNESS_PAGES: readonly HarnessPage[] = [CLEAN_PAGE, ...G2_1_PAGES, ...G2_8_PAGES, ...RESERVED_TERM_PAGES, ...UI_KIT_PAGES];

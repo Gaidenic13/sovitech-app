@@ -11,6 +11,9 @@
  *   `readModels`, it carries the tests-only switch that lets an uploaded IFC model be read
  *   (apps/api/src/documents/model-reading.ts): the live app reads no model until the owner
  *   decides D-01 (PRD R-023, R-024), and the cases that prove the reader's path ask for it.
+ *   With `devLogin` (phase 3), it creates one TEST development account (a person holding `owner`)
+ *   and lists it as the API's development account, with the fixtures-only guard as the live app has
+ *   it, so the development login is on (docs/adr/0038).
  * - `signIn` opens a session for a TEST account and fetches a CSRF token.
  * - `upload` drives the real chunk protocol of ADR 0019.
  * - `ScriptedRunner` stands in for the extractor's sandbox (a dependency handed in, not a
@@ -57,15 +60,18 @@ export interface TestApi {
   readonly log: ApiLogRecord[];
   /** The extraction job's TEST service account (no member of any project until an owner's upload adds it). */
   readonly extractionAccountId: string;
+  /** With `devLogin`: the TEST development account the development login offers (a person holding `owner`; docs/adr/0038). */
+  readonly devAccountIds: readonly string[];
   stop(): Promise<void>;
 }
 
-export async function startTestApi(options: { readonly uploadGuard?: UploadGuard; readonly readModels?: boolean } = {}): Promise<TestApi> {
+export async function startTestApi(options: { readonly uploadGuard?: UploadGuard; readonly readModels?: boolean; readonly devLogin?: boolean } = {}): Promise<TestApi> {
   const database = await startTestDatabase();
   const dataDirectory = mkdtempSync(join(tmpdir(), 'sovitech-test-data-'));
   const files = new FileStore(dataDirectory);
   const log: ApiLogRecord[] = [];
   const extractionAccountId = await createTestAccount(database, { label: 'extraction service', kind: 'service', roles: [] });
+  const devAccountIds = options.devLogin === true ? [await createTestAccount(database, { label: 'development owner', kind: 'person', roles: ['owner'] })] : [];
   const services: ApiServices & ModelReadingServices = {
     ...(options.readModels === true ? { modelReading: readModelsForTests() } : {}),
     store: database.app,
@@ -77,6 +83,7 @@ export async function startTestApi(options: { readonly uploadGuard?: UploadGuard
     log: (record) => {
       log.push(record);
     },
+    devAccounts: devAccountIds,
   };
   const app = buildServer({ gates: assertGatesStartupSafe(), services });
   await app.ready();
@@ -88,6 +95,7 @@ export async function startTestApi(options: { readonly uploadGuard?: UploadGuard
     dataDirectory,
     log,
     extractionAccountId,
+    devAccountIds,
     stop: async () => {
       await app.close();
       await database.stop();

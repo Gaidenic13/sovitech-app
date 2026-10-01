@@ -16,7 +16,8 @@ functions, and the data-access layer the API uses. Decisions: `docs/adr/0012` to
 | `src/request.ts` | `withRequest`: one transaction per request, with the authenticated user and the project in scope. |
 | `src/writes.ts` | Appends: documents, candidates with evidence (after the registry's unit check against the field), candidate, field, document and asset events, asset appearances with one or more evidence entries, guardrail events, proposal snapshots. No update or delete method exists. |
 | `src/guarded.ts` | Calls to the guarded functions: `verifyCandidate` (the one writer of `engineer_verified`), `eraseDocument` (the one audited erasure), and the audited account, role and project functions. |
-| `src/reads.ts` | Reads that return the domain's types for `derive` and `deriveAssetRegister`. |
+| `src/reads.ts` | Reads that return the domain's types for `derive` and `deriveAssetRegister`; `readProjectFieldInputs` (every field of given subjects at once, for the wizard's step views) and `readGuardrailEvents` (phase 3). |
+| `src/projects.ts` | The project list (`readUserProjects`, through `sovitech.request_user_projects()`, migration 0014) and a project's subjects (`readProjectSubjects`) (phase 3). |
 | `src/errors.ts` | The store's refusals (`StoreRefusal`, by SQLSTATE) and `StoreError` for any other database error: neither keeps the database's DETAIL, context, statement or input text (rule 13). |
 | `src/testing/` | `@sovitech/db/testing`: a throwaway TEST database with Testcontainers, and TEST accounts, projects and values. Tests only: dependency-cruiser's `db-testing-only-from-tests` lets only `tests/` and the store's own `*.test.ts` files reach it. |
 
@@ -121,3 +122,14 @@ erasure, always rolled back, and fails the run when either no longer works. The 
 members belong to `sovitech_db_access`, so no ordinary migration can alter them.
 A table that must be updated (a job queue, for example) belongs in another
 schema.
+
+## Adding a function to schema `sovitech`
+
+Every function of the schema is a registered guarded function, owned by its role and not
+executable by everyone, and 0009's event trigger checks that at the end of every command; no
+migration pauses the trigger (`src/migrate.test.ts`). Migration 0014 shows how an admin migration
+adds one while every command leaves the invariants true: the administrator's own default
+privilege drops PUBLIC's EXECUTE on functions for the few commands that register the function
+under the administrator, create it, grant it, register it under its role and hand it over, and
+is then put back; the migration checks both that the invariants hold and that no default
+privilege of the administrator remains.

@@ -19,6 +19,12 @@ import { defineConfig, devices } from '@playwright/test';
  * The viewport is the 1440x900 minimum of dashboards-spec 3.4 (prompt 3 section 11).
  * The render check forces hover and focus states through the Chrome DevTools Protocol, so
  * the render project runs in Chromium only.
+ *
+ * Phase 3 (docs/adr/0037-e2e-setup.md): the global setup starts the e2e stack (a TEST database, the
+ * development owner, the demo seed through the extractor's sandbox, the API on 127.0.0.1:4174 and
+ * the analysis worker) for both projects; `vite preview` proxies `/api` to it. It needs Docker and
+ * both sandbox images built locally. A wizard screen signs in, reads the API and runs the render
+ * check's three settle windows, so a test may take up to 90 s.
  */
 const PORT = 4173;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
@@ -38,7 +44,11 @@ export default defineConfig({
   // tests, and a render run that did not pass one test per screen of screens.ts.
   forbidOnly: true,
   retries: 0,
-  globalTimeout: 20 * 60 * 1000,
+  // Phase 3 part B added 32 tests for loading, failure and in-between states (ADR 0037 decision 9), many of
+  // which read a page with a request held or a poll due for the render check's full settle windows.
+  globalTimeout: 45 * 60 * 1000,
+  globalSetup: './tests/e2e/setup/global-setup.ts',
+  timeout: 90_000,
   reporter: [['list'], ['./tests/e2e/render/run-guard-reporter.ts']],
   use: {
     baseURL: BASE_URL,

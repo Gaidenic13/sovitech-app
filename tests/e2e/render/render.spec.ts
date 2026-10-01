@@ -13,13 +13,29 @@
  *   and pass the clean page, so a harness broken by this runner's transform cannot pass the
  *   screens by finding nothing. The full self-proof is the case files
  *   tests/guardrails/G2-1.test.ts and G2-8.test.ts and tools/checks/render/rendered-copy.test.ts.
+ *   The UI kit's pages (tests/e2e/pages/ui/, phase 3) must pass too, so the components' own render
+ *   test runs in `pnpm check`; their axe and keyboard checks stay in the e2e project (ui-kit.spec.ts).
+ * - Routes: every route of the app's `APP_PATHS` (apps/web/src/routes.tsx) has at least one screen
+ *   entry (phase 0 "Next": the screen list is checked against the route table). A route with
+ *   parameters is reached by the entry's `arrange` from `/sign-in` (screens.ts).
  */
+
+/** The app's route table, read from apps/web/src/routes.tsx as text (the render project loads no app code). */
+function appPaths(): string[] {
+  const source = readFileSync(`${REPO_ROOT}/apps/web/src/routes.tsx`, 'utf8');
+  const table = /export const APP_PATHS = \[(?<body>[^\]]*)\]/u.exec(source)?.groups?.['body'];
+  if (table === undefined) throw new Error('apps/web/src/routes.tsx has no APP_PATHS table');
+  return [...table.matchAll(/'(?<path>[^']+)'/gu)].map((match) => match.groups?.['path'] ?? '');
+}
+import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { REPO_ROOT } from '../setup/paths';
 import {
   CLEAN_PAGE,
   G2_1_PAGES,
   G2_8_PAGES,
   RESERVED_TERM_PAGES,
+  UI_KIT_PAGES,
   harnessPageOptions,
   harnessPageUrl,
   type HarnessPage,
@@ -33,6 +49,14 @@ test.describe('G2-1 · G2-8 · F-RENDER-06: render test on the app screens', () 
     expect(screenProblems(RENDER_SCREENS)).toEqual([]);
   });
 
+  test('G2-1: every route of the app has a screen entry', () => {
+    const paths = appPaths();
+    expect(paths.length).toBeGreaterThan(0);
+    const listed = new Set(RENDER_SCREENS.map((screen) => screen.path));
+    expect(paths.filter((path) => !listed.has(path))).toEqual([]);
+    expect([...listed].filter((path) => !paths.includes(path))).toEqual([]);
+  });
+
   test('G2-1 · G2-8: the web server was started for this run, not reused', () => {
     // A reused server could be an older build, or another project, on the same port.
     const server = test.info().config.webServer;
@@ -43,7 +67,7 @@ test.describe('G2-1 · G2-8 · F-RENDER-06: render test on the app screens', () 
   for (const screen of RENDER_SCREENS) {
     test(`G2-1 · G2-8: ${screen.name}`, async ({ page }) => {
       await prepareRenderCheck(page, { displayObjects: screenDisplayObjects(screen) });
-      await page.goto(screen.path);
+      await page.goto(screen.path.includes(':') ? '/sign-in' : screen.path);
       if (screen.arrange !== undefined) await screen.arrange(page);
       const report = await runRenderCheck(page);
       expect(report.ok, formatRenderReport(report)).toBe(true);
@@ -74,6 +98,7 @@ const CANARIES: readonly HarnessPage[] = [
   canary('reserved-terms/object-keys-label.html', RESERVED_TERM_PAGES),
   canary('reserved-terms/tagged-template.html', RESERVED_TERM_PAGES),
   CLEAN_PAGE,
+  ...UI_KIT_PAGES,
 ];
 
 test.describe('G2-1 · G2-8 · 2.8: render harness canaries in this runner', () => {

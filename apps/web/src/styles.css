@@ -1,17 +1,35 @@
 /*
- * Tailwind v4 with automatic source detection switched off: every source is
- * listed, so nothing under company/ is scanned (prompt 3 section 6).
+ * The app's stylesheet: Tailwind v4 carrying the brand tokens (prompt 3 5.2 "Frontend"; section 6,
+ * "Brand assets"; docs/adr/0040-app-theme-tokens.md).
+ *
+ * Tailwind's automatic source detection is switched off: every source is listed, so nothing under
+ * company/ is scanned (prompt 3 section 6).
  */
 @import 'tailwindcss' source(none);
 @import '@sovitech/ui/tokens.css';
+@import '@sovitech/ui/ui.css';
 
 @source './';
 @source '../../../packages/ui/src';
 @source '../../../packages/viewer/src';
 
 /*
- * The default palette and every shadow scale are switched off, so no colour or
- * shadow enters through a class name. Colours come only from the tokens file.
+ * Tailwind reads every word of the listed sources as a possible class, so prose such as "a ring
+ * with a check" in a comment would generate the `ring` utility, which is built on box-shadow. These
+ * utilities are never generated, whatever the sources say (the lint bans them in class names too).
+ */
+@source not inline('ring');
+@source not inline('inset-ring');
+@source not inline('shadow');
+@source not inline('inset-shadow');
+@source not inline('drop-shadow');
+@source not inline('text-shadow');
+
+/*
+ * Tailwind's defaults are switched off, so nothing off-brand enters through a class name: no default
+ * palette (colours come only from the tokens file), no shadow of any kind (the brand has none; focus
+ * uses `outline`, never `ring-*`, which is built on box-shadow), no radius but the brand's three,
+ * no font or weight but Inter's four brand weights, and no animation utility (no value animates, G2-8).
  */
 @theme {
   --color-*: initial;
@@ -19,18 +37,80 @@
   --inset-shadow-*: initial;
   --drop-shadow-*: initial;
   --text-shadow-*: initial;
+  --radius-*: initial;
+  --font-*: initial;
+  --font-weight-*: initial;
+  --animate-*: initial;
+  --blur-*: initial;
 }
 
+/*
+ * The brand tokens as Tailwind theme values. Each name maps to one custom property of
+ * packages/ui/src/tokens.css; the roles marked there as proposed stay proposed here.
+ */
 @theme inline {
+  /* Colours: bg-bg, bg-surface, text-text-primary, border-border, outline-accent ... */
   --color-bg: var(--sov-bg);
   --color-surface: var(--sov-surface);
+  --color-surface-selected: var(--sov-surface-selected);
+  --color-green: var(--sov-green);
   --color-accent: var(--sov-accent);
+  --color-on-accent: var(--sov-on-accent);
   --color-text-primary: var(--sov-text-primary);
+  --color-text-tertiary: var(--sov-text-tertiary);
+  --color-text-muted: var(--sov-text-muted);
+  --color-border: var(--sov-border);
+  --color-border-hover: var(--sov-border-hover);
+  --color-control-border: var(--sov-control-border);
+
+  /* Radii: rounded-control (1px), rounded-surface (2px), rounded-pill (badges, dots, radios only). */
+  --radius-control: var(--sov-radius-control);
+  --radius-surface: var(--sov-radius-surface);
+  --radius-pill: var(--sov-radius-pill);
+
+  /* Type: Inter only; weights 300, 400, 500, 600 (no 700). */
+  --font-sans: var(--sov-font-sans);
+  --font-weight-light: var(--sov-weight-light);
+  --font-weight-normal: var(--sov-weight-regular);
+  --font-weight-medium: var(--sov-weight-medium);
+  --font-weight-semibold: var(--sov-weight-semibold);
+
+  /* Motion: colour-only transitions at the brand's timing. */
+  --ease-brand: var(--sov-ease);
+  --default-transition-duration: var(--sov-duration-text);
+  --default-transition-timing-function: var(--sov-ease);
 }
 
-html,
-body {
-  background-color: var(--sov-bg);
-  color: var(--sov-text-primary);
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+@layer base {
+  html,
+  body {
+    background-color: var(--sov-bg);
+    color: var(--sov-text-primary);
+    font-family: var(--sov-font-sans);
+    font-weight: var(--sov-weight-regular);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: var(--sov-focus-width) solid var(--sov-focus-ring);
+    outline-offset: var(--sov-focus-offset);
+  }
+
+  /* The one page-title role (proposed, pending the owner's OK: dashboards 8.2; PRD R-147 interim). */
+  h1 {
+    font-size: var(--sov-title-size);
+    font-weight: var(--sov-title-weight);
+    letter-spacing: var(--sov-title-tracking);
+    line-height: 1.2;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
 }

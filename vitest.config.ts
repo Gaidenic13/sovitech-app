@@ -3,8 +3,10 @@ import { configDefaults, defineConfig } from 'vitest/config';
 /**
  * The blocking Vitest run used by `pnpm test` and `pnpm check`.
  *
- * Two projects:
- * - unit: tests next to the code, in packages, apps and tools;
+ * Three projects:
+ * - unit: tests next to the code, in packages, apps and tools (.ts, in Node);
+ * - components: React component tests next to the code (.test.tsx under packages and
+ *   apps), in happy-dom (phase 3);
  * - guardrails: one file per indexed case id, tests/guardrails/<ID>.test.ts
  *   (docs/guardrails.md section 7). Support code lives in tests/guardrails/_support/.
  *
@@ -36,7 +38,6 @@ export default defineConfig({
           environment: 'node',
           include: [
             'packages/*/src/**/*.test.ts',
-            'packages/*/src/**/*.test.tsx',
             'apps/*/src/**/*.test.ts',
             'tools/**/*.test.ts',
             // The API's integration tests over a TEST database (phase 2): outside tests/guardrails,
@@ -44,6 +45,17 @@ export default defineConfig({
             // reached (dependency-cruiser's db-testing-only-from-tests).
             'tests/api/**/*.test.ts',
           ],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          // Component tests of the UI (phase 3; docs/adr/0035-phase-3-frontend-dependencies.md):
+          // React components rendered in happy-dom with @testing-library/react. Every .test.tsx
+          // under packages and apps runs here, never in the node project above.
+          name: 'components',
+          environment: 'happy-dom',
+          include: ['packages/*/src/**/*.test.tsx', 'apps/*/src/**/*.test.tsx'],
         },
       },
       {
