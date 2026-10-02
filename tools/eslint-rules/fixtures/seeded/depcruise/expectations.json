@@ -121,6 +121,20 @@
     "tests/e2e/setup/imports-db-main.ts": [
       "e2e-setup-reaches-db-only-through-testing"
     ],
-    "tests/e2e/setup/good-imports-db-testing.ts": []
+    "tests/e2e/setup/good-imports-db-testing.ts": [],
+    "apps/web/src/imports-viewer-spike.ts": [
+      "viewer-spike-imported-by-nothing",
+      "web-imports-only-browser-entries"
+    ],
+    "apps/api/src/imports-viewer-spike.ts": [
+      "viewer-spike-imported-by-nothing"
+    ],
+    "packages/viewer/src/imports-viewer-spike.ts": [
+      "viewer-spike-imported-by-nothing"
+    ],
+    "tests/e2e/imports-viewer-spike.spec.ts": [
+      "viewer-spike-imported-by-nothing"
+    ],
+    "tests/proposed/good-imports-viewer-spike.test.ts": []
   }
 }

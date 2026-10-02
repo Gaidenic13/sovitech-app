@@ -26,6 +26,10 @@ export const stepView: RequestMatch = (method, path) => method === 'GET' && new 
 export const projectList: RequestMatch = (method, path) => method === 'GET' && path === '/api/projects';
 /** The proposal page's view (`GET /api/projects/:projectId/proposal`). */
 export const proposalView: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/proposal$`, 'u').test(path);
+/** A workspace page's view (`GET /api/projects/:projectId/workspace/<page>`, phase 4), any project and page; the frame is not one. */
+export const workspaceView: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/workspace/[a-z-]+$`, 'u').test(path);
+/** The workspace frame (`GET /api/projects/:projectId/workspace`, phase 4): the sidebar's pages, the project card and the footer. */
+export const workspaceFrame: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/workspace$`, 'u').test(path);
 /** An upload's chunk (`PUT /api/projects/:projectId/uploads/:uploadId`). */
 export const uploadChunk: RequestMatch = (method, path) => method === 'PUT' && new RegExp(`^/api/projects/${UUID}/uploads/${UUID}$`, 'u').test(path);
 

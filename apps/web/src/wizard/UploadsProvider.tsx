@@ -16,10 +16,16 @@
  *   2.8's list, so it is fixed-shape interface copy, never a figure.
  * - `version` changes whenever the stored state may have changed (an upload created, stored or
  *   refused, a stop), so the step 2 screen reads its view again.
+ * - Replace on Documents (phase 4; US-DOCS-20 AC1; UD-43): `addFiles(files, { revisionOf })` uploads the
+ *   file as usual and, once it is stored, declares it a revision of that document
+ *   (`documents.revisionOf`, the owner's declaration: 2.3 "Revisions are declared, never guessed"). The
+ *   declaration runs here, at project level, so it completes even if the owner leaves Documents. Nothing
+ *   is deleted: the older document stays listed. If the declaration is refused, the stored entry says so
+ *   (`revision: 'failed'`), and the owner can declare it from the new document's menu.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { DisplayObject } from '@sovitech/view-model/browser';
-import { isSignedOut } from '../api/client';
+import { call, isSignedOut } from '../api/client';
 import { PARALLEL_UPLOADS, cancelUpload, checkFile, uploadFile, FORMAT_REFUSED, SIZE_REFUSED } from '../api/uploads';
 import { useOnSignedOut } from '../session/SessionProvider';
 
@@ -37,6 +43,8 @@ export type UploadEntry =
       readonly key: string;
       readonly phase: 'stored';
       readonly documentId: string;
+      /** A Replace (Documents): its declaration as a revision of another document is on its way, made, or refused. */
+      readonly revision?: 'declaring' | 'declared' | 'failed';
     }
   /** Refused: the file's own reason; the other files go on. */
   | {
@@ -54,7 +62,11 @@ export interface UploadsContextValue {
   readonly entries: readonly UploadEntry[];
   /** Changes whenever the stored state may have changed. */
   readonly version: number;
-  readonly addFiles: (files: readonly File[]) => void;
+  /**
+   * Adds files to the upload queue and returns their entries' keys, in order. With `revisionOf`, each
+   * stored file is declared a revision of that document (Replace on Documents).
+   */
+  readonly addFiles: (files: readonly File[], options?: { readonly revisionOf?: string }) => readonly string[];
   /** Stops an upload before it completes (nothing is stored). */
   readonly stop: (key: string) => void;
   /** Removes a refused entry from the list (it was never stored). */
@@ -67,6 +79,8 @@ interface Job {
   readonly key: string;
   readonly file: File;
   readonly controller: AbortController;
+  /** Replace: the document this file is declared a revision of once it is stored. */
+  readonly revisionOf?: string;
   uploadId?: string;
 }
 
@@ -129,11 +143,30 @@ export function UploadsProvider({ projectId, children }: { readonly projectId: s
                 uploadId: progress.uploadId,
               });
             } else if (progress.state === 'stored') {
+              const revisionOf = job.revisionOf;
               update(job.key, {
                 key: job.key,
                 phase: 'stored',
                 documentId: progress.documentId,
+                ...(revisionOf === undefined ? {} : { revision: 'declaring' as const }),
               });
+              if (revisionOf !== undefined) {
+                const documentId = progress.documentId;
+                call<undefined>('documents.revisionOf', { params: { projectId, documentId }, body: { revisionOf } }).then(
+                  () => {
+                    update(job.key, { key: job.key, phase: 'stored', documentId, revision: 'declared' });
+                    changed();
+                  },
+                  (error: unknown) => {
+                    if (isSignedOut(error)) {
+                      onSignedOut();
+                      return;
+                    }
+                    update(job.key, { key: job.key, phase: 'stored', documentId, revision: 'failed' });
+                    changed();
+                  },
+                );
+              }
             } else {
               update(job.key, {
                 key: job.key,
@@ -161,9 +194,11 @@ export function UploadsProvider({ projectId, children }: { readonly projectId: s
   }, [changed, onSignedOut, projectId, update]);
 
   const addFiles = useCallback(
-    (files: readonly File[]) => {
+    (files: readonly File[], options: { readonly revisionOf?: string } = {}) => {
+      const keys: string[] = [];
       for (const file of files) {
         const key = nextKey();
+        keys.push(key);
         const check = checkFile(file);
         if (!check.ok) {
           const extension = refusedExtensionOf(file.name);
@@ -176,9 +211,10 @@ export function UploadsProvider({ projectId, children }: { readonly projectId: s
           continue;
         }
         update(key, { key, phase: 'waiting' });
-        queue.current.push({ key, file, controller: new AbortController() });
+        queue.current.push({ key, file, controller: new AbortController(), ...(options.revisionOf === undefined ? {} : { revisionOf: options.revisionOf }) });
       }
       pump();
+      return keys;
     },
     [pump, update],
   );

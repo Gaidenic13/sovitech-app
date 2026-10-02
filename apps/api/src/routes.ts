@@ -1,9 +1,10 @@
 /**
  * The API routes: phase 2's sessions and CSRF, the upload protocol, and a project's
- * documents (docs/adr/0019, 0024, 0025), and phase 3's routes of the wizard contract
+ * documents (docs/adr/0019, 0024, 0025), phase 3's routes of the wizard contract
  * (packages/view-model/src/browser/contract/routes.ts; docs/adr/0036, 0038): the
  * development login (./auth/dev-login.ts), the project list and creation, and the
- * wizard (./wizard/routes.ts). The phase 2 routes return records and 2.8 status lines;
+ * wizard (./wizard/routes.ts), and phase 4's workspace (./workspace/routes.ts;
+ * docs/adr/0043, 0044, 0045). The phase 2 routes return records and 2.8 status lines;
  * every phase 3 route that shows a value answers display objects (prompt 3 section 6).
  *
  * - Every project route reads the session's user from a signed, HTTP-only cookie and
@@ -39,6 +40,7 @@ import type { ApiServices } from './services';
 import { FileStoreError } from './storage/file-store';
 import { abortUpload, appendUpload, completeUpload, createUpload, uploadStatus } from './uploads/service';
 import { registerWizardRoutes } from './wizard/routes';
+import { registerWorkspaceRoutes } from './workspace/routes';
 
 const UUID = { type: 'string', pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' } as const;
 const PROJECT_PARAMS = { type: 'object', properties: { projectId: UUID }, required: ['projectId'] } as const;
@@ -164,6 +166,10 @@ export async function registerApiRoutes(app: FastifyInstance, services: ApiServi
 
   registerAuthRoutes(app, services, guarded);
   registerWizardRoutes(app, services, guarded);
+
+  // ---- Phase 4: the workspace (docs/adr/0043, 0044, 0045) ---------------------------------
+
+  registerWorkspaceRoutes(app, services, guarded);
 
   // ---- Uploads (ADR 0019) --------------------------------------------------------------
 

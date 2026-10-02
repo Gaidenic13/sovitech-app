@@ -249,3 +249,48 @@ describe('US-REVIEW-01 · 2.8 "Reserved terms" · rule 1: evidence excerpts on d
     expect(shown.container.querySelector('details summary')?.textContent).toBe('TEST excerpt');
   });
 });
+
+describe('ADR 0039 decision 11 · phase 3 carried item · rule 7: one request per press on a value\'s actions', () => {
+  test('ADR 0039 decision 11: while a write is on its way, every action button says aria-busy and a press sends nothing; none is disabled', () => {
+    const onAction = vi.fn();
+    const { rerender } = render(<Value display={BUILDING_TYPE} onAction={onAction} actionLabels={LABELS} busy />);
+    for (const button of screen.getAllByRole('button')) {
+      expect(button.getAttribute('aria-busy')).toBe('true');
+      expect(button.hasAttribute('disabled')).toBe(false);
+      expect(button.getAttribute('tabindex')).toBeNull();
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'TEST yes' }));
+    fireEvent.click(screen.getByRole('button', { name: 'TEST edit' }));
+    expect(onAction).not.toHaveBeenCalled();
+    rerender(<Value display={BUILDING_TYPE} onAction={onAction} actionLabels={LABELS} busy={false} />);
+    for (const button of screen.getAllByRole('button')) expect(button.getAttribute('aria-busy')).toBe('false');
+    fireEvent.click(screen.getByRole('button', { name: 'TEST yes' }));
+    expect(onAction).toHaveBeenCalledTimes(1);
+  });
+
+  test('G3-3 · ADR 0039 decision 11: an engineer item\'s "Looks right" and "Something\'s wrong" and an output\'s Add take the same guard', () => {
+    const onAction = vi.fn();
+    render(
+      <>
+        <Value display={ENGINEER_ITEM} onAction={onAction} actionLabels={LABELS} busy />
+        <Value display={OUTPUT_MISSING_INPUT} onAction={onAction} actionLabels={LABELS} busy />
+      </>,
+    );
+    for (const name of ['TEST looks right', 'TEST something wrong', 'Add TEST gross floor area']) {
+      const button = screen.getByRole('button', { name });
+      expect(button.getAttribute('aria-busy'), name).toBe('true');
+      fireEvent.click(button);
+    }
+    expect(onAction).not.toHaveBeenCalled();
+  });
+
+  test('G2-7: the busy state changes only the buttons: the value element shows the same text, badge and lines', () => {
+    const shown = [false, true].map((busy) => {
+      const { container, unmount } = render(<Value display={AREA} busy={busy} />);
+      const html = valueElement(container, AREA).outerHTML;
+      unmount();
+      return html;
+    });
+    expect(new Set(shown).size).toBe(1);
+  });
+});

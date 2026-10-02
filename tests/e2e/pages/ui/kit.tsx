@@ -17,32 +17,71 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import type { ReactElement } from 'react';
 import {
   ActionRow,
+  ActiveFilters,
   Banner,
   Button,
   CalendarDate,
   Card,
+  ChipGroup,
   Choice,
   ChoiceCard,
   ChoiceGroup,
   DemoLine,
   Dropzone,
+  InlinePanel,
+  Inspector,
+  InspectorLayout,
+  MenuButton,
+  ModelArea,
   NotAvailableYet,
   Notice,
   NoticeRegion,
+  PageHeader,
+  Pager,
   Price,
   Progress,
+  RegisterTable,
   SelectField,
+  SelectionList,
+  SideNav,
   SkipForNow,
+  StatusFooter,
   StatusLine,
   Stepper,
+  Switch,
+  Tabs,
   TextField,
   Value,
+  ValueName,
+  WorkspaceFrame,
   KitIcons,
+  type RegisterColumn,
   type ValueActionLabels,
 } from '@sovitech/ui/components';
 import { DisplayObjectSchema, servedDisplayOf, type DisplayObject, type Line } from '@sovitech/view-model/browser';
 
-const { ArrowLeft, ArrowRight, Building2, CalendarClock, ClipboardList, Eye, Flame, Globe, Hotel, MapPin, Pencil } = KitIcons;
+const {
+  ArrowLeft,
+  ArrowRight,
+  Boxes,
+  Building2,
+  CalendarClock,
+  ChevronRight,
+  ClipboardList,
+  Download,
+  Eye,
+  FileText,
+  Flame,
+  Globe,
+  Hotel,
+  House,
+  Layers,
+  LayoutGrid,
+  MapPin,
+  Network,
+  Pencil,
+  Upload,
+} = KitIcons;
 
 const SUBJECT = '0192f000-0000-7000-8000-00000000b001';
 const PROJECT = '0192f000-0000-7000-8000-00000000a001';
@@ -319,6 +358,289 @@ const DEMO: Line = { id: 'demo_data', kind: 'demo_line', text: 'Demo data, not a
 const PROVIDE_LATER: Line = { id: 'provide_later', kind: 'rule_line', text: 'You can provide this later.' };
 const SUGGESTED_REASON: Line = { id: 'suggested_because', kind: 'rule_line', text: 'Suggested because TEST goal' };
 
+// ------------------------------------------------------------------------------------ workspace (phase 4)
+// The workspace pages' values: an Equipment register of TEST assets, the project card, the inspector, the
+// footer, the delete effect, the level labels and the model area. Every one a TEST value in a digit pattern.
+
+const ASSETS = ['0192f000-0000-7000-8000-0000000a5e01', '0192f000-0000-7000-8000-0000000a5e02', '0192f000-0000-7000-8000-0000000a5e03', '0192f000-0000-7000-8000-0000000a5e04'] as const;
+
+const unknownOf = (valueId: string): DisplayObject => ({
+  valueId,
+  kind: 'field',
+  text: 'Unknown',
+  shape: 'missing',
+  missing: 'unknown',
+  badge: { id: 'unknown', label: 'Unknown' },
+});
+
+interface KitAssetRow {
+  readonly assetId: string;
+  readonly tag: DisplayObject;
+  readonly system: DisplayObject;
+  readonly type: DisplayObject;
+  readonly location: DisplayObject;
+  readonly level: DisplayObject;
+  readonly zone: DisplayObject;
+}
+
+const ASSET_ROWS: readonly KitAssetRow[] = [
+  {
+    assetId: ASSETS[0],
+    tag: {
+      valueId: `asset:${ASSETS[0]}.tag`,
+      kind: 'field',
+      text: 'TEST-AHU-12',
+      shape: 'value',
+      badge: { id: 'from_document', label: 'From document' },
+      sourceLine: { id: 'found_in', kind: 'source_line', text: 'Found in TEST Schedule.xlsx, sheet TEST 1' },
+    },
+    system: { valueId: `asset:${ASSETS[0]}.system`, kind: 'field', text: 'TEST HVAC', shape: 'value', badge: { id: 'likely', label: 'Likely' } },
+    type: { valueId: `asset:${ASSETS[0]}.type`, kind: 'field', text: 'TEST air handling unit', shape: 'value', badge: { id: 'sovitech_will_check', label: 'SOVITECH will check' } },
+    location: unknownOf(`asset:${ASSETS[0]}.location`),
+    level: { valueId: `building:${SUBJECT}.levels.upper_1`, kind: 'field', text: 'TEST E1', shape: 'value', badge: { id: 'provided_by_you', label: 'Provided by you' } },
+    zone: unknownOf(`asset:${ASSETS[0]}.zone`),
+  },
+  {
+    assetId: ASSETS[1],
+    tag: { valueId: `asset:${ASSETS[1]}.tag`, kind: 'field', text: 'TEST-FCU-123', shape: 'value', badge: { id: 'from_document', label: 'From document' } },
+    system: unknownOf(`asset:${ASSETS[1]}.system`),
+    type: unknownOf(`asset:${ASSETS[1]}.type`),
+    location: unknownOf(`asset:${ASSETS[1]}.location`),
+    level: unknownOf(`asset:${ASSETS[1]}.level`),
+    zone: unknownOf(`asset:${ASSETS[1]}.zone`),
+  },
+  {
+    assetId: ASSETS[2],
+    tag: { valueId: `asset:${ASSETS[2]}.tag`, kind: 'field', text: 'TEST-P-1.2', shape: 'value', badge: { id: 'from_design_drawings', label: 'From design drawings' } },
+    system: unknownOf(`asset:${ASSETS[2]}.system`),
+    type: { valueId: `asset:${ASSETS[2]}.type`, kind: 'field', text: 'TEST pump', shape: 'value', badge: { id: 'possible', label: 'Possible' } },
+    location: { valueId: `asset:${ASSETS[2]}.location`, kind: 'field', text: 'TEST plant room 12', shape: 'value', badge: { id: 'from_document', label: 'From document' } },
+    level: unknownOf(`asset:${ASSETS[2]}.level`),
+    zone: unknownOf(`asset:${ASSETS[2]}.zone`),
+  },
+  // A tag written as a number alone (A-1): a record whose one part is the number, as the resolver serves it;
+  // the inspector's subheading shows it through ValueName, which renders it through the value element.
+  {
+    assetId: ASSETS[3],
+    tag: {
+      valueId: `asset:${ASSETS[3]}.tag`,
+      kind: 'record',
+      text: '123',
+      parts: ['123'],
+      shape: 'value',
+      badge: { id: 'from_document', label: 'From document' },
+      sourceLine: { id: 'document', kind: 'source_line', text: 'Found in TEST Schedule.xlsx, sheet TEST 1' },
+    },
+    system: { valueId: `asset:${ASSETS[3]}.system`, kind: 'field', text: 'TEST HVAC', shape: 'value', badge: { id: 'likely', label: 'Likely' } },
+    type: { valueId: `asset:${ASSETS[3]}.type`, kind: 'field', text: 'TEST fan coil unit', shape: 'value', badge: { id: 'possible', label: 'Possible' } },
+    location: { valueId: `asset:${ASSETS[3]}.location`, kind: 'field', text: 'TEST guest room corridor 12', shape: 'value', badge: { id: 'from_document', label: 'From document' } },
+    level: unknownOf(`asset:${ASSETS[3]}.level`),
+    zone: unknownOf(`asset:${ASSETS[3]}.zone`),
+  },
+];
+
+/** The row the inspector shows on the frame page: the numerically written tag (A-1). */
+const INSPECTED: KitAssetRow = ASSET_ROWS[3] as KitAssetRow;
+
+const ASSET_COLUMNS: readonly RegisterColumn<KitAssetRow>[] = [
+  { kind: 'value', id: 'tag', header: 'Tag', value: (row) => row.tag, rowHeader: true },
+  { kind: 'value', id: 'system', header: 'System', value: (row) => row.system },
+  { kind: 'value', id: 'type', header: 'Type', value: (row) => row.type },
+  { kind: 'value', id: 'location', header: 'Location', value: (row) => row.location },
+  { kind: 'value', id: 'level', header: 'Floor', value: (row) => row.level },
+  { kind: 'value', id: 'zone', header: 'Zone', value: (row) => row.zone },
+];
+
+const ASSET_POINTS: DisplayObject = {
+  valueId: `asset:${ASSETS[0]}.points`,
+  kind: 'line',
+  text: 'Not available yet: TEST point templates',
+  shape: 'missing',
+  missing: 'not_available_yet',
+  badge: { id: 'not_available_yet', label: 'Not available yet' },
+};
+
+const CARD_BUILDING_TYPE: DisplayObject = {
+  valueId: `building:${SUBJECT}.typeCard`,
+  kind: 'field',
+  text: 'TEST hotel',
+  shape: 'value',
+  badge: { id: 'possible', label: 'Possible' },
+  measure: { label: 'Building type' },
+};
+
+const CARD_AREA: DisplayObject = { ...LAYOUT_AREA, valueId: `building:${SUBJECT}.grossFloorAreaCard` };
+
+const CARD_FLOORS: DisplayObject = {
+  valueId: `building:${SUBJECT}.floors.upper`,
+  kind: 'field',
+  text: 'TEST 12',
+  parts: ['TEST 12'],
+  shape: 'value',
+  badge: { id: 'provided_by_you', label: 'Provided by you' },
+  measure: { label: 'Upper floors' },
+};
+
+const FRAME_PROJECT_NAME: DisplayObject = {
+  valueId: `project:${PROJECT}.name`,
+  kind: 'field',
+  text: 'TEST project 12',
+  shape: 'value',
+  badge: { id: 'provided_by_you', label: 'Provided by you' },
+};
+
+const FRAME_STILL_READING: DisplayObject = { ...STILL_READING };
+
+const DELETE_EFFECT: DisplayObject = {
+  valueId: `document:${DOCUMENT}.deleteEffect`,
+  kind: 'line',
+  text: 'TEST 3 values will return to Unknown',
+  shape: 'value',
+};
+
+const DELETE_FILE: DisplayObject = { valueId: `document:${DOCUMENT}.fileName`, kind: 'record', text: 'TEST-plan-12.pdf', shape: 'value' };
+
+const LEVELS: readonly DisplayObject[] = [
+  { valueId: `building:${SUBJECT}.levels.below_ground_1`, kind: 'field', text: 'TEST S1', shape: 'value', badge: { id: 'provided_by_you', label: 'Provided by you' } },
+  { valueId: `building:${SUBJECT}.levels.ground_1`, kind: 'field', text: 'TEST P', shape: 'value', badge: { id: 'provided_by_you', label: 'Provided by you' } },
+  { valueId: `building:${SUBJECT}.levels.upper_2`, kind: 'field', text: 'TEST E2', shape: 'value', badge: { id: 'provided_by_you', label: 'Provided by you' } },
+];
+
+const SCOPE_HVAC: DisplayObject = { valueId: `project:${PROJECT}.scope.hvac`, kind: 'field', text: 'Included', shape: 'value', badge: { id: 'provided_by_you', label: 'Provided by you' } };
+const SCOPE_FIRE: DisplayObject = { valueId: `project:${PROJECT}.scope.fire_safety`, kind: 'field', text: 'Not provided yet', shape: 'missing', missing: 'not_provided_yet', badge: { id: 'not_provided_yet', label: 'Not provided yet' } };
+
+const MODEL_NOT_AVAILABLE: DisplayObject = {
+  valueId: `project:${PROJECT}.outputs.model`,
+  kind: 'line',
+  text: 'Not available yet: an IFC model of the building',
+  shape: 'missing',
+  missing: 'not_available_yet',
+  badge: { id: 'not_available_yet', label: 'Not available yet' },
+};
+
+const MODEL_STORED_LINE: Line = { id: 'not_analysed', kind: 'status_line', text: 'Not analysed: IFC model stored, not analysed' };
+const NO_MODEL_LINE: Line = { id: 'not_available_yet_named', kind: 'rule_line', text: 'Not available yet: an IFC model of the building' };
+
+const FRAME_ITEMS = [
+  { id: 'proposal', label: 'Proposal', href: '#proposal', icon: House, current: false },
+  { id: 'system_scope', label: 'System Scope', href: '#system-scope', icon: Layers, current: false },
+  { id: 'topology', label: 'Topology', href: '#topology', icon: Network, current: false },
+  { id: 'zones', label: 'Zones', href: '#zones', icon: LayoutGrid, current: false },
+  { id: 'equipment', label: 'Equipment', href: '#equipment', icon: Boxes, current: true },
+  { id: 'documents', label: 'Documents', href: '#documents', icon: FileText, current: false },
+] as const;
+
+const DOCUMENT_FRAME_ITEMS = FRAME_ITEMS.map((item) => ({ ...item, current: item.id === 'documents' }));
+
+/** The sidebar both frame pages share: the project, the flat page list and the project card. */
+function frameSidebar(items: typeof FRAME_ITEMS | typeof DOCUMENT_FRAME_ITEMS): ReactElement {
+  return (
+    <>
+      <p className="kit-sidebar-project">
+        <span className="kit-sidebar-label">Project</span> <ValueName display={FRAME_PROJECT_NAME} showBadge={false} />
+      </p>
+      <SideNav label="Project pages" items={items} />
+      <section aria-labelledby="kit-card-heading" className="kit-stack-tight">
+        <h2 id="kit-card-heading" className="kit-sidebar-label">
+          Building
+        </h2>
+        <ul className="kit-facts">
+          {[PROJECT_TYPE, CARD_BUILDING_TYPE, CARD_AREA, CARD_FLOORS].map((display) => (
+            <li key={display.valueId}>
+              <Value display={display} layout="stack" />
+            </li>
+          ))}
+        </ul>
+      </section>
+    </>
+  );
+}
+
+// The Documents register (phase 4 part B: DR-2's menu control, DR-8's stage in the inspector, DR-10's small line).
+const DOCUMENTS = ['0192f000-0000-7000-8000-00000000d101', '0192f000-0000-7000-8000-00000000d102', '0192f000-0000-7000-8000-00000000d103'] as const;
+
+interface KitDocumentRow {
+  readonly documentId: string;
+  readonly fileName: DisplayObject;
+  readonly category: DisplayObject;
+  readonly version: DisplayObject;
+  readonly stage: DisplayObject;
+  readonly analysis: { readonly line: Line } | { readonly display: DisplayObject };
+}
+
+const fileNameOf = (documentId: string, text: string): DisplayObject => ({ valueId: `document:${documentId}.fileName`, kind: 'record', text, parts: [text], shape: 'value' });
+
+const DOCUMENT_ROWS: readonly KitDocumentRow[] = [
+  {
+    documentId: DOCUMENTS[0],
+    fileName: fileNameOf(DOCUMENTS[0], 'TEST-architectural-plans-level-12-rev-123.pdf'),
+    category: unknownOf(`document:${DOCUMENTS[0]}.category`),
+    version: unknownOf(`document:${DOCUMENTS[0]}.revision`),
+    stage: { valueId: `document:${DOCUMENTS[0]}.stage`, kind: 'field', text: 'Technical design', shape: 'value', badge: { id: 'from_document', label: 'From document' } },
+    analysis: {
+      display: {
+        valueId: `document:${DOCUMENTS[0]}.coverage`,
+        kind: 'line',
+        text: 'Partly analysed (TEST 12 of TEST 123 pages)',
+        shape: 'value',
+        lines: [{ id: 'partly_analysed', kind: 'status_line', text: 'Partly analysed (TEST 12 of TEST 123 pages)' }],
+      },
+    },
+  },
+  {
+    documentId: DOCUMENTS[1],
+    fileName: fileNameOf(DOCUMENTS[1], 'TEST-mep-equipment-schedule-12.xlsx'),
+    category: unknownOf(`document:${DOCUMENTS[1]}.category`),
+    version: unknownOf(`document:${DOCUMENTS[1]}.revision`),
+    stage: unknownOf(`document:${DOCUMENTS[1]}.stage`),
+    analysis: { line: { id: 'analysis_failed', kind: 'status_line', text: 'Analysis failed' } },
+  },
+  {
+    documentId: DOCUMENTS[2],
+    fileName: fileNameOf(DOCUMENTS[2], 'TEST-building-model-rev-12.ifc'),
+    category: unknownOf(`document:${DOCUMENTS[2]}.category`),
+    version: unknownOf(`document:${DOCUMENTS[2]}.revision`),
+    stage: unknownOf(`document:${DOCUMENTS[2]}.stage`),
+    analysis: { line: { id: 'not_analysed', kind: 'status_line', text: 'Not analysed: IFC model stored, not analysed' } },
+  },
+];
+
+const OPENED_DOCUMENT: KitDocumentRow = DOCUMENT_ROWS[0] as KitDocumentRow;
+const ADDED = new Date(2026, 9, 2);
+
+const analysisOf = (row: KitDocumentRow, size: 'default' | 'small'): ReactElement =>
+  'line' in row.analysis ? <StatusLine line={row.analysis.line} size={size} /> : <StatusLine display={row.analysis.display} size={size} />;
+
+const DOCUMENT_MENU = [
+  { id: 'download', label: 'Download', onSelect: noop },
+  { id: 'replace', label: 'Replace', onSelect: noop },
+  { id: 'revision', label: 'Mark as a revision of another document', onSelect: noop },
+  { id: 'delete', label: 'Delete', onSelect: noop },
+];
+
+const DOCUMENT_COLUMNS: readonly RegisterColumn<KitDocumentRow>[] = [
+  {
+    kind: 'content',
+    id: 'name',
+    header: 'Name',
+    rowHeader: true,
+    sort: { direction: 'ascending', onSort: noop },
+    cell: (row) => (
+      <span className="kit-file">
+        <FileText className="sov-icon" data-size="small" size={16} strokeWidth={1.5} aria-hidden="true" focusable="false" />
+        <span className="kit-file__name">
+          <ValueName display={row.fileName} />
+        </span>
+      </span>
+    ),
+  },
+  { kind: 'value', id: 'category', header: 'Category', value: (row) => row.category, sort: { direction: 'none', onSort: noop } },
+  { kind: 'value', id: 'version', header: 'Version', value: (row) => row.version, sort: { direction: 'none', onSort: noop } },
+  { kind: 'value', id: 'stage', header: 'Stage', value: (row) => row.stage, sort: { direction: 'none', onSort: noop } },
+  { kind: 'content', id: 'added', header: 'Date Added', cell: () => <CalendarDate date={ADDED} />, sort: { direction: 'none', onSort: noop } },
+  { kind: 'content', id: 'analysis', header: 'Analysis', cell: (row) => analysisOf(row, 'small'), sort: { direction: 'none', onSort: noop } },
+];
+
 // ------------------------------------------------------------------------------------ pages
 
 export interface KitPage {
@@ -327,6 +649,12 @@ export interface KitPage {
   /** What the page shows (the harness list's `about`). */
   readonly about: string;
   readonly title: string;
+  /**
+   * `own`: the page draws its own landmarks (the workspace frame: its aside, its one main and its footer),
+   * so the harness adds no `main` or title heading around it and the frame takes the whole window, as in
+   * the app (DR-3). Default: the harness's `main` with the title as its `h1`.
+   */
+  readonly landmarks?: 'own';
   readonly displayObjects: readonly DisplayObject[];
   readonly body: () => ReactElement;
 }
@@ -448,7 +776,7 @@ export const KIT_PAGES: readonly KitPage[] = [
   },
   {
     file: 'ui/forms.html',
-    about: 'text fields with an inline error, a character counter and a floating label, the country select with an error, radio cards, tiles and pills, checkbox cards with a detection value and a suggestion, a plain checkbox, and every button variant',
+    about: 'text fields with an inline error, a character counter and a floating label, the country select with an error, radio cards, tiles and pills, unanswered radio groups (cards and plain radios, every option an empty ring: G7-17), checkbox cards with a detection value and a suggestion, a plain checkbox, and every button variant',
     title: 'UI kit: forms',
     displayObjects: [DETECTION_UNKNOWN],
     body: () => (
@@ -477,6 +805,17 @@ export const KIT_PAGES: readonly KitPage[] = [
           <ChoiceCard type="radio" name="buildingType" value="hotel" checked onChange={noop} title="Hotel" icon={Hotel} shape="tile" />
           <ChoiceCard type="radio" name="buildingType" value="office" checked={false} onChange={noop} title="Office" icon={Building2} shape="tile" />
         </ChoiceGroup>
+        <div id="forms-unanswered" className="kit-stack">
+          <ChoiceGroup legend="TEST question with no answer yet">
+            <ChoiceCard type="radio" name="unansweredType" value="new_construction" checked={false} onChange={noop} title="New construction" icon={Building2} indicator="bottom-center" />
+            <ChoiceCard type="radio" name="unansweredType" value="renovation" checked={false} onChange={noop} title="Renovation" icon={Building2} indicator="bottom-center" />
+          </ChoiceGroup>
+          <fieldset className="kit-plain-group">
+            <legend>TEST area basis with no answer yet</legend>
+            <Choice type="radio" name="unansweredBasis" value="gross_total" checked={false} onChange={noop} label="TEST gross total" />
+            <Choice type="radio" name="unansweredBasis" value="net_usable" checked={false} onChange={noop} label="TEST net usable" />
+          </fieldset>
+        </div>
         <ChoiceGroup legend="When does it operate?" icon={CalendarClock} footer={<SkipForNow question={{ questionId: 'q.schedule', state: 'unanswered', skip: { kind: 'skip', questionId: 'q.schedule' }, afterSkip: null }} label="Skip for now" onSkip={noop} />}>
           <ChoiceCard type="radio" name="schedule" value="around_the_clock" checked={false} onChange={noop} title="Around the clock" icon={CalendarClock} shape="pill" />
           <ChoiceCard type="radio" name="schedule" value="business_hours" checked={false} onChange={noop} title="Business hours" icon={CalendarClock} shape="pill" />
@@ -673,6 +1012,327 @@ export const KIT_PAGES: readonly KitPage[] = [
       </div>
     ),
   },
+  {
+    file: 'ui/workspace-frame.html',
+    about:
+      'the phase 4 workspace frame on the demo project, with its own landmarks (the sidebar an aside, the page column the one main, the footer the contentinfo: DR-3): the sidebar with the flat page list and the project card, the page header with its back link, the active filters, the Equipment register with selection, the open row, the badge column (a missing type\'s pill in its own cell: DR-6), the pinned name and controls (DR-2) and the row links, the pager, the inspector with its tabs and a tag written as a number in its subheading (A-1), and the 48px status footer with the demo line and "Still reading"',
+    title: 'UI kit: workspace frame',
+    landmarks: 'own',
+    displayObjects: [
+      FRAME_PROJECT_NAME,
+      PROJECT_TYPE,
+      CARD_BUILDING_TYPE,
+      CARD_AREA,
+      CARD_FLOORS,
+      ...ASSET_ROWS.flatMap((row) => [row.tag, row.system, row.type, row.location, row.level, row.zone]),
+      ASSET_POINTS,
+      FRAME_STILL_READING,
+    ],
+    body: () => (
+      <WorkspaceFrame
+        sidebarLabel="Project"
+        sidebar={frameSidebar(FRAME_ITEMS)}
+        footer={<StatusFooter label="Project status" demoLine={DEMO} stillReading={FRAME_STILL_READING} />}
+      >
+        <PageHeader
+          title="Equipment"
+          subtitle="Explore and filter the equipment found in your documents."
+          back={{ label: 'Back to System Scope', href: '#system-scope' }}
+          actions={
+            <Button variant="secondary" icon={Download}>
+              Filters
+            </Button>
+          }
+        />
+        <ActiveFilters
+          label="Active filters"
+          filters={[
+            { id: 'system', name: 'System', value: 'HVAC' },
+            { id: 'level', name: 'Floor', value: <ValueName display={ASSET_ROWS[0]?.level ?? FRAME_PROJECT_NAME} /> },
+          ]}
+          removeLabel="Remove this filter"
+          onRemove={noop}
+          clearLabel="Clear filters"
+          onClear={noop}
+        />
+        <InspectorLayout
+          inspector={
+            <Inspector
+              id="kit-inspector"
+              heading="Equipment details"
+              subheading={<ValueName display={INSPECTED.tag} showBadge={false} />}
+              closeLabel="Close"
+              onClose={noop}
+              footer={
+                <Button variant="secondary" trailingIcon={ChevronRight}>
+                  Open the full record
+                </Button>
+              }
+            >
+              <Tabs
+                label="Equipment details"
+                tabs={[
+                  {
+                    id: 'overview',
+                    label: 'Overview',
+                    panel: (
+                      <div className="kit-facts">
+                        <Value display={INSPECTED.type} layout="row" label="Type" />
+                        <Value display={INSPECTED.system} layout="row" label="System" />
+                        <Value display={INSPECTED.location} layout="row" label="Location" />
+                      </div>
+                    ),
+                  },
+                  { id: 'points', label: 'Points', panel: <NotAvailableYet display={ASSET_POINTS} /> },
+                  { id: 'documents', label: 'Documents', panel: <p>TEST documents</p> },
+                ]}
+              />
+            </Inspector>
+          }
+        >
+          <RegisterTable<KitAssetRow>
+            label="Equipment"
+            columns={ASSET_COLUMNS}
+            rows={ASSET_ROWS}
+            rowKey={(row) => row.assetId}
+            badgeColumn={{ column: 'type', header: 'Badge' }}
+            selection={{ selected: new Set([ASSETS[1]]), onToggle: noop, onToggleAll: noop, header: 'Select', rowLabel: 'Select this equipment', allLabel: 'Select all equipment on this page' }}
+            open={{ onOpen: noop, label: 'Show details', header: 'Details', inspectorId: 'kit-inspector' }}
+            current={INSPECTED.assetId}
+            rowAction={{
+              header: 'Full record',
+              render: () => (
+                <a className="sov-icon-button" href="#asset" aria-label="Open the full record">
+                  <ChevronRight className="sov-icon" data-size="small" size={16} strokeWidth={1.5} aria-hidden="true" focusable="false" />
+                </a>
+              ),
+            }}
+          />
+          <Pager label="Pages" previousLabel="Previous" nextLabel="Next" hasPrevious={false} hasNext onPrevious={noop} onNext={noop} />
+        </InspectorLayout>
+      </WorkspaceFrame>
+    ),
+  },
+  {
+    file: 'ui/workspace-documents.html',
+    about:
+      'the phase 4 Documents register in the workspace frame at 1440 with its inspector open (phase 4 part B): long file names, the pinned name, details and "More actions" controls (DR-2), the Analysis lines in the small size (DR-10), and the inspector\'s Stage "Technical design" with its badge in the 112px-label detail grid, no word split (DR-8)',
+    title: 'UI kit: workspace documents',
+    landmarks: 'own',
+    displayObjects: [
+      FRAME_PROJECT_NAME,
+      PROJECT_TYPE,
+      CARD_BUILDING_TYPE,
+      CARD_AREA,
+      CARD_FLOORS,
+      ...DOCUMENT_ROWS.flatMap((row) => [row.fileName, row.category, row.version, row.stage, ...('display' in row.analysis ? [row.analysis.display] : [])]),
+      FRAME_STILL_READING,
+    ],
+    body: () => (
+      <WorkspaceFrame
+        sidebarLabel="Project"
+        sidebar={frameSidebar(DOCUMENT_FRAME_ITEMS)}
+        footer={<StatusFooter label="Project status" demoLine={DEMO} stillReading={FRAME_STILL_READING} />}
+      >
+        <PageHeader
+          eyebrow="Documents"
+          title="Project Documents"
+          subtitle="Upload, view and manage all project-related documents."
+          actions={
+            <Button variant="primary" icon={Upload}>
+              Upload Document
+            </Button>
+          }
+        />
+        <InspectorLayout
+          inspector={
+            <Inspector
+              id="kit-document-inspector"
+              heading={<ValueName display={OPENED_DOCUMENT.fileName} />}
+              subheading="PDF"
+              closeLabel="Close"
+              onClose={noop}
+              footer={
+                <div className="kit-inspector-actions">
+                  <Button variant="secondary" icon={Download}>
+                    Download
+                  </Button>
+                  <MenuButton label="More actions" items={DOCUMENT_MENU} />
+                </div>
+              }
+            >
+              <dl className="kit-details">
+                {(
+                  [
+                    ['Category', <Value key="category" display={OPENED_DOCUMENT.category} layout="bare" />],
+                    ['Version', <Value key="version" display={OPENED_DOCUMENT.version} layout="bare" />],
+                    ['Stage', <Value key="stage" display={OPENED_DOCUMENT.stage} layout="bare" />],
+                    ['Added', <CalendarDate key="added" date={ADDED} />],
+                    ['Status', analysisOf(OPENED_DOCUMENT, 'default')],
+                  ] as const
+                ).map(([label, content]) => (
+                  <div key={label} className="kit-detail" data-detail={label}>
+                    <dt>{label}</dt>
+                    <dd>{content}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Inspector>
+          }
+        >
+          <RegisterTable<KitDocumentRow>
+            label="Project documents"
+            columns={DOCUMENT_COLUMNS}
+            rows={DOCUMENT_ROWS}
+            rowKey={(row) => row.documentId}
+            open={{ onOpen: noop, label: 'Show details', header: 'Details', inspectorId: 'kit-document-inspector' }}
+            current={OPENED_DOCUMENT.documentId}
+            rowAction={{ header: 'Actions', render: () => <MenuButton label="More actions" items={DOCUMENT_MENU} /> }}
+          />
+          <Pager label="Pages" previousLabel="Previous" nextLabel="Next" hasPrevious={false} hasNext onPrevious={noop} onNext={noop} />
+        </InspectorLayout>
+      </WorkspaceFrame>
+    ),
+  },
+  {
+    file: 'ui/workspace-controls.html',
+    about:
+      'the phase 4 controls on a project with no demo flag: switches off, on and busy, underline tabs, a menu button with its menu open, the inline delete confirmation with its bound effect, chips with no count, the pager, a list-equivalent selection of levels, an empty register with sortable headers and its action, and the status footer with no demo line',
+    title: 'UI kit: workspace controls',
+    displayObjects: [SCOPE_HVAC, SCOPE_FIRE, DELETE_EFFECT, DELETE_FILE, ...LEVELS, FRAME_STILL_READING],
+    body: () => (
+      <div className="kit-stack">
+        {section(
+          'Switches',
+          <div className="kit-stack">
+            <div className="kit-switch-row">
+              <span id="kit-switch-hvac">HVAC</span>
+              <Value display={SCOPE_HVAC} layout="compact" label={null} />
+              <Switch checked onChange={noop} label="Include HVAC in the scope" describedBy="kit-switch-hvac" />
+            </div>
+            <div className="kit-switch-row">
+              <span id="kit-switch-fire">Fire Safety</span>
+              <Value display={SCOPE_FIRE} layout="compact" label={null} />
+              <Switch checked={false} onChange={noop} label="Include Fire Safety in the scope" describedBy="kit-switch-fire" />
+            </div>
+            <div className="kit-switch-row">
+              <span>Lighting</span>
+              <Switch checked onChange={noop} label="Include Lighting in the scope" busy />
+            </div>
+          </div>,
+        )}
+        {section(
+          'Tabs and a menu',
+          <div className="kit-row">
+            <div className="kit-panel">
+              <Tabs
+                label="System details"
+                tabs={[
+                  { id: 'overview', label: 'Overview', panel: <p>Heating, ventilation and air conditioning.</p> },
+                  { id: 'equipment', label: 'Equipment', panel: <p>TEST equipment</p> },
+                  { id: 'zones', label: 'Zones', panel: <p>TEST zones</p> },
+                ]}
+              />
+            </div>
+            <div className="kit-menu-slot">
+              <MenuButton
+                label="More actions"
+                defaultOpen
+                items={[
+                  { id: 'download', label: 'Download', onSelect: noop },
+                  { id: 'replace', label: 'Replace', onSelect: noop },
+                  { id: 'revision', label: 'Mark as a revision of another document', onSelect: noop },
+                  { id: 'delete', label: 'Delete', onSelect: noop },
+                ]}
+              />
+            </div>
+          </div>,
+        )}
+        {section(
+          'Inline confirmation',
+          <InlinePanel heading="Delete this document?" onClose={noop} headingLevel={3}>
+            <p>
+              <ValueName display={DELETE_FILE} />
+            </p>
+            <StatusLine display={DELETE_EFFECT} />
+            <p className="kit-note">The file, its extracted text and its excerpts are erased. Values that came only from this document return to Unknown.</p>
+            <div className="kit-row">
+              <Button variant="secondary">Delete</Button>
+              <Button variant="quiet">Cancel</Button>
+            </div>
+          </InlinePanel>,
+        )}
+        {section(
+          'Chips, pager and a list of levels',
+          <div className="kit-stack">
+            <ChipGroup
+              label="Document category"
+              name="category"
+              options={[
+                { value: 'all', label: 'All Documents' },
+                { value: 'architectural', label: 'Architectural' },
+                { value: 'mep', label: 'MEP' },
+                { value: 'other', label: 'Other' },
+              ]}
+              value="all"
+              onChange={noop}
+            />
+            <Pager label="Pages" previousLabel="Previous" nextLabel="Next" hasPrevious hasNext onPrevious={noop} onNext={noop} />
+            <div className="kit-panel">
+              <SelectionList
+                label="Floors"
+                options={LEVELS.map((level) => ({ id: level.valueId, content: <ValueName display={level} showBadge={false} /> }))}
+                selected={LEVELS[1]?.valueId ?? null}
+                onSelect={noop}
+              />
+            </div>
+          </div>,
+        )}
+        {section(
+          'An empty register',
+          <RegisterTable<KitAssetRow>
+            label="Project documents"
+            columns={[
+              { kind: 'content', id: 'name', header: 'Name', cell: () => null, rowHeader: true, sort: { direction: 'ascending', onSort: noop } },
+              { kind: 'content', id: 'category', header: 'Category', cell: () => null, sort: { direction: 'none', onSort: noop } },
+              { kind: 'content', id: 'added', header: 'Date Added', cell: () => null, sort: { direction: 'none', onSort: noop } },
+            ]}
+            rows={[]}
+            rowKey={(row) => row.assetId}
+            empty={
+              <div className="kit-stack-tight">
+                <p>No documents yet. Upload your drawings, schedules and other files to start.</p>
+                <Button variant="accent" icon={Upload}>
+                  Upload a document
+                </Button>
+              </div>
+            }
+          />,
+        )}
+        <StatusFooter label="Project status" demoLine={null} stillReading={FRAME_STILL_READING} />
+      </div>
+    ),
+  },
+  {
+    file: 'ui/model-area.html',
+    about:
+      'the model area with no viewer (the owner\'s answer of 2026-10-02; R-080): no model stored, named by a served "Not available yet" with its action, the same from a served line, and a stored model shown by its 2.8 line; no drawing of any model',
+    title: 'UI kit: model area',
+    displayObjects: [MODEL_NOT_AVAILABLE],
+    body: () => (
+      <div className="kit-stack">
+        <ModelArea heading="Building model" state="no_model" status={{ display: MODEL_NOT_AVAILABLE }} action={{ label: 'Upload a document', onPress: noop, icon: Upload }} />
+        <div className="kit-row">
+          <div className="kit-half">
+            <ModelArea heading="Building model" state="no_model" status={{ line: NO_MODEL_LINE }} size="panel" />
+          </div>
+          <div className="kit-half">
+            <ModelArea heading="Building model" state="model_stored" status={{ line: MODEL_STORED_LINE }} size="panel" />
+          </div>
+        </div>
+      </div>
+    ),
+  },
 ];
 
 // ------------------------------------------------------------------------------------ HTML
@@ -684,23 +1344,71 @@ const PAGE_STYLE = `
         color: var(--sov-text-primary);
         font-family: var(--sov-font-sans);
       }
-      main {
+      .kit-main {
         display: grid;
         gap: 32px;
         max-width: 1180px;
         margin: 0 auto;
         padding: 32px 48px;
       }
-      h1 {
+      .kit-main > h1 {
         margin: 0;
         font-size: var(--sov-title-size);
         font-weight: var(--sov-title-weight);
         letter-spacing: var(--sov-title-tracking);
       }
-      h2 {
+      .kit-section > h2 {
         margin: 0 0 16px;
         font-size: 17px;
         font-weight: var(--sov-weight-semibold);
+      }
+      .kit-plain-group {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+      .kit-file {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        min-width: 128px;
+      }
+      .kit-file > .sov-icon {
+        margin-top: 2px;
+        color: var(--sov-text-tertiary);
+      }
+      .kit-file__name {
+        min-width: 0;
+      }
+      .kit-details {
+        display: grid;
+        margin: 0;
+      }
+      .kit-detail {
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr);
+        align-items: start;
+        gap: 16px;
+        padding: 8px 0;
+        font-size: 14px;
+      }
+      .kit-detail > dt {
+        color: var(--sov-text-tertiary);
+      }
+      .kit-detail > dd {
+        min-width: 0;
+        margin: 0;
+      }
+      .kit-inspector-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+      }
+      .kit-inspector-actions > .sov-button {
+        flex: 1 1 auto;
       }
       .kit-stack {
         display: grid;
@@ -717,6 +1425,52 @@ const PAGE_STYLE = `
       .kit-inline .sov-value__text,
       .kit-inline .sov-badge {
         display: inline;
+      }
+      .kit-stack-tight {
+        display: grid;
+        justify-items: start;
+        gap: 8px;
+      }
+      .kit-panel {
+        flex: 1 1 320px;
+        max-width: 420px;
+      }
+      .kit-half {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      .kit-menu-slot {
+        min-height: 220px;
+      }
+      .kit-switch-row {
+        display: grid;
+        grid-template-columns: 160px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 16px;
+        max-width: 560px;
+      }
+      .kit-note {
+        margin: 0;
+        color: var(--sov-text-tertiary);
+      }
+      .kit-sidebar-project {
+        display: grid;
+        gap: 4px;
+        margin: 0;
+        font-size: 14px;
+      }
+      .kit-sidebar-label {
+        margin: 0;
+        color: var(--sov-text-muted);
+        font-size: 13px;
+        font-weight: var(--sov-weight-medium);
+      }
+      .kit-facts {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
       }`;
 
 function escapeScript(json: string): string {
@@ -759,10 +1513,10 @@ export function kitPageHtml(page: KitPage): string {
     </script>
   </head>
   <body data-render-ready="">
-    <main>
+    ${page.landmarks === 'own' ? markup : `<main class="kit-main">
       <h1>${page.title}</h1>
       ${markup}
-    </main>
+    </main>`}
   </body>
 </html>
 `;

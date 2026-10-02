@@ -681,6 +681,27 @@ describe('US-REVIEW-05 · US-INTAKE-19 · rule 5 · rule 7: acting on step 8 ite
     await waitFor(() => expect(sentTo(seen, 'POST', '/fields/confirm')).toBe(2));
   });
 
+  it('V-8 · ADR 0039 decision 11 · rule 7: while a "For you" item\'s Yes is on its way, the item\'s actions say so with aria-busy (the kit\'s Value `busy`), are never disabled and send nothing, then take presses again once the step has read its view again', async () => {
+    const confirm = heldHandler(() => json(200, { displayObjects: [] }));
+    const seen = api({ view: () => json(200, withConfirmation()) }, { [`POST /api/projects/${PROJECT}/fields/confirm`]: confirm.handler });
+    renderAt(STEP8);
+    await screen.findByText('TEST yes it is a hotel');
+    const forYou = () => screen.getByRole('region', { name: 'For you' });
+    fireEvent.click(within(forYou()).getByRole('button', { name: 'Yes' }));
+    await settle();
+    expect(sentTo(seen, 'POST', '/fields/confirm')).toBe(1);
+    for (const name of ['Yes', 'Edit']) {
+      const button = within(forYou()).getByRole('button', { name });
+      expect(button.getAttribute('aria-busy'), name).toBe('true');
+      expect(button.hasAttribute('disabled'), name).toBe(false);
+    }
+    fireEvent.click(within(forYou()).getByRole('button', { name: 'Edit' }));
+    expect(within(forYou()).queryByRole('button', { name: 'Save' })).toBeNull();
+    confirm.answer();
+    await waitFor(() => expect(sentTo(seen, 'GET', '/steps/8')).toBe(2));
+    await waitFor(() => expect(within(forYou()).getByRole('button', { name: 'Yes' }).getAttribute('aria-busy')).toBe('false'));
+  });
+
   it('A-1 · rule 4 · rule 7: "Choose this value" pressed twice, or both values pressed, while the choice is on its way sends one choice; the choices take presses again once the step has read its view again', async () => {
     const resolve = heldHandler(() => json(200, { displayObjects: [] }));
     const seen = api({}, { [`POST /api/projects/${PROJECT}/fields/resolve-conflict`]: resolve.handler });

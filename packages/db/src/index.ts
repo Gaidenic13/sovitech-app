@@ -128,6 +128,7 @@ export {
   deriveContextFor,
   readAssetRegisterInputs,
   readCandidates,
+  readDocumentRegistrations,
   readFieldInputs,
   readGuardrailEvents,
   readProjectDocuments,

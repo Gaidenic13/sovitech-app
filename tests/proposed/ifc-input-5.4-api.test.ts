@@ -620,7 +620,8 @@ describe('ifc-input 5.4 through the API half of the IFC value path, gates opened
     expect(await summary(twin)).toEqual(revA);
   });
 
-  it.todo('IFC-12 · waits for the plan component (phase 4) and ifc-input 6.2.15 (view-provenance): a plan with the model\'s space areas printed into it fails the render test');
+  // IFC-12 runs in tests/proposed/IFC-12.test.ts (phase 4): the viewer spike's storey plan of the ARH fixture, with a
+  // space's area printed into it, fails the render test (docs/adr/0046-viewer-spike.md).
 
   it('IFC-13 · waits for ifc-input 6.2.1, 6.2.2 and 6.2.4 (ifc-values, ifc-identity) · R-028: rev B, declared a revision of rev A, supersedes the one changed value (CH-01\'s capacity) with no conflict, and its one notice lists that change alone', async () => {
     const assetId = await subjectFor(revision, 'revA', gid(MODELS.revA, 'CH-01'));

@@ -17,23 +17,71 @@
         color: var(--sov-text-primary);
         font-family: var(--sov-font-sans);
       }
-      main {
+      .kit-main {
         display: grid;
         gap: 32px;
         max-width: 1180px;
         margin: 0 auto;
         padding: 32px 48px;
       }
-      h1 {
+      .kit-main > h1 {
         margin: 0;
         font-size: var(--sov-title-size);
         font-weight: var(--sov-title-weight);
         letter-spacing: var(--sov-title-tracking);
       }
-      h2 {
+      .kit-section > h2 {
         margin: 0 0 16px;
         font-size: 17px;
         font-weight: var(--sov-weight-semibold);
+      }
+      .kit-plain-group {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+      .kit-file {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        min-width: 128px;
+      }
+      .kit-file > .sov-icon {
+        margin-top: 2px;
+        color: var(--sov-text-tertiary);
+      }
+      .kit-file__name {
+        min-width: 0;
+      }
+      .kit-details {
+        display: grid;
+        margin: 0;
+      }
+      .kit-detail {
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr);
+        align-items: start;
+        gap: 16px;
+        padding: 8px 0;
+        font-size: 14px;
+      }
+      .kit-detail > dt {
+        color: var(--sov-text-tertiary);
+      }
+      .kit-detail > dd {
+        min-width: 0;
+        margin: 0;
+      }
+      .kit-inspector-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+      }
+      .kit-inspector-actions > .sov-button {
+        flex: 1 1 auto;
       }
       .kit-stack {
         display: grid;
@@ -50,6 +98,52 @@
       .kit-inline .sov-value__text,
       .kit-inline .sov-badge {
         display: inline;
+      }
+      .kit-stack-tight {
+        display: grid;
+        justify-items: start;
+        gap: 8px;
+      }
+      .kit-panel {
+        flex: 1 1 320px;
+        max-width: 420px;
+      }
+      .kit-half {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      .kit-menu-slot {
+        min-height: 220px;
+      }
+      .kit-switch-row {
+        display: grid;
+        grid-template-columns: 160px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 16px;
+        max-width: 560px;
+      }
+      .kit-note {
+        margin: 0;
+        color: var(--sov-text-tertiary);
+      }
+      .kit-sidebar-project {
+        display: grid;
+        gap: 4px;
+        margin: 0;
+        font-size: 14px;
+      }
+      .kit-sidebar-label {
+        margin: 0;
+        color: var(--sov-text-muted);
+        font-size: 13px;
+        font-weight: var(--sov-weight-medium);
+      }
+      .kit-facts {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
       }
     </style>
     <script type="application/json" data-render-display-objects>
@@ -90,7 +184,7 @@
     </script>
   </head>
   <body data-render-ready="">
-    <main>
+    <main class="kit-main">
       <h1>UI kit: lines</h1>
       <p class="sov-demo-line" role="note" data-line="demo_data" data-demo-line=""><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info sov-icon" data-size="small" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg><span data-copy-kind="status-line">Demo data, not an assessment of the real building</span></p><section class="kit-section"><h2>Status lines</h2><div class="kit-stack"><p class="sov-status-line" data-value-id="project:0192f000-0000-7000-8000-00000000a001.openItems.owner"><span>TEST 12 things for you to check</span></p><p class="sov-status-line" data-value-id="project:0192f000-0000-7000-8000-00000000a001.documents.stillReading"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list sov-icon" data-size="small" aria-hidden="true" focusable="false"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></svg><span>Still reading TEST 12 files. Your estimate will update when they finish.</span></p><p class="sov-status-line" data-value-id="document:0192f000-0000-7000-8000-00000000d001.coverage"><span data-copy-kind="status-line">Partly analysed (TEST 12 of TEST 123 pages)</span></p><p class="sov-status-line" data-line="analysis_failed"><span data-copy-kind="status-line">Analysis failed</span></p><p class="sov-status-line" data-line="not_analysed"><span data-copy-kind="status-line">Not analysed: IFC model stored, not analysed</span></p><p class="sov-status-line" data-line="provide_later"><span>You can provide this later.</span></p></div></section><section class="kit-section"><h2>Not available yet</h2><div class="kit-stack"><div class="sov-not-available" data-value-id="project:0192f000-0000-7000-8000-00000000a001.outputs.points" data-shape="missing" data-kind="line"><div class="sov-value__line"><span class="sov-badge" data-badge="not_available_yet" data-copy-kind="badge">Not available yet</span></div><p class="sov-value__status" data-line="add_to_see_this">Add the TEST gross floor area to see this.</p><button type="button" class="sov-button" data-variant="link" data-size="default" data-icon="true" data-copy-kind="action-label"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus sov-icon" data-size="small" aria-hidden="true" focusable="false"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg><span>Add TEST gross floor area</span></button></div><div class="sov-not-available" data-value-id="project:0192f000-0000-7000-8000-00000000a001.outputs.capex" data-shape="missing" data-kind="line"><div class="sov-value__line"><span class="sov-badge" data-badge="not_available_yet" data-copy-kind="badge">Not available yet</span><p class="sov-not-available__text">Not available yet: TEST cost ranges</p></div></div></div></section><section class="kit-section"><h2>Prices</h2><div class="kit-stack"><div class="sov-price"><span class="sov-field-value__label">Investment</span><div class="sov-value" data-value-id="project:0192f000-0000-7000-8000-00000000a001.outputs.capexTest" data-shape="range" data-kind="field" data-numeric="true"><p class="sov-price__stage" data-line="preliminary_investment_estimate" data-copy-kind="status-line">Preliminary investment estimate</p><div class="sov-value__line"><bdi class="sov-value__text">about TEST 1,200 (TEST 1,100 to TEST 1,300) EUR</bdi><span class="sov-badge" data-badge="estimated" data-copy-kind="badge">Estimated</span></div></div></div><div class="sov-price"><span class="sov-field-value__label">Investment</span><div class="sov-value" data-value-id="project:0192f000-0000-7000-8000-00000000a001.outputs.capex" data-shape="missing" data-kind="line" data-numeric="true"><div class="sov-value__line"><bdi class="sov-value__text">Not available yet: TEST cost ranges</bdi><span class="sov-badge" data-badge="not_available_yet" data-copy-kind="badge">Not available yet</span></div></div></div></div></section><section class="kit-section"><h2>Skip for now</h2><div class="kit-stack"><div class="sov-skip"><button aria-busy="false" type="button" class="sov-button" data-variant="quiet" data-size="default" data-icon="false" data-copy-kind="action-label"><span>Skip for now</span></button></div><div class="sov-skip"><p class="sov-status-line" data-line="provide_later"><span>You can provide this later.</span></p></div></div></section>
     </main>

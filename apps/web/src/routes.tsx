@@ -21,6 +21,14 @@ import { Step7 } from './steps/step-7/Step7';
 import { ProposalPage } from './steps/step-8/ProposalPage';
 import { Step8 } from './steps/step-8/Step8';
 import { ProjectLayout } from './wizard/ProjectLayout';
+import { WorkspaceLayout, WorkspacePageFailed } from './workspace/WorkspaceLayout';
+import { WORKSPACE_FRAME_HANDLE } from './workspace/handle';
+import { AssetPage } from './workspace/pages/asset/AssetPage';
+import { DocumentsPage } from './workspace/pages/documents/DocumentsPage';
+import { EquipmentPage } from './workspace/pages/equipment/EquipmentPage';
+import { SystemScopePage } from './workspace/pages/system-scope/SystemScopePage';
+import { TopologyPage } from './workspace/pages/topology/TopologyPage';
+import { ZonesPage } from './workspace/pages/zones/ZonesPage';
 
 /**
  * The app's routes (react-router 7, docs/adr/0035-phase-3-frontend-dependencies.md). `APP_PATHS` is
@@ -35,7 +43,15 @@ import { ProjectLayout } from './wizard/ProjectLayout';
  * - `/projects/:projectId/steps/:step` (OB-1 to OB-8); a project opens at step 1 (PRD R-009 "Until
  *   decided"); the stepper opens nothing (R-008);
  * - `/projects/:projectId/extracted` (UD-45), `/projects/:projectId/proposal` (UD-07 and phase 3's
- *   proposal page).
+ *   proposal page, the workspace's landing after Generate: docs/adr/0043 decision 3);
+ * - phase 4's workspace pages (docs/adr/0043-workspace-navigation-and-shell.md), in the workspace frame
+ *   (the group's route carries ./workspace/handle.ts's handle; ../wizard/ProjectLayout.tsx draws the frame,
+ *   ./workspace/WorkspaceFrame.tsx): the proposal page as the landing, `/projects/:projectId/system-scope` (DB-16), `/topology` (DB-08, its
+ *   Logical view), `/zones` (DB-20), `/equipment` (DB-17), `/equipment/:assetId` (UD-08) and `/documents`
+ *   (DB-15). No route for Overview, Property, Alarms, Reports or Metrics: not built in this phase (PRD R-050,
+ *   R-146 "Until decided"; the `operations` gate; phases 5 and 6). The group has its own error element
+ *   (A-1): a page that throws while it renders shows its failure state inside the kept frame, so the
+ *   sidebar and the footer with the demo line stay (./workspace/WorkspaceLayout.tsx `WorkspacePageFailed`).
  * Every route but sign-in needs a session (rule 13); a screen of a project sits in its layout
  * (../wizard/ProjectLayout.tsx: the header's name, the demo line, the quiet notice, the uploads).
  *
@@ -52,6 +68,12 @@ export const APP_PATHS = [
   '/projects/:projectId/steps/:step',
   '/projects/:projectId/extracted',
   '/projects/:projectId/proposal',
+  '/projects/:projectId/system-scope',
+  '/projects/:projectId/topology',
+  '/projects/:projectId/zones',
+  '/projects/:projectId/equipment',
+  '/projects/:projectId/equipment/:assetId',
+  '/projects/:projectId/documents',
 ] as const;
 
 /** A page's name in the document title: "<page> – SOVITECH". */
@@ -182,7 +204,21 @@ export const routes: RouteObject[] = [
                 }),
               },
               { path: 'extracted', element: <ExtractedPage />, handle: projectPage(() => copy.step3.extracted.title) },
-              { path: 'proposal', element: <ProposalPage />, handle: projectPage(() => copy.proposal.title) },
+              {
+                // The workspace group (docs/adr/0043): the project's layout draws the workspace frame around each.
+                element: <WorkspaceLayout />,
+                errorElement: <WorkspacePageFailed />,
+                handle: WORKSPACE_FRAME_HANDLE,
+                children: [
+                  { path: 'proposal', element: <ProposalPage />, handle: projectPage(() => copy.proposal.title) },
+                  { path: 'system-scope', element: <SystemScopePage />, handle: projectPage(() => copy.titles.systemScope) },
+                  { path: 'topology', element: <TopologyPage />, handle: projectPage(() => copy.titles.topology) },
+                  { path: 'zones', element: <ZonesPage />, handle: projectPage(() => copy.titles.zones) },
+                  { path: 'equipment', element: <EquipmentPage />, handle: projectPage(() => copy.titles.equipment) },
+                  { path: 'equipment/:assetId', element: <AssetPage />, handle: projectPage(() => copy.titles.asset) },
+                  { path: 'documents', element: <DocumentsPage />, handle: projectPage(() => copy.titles.documents) },
+                ],
+              },
             ],
           },
         ],

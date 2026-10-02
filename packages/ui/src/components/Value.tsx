@@ -58,6 +58,13 @@ export interface ValueProps {
    * the source line never sit in it (2.8 "Prominence").
    */
   readonly evidenceLabel?: string;
+  /**
+   * A write from one of this value's actions is on its way (phase 3's carried item; ADR 0039 decision
+   * 11): every action button says so with `aria-busy`, and a press sends nothing more until the caller
+   * clears it, however fast the presses come. Never a disabled state (rule 7): the buttons stay in the
+   * tab order and take presses again as soon as the answer is in. The caller's `useInFlight` sets it.
+   */
+  readonly busy?: boolean;
 }
 
 /** The kinds of action the value itself shows; the others render beside it (see ValueProps.onAction). */
@@ -92,11 +99,12 @@ function textPieces(display: DisplayObject): ReactNode {
   return pieces;
 }
 
-function LineText({ line, className }: { readonly line: Line; readonly className: string }) {
+function LineText({ line, className, phrasing = false }: { readonly line: Line; readonly className: string; readonly phrasing?: boolean }) {
+  const Element = phrasing ? 'span' : 'p';
   return (
-    <p className={className} data-line={line.id} data-copy-kind={copyKindOfLine(line.kind)}>
+    <Element className={className} data-line={line.id} data-copy-kind={copyKindOfLine(line.kind)}>
       {line.text}
-    </p>
+    </Element>
   );
 }
 
@@ -130,7 +138,7 @@ const NUMBER_ONLY = /^[\p{N}][\p{N}\s.,]*$/u;
  * name, a choice, an address) keep proportional figures and punctuation, digits or not: their parts
  * are the whole text.
  */
-function isNumericDisplay(display: DisplayObject): boolean {
+export function isNumericDisplay(display: DisplayObject): boolean {
   if (display.shape === 'range' || display.measure?.unit !== undefined || display.kind === 'line') return true;
   const parts = display.parts ?? [];
   return display.kind === 'record' && parts.length > 0 && parts.every((part) => NUMBER_ONLY.test(part));
@@ -140,11 +148,18 @@ function ValueActions({
   actions,
   onAction,
   labels,
+  busy,
 }: {
   readonly actions: readonly Action[];
   readonly onAction: (action: Action) => void;
   readonly labels: ValueActionLabels;
+  readonly busy: boolean;
 }) {
+  // One request per press: while a write is on its way, a press sends nothing (the buttons say so
+  // with aria-busy and are never disabled, rule 7).
+  const press = (action: Action) => () => {
+    if (!busy) onAction(action);
+  };
   const confirm = actions.find((action) => action.kind === 'confirm');
   const edit = actions.find((action) => action.kind === 'edit');
   const others = actions.filter((action) => action.kind === 'acknowledge' || action.kind === 'concern' || action.kind === 'add');
@@ -156,11 +171,11 @@ function ValueActions({
             {confirm.wording.text}
           </p>
           <div className="sov-value__actions">
-            <Button variant="link" onClick={() => onAction(confirm)}>
+            <Button variant="link" aria-busy={busy} onClick={press(confirm)}>
               {labels.yes}
             </Button>
             {edit === undefined ? null : (
-              <Button variant="link" icon={Pencil} onClick={() => onAction(edit)}>
+              <Button variant="link" icon={Pencil} aria-busy={busy} onClick={press(edit)}>
                 {labels.edit}
               </Button>
             )}
@@ -170,28 +185,28 @@ function ValueActions({
       {(confirm === undefined && edit !== undefined) || others.length > 0 ? (
         <div className="sov-value__actions">
           {confirm === undefined && edit !== undefined ? (
-            <Button variant="link" icon={Pencil} onClick={() => onAction(edit)}>
+            <Button variant="link" icon={Pencil} aria-busy={busy} onClick={press(edit)}>
               {labels.edit}
             </Button>
           ) : null}
           {others.map((action) => {
             if (action.kind === 'acknowledge') {
               return (
-                <Button key="acknowledge" variant="link" onClick={() => onAction(action)}>
+                <Button key="acknowledge" variant="link" aria-busy={busy} onClick={press(action)}>
                   {labels.looksRight}
                 </Button>
               );
             }
             if (action.kind === 'concern') {
               return (
-                <Button key={`concern:${action.candidateId}`} variant="link" onClick={() => onAction(action)}>
+                <Button key={`concern:${action.candidateId}`} variant="link" aria-busy={busy} onClick={press(action)}>
                   {labels.somethingWrong}
                 </Button>
               );
             }
             if (action.kind === 'add') {
               return (
-                <Button key="add" variant="link" icon={Plus} onClick={() => onAction(action)}>
+                <Button key="add" variant="link" icon={Plus} aria-busy={busy} onClick={press(action)}>
                   {action.label}
                 </Button>
               );
@@ -201,6 +216,75 @@ function ValueActions({
         </div>
       ) : null}
     </>
+  );
+}
+
+interface ValueElementProps {
+  readonly display: DisplayObject;
+  /**
+   * `line`: the badge on the value's line, beside its text (every Value).
+   * `apart`: the register's badge column holds it, on the same table row (RegisterTable only; 7.1-r2,
+   * 7.1.1-E5: "Dense tables get a badge column"; US-REVIEW-01 AC13): the figure's line shows the text,
+   * also a missing value's wording, so the cell is never blank, and the row's badge cell, bound to
+   * the same value id, shows the one badge. Not exported from the kit: no screen can drop a badge.
+   */
+  readonly badgePlacement: 'line' | 'apart';
+  readonly onAction?: (action: Action) => void;
+  readonly actionLabels?: ValueActionLabels;
+  readonly busy?: boolean;
+  /**
+   * Phrasing content only (`span` elements in place of `div` and `p`, and no action control), so the
+   * element may sit inside a heading, a button, a link or a listbox option: ValueName's form of a
+   * numeric display (phase 4 part B, A-1). The content is the same: the text, its one badge on the
+   * line, the source line and the status lines (rules 2 and 9).
+   */
+  readonly phrasing?: boolean;
+}
+
+/** Whether a missing value's wording is its badge's label ("Unknown" read as the Unknown badge): the wording shows once, as the badge. */
+export function textIsBadgeOf(display: DisplayObject): boolean {
+  const badge = display.badge;
+  return display.shape === 'missing' && badge !== undefined && badge.label === display.text;
+}
+
+/** The element bound to the value id: what the display object serves, and nothing else. */
+export function ValueElement({ display, badgePlacement, onAction, actionLabels, busy = false, phrasing = false }: ValueElementProps) {
+  const badge = display.badge;
+  const textIsBadge = badgePlacement === 'line' && textIsBadgeOf(display);
+  const actions = (display.actions ?? []).filter((action) => OWN_ACTIONS.has(action.kind));
+  if (onAction !== undefined && actions.length > 0 && actionLabels === undefined) {
+    throw new Error(`Value ${display.valueId}: actionLabels are required with onAction.`);
+  }
+  const Box = phrasing ? 'span' : 'div';
+  return (
+    <Box
+      className="sov-value"
+      data-value-id={display.valueId}
+      data-shape={display.shape}
+      data-kind={display.kind}
+      data-numeric={isNumericDisplay(display) ? 'true' : 'false'}
+      {...(badgePlacement === 'apart' ? { 'data-badge-placement': 'apart' } : {})}
+      {...(phrasing ? { 'data-phrasing': 'true' } : {})}
+    >
+      <Box className="sov-value__line">
+        {textIsBadge && badge !== undefined ? (
+          <Badge badge={badge} />
+        ) : (
+          <>
+            {/* <bdi> isolates the served text (A-8): a direction control in owner text never reorders the badge or the copy around it. */}
+            <bdi className="sov-value__text">{textPieces(display)}</bdi>
+            {badge === undefined || badgePlacement === 'apart' ? null : <Badge badge={badge} />}
+          </>
+        )}
+      </Box>
+      {display.sourceLine === undefined ? null : <LineText line={display.sourceLine} className="sov-value__source" phrasing={phrasing} />}
+      {(display.lines ?? []).map((line) => (
+        <LineText key={`${line.kind}:${line.id}:${line.text}`} line={line} className="sov-value__status" phrasing={phrasing} />
+      ))}
+      {!phrasing && onAction !== undefined && actionLabels !== undefined && actions.length > 0 ? (
+        <ValueActions actions={actions} onAction={onAction} labels={actionLabels} busy={busy} />
+      ) : null}
+    </Box>
   );
 }
 
@@ -222,44 +306,19 @@ function ValueActions({
  * "Reading documents…", "Not available yet" …) as its badge, never a zero, a blank or a dash
  * (rule 1; rule 7).
  */
-export function Value({ display, label, icon, layout = 'stack', onAction, actionLabels, evidenceLabel }: ValueProps) {
+export function Value({ display, label, icon, layout = 'stack', onAction, actionLabels, evidenceLabel, busy = false }: ValueProps) {
   const labelId = useId();
   const shownLabel = label === undefined ? defaultLabel(display) : label;
-  const badge = display.badge;
-  const textIsBadge = display.shape === 'missing' && badge !== undefined && badge.label === display.text;
-  const actions = (display.actions ?? []).filter((action) => OWN_ACTIONS.has(action.kind));
-  if (onAction !== undefined && actions.length > 0 && actionLabels === undefined) {
-    throw new Error(`Value ${display.valueId}: actionLabels are required with onAction.`);
-  }
   const evidence = evidenceLabel === undefined ? [] : (display.evidence ?? []);
 
   const element = (
-    <div
-      className="sov-value"
-      data-value-id={display.valueId}
-      data-shape={display.shape}
-      data-kind={display.kind}
-      data-numeric={isNumericDisplay(display) ? 'true' : 'false'}
-    >
-      <div className="sov-value__line">
-        {textIsBadge && badge !== undefined ? (
-          <Badge badge={badge} />
-        ) : (
-          <>
-            {/* <bdi> isolates the served text (A-8): a direction control in owner text never reorders the badge or the copy around it. */}
-            <bdi className="sov-value__text">{textPieces(display)}</bdi>
-            {badge === undefined ? null : <Badge badge={badge} />}
-          </>
-        )}
-      </div>
-      {display.sourceLine === undefined ? null : <LineText line={display.sourceLine} className="sov-value__source" />}
-      {(display.lines ?? []).map((line) => (
-        <LineText key={`${line.kind}:${line.id}:${line.text}`} line={line} className="sov-value__status" />
-      ))}
-      {onAction !== undefined && actionLabels !== undefined && actions.length > 0 ? (
-        <ValueActions actions={actions} onAction={onAction} labels={actionLabels} />
-      ) : null}
-    </div>
+    <ValueElement
+      display={display}
+      badgePlacement="line"
+      {...(onAction === undefined ? {} : { onAction })}
+      {...(actionLabels === undefined ? {} : { actionLabels })}
+      busy={busy}
+    />
   );
 
   // The excerpts sit beside the value element, not in it: opening the disclosure must not change what

@@ -13,6 +13,15 @@
  * - The notice (rule 7; G7-4): one polite, dismissible notice; never a dialog, never a move.
  * - A project the user cannot reach reads as not found (rule 13: another project's screens are
  *   refused by the API; the page names nothing of it).
+ * - The workspace pages (phase 4: the screens under the workspace group's route, ../workspace/handle.ts)
+ *   are drawn in the workspace frame (../workspace/WorkspaceFrame.tsx: the project sidebar and the 48px
+ *   status footer), where the demo line sits in the footer instead of under the header, so it shows once
+ *   (docs/adr/0043-workspace-navigation-and-shell.md decision 5). The frame is keyed with the project, as
+ *   everything here is, so switching project drops every state of the previous one (US-ADMIN-06 AC2).
+ *   There the frame draws the page's one `main` (its page column) and the shell none (`landmark="none"`,
+ *   DR-3), so the skip link passes the sidebar. A workspace page that throws while it renders is replaced
+ *   by its failure state inside this frame (the workspace group's error element, ../routes.tsx: A-1), so the
+ *   frame, its sidebar and its footer with the demo line stay.
  */
 import { Link, Outlet, useParams } from 'react-router';
 import { DemoLine, Notice } from '@sovitech/ui';
@@ -21,12 +30,24 @@ import { copy } from '../copy';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { AppShell } from '../shell/AppShell';
 import { useRenderReady } from '../shell/render-ready';
+import { useInWorkspace } from '../workspace/handle';
+import { ProjectWorkspaceFrame } from '../workspace/WorkspaceFrame';
 import { UploadsProvider } from './UploadsProvider';
 import { WizardProvider, useWizard } from './WizardProvider';
 
 function ProjectFrame() {
   const { header, demoLine, notice, dismissNotice } = useWizard();
+  const inWorkspace = useInWorkspace();
   const value = header.status === 'ready' ? header.value : undefined;
+  // A workspace page of a project the user can reach sits in the workspace frame; a project the user
+  // cannot reach shows its not-found page with no frame (nothing of it is named, rule 13).
+  if (inWorkspace && header.status !== 'not_found') {
+    return (
+      <ProjectWorkspaceFrame>
+        <Outlet />
+      </ProjectWorkspaceFrame>
+    );
+  }
   return (
     <AppShell
       {...(value?.name === undefined ? {} : { projectName: value.name })}

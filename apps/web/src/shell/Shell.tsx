@@ -17,6 +17,14 @@ import { HeaderDate } from './HeaderDate';
  *
  * No live element: no "BMS LIVE" chip, no connection status, no timeline (R-139). Desktop first:
  * below the 1440px canvas the page scrolls rather than reflowing (prompt 3 section 11).
+ *
+ * Landmarks (WCAG 2.4.1, 1.3.1, 2.4.3; DR-3, V-7): the skip link always targets `#main`, the page's one
+ * `main`. On the wizard's screens, the project list and sign-in that is this shell's own `<main id="main">`
+ * (`landmark="main"`, the default). In the workspace frame the frame draws the page column as the main,
+ * with the sidebar beside it in an `aside` and the status footer after it as the page's contentinfo
+ * (docs/adr/0043-workspace-navigation-and-shell.md decision 5), so there the shell draws no main of its
+ * own (`landmark="none"`): exactly one main exists, the skip link passes the switcher and the sidebar's
+ * links, and each page's focus on mount lands on its own column.
  */
 export interface ShellProps {
   /** The project's name, as served (the header shows its text only, bound). */
@@ -29,10 +37,15 @@ export interface ShellProps {
   readonly demoLine?: ReactNode;
   /** The notices region's content (one quiet notice at most). */
   readonly notices?: ReactNode;
+  /**
+   * Whether the shell draws the page's `<main id="main">` around its children (`main`, the default), or
+   * leaves the landmark to them (`none`: the workspace frame draws its page column as the main).
+   */
+  readonly landmark?: 'main' | 'none';
   readonly children: ReactNode;
 }
 
-export function Shell({ projectName, menu, headerRight, demoLine, notices, children }: ShellProps) {
+export function Shell({ projectName, menu, headerRight, demoLine, notices, landmark = 'main', children }: ShellProps) {
   return (
     <div className="min-h-screen min-w-[1440px] bg-(--sov-bg) text-(--sov-text-primary)">
       <a
@@ -64,9 +77,13 @@ export function Shell({ projectName, menu, headerRight, demoLine, notices, child
       </header>
       {demoLine}
       <NoticeRegion label={copy.notice.region}>{notices}</NoticeRegion>
-      <main id="main" tabIndex={-1} className="outline-none">
-        {children}
-      </main>
+      {landmark === 'main' ? (
+        <main id="main" tabIndex={-1} className="outline-none">
+          {children}
+        </main>
+      ) : (
+        children
+      )}
     </div>
   );
 }

@@ -16,9 +16,13 @@
  *   the engineer shows the served line and no choice (G4-8, G4-18).
  * - After any write the screen reads its view again, so every badge and line is the server's. A
  *   refusal shows inline under its row and blocks nothing else (rule 7).
+ * - One write of the screen at a time (carried from phase 3, ADR 0039 decision 11): while one is on its
+ *   way, every action of every row says so with `aria-busy` (the kit's Value `busy`) and a press sends
+ *   nothing; no action is ever disabled (rule 7). The inline editor's Save takes the same guard (V-8), so
+ *   an open editor's Save and another row's Yes are never on their way at once.
  */
 import { Building2, DoorOpen, Grid3x3, Layers, Scan, type LucideIcon } from 'lucide-react';
-import { useCallback, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { Button, Icon, Value } from '@sovitech/ui';
 import type { Action, DisplayObject } from '@sovitech/view-model/browser';
 import { ApiError, isSignedOut, request } from '../../api/client';
@@ -26,6 +30,7 @@ import { copy } from '../../copy';
 import { useOnSignedOut } from '../../session/SessionProvider';
 import { InlineEditor } from '../../wizard/InlineEditor';
 import { useWizard } from '../../wizard/WizardProvider';
+import { useInFlight, type InFlight } from '../../wizard/use-in-flight';
 import { ACTION_LABELS } from '../step-1/Step1';
 import { actionOf, choiceFor, type FactNode } from './facts';
 
@@ -112,6 +117,10 @@ interface RowContext {
   readonly onAction: (display: DisplayObject, action: Action) => void;
   readonly onChanged: () => void;
   readonly evidenceLabel: string | undefined;
+  /** A write of this screen is on its way: every action says so (`aria-busy`) and a press sends nothing (rule 7: never disabled). */
+  readonly busy: boolean;
+  /** The screen's one write guard, which the inline editor's Save claims too (V-8). */
+  readonly writes: InFlight;
 }
 
 /** The editor under a row whose Edit is open, and the row's last refusal. */
@@ -132,6 +141,7 @@ function RowTail({ display, context }: { readonly display: DisplayObject; readon
           }}
           onCancel={() => context.setEditing(null)}
           onStale={context.onChanged}
+          inFlight={context.writes}
         />
       ) : null}
       {error === undefined ? null : (
@@ -166,11 +176,12 @@ function ChildRow({ node, parent, context }: RowProps) {
         layout="stack"
         onAction={(action) => context.onAction(display, action)}
         actionLabels={ACTION_LABELS}
+        busy={context.busy}
         {...(context.evidenceLabel === undefined ? {} : { evidenceLabel: context.evidenceLabel })}
       />
       {choice === undefined ? null : (
         <div>
-          <Button variant="link" onClick={() => context.perform(display.valueId, { kind: 'resolve', field: choice.action.field, candidateId: choice.candidateId })}>
+          <Button variant="link" aria-busy={context.busy} onClick={() => context.perform(display.valueId, { kind: 'resolve', field: choice.action.field, candidateId: choice.candidateId })}>
             {copy.actions.chooseThis}
           </Button>
         </div>
@@ -205,6 +216,7 @@ function DetailRow({ node, context }: RowProps) {
         {...(icon === undefined ? {} : { icon })}
         onAction={(action) => context.onAction(display, action)}
         actionLabels={ACTION_LABELS}
+        busy={context.busy}
         {...(context.evidenceLabel === undefined ? {} : { evidenceLabel: context.evidenceLabel })}
       />
       <RowTail display={display} context={context} />
@@ -251,7 +263,10 @@ export function FactRows({ projectId, nodes, place, onChanged, evidenceLabel, af
   const { goToStep } = useWizard();
   const [editing, setEditing] = useState<string | null>(null);
   const [errors, setErrors] = useState<ReadonlyMap<string, string>>(new Map());
-  const busy = useRef(new Set<string>());
+  // One write of this screen at a time (carried from phase 3, ADR 0039 decision 11): while a row's write
+  // is on its way, a press on any row's action is ignored, never refused, so a second press never acts
+  // on what the first one is changing; every action says so with aria-busy (the kit's Value `busy`).
+  const writes = useInFlight();
 
   const setError = useCallback((valueId: string, message: string | undefined) => {
     setErrors((previous) => {
@@ -264,17 +279,16 @@ export function FactRows({ projectId, nodes, place, onChanged, evidenceLabel, af
 
   const perform = useCallback(
     (valueId: string, write: Write) => {
-      // A press while the row's write is on its way is ignored, never refused (no disabled state; rule 7).
-      if (busy.current.has(valueId)) return;
-      busy.current.add(valueId);
+      // A press while a write of this screen is on its way is ignored, never refused (no disabled state; rule 7).
+      if (!writes.claim()) return;
       setError(valueId, undefined);
       send(projectId, write).then(
         () => {
-          busy.current.delete(valueId);
+          writes.release();
           onChanged();
         },
         (refusal: unknown) => {
-          busy.current.delete(valueId);
+          writes.release();
           if (isSignedOut(refusal)) {
             onSignedOut();
             return;
@@ -285,7 +299,7 @@ export function FactRows({ projectId, nodes, place, onChanged, evidenceLabel, af
         },
       );
     },
-    [onChanged, onSignedOut, projectId, setError],
+    [onChanged, onSignedOut, projectId, setError, writes],
   );
 
   const onAction = useCallback(
@@ -317,7 +331,7 @@ export function FactRows({ projectId, nodes, place, onChanged, evidenceLabel, af
     [goToStep, perform, setError],
   );
 
-  const context: RowContext = { projectId, place, editing, setEditing, errors, perform, onAction, onChanged, evidenceLabel };
+  const context: RowContext = { projectId, place, editing, setEditing, errors, perform, onAction, onChanged, evidenceLabel, busy: writes.busy, writes };
   const Row = place === 'summary' ? SummaryRow : DetailRow;
   return (
     <ul className={place === 'summary' ? 'flex flex-col border-t border-(--sov-border)' : 'flex flex-col gap-4'}>

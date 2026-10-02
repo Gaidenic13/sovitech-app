@@ -18,7 +18,13 @@
     "projects": "Your projects",
     "newProject": "New project",
     "project": "Your project",
-    "notFound": "Page not found"
+    "notFound": "Page not found",
+    "systemScope": "System Scope",
+    "topology": "Topology",
+    "zones": "Zones",
+    "equipment": "Equipment",
+    "asset": "Equipment record",
+    "documents": "Documents"
   },
   "header": {
     "menu": "Menu",
@@ -320,5 +326,360 @@
     "showExcerpt": "Show the excerpt",
     "outputUnnamed": "An output of the proposal",
     "writeFailed": "This could not be saved. Your other answers are kept. Try again."
+  },
+  "workspace": {
+    "about": "Phase 4's fixed interface copy for the workspace (docs/build-log.md, phase 4 plan, 'Copy'). Draft copy for states with no approved design is marked in that plan; approved copy changed by guardrails or dashboards-spec section 7 is listed there with its reason. Badges, status lines, rule lines, the demo line, field labels and every value come from the API in display objects, never from here.",
+    "frame": {
+      "navigation": "Project pages",
+      "projectLabel": "Project",
+      "switchProject": "Switch project",
+      "projectsLoadFailed": "Your projects could not be loaded. Try again.",
+      "cardHeading": "Building",
+      "footer": "Project status",
+      "inspectorClose": "Close",
+      "loadFailed": "This page could not be loaded. Nothing you entered is lost.",
+      "cardLoadFailed": "The building facts could not be loaded. Try again."
+    },
+    "pages": {
+      "proposal": "Proposal",
+      "system_scope": "System Scope",
+      "topology": "Topology",
+      "zones": "Zones",
+      "equipment": "Equipment",
+      "documents": "Documents"
+    },
+    "levels": {
+      "label": "Floor",
+      "allFloors": "All floors"
+    },
+    "actions": {
+      "upload_document": "Upload a document",
+      "enter_floors": "Enter the floors",
+      "choose_systems": "Choose the systems in scope"
+    },
+    "back": {
+      "systemScope": "Back to System Scope",
+      "topology": "Back to Topology",
+      "equipment": "Back to Equipment"
+    },
+    "pagination": {
+      "label": "Pages",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "documents": {
+      "eyebrow": "Documents",
+      "title": "Project Documents",
+      "subtitle": "Upload, manage and review all project-related documents. These documents help us understand your building and design the right solution.",
+      "upload": "Upload Document",
+      "uploadHeading": "Upload documents",
+      "uploadClose": "Close the upload panel",
+      "chipsLabel": "Document category",
+      "chips": {
+        "all": "All Documents",
+        "architectural": "Architectural",
+        "mep": "MEP",
+        "operational": "Operational",
+        "regulatory": "Regulatory",
+        "other": "Other"
+      },
+      "searchLabel": "Search documents",
+      "searchPlaceholder": "Search documents",
+      "filters": "Filters",
+      "filtersLabel": "Filter documents",
+      "filterStage": "Stage",
+      "filterFormat": "File type",
+      "allStages": "All stages",
+      "allFormats": "All file types",
+      "activeFilters": "Active filters",
+      "removeFilter": "Remove this filter",
+      "clearFilters": "Clear filters",
+      "tableLabel": "Project documents",
+      "columns": {
+        "name": "Name",
+        "category": "Category",
+        "version": "Version",
+        "stage": "Stage",
+        "added": "Date Added",
+        "status": "Analysis",
+        "details": "Details",
+        "actions": "Actions"
+      },
+      "openDetails": "Show details",
+      "moreActions": "More actions",
+      "uploadsHeading": "Uploads",
+      "menu": {
+        "download": "Download",
+        "replace": "Replace",
+        "declareRevision": "Mark as a revision of another document",
+        "delete": "Delete"
+      },
+      "inspector": {
+        "heading": "Document",
+        "type": "File type",
+        "category": "Category",
+        "version": "Version",
+        "stage": "Stage",
+        "added": "Date Added",
+        "status": "Analysis",
+        "revisionOf": "Revision of",
+        "download": "Download"
+      },
+      "formatNames": {
+        "pdf": "PDF",
+        "xlsx": "XLSX",
+        "ifc": "IFC",
+        "rvt": "RVT",
+        "dwg": "DWG",
+        "docx": "DOCX",
+        "jpg": "JPG",
+        "png": "PNG",
+        "zip": "ZIP",
+        "other": "Other format"
+      },
+      "revision": {
+        "heading": "Which document does this file revise?",
+        "explain": "The older document is kept and stays listed. Nothing is deleted.",
+        "choose": "The older document",
+        "save": "Save",
+        "cancel": "Cancel",
+        "none": "There is no other document to choose.",
+        "chooseFirst": "Choose the older document first.",
+        "failed": "The revision could not be saved. Try again."
+      },
+      "replace": {
+        "heading": "Upload a new revision of this document",
+        "explain": "The new file is stored as a revision of this one. The older file is kept.",
+        "cancel": "Cancel",
+        "firstOnly": "Only the first file was used as the new revision. Add the others with Upload Document.",
+        "failed": "The new file was stored, but it could not be marked as a revision. Use \"Mark as a revision of another document\" on it."
+      },
+      "delete": {
+        "heading": "Delete this document?",
+        "explain": "The file, its extracted text and its excerpts are erased. Values that came only from this document return to Unknown.",
+        "confirm": "Delete",
+        "cancel": "Cancel",
+        "loading": "Working out what deleting this document changes",
+        "effectFailed": "What deleting this document changes could not be worked out. Nothing was removed. Try again.",
+        "failed": "The document could not be deleted. Nothing was removed. Try again."
+      },
+      "empty": {
+        "no_documents": "No documents yet. Upload your drawings, schedules and other files to start.",
+        "filtered": "No document matches this filter.",
+        "category": "No document is in this category. Categories read Unknown until a document's kind is set."
+      }
+    },
+    "systemScope": {
+      "title": "System Scope",
+      "subtitle": "Define and refine the building systems to be included in the project.",
+      "listHeading": "Building systems",
+      "listLabel": "Building systems and whether each is in scope",
+      "columns": {
+        "system": "System",
+        "equipment": "Equipment",
+        "inScope": "In Scope",
+        "details": "Details"
+      },
+      "includeSystem": "Include {system} in the scope",
+      "include": "Include",
+      "includeNamed": "Include {system}",
+      "leaveOut": "Leave out",
+      "leaveOutNamed": "Leave out {system}",
+      "openDetails": "Show details",
+      "detail": {
+        "tabsLabel": "About this system",
+        "tabs": {
+          "overview": "Overview",
+          "equipment": "Equipment",
+          "zones": "Zones"
+        },
+        "description": "Description",
+        "inScope": "In Scope",
+        "levels": "Floors",
+        "equipment": "Equipment",
+        "zones": "Zones",
+        "points": "Points",
+        "equipmentList": "Equipment of this system",
+        "zonesList": "Zones of this system",
+        "viewEquipment": "View the equipment",
+        "viewZones": "View the zones",
+        "noEquipment": "No equipment of this system has come from your documents yet.",
+        "noZones": "No zone of this system has come from your documents yet."
+      },
+      "filters": {
+        "system": "System",
+        "allSystems": "All systems"
+      },
+      "saveAndContinue": "Save and Continue",
+      "writeFailed": "The scope could not be saved. Your earlier choice is kept. Try again."
+    },
+    "equipment": {
+      "title": "Equipment",
+      "subtitle": "Explore and filter the equipment found in your documents.",
+      "searchLabel": "Search equipment",
+      "searchPlaceholder": "Search equipment (e.g. AHU, VAV, FCU)",
+      "filters": {
+        "label": "Filters",
+        "system": "System",
+        "level": "Floor",
+        "zone": "Zone",
+        "badge": "Badge",
+        "allSystems": "All systems",
+        "allZones": "All zones",
+        "allBadges": "All badges",
+        "clear": "Clear filters",
+        "active": "Active filters",
+        "remove": "Remove this filter",
+        "panel": "Filter equipment"
+      },
+      "countHeading": "Equipment by type",
+      "tableLabel": "Equipment",
+      "columns": {
+        "select": "Select",
+        "tag": "Tag",
+        "system": "System",
+        "type": "Type",
+        "location": "Location",
+        "level": "Floor",
+        "zone": "Zone",
+        "badge": "Badge",
+        "details": "Details",
+        "record": "Record"
+      },
+      "selectRow": "Select this equipment",
+      "selectPage": "Select all equipment on this page",
+      "selection": "Selected equipment",
+      "clearSelection": "Clear the selection",
+      "selectionSaved": "Your answer is saved.",
+      "openDetails": "Show details",
+      "inspector": {
+        "heading": "Equipment details",
+        "tabsLabel": "About this equipment",
+        "tabs": {
+          "overview": "Overview",
+          "points": "Points",
+          "documents": "Documents"
+        },
+        "openRecord": "Open the full record",
+        "documentsList": "Documents that show this equipment",
+        "noDocuments": "No current document shows this equipment.",
+        "stage": "Stage",
+        "version": "Version"
+      },
+      "empty": {
+        "no_documents": "No documents were uploaded, so no equipment was read from them.",
+        "reading": "We are reading your documents. Equipment fills in as each file is read.",
+        "none_read": "No equipment has come from your documents yet.",
+        "filtered": "No equipment matches these filters."
+      },
+      "writeFailed": "This could not be saved. Your other answers are kept. Try again."
+    },
+    "asset": {
+      "sections": {
+        "fields": "Details",
+        "evidence": "Where it was found",
+        "history": "History",
+        "points": "Points",
+        "documents": "Documents"
+      },
+      "roles": {
+        "owner": "Owner",
+        "sovitech_engineer": "SOVITECH engineer",
+        "system": "The app"
+      },
+      "noHistory": "Nothing has changed on this field.",
+      "loadFailed": "This equipment record could not be loaded. Try again.",
+      "subtitle": "Every value with its badge and source, where the equipment is written in your documents, and what was recorded on it.",
+      "notFound": "This equipment is not in this project's register.",
+      "noEvidence": "No place in your documents is stored for this equipment.",
+      "noValues": "No value has been recorded on these details yet.",
+      "evidenceList": "Places in your documents that show this equipment",
+      "historyColumns": {
+        "value": "Value",
+        "role": "Who",
+        "when": "When"
+      },
+      "evidence": {
+        "document": "Document",
+        "stage": "Stage",
+        "version": "Version",
+        "written": "As written"
+      }
+    },
+    "zones": {
+      "title": "Zones",
+      "subtitle": "View and correct the zones found in your documents.",
+      "searchLabel": "Search zones",
+      "searchPlaceholder": "Search zones",
+      "tableLabel": "Zones",
+      "filters": {
+        "system": "System",
+        "allSystems": "All systems",
+        "active": "Active filters",
+        "remove": "Remove this filter",
+        "clear": "Clear filters"
+      },
+      "columns": {
+        "code": "Zone ID",
+        "name": "Name",
+        "level": "Floor",
+        "kind": "Type",
+        "badge": "Badge",
+        "area": "Area",
+        "systems": "Systems",
+        "details": "Details",
+        "actions": "Actions"
+      },
+      "openDetails": "Show details",
+      "moreActions": "More actions",
+      "menu": {
+        "edit": "Edit Zone",
+        "viewEquipment": "View Equipment in Zone"
+      },
+      "details": {
+        "heading": "Zone details",
+        "close": "Close the zone details",
+        "edit": "Edit Zone",
+        "tabsLabel": "Zone details",
+        "tabs": {
+          "overview": "Overview",
+          "equipment": "Equipment",
+          "documents": "Documents"
+        },
+        "description": "Description",
+        "systems": "Systems",
+        "equipment": "Equipment",
+        "points": "Points",
+        "documentsLabel": "Documents holding this zone's values",
+        "noDocuments": "No document is cited for this zone yet.",
+        "viewEquipment": "View Equipment in Zone"
+      },
+      "editor": {
+        "heading": "Edit zone",
+        "explain": "Your corrections are kept beside the values found in your documents. Nothing here is required.",
+        "description": "Description",
+        "close": "Close the zone editor"
+      },
+      "empty": {
+        "no_documents": "No documents were uploaded, so no zone was read from them.",
+        "reading": "We are reading your documents. Zones fill in as each file is read.",
+        "none_read": "No zone has come from your documents yet.",
+        "filtered": "No zone matches these filters."
+      }
+    },
+    "topology": {
+      "title": "Topology",
+      "subtitle": "The systems in scope, and the equipment your documents show for each.",
+      "designHeading": "Controllers, networks and integrations",
+      "fieldHeading": "Systems in scope",
+      "decision": "Scope",
+      "equipment": "Equipment",
+      "monitoringLink": "Monitoring direction only: the BMS reads status and alarms",
+      "toSystemScope": "View in System Scope",
+      "filters": {
+        "system": "System",
+        "allSystems": "All systems"
+      }
+    }
   }
 }

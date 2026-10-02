@@ -111,4 +111,12 @@
   --sov-button-width: 190px;
   --sov-button-height-compact: 40px;
   --sov-icon-size: 24px; /* icons on the 24px grid; the render test reads any drawing above 32px as unreadable */
+  /* The workspace frame (phase 4; app-alignment "Shell sizes", from dashboards-spec 3.4 "Proposed shell";
+     ADR 0043 decision 5): sizes only, no colour. */
+  --sov-sidebar-width: 208px; /* sidebar 208px */
+  --sov-sidebar-row: 32px; /* ... row pitch 32 */
+  --sov-inspector-width: 360px; /* inspector 360px */
+  --sov-footer-height: 48px; /* status footer 48px, always present */
+  --sov-gutter: 16px; /* 16px gutter */
+  --sov-panel-gap: 12px; /* 12px panel gap */
 }

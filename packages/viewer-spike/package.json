@@ -1,0 +1,26 @@
+{
+  "name": "@sovitech/viewer-spike",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Phase 4 viewer spike (owner's answer 2026-10-02, \"Trial now, decide later\"): That Open Engine on web-ifc, measured on the synthetic fixture models and the perf model in the no-network sandbox. Never a dependency of apps/*; nothing in the live app imports it (docs/adr/0046-viewer-spike.md).",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@thatopen/components": "3.4.8",
+    "@thatopen/fragments": "3.4.7",
+    "camera-controls": "3.1.2",
+    "three": "0.186.1",
+    "web-ifc": "0.0.78"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.4",
+    "@types/three": "0.186.0",
+    "esbuild": "0.28.2"
+  }
+}

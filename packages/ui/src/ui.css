@@ -510,6 +510,16 @@
     margin-top: 2px;
   }
 
+  /* The small line (phase 4 part B, DR-10): under a 14px name, as the Documents register's lines are set. */
+  .sov-status-line[data-size='small'] {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .sov-status-line[data-size='small'] .sov-icon {
+    margin-top: 1px;
+  }
+
   .sov-not-available {
     display: grid;
     justify-items: start;
@@ -875,6 +885,30 @@
     opacity: 1;
   }
 
+  /* A part selection (the register's "select all on this page" with some rows chosen): a mint fill with a
+     dash, announced as mixed by the native input (phase 4). Checkboxes only (phase 4 part B, DR-1; case
+     G7-17): HTML also calls every radio of a group with no radio checked :indeterminate, and an unanswered
+     question must draw every option as an empty ring, never as chosen (rule 7 "Nothing fills the gap";
+     rule 3; WCAG 1.3.1 and 1.4.1). */
+  .sov-check__input[type='checkbox']:indeterminate {
+    border-color: var(--sov-accent);
+    background-color: var(--sov-accent);
+  }
+
+  .sov-check__partial {
+    grid-area: 1 / 1;
+    place-self: center;
+    width: 14px;
+    height: 14px;
+    color: var(--sov-on-accent);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .sov-check__input[type='checkbox']:indeterminate ~ .sov-check__partial {
+    opacity: 1;
+  }
+
   .sov-choice-group {
     display: grid;
     gap: 12px;
@@ -1119,12 +1153,1022 @@
     }
   }
 
+  /* ================================================================== workspace (phase 4) */
+  /* The workspace frame, its navigation and its controls (ADR 0043; dashboards-spec 3.4 and 3.5; App theme
+     "Shell sizes", "Sidebar selected row", "Accent, buttons and controls"). One grammar marks "this one"
+     everywhere: a 2px mint edge with a mint 8% fill (the sidebar's current page, the register's open row,
+     the chosen option), and the label's weight changes too, so the mark never rests on colour alone. */
+
+  /* ------------------------------------------------------------------ icon buttons */
+  .sov-icon-button,
+  .sov-menu__button {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--sov-radius-control);
+    background-color: transparent;
+    color: var(--sov-text-tertiary);
+    cursor: pointer;
+    transition:
+      border-color var(--sov-duration-surface) var(--sov-ease),
+      color var(--sov-duration-text) var(--sov-ease);
+  }
+
+  .sov-icon-button:hover,
+  .sov-menu__button:hover,
+  .sov-menu__button[aria-expanded='true'] {
+    border-color: var(--sov-border-hover);
+    color: var(--sov-text-primary);
+  }
+
+  .sov-icon-button:focus-visible,
+  .sov-menu__button:focus-visible,
+  .sov-menu__item:focus-visible,
+  .sov-tabs__tab:focus-visible,
+  .sov-tabs__panel:focus-visible,
+  .sov-pager__button:focus-visible,
+  .sov-side-nav__link:focus-visible,
+  .sov-page-header__back:focus-visible,
+  .sov-register__sort:focus-visible,
+  .sov-inline-panel:focus-visible,
+  .sov-selection-list__option:focus-visible {
+    outline: var(--sov-focus-width) solid var(--sov-focus-ring);
+    outline-offset: var(--sov-focus-offset);
+  }
+
+  /* Inside a list or a panel edge the outline sits inside the element, so no neighbour hides it (WCAG 2.4.11). */
+  .sov-menu__item:focus-visible,
+  .sov-side-nav__link:focus-visible,
+  .sov-selection-list__option:focus-visible {
+    outline-offset: calc(var(--sov-focus-width) * -1);
+  }
+
+  .sov-icon-button[aria-busy='true'],
+  .sov-pager__button[aria-busy='true'] {
+    cursor: progress;
+  }
+
+  /* ------------------------------------------------------------------ switch */
+  /* A square-cornered track (the control radius) with a square knob: no pill (radii 1px and 2px only). Off: a
+     boundary and knob at white 55% (3:1 and more, WCAG 1.4.11). On: the track fills mint and the knob, in the
+     raised surface colour, sits at the end. The knob's place says the state; the colour repeats it. */
+  .sov-switch {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+    width: 40px;
+    height: 22px;
+  }
+
+  .sov-switch__input {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .sov-switch__input[aria-busy='true'] {
+    cursor: progress;
+  }
+
+  .sov-switch__track {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--sov-control-border);
+    border-radius: var(--sov-radius-control);
+    background-color: transparent;
+    transition:
+      background-color var(--sov-duration-surface) var(--sov-ease),
+      border-color var(--sov-duration-surface) var(--sov-ease);
+  }
+
+  .sov-switch__knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: var(--sov-radius-control);
+    background-color: var(--sov-control-border);
+  }
+
+  .sov-switch__input:checked + .sov-switch__track {
+    border-color: var(--sov-accent);
+    background-color: var(--sov-accent);
+  }
+
+  .sov-switch__input:checked + .sov-switch__track .sov-switch__knob {
+    left: auto;
+    right: 3px;
+    background-color: var(--sov-on-accent);
+  }
+
+  .sov-switch__input:focus-visible + .sov-switch__track {
+    outline: var(--sov-focus-width) solid var(--sov-focus-ring);
+    outline-offset: var(--sov-focus-offset);
+  }
+
+  /* ------------------------------------------------------------------ tabs */
+  .sov-tabs {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .sov-tabs__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 24px;
+    border-bottom: 1px solid var(--sov-border);
+  }
+
+  .sov-tabs__tab {
+    margin-bottom: -1px;
+    padding: 10px 0 8px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background-color: transparent;
+    color: var(--sov-text-tertiary);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: var(--sov-weight-medium);
+    line-height: 20px;
+    cursor: pointer;
+    transition:
+      color var(--sov-duration-text) var(--sov-ease),
+      border-color var(--sov-duration-surface) var(--sov-ease);
+  }
+
+  .sov-tabs__tab:hover {
+    color: var(--sov-text-primary);
+  }
+
+  /* The active tab: white label at 600 over a 2px mint underline (dashboards-spec 3.5, underline tabs). */
+  .sov-tabs__tab[aria-selected='true'] {
+    border-bottom-color: var(--sov-accent);
+    color: var(--sov-text-primary);
+    font-weight: var(--sov-weight-semibold);
+  }
+
+  .sov-tabs__panel {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .sov-tabs__panel[hidden] {
+    display: none;
+  }
+
+  /* ------------------------------------------------------------------ menu button */
+  .sov-menu {
+    position: relative;
+    display: inline-flex;
+  }
+
+  /* Placed under its button, right-aligned, so it never covers the button that opened it (WCAG 2.4.11). */
+  .sov-menu__list {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 20;
+    display: grid;
+    min-width: 240px;
+    padding: 4px 0;
+    border: 1px solid var(--sov-border);
+    border-radius: var(--sov-radius-surface);
+    background-color: var(--sov-surface);
+  }
+
+  .sov-menu__item {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    border: 0;
+    border-radius: var(--sov-radius-control);
+    background-color: transparent;
+    color: var(--sov-text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: var(--sov-weight-regular);
+    line-height: 20px;
+    text-align: start;
+    cursor: pointer;
+    transition: background-color var(--sov-duration-surface) var(--sov-ease);
+  }
+
+  .sov-menu__item:hover,
+  .sov-menu__item:focus {
+    background-color: var(--sov-surface-selected);
+  }
+
+  /* ------------------------------------------------------------------ inline panel */
+  .sov-inline-panel {
+    display: grid;
+    gap: 16px;
+    padding: 20px 24px;
+    border: 1px solid var(--sov-border);
+    border-radius: var(--sov-radius-surface);
+    background-color: var(--sov-surface);
+    color: var(--sov-text-primary);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .sov-inline-panel__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  /* ------------------------------------------------------------------ pager */
+  .sov-pager {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .sov-pager__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--sov-secondary-border);
+    border-radius: var(--sov-radius-control);
+    background-color: transparent;
+    color: var(--sov-text-tertiary);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: var(--sov-weight-medium);
+    cursor: pointer;
+    transition:
+      border-color var(--sov-duration-surface) var(--sov-ease),
+      color var(--sov-duration-text) var(--sov-ease);
+  }
+
+  .sov-pager__button:hover {
+    border-color: var(--sov-border-hover);
+    color: var(--sov-text-primary);
+  }
+
+  /* ------------------------------------------------------------------ chips */
+  .sov-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .sov-chips__chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 16px;
+    border: 1px solid var(--sov-secondary-border);
+    border-radius: var(--sov-radius-control);
+    background-color: transparent;
+    color: var(--sov-text-tertiary);
+    font-size: 14px;
+    font-weight: var(--sov-weight-regular);
+    line-height: 20px;
+    cursor: pointer;
+    transition:
+      border-color var(--sov-duration-surface) var(--sov-ease),
+      background-color var(--sov-duration-surface) var(--sov-ease),
+      color var(--sov-duration-text) var(--sov-ease);
+  }
+
+  .sov-chips__chip:hover {
+    border-color: var(--sov-border-hover);
+    color: var(--sov-text-primary);
+  }
+
+  /* The radio stays in the page for the keyboard and the screen reader; the chip draws it. */
+  .sov-chips__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    opacity: 0;
+  }
+
+  .sov-chips__chip:has(.sov-chips__input:checked) {
+    border-color: var(--sov-accent);
+    background-color: var(--sov-surface-selected);
+    color: var(--sov-text-primary);
+    font-weight: var(--sov-weight-semibold);
+  }
+
+  .sov-chips__chip:has(.sov-chips__input:focus-visible) {
+    outline: var(--sov-focus-width) solid var(--sov-focus-ring);
+    outline-offset: var(--sov-focus-offset);
+  }
+
+  /* ------------------------------------------------------------------ inspector */
+  .sov-inspector {
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    width: 100%;
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid var(--sov-border);
+    border-radius: var(--sov-radius-surface);
+    background-color: transparent;
+    color: var(--sov-text-primary);
+  }
+
+  .sov-inspector__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .sov-inspector__titles {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .sov-inspector__subheading {
+    margin: 0;
+    color: var(--sov-text-tertiary);
+    font-size: 14px;
+    line-height: 20px;
+    overflow-wrap: anywhere;
+  }
+
+  .sov-inspector__body {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  /* A value in the 360px inspector (phase 4 part B, DR-8; ADR 0040 decision 6): where its text and its badge
+     do not fit side by side, the badge moves under the text, on the same tile (2.8 "Prominence"), and the
+     text wraps between words, never inside one ("Technical design" never reads "Technica" / "l design"). */
+  .sov-inspector .sov-value__line {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .sov-inspector .sov-value__text {
+    overflow-wrap: break-word;
+  }
+
+  .sov-inspector__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--sov-border);
+  }
+
+  /* ------------------------------------------------------------------ side navigation */
+  .sov-side-nav__list {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sov-side-nav__link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: var(--sov-sidebar-row);
+    padding: 4px 12px 4px 10px;
+    border-inline-start: 2px solid transparent;
+    border-radius: var(--sov-radius-control);
+    color: var(--sov-text-tertiary);
+    font-size: 14px;
+    font-weight: var(--sov-weight-regular);
+    line-height: 20px;
+    text-decoration: none;
+    transition:
+      background-color var(--sov-duration-surface) var(--sov-ease),
+      color var(--sov-duration-text) var(--sov-ease);
+  }
+
+  .sov-side-nav__link:hover {
+    color: var(--sov-text-primary);
+  }
+
+  /* The current page (App theme "Sidebar selected row"): a 2px mint bar, a mint 8% fill, the label at 600. */
+  .sov-side-nav__link[aria-current='page'] {
+    border-inline-start-color: var(--sov-accent);
+    background-color: var(--sov-surface-selected);
+    color: var(--sov-text-primary);
+    font-weight: var(--sov-weight-semibold);
+  }
+
+  /* ------------------------------------------------------------------ frame */
+  .sov-workspace {
+    display: grid;
+    grid-template-columns: var(--sov-sidebar-width) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    min-height: calc(100vh - var(--sov-header-height));
+  }
+
+  /* The sidebar is the frame's complementary landmark (an aside, DR-3); the page column is its main. */
+  .sov-workspace__sidebar {
+    display: grid;
+    grid-row: 1;
+    grid-column: 1;
+    grid-auto-rows: max-content;
+    align-content: start;
+    gap: 24px;
+    min-width: 0;
+    padding: 24px var(--sov-gutter);
+    border-inline-end: 1px solid var(--sov-border);
+  }
+
+  /* Values in the 208px sidebar (the project card, R-049): at the sidebar's size, the badge moving under its
+     figure on the same card where the two do not fit on one line (DR-2's reading of "the same line or
+     tile"), words never split. */
+  .sov-workspace__sidebar .sov-value__line {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .sov-workspace__sidebar .sov-value__text {
+    font-size: 14px;
+    line-height: 20px;
+    overflow-wrap: break-word;
+  }
+
+  /* The page column, the app's one main (DR-3). Its padding is the page's only one (phase 4 part B, DR-2):
+     24px from the gutter token on the top and both sides, 32px at the foot; a page adds none of its own, so
+     at 1440 the content column is 1184px (812px beside the open inspector, 12px apart). */
+  .sov-workspace__page {
+    display: grid;
+    grid-row: 1;
+    grid-column: 2;
+    align-content: start;
+    gap: 24px;
+    min-width: 0;
+    padding: calc(var(--sov-gutter) * 1.5) calc(var(--sov-gutter) * 1.5) calc(var(--sov-gutter) * 2);
+  }
+
+  /* The main takes the focus when a page opens (tabindex -1, never a tab stop): the page's own controls
+     show the focus outline, not the whole column. */
+  .sov-workspace__page:focus {
+    outline: none;
+  }
+
+  /* Sticky at the window's foot: the demo line never scrolls away (rule 10; GS-1). */
+  .sov-workspace__footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+
+  .sov-inspector-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: var(--sov-panel-gap);
+  }
+
+  .sov-inspector-layout[data-inspector='open'] {
+    grid-template-columns: minmax(0, 1fr) var(--sov-inspector-width);
+  }
+
+  .sov-inspector-layout__content {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .sov-inspector-layout__inspector {
+    position: sticky;
+    top: var(--sov-gutter);
+    min-width: 0;
+  }
+
+  /* ------------------------------------------------------------------ page header */
+  .sov-page-header {
+    display: grid;
+    gap: 12px;
+  }
+
+  .sov-page-header__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    color: var(--sov-text-tertiary);
+    font-size: 14px;
+    line-height: 20px;
+    text-decoration: none;
+    transition: color var(--sov-duration-text) var(--sov-ease);
+  }
+
+  .sov-page-header__back:hover {
+    color: var(--sov-text-primary);
+  }
+
+  .sov-page-header__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px 32px;
+  }
+
+  .sov-page-header__titles {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    max-width: 760px;
+  }
+
+  /* The one page-title role (tokens.css: proposed, pending the owner's OK; dashboards 8.2). */
+  .sov-page-header__title {
+    margin: 0;
+    color: var(--sov-text-primary);
+    font-size: var(--sov-title-size);
+    font-weight: var(--sov-title-weight);
+    letter-spacing: var(--sov-title-tracking);
+    line-height: 1.2;
+  }
+
+  .sov-page-header__subtitle {
+    margin: 0;
+    color: var(--sov-text-tertiary);
+    font-size: 16px;
+    font-weight: var(--sov-weight-light);
+    line-height: 24px;
+  }
+
+  .sov-page-header__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* The brand's eyebrow (App theme "Eyebrow"): mint, 14px, weight 600, uppercase, tracked, after a bullet. */
+  .sov-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--sov-accent);
+    font-size: 14px;
+    font-weight: var(--sov-weight-semibold);
+    letter-spacing: 0.08em;
+    line-height: 20px;
+    text-transform: uppercase;
+  }
+
+  /* ------------------------------------------------------------------ status footer */
+  .sov-status-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    min-height: var(--sov-footer-height);
+    padding: 0 24px;
+    border-top: 1px solid var(--sov-border);
+    background-color: var(--sov-bg);
+  }
+
+  .sov-status-footer__demo,
+  .sov-status-footer__status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 24px;
+    min-width: 0;
+  }
+
+  .sov-status-footer__status {
+    margin-inline-start: auto;
+  }
+
+  /* In the footer the demo line is a line of the bar, not a strip of its own; it keeps its words in full. */
+  .sov-status-footer .sov-demo-line {
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+  }
+
+  .sov-status-footer .sov-status-line {
+    font-size: 13px;
+  }
+
+  /* ------------------------------------------------------------------ register table */
+  /* The table scrolls sideways inside its own region when its columns need more than the page gives (the
+     inspector open beside it); while it does, the region is a tab stop, so the keyboard scrolls it too
+     (WCAG 2.1.1), and it is none when nothing scrolls (DR-12). */
+  .sov-register {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  .sov-register:focus-visible {
+    outline: var(--sov-focus-width) solid var(--sov-focus-ring);
+    outline-offset: var(--sov-focus-offset);
+  }
+
+  /* Separate borders (with no spacing, so it looks the same): each cell keeps its own hairline, so a pinned
+     cell's border moves with it. */
+  .sov-register__table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    color: var(--sov-text-primary);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .sov-register__table[aria-busy='true'] {
+    cursor: progress;
+  }
+
+  /* The header band on the raised surface (App theme: "surface: … table header bands"). */
+  .sov-register__head {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--sov-border);
+    background-color: var(--sov-surface);
+    color: var(--sov-text-muted);
+    font-size: 13px;
+    font-weight: var(--sov-weight-medium);
+    line-height: 18px;
+    text-align: start;
+    white-space: nowrap;
+  }
+
+  .sov-register__cell {
+    padding: 12px;
+    border-bottom: 1px solid var(--sov-border);
+    color: var(--sov-text-primary);
+    font-weight: var(--sov-weight-regular);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  .sov-register__head[data-align='end'],
+  .sov-register__cell[data-align='end'] {
+    text-align: end;
+  }
+
+  /* Every row's first cell keeps a 2px edge; the open row's edge is mint. */
+  .sov-register__table thead th:first-child,
+  .sov-register__row > :first-child {
+    border-inline-start: 2px solid transparent;
+  }
+
+  .sov-register__row {
+    transition: background-color var(--sov-duration-surface) var(--sov-ease);
+  }
+
+  .sov-register__row:hover {
+    background-color: var(--sov-surface);
+  }
+
+  .sov-register__row[aria-current='true'] {
+    background-color: var(--sov-surface-selected);
+  }
+
+  .sov-register__row[aria-current='true'] > :first-child {
+    border-inline-start-color: var(--sov-accent);
+  }
+
+  .sov-register__control {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  /* Pinned cells (phase 4 part B, DR-2): in a table wider than its region, a row's name (the row header) and
+     its controls never scroll out of view. The select box and the name stay at the region's start, the open
+     button and the row's action at its end, each with the row's own background over what scrolls beneath
+     (the raised surface on hover, the mint 8% mark on the open row). RegisterTable measures the select and
+     action columns into --sov-register-lead and --sov-register-trail (defaults below). */
+  .sov-register [data-pin] {
+    position: sticky;
+    z-index: 1;
+    background-color: var(--sov-bg);
+  }
+
+  .sov-register thead [data-pin] {
+    z-index: 2;
+    background-color: var(--sov-surface);
+  }
+
+  .sov-register [data-pin='select'] {
+    inset-inline-start: 0;
+  }
+
+  .sov-register [data-pin='name'] {
+    inset-inline-start: 0;
+  }
+
+  /* After the select column: its measured width, or by default a checkbox cell's (the row's 2px edge, 12px,
+     the 20px box, 12px). */
+  .sov-register[data-select='true'] [data-pin='name'] {
+    inset-inline-start: var(--sov-register-lead, 46px);
+  }
+
+  .sov-register [data-pin='action'] {
+    inset-inline-end: 0;
+  }
+
+  .sov-register [data-pin='open'] {
+    inset-inline-end: 0;
+  }
+
+  /* Before the action column: its measured width, or by default an icon button's cell (12px, 32px, 12px). */
+  .sov-register[data-row-action='true'] [data-pin='open'] {
+    inset-inline-end: var(--sov-register-trail, 56px);
+  }
+
+  .sov-register__row:hover > [data-pin] {
+    background-color: var(--sov-surface);
+  }
+
+  .sov-register__row[aria-current='true'] > [data-pin] {
+    background-color: var(--sov-bg);
+  }
+
+  /* The open row's mint 8% mark over the pinned cell's opaque page colour, under the cell's content: the
+     same fill the row draws, with nothing scrolling through it (an empty box, no generated text). */
+  .sov-register__row[aria-current='true'] > [data-pin]::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--sov-surface-selected);
+    content: '';
+    pointer-events: none;
+  }
+
+  /* A row whose menu is open lifts its pinned cells over the rows below, so the menu is never covered. */
+  .sov-register__row:has(.sov-menu__button[aria-expanded='true']) > [data-pin] {
+    z-index: 3;
+  }
+
+  .sov-register__control .sov-check {
+    margin-top: 2px;
+  }
+
+  .sov-register__badge-cell {
+    white-space: nowrap;
+  }
+
+  .sov-register__badge {
+    display: inline-flex;
+  }
+
+  .sov-register__empty {
+    padding: 32px 16px;
+    border-bottom: 1px solid var(--sov-border);
+    color: var(--sov-text-tertiary);
+  }
+
+  .sov-register__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    transition: color var(--sov-duration-text) var(--sov-ease);
+  }
+
+  .sov-register__sort:hover,
+  .sov-register__head[aria-sort='ascending'] .sov-register__sort,
+  .sov-register__head[aria-sort='descending'] .sov-register__sort {
+    color: var(--sov-text-primary);
+  }
+
+  /* A value in a cell, at the table's size: its text and its badge together, the badge moving under the
+     text inside the cell where the column is narrow (the cell is its tile: 2.8 "Prominence", as DR-2's
+     compact layout), words never split; the source line below. */
+  .sov-register__cell .sov-value {
+    gap: 2px;
+  }
+
+  .sov-register__cell .sov-value__line {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .sov-register__cell .sov-value__text {
+    font-size: 14px;
+    line-height: 20px;
+    overflow-wrap: break-word;
+  }
+
+  .sov-register__cell .sov-value__source,
+  .sov-register__cell .sov-value__status {
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  /* ------------------------------------------------------------------ names, lists and filters */
+  .sov-value-name {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    min-width: 0;
+  }
+
+  .sov-value-name__text {
+    unicode-bidi: isolate;
+    overflow-wrap: anywhere;
+  }
+
+  /* A numeric name ("101", "1.2") renders through the value element in its phrasing form (A-1): its text at
+     the size of the heading, button or option it sits in, its badge on the line, its lines under it. */
+  .sov-value-name[data-delegated='value'] > .sov-value {
+    gap: 2px;
+  }
+
+  .sov-value-name[data-delegated='value'] .sov-value__line {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .sov-value-name[data-delegated='value'] .sov-value__text {
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    overflow-wrap: break-word;
+  }
+
+  .sov-selection-list {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sov-selection-list__option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--sov-sidebar-row);
+    padding: 4px 12px 4px 8px;
+    border-inline-start: 2px solid transparent;
+    border-radius: var(--sov-radius-control);
+    color: var(--sov-text-tertiary);
+    font-size: 14px;
+    line-height: 20px;
+    cursor: pointer;
+    transition:
+      background-color var(--sov-duration-surface) var(--sov-ease),
+      color var(--sov-duration-text) var(--sov-ease);
+  }
+
+  .sov-selection-list__option:hover {
+    color: var(--sov-text-primary);
+  }
+
+  .sov-selection-list__option[aria-selected='true'] {
+    border-inline-start-color: var(--sov-accent);
+    background-color: var(--sov-surface-selected);
+    color: var(--sov-text-primary);
+    font-weight: var(--sov-weight-semibold);
+  }
+
+  .sov-selection-list__mark {
+    display: inline-grid;
+    flex: none;
+    width: 16px;
+    color: var(--sov-accent);
+  }
+
+  .sov-selection-list__content {
+    min-width: 0;
+  }
+
+  .sov-active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+  }
+
+  .sov-active-filters__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sov-active-filters__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 32px;
+    padding: 0 0 0 12px;
+    border: 1px solid var(--sov-secondary-border);
+    border-radius: var(--sov-radius-control);
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .sov-active-filters__name {
+    color: var(--sov-text-muted);
+  }
+
+  .sov-active-filters__value {
+    color: var(--sov-text-primary);
+  }
+
+  .sov-active-filters__chip .sov-icon-button {
+    width: 30px;
+    height: 30px;
+  }
+
+  /* ------------------------------------------------------------------ model area */
+  /* What a page shows where a model would be: no model, plan, outline or picture of a building (R-080; the
+     owner's answer of 2026-10-02). A hairline area, a 32px decorative icon, the words and the action. */
+  .sov-model-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    min-height: 480px;
+    padding: 48px 40px;
+    border: 1px solid var(--sov-border);
+    border-radius: var(--sov-radius-surface);
+    color: var(--sov-text-primary);
+    text-align: center;
+  }
+
+  .sov-model-area[data-size='panel'] {
+    min-height: 280px;
+    padding: 32px 24px;
+  }
+
+  .sov-model-area__icon {
+    color: var(--sov-text-muted);
+    line-height: 0;
+  }
+
+  .sov-model-area__status {
+    display: grid;
+    justify-items: center;
+    max-width: 380px;
+  }
+
+  .sov-model-area .sov-not-available {
+    justify-items: center;
+  }
+
+  .sov-model-area .sov-value__line {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .sov-button,
     .sov-action-row,
     .sov-input-box,
     .sov-choice-card,
-    .sov-dropzone {
+    .sov-dropzone,
+    .sov-icon-button,
+    .sov-menu__button,
+    .sov-menu__item,
+    .sov-switch__track,
+    .sov-tabs__tab,
+    .sov-pager__button,
+    .sov-chips__chip,
+    .sov-side-nav__link,
+    .sov-page-header__back,
+    .sov-register__row,
+    .sov-register__sort,
+    .sov-selection-list__option {
       transition: none;
     }
 

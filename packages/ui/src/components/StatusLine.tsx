@@ -28,6 +28,11 @@ export type StatusLineProps = (LineProps | DisplayProps) & {
   readonly icon?: IconComponent;
   /** `p` by default; `span` inside a row of text. */
   readonly as?: 'p' | 'span' | 'li';
+  /**
+   * `default`: 14px. `small`: 13px, for a line under a 14px name, as the Documents register's lines are
+   * set (an asset's document coverage, "pages 1-1 of 1": DR-10). Both in text-tertiary.
+   */
+  readonly size?: 'default' | 'small';
 };
 
 /**
@@ -44,13 +49,14 @@ export type StatusLineProps = (LineProps | DisplayProps) & {
  */
 export function StatusLine(props: StatusLineProps) {
   const Element = props.as ?? 'p';
+  const size = props.size === 'small' ? 'small' : undefined;
   const icon = props.icon === undefined ? null : <Icon icon={props.icon} size="small" />;
   if (props.display !== undefined) {
     const display = props.display;
     const own = display.lines?.find((line) => line.text === display.text);
     const marker = own === undefined ? undefined : copyKindOfLine(own.kind);
     return (
-      <Element className="sov-status-line" data-value-id={display.valueId}>
+      <Element className="sov-status-line" data-value-id={display.valueId} data-size={size}>
         {icon}
         <span data-copy-kind={marker}>{display.text}</span>
       </Element>
@@ -63,7 +69,7 @@ export function StatusLine(props: StatusLineProps) {
     );
   }
   return (
-    <Element className="sov-status-line" data-line={line.id}>
+    <Element className="sov-status-line" data-line={line.id} data-size={size}>
       {icon}
       <span data-copy-kind={copyKindOfLine(line.kind)}>{line.text}</span>
     </Element>

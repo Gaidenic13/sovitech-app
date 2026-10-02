@@ -16,7 +16,7 @@
  * G10-9, G10-11): the investment outputs and the Proposal card name their stage from stored state.
  */
 import { revisionNotice } from '@sovitech/domain';
-import { FIELD, SYSTEMS, badgeById, productionRegistry } from '@sovitech/registry';
+import { FIELD, SYSTEMS, badgeById } from '@sovitech/registry';
 import type { GateId } from '@sovitech/registry/gates';
 import type {
   Action,
@@ -149,9 +149,9 @@ function answeredByOwner(context: ViewContext, fieldKey: string): boolean {
 
 /** A single-choice question (step 5): its options, the found fact or the owner's answer, and its skip state. */
 function singleQuestion(context: ViewContext, questionId: string): Question {
-  const question = questionOf(questionId);
+  const question = questionOf(context.state.registry, questionId);
   const fieldKey = question?.fieldKeys[0];
-  const field = fieldKey === undefined ? undefined : fieldOf(fieldKey);
+  const field = fieldKey === undefined ? undefined : fieldOf(context.state.registry, fieldKey);
   if (question === undefined || fieldKey === undefined || field === undefined) throw new Error(`no question ${questionId}`);
   const plan = planOf(context.plan, question);
   const valueId = addField(context, fieldKey);
@@ -182,7 +182,7 @@ function singleQuestion(context: ViewContext, questionId: string): Question {
 
 /** A multi-select (steps 4, 6, 7): one decision field per option (2.6), each with its display. */
 function multiQuestion(context: ViewContext, questionId: string, positive: string): Question {
-  const question = questionOf(questionId);
+  const question = questionOf(context.state.registry, questionId);
   if (question === undefined) throw new Error(`no question ${questionId}`);
   const plan = planOf(context.plan, question);
   const options: QuestionOption[] = question.fieldKeys.map((fieldKey) => {
@@ -328,7 +328,7 @@ function step4(context: ViewContext): StepView {
 
 function step5(context: ViewContext): StepView {
   // Rule 6's impactRank order: the building type, then the schedule, then the occupancy (US-INTAKE-05 AC11).
-  return { step: 5, questions: questionsOfStep(5).map((question) => singleQuestion(context, question.id)) };
+  return { step: 5, questions: questionsOfStep(context.state.registry, 5).map((question) => singleQuestion(context, question.id)) };
 }
 
 function step6(context: ViewContext): StepView {
@@ -375,17 +375,17 @@ function proposalStageLabel(context: ViewContext): ValueId {
  * words; and the one the owner asked for with `add` (the engine's requestedInlineAsk: PRD R-012; G7-11).
  */
 function asks(context: ViewContext, add: string | undefined): Extract<StepView, { step: 8 }>['proposal']['inlineAsks'] {
-  const planned = [...inlineAsks(intakeFields(context.state), productionRegistry.settings.firstEstimateSet.members)];
+  const planned = [...inlineAsks(intakeFields(context.state), context.state.registry.bundle.settings.firstEstimateSet.members)];
   const requested = add === undefined ? undefined : requestedInlineAsk(intakeFields(context.state), add);
   if (requested !== undefined && !planned.some((ask) => ask.fieldKeys[0] === requested.fieldKeys[0])) {
-    const rank = (keys: readonly string[]): number => fieldOf(keys[0] ?? '')?.impactRank ?? Number.MAX_SAFE_INTEGER;
+    const rank = (keys: readonly string[]): number => fieldOf(context.state.registry, keys[0] ?? '')?.impactRank ?? Number.MAX_SAFE_INTEGER;
     planned.push(requested);
     planned.sort((a, b) => rank(a.fieldKeys) - rank(b.fieldKeys));
   }
   return planned.flatMap((ask) => {
     const [firstKey] = ask.fieldKeys;
-    const field = firstKey === undefined ? undefined : fieldOf(firstKey);
-    const question = firstKey === undefined ? undefined : productionRegistry.questions.find((entry) => entry.kind === 'question' && entry.fieldKeys.includes(firstKey));
+    const field = firstKey === undefined ? undefined : fieldOf(context.state.registry, firstKey);
+    const question = firstKey === undefined ? undefined : context.state.registry.bundle.questions.find((entry) => entry.kind === 'question' && entry.fieldKeys.includes(firstKey));
     const slot = field?.firstEstimateSlot;
     const label = slot === undefined ? undefined : FIRST_ESTIMATE_SLOT_LABELS[slot];
     if (field === undefined || question === undefined || label === undefined) return [];
@@ -475,7 +475,7 @@ function multiSelectCard(
   };
   const ordered = card.fieldKeys.map((fieldKey, index) => ({ fieldKey, index, group: group(fieldKey) })).sort((a, b) => a.group - b.group || a.index - b.index);
   const rows = ordered.map((entry) => addField(context, entry.fieldKey));
-  const question = questionOf(card.questionId);
+  const question = questionOf(context.state.registry, card.questionId);
   const skipped = question !== undefined && planOf(context.plan, question).kind === 'skipped';
   return { cardId: card.cardId, editStep: card.editStep, rows, skippedQuestions: skipped ? [{ questionId: card.questionId, line: lineOf('provide_later') }] : [] };
 }
@@ -486,7 +486,7 @@ function step8(context: ViewContext, add: string | undefined): StepView {
     { cardId: 'documents', editStep: 2, rows: [documentCount(context)], skippedQuestions: [] },
     { cardId: 'building', editStep: 3, rows: STEP_3_FACTS.map((key) => addField(context, key)), skippedQuestions: [] },
     multiSelectCard(context, { cardId: 'systems', editStep: 4, questionId: 'q.project.systemsInScope', fieldKeys: SCOPE_FIELDS, positive: 'include' }),
-    { cardId: 'operations', editStep: 5, rows: questionsOfStep(5).flatMap((question) => question.fieldKeys.map((key) => addField(context, key))), skippedQuestions: [] },
+    { cardId: 'operations', editStep: 5, rows: questionsOfStep(context.state.registry, 5).flatMap((question) => question.fieldKeys.map((key) => addField(context, key))), skippedQuestions: [] },
     multiSelectCard(context, { cardId: 'goals', editStep: 6, questionId: 'q.project.goals', fieldKeys: GOAL_FIELDS, positive: 'selected' }),
     multiSelectCard(context, { cardId: 'automation', editStep: 7, questionId: 'q.project.automationAreas', fieldKeys: AUTOMATION_FIELDS, positive: 'selected' }),
   ];

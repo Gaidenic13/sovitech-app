@@ -14,6 +14,13 @@
  *   reduced motion, "Skip for now" and its later line sit 24px under the grid at its left edge, and owner
  *   text holding a direction control never reorders the copy and badge around it.
  *
+ * - Phase 4 part B (the design review's kit findings): an unanswered radio group draws every option as an
+ *   empty ring while the select-all checkbox's mixed state keeps its fill and dash (DR-1, G7-17); the
+ *   workspace frame has one main, one contentinfo and its sidebar outside main (DR-3); at 1440 with the
+ *   inspector open, the page column starts 24px after the sidebar and a row's name and controls stay inside
+ *   the register's visible box however it is scrolled (DR-2); the inspector's two-word stage breaks no word
+ *   (DR-8); a tag written as a number shows in the inspector's subheading with its badge (A-1).
+ *
  * Runs in the Playwright `e2e` project (`pnpm e2e`); it needs no API and no web server of its own:
  * the pages load from file:// URLs, as the render harness's own pages do.
  */
@@ -58,9 +65,15 @@ test.describe('R-043 · R-138 · F-RENDER-06 · G2-1 · G2-8: the UI kit on its 
 
   test('US-INTAKE-01 · prompt 3 section 11 (keyboard): Tab reaches every control of the forms page in order, each with the accent focus outline', async ({ page }) => {
     await page.goto(harnessPageUrl('ui/forms.html'));
+    // A radio group is one tab stop: its checked radio, or its first radio while none is checked.
     const expected = await page.evaluate(() =>
-      [...document.querySelectorAll('input:not([hidden]):not([type="radio"]), select, button, input[type="radio"]:checked')]
+      [...document.querySelectorAll('input:not([hidden]), select, button')]
         .filter((element) => element instanceof HTMLElement && !element.hidden)
+        .filter((element) => {
+          if (!(element instanceof HTMLInputElement) || element.type !== 'radio') return true;
+          const group = [...document.querySelectorAll<HTMLInputElement>(`input[type="radio"][name="${element.name}"]`)];
+          return element.checked || (!group.some((radio) => radio.checked) && group[0] === element);
+        })
         .map((element) => (element as HTMLElement).outerHTML.slice(0, 60)),
     );
     const reached: string[] = [];
@@ -184,5 +197,150 @@ test.describe('R-043 · R-138 · F-RENDER-06 · G2-1 · G2-8: the UI kit on its 
     await page.keyboard.press('ArrowRight');
     await expect(office).toBeFocused();
     await expect(office).toBeChecked();
+  });
+
+  test('DR-1 · G7-17 · rule 7 "Nothing fills the gap" · rule 3 · WCAG 1.3.1, 1.4.1: an unanswered radio group draws every option as an empty ring; a chosen radio and the select-all checkbox\'s mixed state keep their fill', async ({ page }) => {
+    await page.goto(harnessPageUrl('ui/forms.html'));
+    const radios = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLInputElement>('#forms-unanswered input[type="radio"], input[name="schedule"]')].map((radio) => ({
+        name: radio.name,
+        checked: radio.checked,
+        // HTML calls a radio of a group with none checked indeterminate: the state that drew the mint discs.
+        indeterminate: radio.matches(':indeterminate'),
+        background: getComputedStyle(radio).backgroundColor,
+        mark: getComputedStyle(radio.parentElement?.querySelector('.sov-check__mark') ?? radio).opacity,
+      })),
+    );
+    expect(radios.map((radio) => radio.name)).toEqual(['unansweredType', 'unansweredType', 'unansweredBasis', 'unansweredBasis', 'schedule', 'schedule']);
+    for (const radio of radios) expect(radio).toEqual({ name: radio.name, checked: false, indeterminate: true, background: 'rgba(0, 0, 0, 0)', mark: '0' });
+    const chosen = await page.getByRole('radio', { name: 'Renovation' }).first().evaluate((radio) => getComputedStyle(radio).backgroundColor);
+    expect(chosen).toBe('rgb(200, 230, 201)');
+    // Choosing one option turns the group's state from unanswered to answered: only the chosen radio fills.
+    await page.getByRole('radio', { name: 'TEST gross total' }).check();
+    const basis = await page.evaluate(() => [...document.querySelectorAll<HTMLInputElement>('input[name="unansweredBasis"]')].map((radio) => getComputedStyle(radio).backgroundColor));
+    expect(basis).toEqual(['rgb(200, 230, 201)', 'rgba(0, 0, 0, 0)']);
+
+    await page.goto(harnessPageUrl('ui/workspace-frame.html'));
+    const all = page.getByRole('checkbox', { name: 'Select all equipment on this page' });
+    // The component sets the mixed state from its ref (RegisterTable.test.tsx); the static page sets it here.
+    await all.evaluate((box) => {
+      (box as HTMLInputElement).indeterminate = true;
+    });
+    const mixed = await all.evaluate((box) => ({
+      background: getComputedStyle(box).backgroundColor,
+      dash: getComputedStyle(box.parentElement?.querySelector('.sov-check__partial') ?? box).opacity,
+    }));
+    expect(mixed).toEqual({ background: 'rgb(200, 230, 201)', dash: '1' });
+  });
+
+  test('DR-3 · V-7 · WCAG 2.4.1, 1.3.1: the workspace frame has exactly one main (the page column, #main) and one contentinfo, with the sidebar outside main', async ({ page }) => {
+    for (const file of ['ui/workspace-frame.html', 'ui/workspace-documents.html']) {
+      await page.goto(harnessPageUrl(file));
+      await expect(page.getByRole('main'), file).toHaveCount(1);
+      await expect(page.getByRole('contentinfo'), file).toHaveCount(1);
+      await expect(page.getByRole('complementary', { name: 'Project' }), file).toHaveCount(1);
+      const pages = page.getByRole('navigation', { name: 'Project pages' });
+      await expect(pages, file).toHaveCount(1);
+      const sideNav = await pages.elementHandle();
+      const landmarks = await page.evaluate((nav) => {
+        const main = document.querySelector('main');
+        const footer = document.querySelector('footer');
+        const aside = document.querySelector('aside');
+        return {
+          mainId: main?.id,
+          mainIsPage: main?.classList.contains('sov-workspace__page'),
+          asideInMain: main?.contains(aside ?? null),
+          footerInMain: main?.contains(footer ?? null),
+          // The sidebar's page list sits in the aside, not in main (the page's own pager may be a nav in main).
+          navInMain: main?.contains(nav),
+          navInAside: aside?.contains(nav),
+          firstHeadingInMain: main?.querySelector('h1, h2, h3')?.tagName,
+          demoInFooter: footer?.querySelector('[data-demo-line]') !== null,
+        };
+      }, sideNav);
+      expect(landmarks, file).toEqual({ mainId: 'main', mainIsPage: true, asideInMain: false, footerInMain: false, navInMain: false, navInAside: true, firstHeadingInMain: 'H1', demoInFooter: true });
+    }
+  });
+
+  test('DR-2 · App theme "Shell sizes": at 1440 with the inspector open, the page starts 24px after the sidebar and each row\'s name, details, menu and record controls stay inside the register\'s visible box however it scrolls', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    for (const file of ['ui/workspace-frame.html', 'ui/workspace-documents.html']) {
+      await page.goto(harnessPageUrl(file));
+      const measure = () =>
+        page.evaluate(() => {
+          const region = document.querySelector<HTMLElement>('.sov-register');
+          const content = document.querySelector('.sov-inspector-layout__content');
+          if (region === null || content === null) throw new Error('no register');
+          const visible = region.getBoundingClientRect();
+          const inside = (element: Element) => {
+            const box = element.getBoundingClientRect();
+            return box.width > 0 && box.left >= visible.left - 0.5 && box.right <= visible.right + 0.5;
+          };
+          // What lies at a control's centre is the control itself: nothing scrolled or pinned covers it.
+          const onTop = (element: Element) => {
+            const box = element.getBoundingClientRect();
+            const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+            return hit !== null && (hit === element || element.contains(hit));
+          };
+          const rows = [...region.querySelectorAll('tbody tr')].map((row) => {
+            const controls = [...row.querySelectorAll('[data-register-cell="open"] button, [data-register-cell="action"] a, [data-register-cell="action"] .sov-menu__button')];
+            const name = row.querySelector('th[scope="row"] .sov-value, th[scope="row"] .sov-value-name');
+            return {
+              controls: controls.length,
+              controlsInside: controls.every(inside),
+              controlsOnTop: controls.every(onTop),
+              nameInside: name !== null && inside(name),
+            };
+          });
+          return { left: Math.round(content.getBoundingClientRect().left), width: Math.round(visible.width), scrolls: region.scrollWidth > region.clientWidth, rows };
+        });
+      const start = await measure();
+      expect(start.left, file).toBe(208 + 24);
+      expect(start.width, file).toBe(1440 - 208 - 24 - 24 - 12 - 360);
+      // The register is wider than its column here, so the pins are what keeps the controls in view.
+      expect(start.scrolls, file).toBe(true);
+      for (const row of start.rows) expect(row, file).toEqual({ controls: 2, controlsInside: true, controlsOnTop: true, nameInside: true });
+      await page.locator('.sov-register').evaluate((region) => {
+        region.scrollLeft = region.scrollWidth;
+      });
+      const end = await measure();
+      for (const row of end.rows) expect(row, `${file} scrolled to the end`).toEqual({ controls: 2, controlsInside: true, controlsOnTop: true, nameInside: true });
+    }
+  });
+
+  test('DR-8 · ADR 0040 decision 6 · 2.8 "Prominence": in the 360px inspector a two-word stage with its badge breaks no word, and the badge stays inside the inspector', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(harnessPageUrl('ui/workspace-documents.html'));
+    const stage = await page.evaluate(() => {
+      const text = document.querySelector('.sov-inspector [data-detail="Stage"] .sov-value__text');
+      const badge = document.querySelector('.sov-inspector [data-detail="Stage"] .sov-badge');
+      const inspector = document.querySelector('.sov-inspector');
+      const node = text?.firstChild;
+      if (text === null || badge === null || inspector === null || !(node instanceof Text)) throw new Error('no stage');
+      // Each word drawn on one line: a word split across lines has two boxes.
+      const words: { word: string; boxes: number }[] = [];
+      const content = node.data;
+      let at = 0;
+      for (const word of content.split(' ')) {
+        const range = document.createRange();
+        range.setStart(node, at);
+        range.setEnd(node, at + word.length);
+        words.push({ word, boxes: range.getClientRects().length });
+        at += word.length + 1;
+      }
+      return { words, badgeInside: badge.getBoundingClientRect().right <= inspector.getBoundingClientRect().right + 0.5 };
+    });
+    expect(stage).toEqual({ words: [{ word: 'Technical', boxes: 1 }, { word: 'design', boxes: 1 }], badgeInside: true });
+  });
+
+  test('A-1 · rules 2 and 9: a tag written as a number shows in the inspector\'s subheading through the value element, with its badge and its source line, bound to its value id', async ({ page }) => {
+    await page.goto(harnessPageUrl('ui/workspace-frame.html'));
+    const subheading = page.locator('.sov-inspector__subheading');
+    const bound = subheading.locator('[data-value-id$=".tag"]');
+    await expect(bound).toHaveCount(1);
+    await expect(bound.locator('bdi')).toHaveText('123');
+    await expect(bound.locator('[data-copy-kind="badge"]')).toHaveText('From document');
+    await expect(bound.locator('.sov-value__source')).toHaveText('Found in TEST Schedule.xlsx, sheet TEST 1');
+    await expect(subheading.locator('div, p')).toHaveCount(0);
   });
 });

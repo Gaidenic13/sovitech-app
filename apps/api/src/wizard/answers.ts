@@ -31,7 +31,7 @@ import { parseOwnerAnswer } from '@sovitech/view-model/server';
 import { ApiRefusal } from '../errors';
 import { shownCandidateIds } from './displays';
 import type { WizardField } from './project-state';
-import { fieldOf } from './registry';
+import { fieldOf, type ApiRegistry } from './registry';
 
 const COUNTRIES: ReadonlySet<string> = new Set(COUNTRY_CODES);
 const TYPES: ReadonlySet<string> = new Set(PROJECT_TYPES);
@@ -63,8 +63,8 @@ function toNew(candidate: Candidate): NewCandidate {
 }
 
 /** Appends a candidate the owner's request made; a refusal of the unit check is the owner's `unit_mismatch` (2.7). */
-async function store(request: Request, candidate: Candidate): Promise<void> {
-  const field = fieldOf(candidate.fieldKey);
+async function store(request: Request, registry: ApiRegistry, candidate: Candidate): Promise<void> {
+  const field = fieldOf(registry, candidate.fieldKey);
   if (field === undefined) throw new Error(`no registry field ${candidate.fieldKey}`);
   const written = await insertCandidate(request, toNew(candidate), field);
   if (written.outcome === 'refused') throw new ApiRefusal(422, 'unit_mismatch');
@@ -82,6 +82,7 @@ function reasonCode(reason: string | undefined, fallback: string): string {
  */
 export async function appendRecords(
   request: Request,
+  registry: ApiRegistry,
   records: {
     readonly candidates?: readonly Candidate[];
     readonly candidateEvents?: readonly CandidateEvent[];
@@ -91,7 +92,7 @@ export async function appendRecords(
   userId: string,
   skipReason: string,
 ): Promise<void> {
-  for (const candidate of records.candidates ?? []) await store(request, candidate);
+  for (const candidate of records.candidates ?? []) await store(request, registry, candidate);
   for (const event of records.candidateEvents ?? []) {
     if (event.type === 'engineer_verified') throw new Error('an owner request never writes engineer_verified (rule 10)');
     await appendCandidateEvent(request, {
@@ -150,6 +151,7 @@ function sameValue(candidate: Candidate, value: OwnerValue): boolean {
  */
 export async function writeOwnerAnswer(
   request: Request,
+  registry: ApiRegistry,
   input: { readonly projectId: string; readonly userId: string; readonly wizardField: WizardField; readonly value: OwnerValue; readonly corrects: readonly string[] },
 ): Promise<boolean> {
   const { wizardField, value, userId } = input;
@@ -186,7 +188,7 @@ export async function writeOwnerAnswer(
     };
     // 2.1: the owner's own entry on an owner or either field is user_confirmed when it is created.
     const events: CandidateEvent[] = field.confirmBy === 'engineer' ? [] : [{ candidateId, type: 'user_confirmed', by: userId, role: 'owner', at }];
-    await appendRecords(request, { candidates: [candidate], candidateEvents: events }, userId, 'edit');
+    await appendRecords(request, registry, { candidates: [candidate], candidateEvents: events }, userId, 'edit');
     return true;
   }
   // Rule 4, "A correction is a resolution": the domain plans the owner's candidate and the rejection (none of an engineer_verified value, G4-19).
@@ -202,7 +204,7 @@ export async function writeOwnerAnswer(
     }
   }
   // The owner's candidate carries a typed quantity's entry as written (rule 8; G8-23): planOwnerCorrection copies `value.original`.
-  await appendRecords(request, { candidates: [plan.candidate], candidateEvents: events, guardrailEvents: guardrail }, userId, 'edit');
+  await appendRecords(request, registry, { candidates: [plan.candidate], candidateEvents: events, guardrailEvents: guardrail }, userId, 'edit');
   return true;
 }
 
@@ -212,6 +214,7 @@ export async function writeOwnerAnswer(
  */
 export async function writeFirstAnswer(
   request: Request,
+  registry: ApiRegistry,
   input: { readonly userId: string; readonly subjectId: string; readonly field: RegistryFieldDefinition; readonly value: OwnerValue },
 ): Promise<string> {
   const candidateId = newId();
@@ -232,6 +235,6 @@ export async function writeFirstAnswer(
     createdAt: at,
   };
   const events: CandidateEvent[] = input.field.confirmBy === 'engineer' ? [] : [{ candidateId, type: 'user_confirmed', by: input.userId, role: 'owner', at }];
-  await appendRecords(request, { candidates: [candidate], candidateEvents: events }, input.userId, 'create');
+  await appendRecords(request, registry, { candidates: [candidate], candidateEvents: events }, input.userId, 'create');
   return candidateId;
 }

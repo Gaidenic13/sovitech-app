@@ -1,0 +1,52 @@
+<!doctype html>
+<!--
+  The viewer spike's bench page (docs/adr/0046-viewer-spike.md decision 1): one converted model in
+  That Open's components, with keyboard camera controls and storeys stepped through without labels.
+  It shows nothing read from the model: no name, no number, no count, no selection. Served only by
+  the spike's runner (tools/viewer-spike/), on 127.0.0.1, with every other request refused. Never
+  part of the live app.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Viewer spike bench</title>
+    <link rel="stylesheet" href="/tokens.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--sov-bg);
+        color: var(--sov-text-primary);
+      }
+      #view {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+      #view:focus-visible {
+        outline: 2px solid var(--sov-accent);
+        outline-offset: -2px;
+      }
+      .keys {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div id="view" tabindex="0" role="application" aria-label="Model view" aria-describedby="view-keys"></div>
+      <p id="view-keys" class="keys">
+        Hold the arrow keys to orbit. Plus and minus zoom. W, A, S and D move the view. Page Up and Page Down step
+        through the storeys. Home shows the whole model again.
+      </p>
+    </main>
+    <script type="module" src="/bench.js"></script>
+  </body>
+</html>

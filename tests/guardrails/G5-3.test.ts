@@ -17,19 +17,22 @@
  * with the engine's selection of the same twelve values: one `confirmation_budget_exceeded` event for each of
  * the five fields over the budget, none for the seven shown, and nothing more when the views are read again.
  * The production registry allows one owner confirmation (the building type), so twelve values pass the test
- * only with TEST fields; the API reads the production registry as module constants, and a case file may not
- * mock it (tools/checks/index/case-files.ts), so the served view itself is not read here (the build log's
- * "Waiting" table names the registry seam a run through the served view needs).
+ * only with TEST fields. Phase 4's registry seam (apps/api/src/wizard/registry.ts; docs/adr/0044 decision 4) lets the
+ * API serve a TEST registry handed to it (never a mock: tools/checks/index/case-files.ts), so the last describe reads
+ * the served step 8 view itself over the twelve TEST values stored in a TEST database: "7 things for you to check",
+ * the five over the budget under "SOVITECH will check", and one `confirmation_budget_exceeded` per field over the
+ * budget, logged by the served views (the phase 3 "Waiting" row closes).
  */
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
-import { withRequest } from '@sovitech/db';
+import { insertCandidate, newId, withRequest } from '@sovitech/db';
 import { productionRegistry } from '@sovitech/registry';
 import { confirmActionOf, confirmationCandidates, openItems, planQuestion, resolveField, selectConfirmations } from '@sovitech/view-model/server';
-import type { StepNumber } from '@sovitech/view-model/browser';
+import { StepResponseSchema, type StepNumber } from '@sovitech/view-model/browser';
 import { documentReading, testDocument } from './_support/builders';
 import { intakeFieldOf, registryField, resolveInputOf, uuid } from './_support/view-model';
 import { signIn, startTestApi, type TestApi } from './_support/api';
 import { logPlanDefects } from '../../apps/api/src/wizard/defects';
+import { newOwnerProject, serviceOf, testDocumentIn, testRegistry } from './_support/workspace-store';
 
 const PROJECT = uuid(1);
 const BUILDING = uuid(2);
@@ -163,6 +166,71 @@ describe('G5-3 · the API logs the defect (over a TEST database)', () => {
       await Promise.all([1, 2, 3].map(() => withRequest(api.database.app, { userId: ownerId, projectId: fresh }, (request) => logPlanDefects(request, ownerId, { knownFieldAsks: [], overBudget }))));
       const rows = await api.database.asAdministrator<{ fieldKey: string }>(`SELECT field_key AS "fieldKey" FROM sovitech.guardrail_events WHERE project_id = $1 AND type = 'confirmation_budget_exceeded' ORDER BY field_key`, [fresh]);
       expect(rows.map((row) => row.fieldKey), `round ${String(round)}`).toEqual(overflow.map((entry) => entry.fieldKey).sort());
+    }
+  });
+});
+
+describe('G5-3 · through the served step view, over the registry seam (a TEST registry)', () => {
+  const fields = RANKS.map((rank, index) =>
+    registryField(`building.testFact${String(index)}`, { kind: 'enum', subject: 'building', options: ['one', 'two'], confirmBy: 'owner', criticality: 'first_estimate', impactRank: rank }),
+  );
+  const steps = new Map<string, StepNumber>(fields.map((field, index) => [field.key, STEPS[index % STEPS.length] ?? 3]));
+  let api: TestApi;
+  let owner: Awaited<ReturnType<typeof signIn>>;
+
+  beforeAll(async () => {
+    api = await startTestApi({ devLogin: true, registry: testRegistry({ fields, steps }) });
+    const [id] = api.devAccountIds;
+    if (id === undefined) throw new Error('no TEST development owner');
+    owner = await signIn(api, id);
+  }, 180_000);
+
+  afterAll(async () => {
+    await api.stop();
+  });
+
+  test('US-REVIEW-05 AC2 · F-QUESTION-02 · G5-3: the served step 8 shows 7 for the owner by impact and 5 under SOVITECH will check, and the views log one confirmation_budget_exceeded per field over the budget', { timeout: 120_000 }, async () => {
+    const { projectId, buildingId } = await newOwnerProject(api, owner, 'G5-3 served');
+    const serviceId = await serviceOf(api, projectId, 'G5-3 served');
+    // Before the twelve values: the owner's other open items on a new project (the first-estimate inputs it lacks).
+    const ownerItems = async (): Promise<{ readonly count: number; readonly step8: ReturnType<typeof StepResponseSchema.parse> }> => {
+      const response = await api.app.inject({ method: 'GET', url: `/api/projects/${projectId}/steps/8`, headers: { ...owner } });
+      expect(response.statusCode, response.body).toBe(200);
+      const step8 = StepResponseSchema.parse(response.json());
+      if (step8.view.step !== 8) throw new Error('step 8 served another view');
+      const id = step8.view.forYou.count;
+      const text = id === null ? undefined : step8.displayObjects.find((display) => display.valueId === id)?.text;
+      return { count: text === undefined ? 0 : Number.parseInt(text, 10), step8 };
+    };
+    const before = (await ownerItems()).count;
+    const memo = await testDocumentIn(api, { projectId, serviceId, label: 'G5-3 memoriu', fileName: 'TEST memoriu G5-3.pdf', pages: ['TEST one'] });
+    await withRequest(api.database.app, { userId: serviceId, projectId }, async (request) => {
+      for (const field of fields) {
+        const written = await insertCandidate(
+          request,
+          { id: newId(), subjectId: buildingId, fieldKey: field.key, choice: 'one', source: 'ai_inference', confidence: 'medium', evidence: [{ documentId: memo.id, contentHash: memo.contentHash, locator: { page: 1 }, excerpt: 'TEST one', check: 'text_match' }], createdBy: serviceId },
+          field,
+        );
+        expect(written.outcome).toBe('stored');
+      }
+    });
+    for (const read of [1, 2]) {
+      const { count, step8 } = await ownerItems();
+      if (step8.view.step !== 8) throw new Error('step 8 served another view');
+      const byId = new Map(step8.displayObjects.map((display) => [display.valueId, display]));
+      // Seven more things for the owner: the confirmations within the budget.
+      expect(count - before, `read ${String(read)}`).toBe(7);
+      // No value over the budget is among the owner's items; the five over it are listed for the engineer, by their labels.
+      const overBudget = new Set([8, 9, 10, 11, 12].map((rank) => `building.testFact${String(RANKS.indexOf(rank))}`));
+      expect(step8.view.forYou.items.some((item) => overBudget.has(byId.get(item.concerns)?.field?.fieldKey ?? ''))).toBe(false);
+      const engineer = step8.view.sovitechWillCheck.map((id) => byId.get(id)?.text ?? '').find((text) => text.includes('TEST building.testFact')) ?? '';
+      const listed = engineer.slice(engineer.indexOf(':') + 1).split(',').map((label) => label.trim());
+      expect(listed.sort()).toEqual([8, 9, 10, 11, 12].map((rank) => `TEST building.testFact${String(RANKS.indexOf(rank))}`).sort());
+      const logged = await api.database.asAdministrator<{ fieldKey: string }>(
+        `SELECT field_key AS "fieldKey" FROM sovitech.guardrail_events WHERE project_id = $1 AND type = 'confirmation_budget_exceeded' ORDER BY field_key`,
+        [projectId],
+      );
+      expect(logged.map((row) => row.fieldKey), `read ${String(read)}`).toEqual([8, 9, 10, 11, 12].map((rank) => `building.testFact${String(RANKS.indexOf(rank))}`).sort());
     }
   });
 });

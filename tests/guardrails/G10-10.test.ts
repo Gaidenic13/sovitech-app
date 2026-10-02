@@ -14,7 +14,9 @@
  * only for the seed, ADR 0015), with the TEST development owner added as a member on the operator's
  * login, as the development accounts' CLI does (PRD R-136 interim), and a project the development owner
  * creates through step 1. Every screen route of the contract (the project list, the eight steps, UD-45,
- * the proposal page, and late findings, which carries no header) is read for both.
+ * the proposal page, and late findings, which carries no header) is read for both; phase 4 adds the workspace's
+ * screens (the frame, Documents, System Scope, Equipment, Zones, Topology: docs/adr/0044), whose 48px footer shows
+ * the envelope's demo line (R-139).
  */
 import { afterAll, beforeAll, expect, test } from 'vitest';
 import { addProjectMember } from '@sovitech/db';
@@ -29,7 +31,24 @@ let demoId: string;
 let ownProjectId: string;
 
 const DEMO_LINE = statusLineById('demo_data').text;
-const SCREENS = ['steps/1', 'steps/2', 'steps/3', 'steps/4', 'steps/5', 'steps/6', 'steps/7', 'steps/8', 'extracted', 'proposal'] as const;
+const SCREENS = [
+  'steps/1',
+  'steps/2',
+  'steps/3',
+  'steps/4',
+  'steps/5',
+  'steps/6',
+  'steps/7',
+  'steps/8',
+  'extracted',
+  'proposal',
+  'workspace',
+  'workspace/documents',
+  'workspace/system-scope',
+  'workspace/equipment',
+  'workspace/zones',
+  'workspace/topology',
+] as const;
 
 beforeAll(async () => {
   api = await startTestApi({ devLogin: true });

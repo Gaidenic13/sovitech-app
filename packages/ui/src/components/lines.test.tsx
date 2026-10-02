@@ -41,6 +41,19 @@ describe('F-RENDER-01 · F-RENDER-05 · prompt 3 section 7: StatusLine binds eve
     });
   });
 
+  test('DR-10: a small line (under a 14px name) says so for the stylesheet, in both forms; the default line carries no size', () => {
+    const { container } = render(
+      <>
+        <StatusLine display={OPEN_ITEMS} size="small" />
+        <StatusLine line={{ id: 'analysis_failed', kind: 'status_line', text: 'Analysis failed' }} size="small" />
+        <StatusLine line={{ id: 'provide_later', kind: 'rule_line', text: 'You can provide this later.' }} />
+        <StatusLine line={{ id: 'not_analysed', kind: 'status_line', text: 'Not analysed' }} size="default" />
+      </>,
+    );
+    expect([...container.querySelectorAll('.sov-status-line')].map((line) => line.getAttribute('data-size'))).toEqual(['small', 'small', null, null]);
+    expect(container.querySelector(`[data-value-id="${OPEN_ITEMS.valueId}"]`)?.getAttribute('data-size')).toBe('small');
+  });
+
   test('F-RENDER-05 · 2.8 "Reserved terms": a status line is marked as a status line; a rule line carries no marker', () => {
     render(<StatusLine line={{ id: 'analysis_failed', kind: 'status_line', text: 'Analysis failed' }} />);
     render(<StatusLine line={{ id: 'provide_later', kind: 'rule_line', text: 'You can provide this later.' }} />);

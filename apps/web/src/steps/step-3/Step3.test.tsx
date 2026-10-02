@@ -399,6 +399,29 @@ describe('A-1 · rule 4 · rule 5 · rule 7: one request per press on step 3', (
     await waitFor(() => expect(sentTo(seen, 'POST', '/fields/confirm')).toBe(2));
   });
 
+  it('carried from phase 3 (ADR 0039 decision 11) · rule 7: while one write of the screen is on its way, a press on another row\'s action sends nothing; every action says so with aria-busy, none is disabled, and all take presses again once the answer is in', async () => {
+    const held = heldHandler(() => json(500, { code: 'internal_error' }));
+    const seen = api({ confirm: true }, { [`POST /api/projects/${PROJECT}/fields/confirm`]: held.handler });
+    renderAt(`/projects/${PROJECT}/steps/3`);
+    await screen.findByRole('region', { name: 'Extracted details' });
+    fireEvent.click(within(details()).getAllByRole('button', { name: 'Yes' })[0] as HTMLElement);
+    await settle();
+    expect(sentTo(seen, 'POST', '/fields/confirm')).toBe(1);
+    const [rooms] = valueElements(ROOMS).filter((element) => details().contains(element));
+    const looksRight = within(rooms as HTMLElement).getByRole('button', { name: 'Looks right' });
+    expect(looksRight.getAttribute('aria-busy')).toBe('true');
+    expect(looksRight.hasAttribute('disabled')).toBe(false);
+    fireEvent.click(looksRight);
+    await settle();
+    expect(sentTo(seen, 'POST', '/fields/acknowledge')).toBe(0);
+    held.answer();
+    await within(details()).findByText('This could not be saved. Your other answers are kept. Try again.');
+    const again = within(valueElements(ROOMS).find((element) => details().contains(element)) as HTMLElement).getByRole('button', { name: 'Looks right' });
+    expect(again.getAttribute('aria-busy')).toBe('false');
+    fireEvent.click(again);
+    await waitFor(() => expect(sentTo(seen, 'POST', '/fields/acknowledge')).toBe(1));
+  });
+
   it('A-1 · rule 4: "Choose this value" pressed twice before the page renders again sends one choice', async () => {
     const held = heldHandler(() => json(200, { displayObjects: [] }));
     const seen = api({ conflict: 'owner' }, { [`POST /api/projects/${PROJECT}/fields/resolve-conflict`]: held.handler });
@@ -432,6 +455,56 @@ describe('A-1 · rule 4 · rule 5 · rule 7: one request per press on step 3', (
     await waitFor(() => expect(save.getAttribute('aria-busy')).toBe('false'));
     fireEvent.click(save);
     await waitFor(() => expect(sentTo(seen, 'POST', '/fields/edit')).toBe(2));
+  });
+
+  it('V-8 · ADR 0039 decision 11 · rule 7: while a row\'s Yes is on its way, the open inline editor\'s Save sends nothing and says so with aria-busy, never disabled; it takes a press again once the answer is in', async () => {
+    const held = heldHandler(() => json(500, { code: 'internal_error' }));
+    const seen = api({ confirm: true }, { [`POST /api/projects/${PROJECT}/fields/confirm`]: held.handler });
+    renderAt(`/projects/${PROJECT}/steps/3`);
+    await screen.findByRole('region', { name: 'Extracted details' });
+    const rooms = () => valueElements(ROOMS).find((element) => details().contains(element)) as HTMLElement;
+    fireEvent.click(within(rooms()).getByRole('button', { name: 'Edit' }));
+    fireEvent.change(await within(details()).findByRole('textbox'), { target: { value: 'TEST typed rooms' } });
+    const save = within(details()).getByRole('button', { name: 'Save' });
+    fireEvent.click(within(details()).getAllByRole('button', { name: 'Yes' })[0] as HTMLElement);
+    await settle();
+    expect(sentTo(seen, 'POST', '/fields/confirm')).toBe(1);
+    expect(save.getAttribute('aria-busy')).toBe('true');
+    expect(save.hasAttribute('disabled')).toBe(false);
+    fireEvent.click(save);
+    await settle();
+    expect(sentTo(seen, 'POST', '/fields/edit')).toBe(0);
+    held.answer();
+    await within(details()).findByText('This could not be saved. Your other answers are kept. Try again.');
+    await waitFor(() => expect(save.getAttribute('aria-busy')).toBe('false'));
+    fireEvent.click(save);
+    await waitFor(() => expect(sentTo(seen, 'POST', '/fields/edit')).toBe(1));
+  });
+
+  it('V-8 · ADR 0039 decision 11 · rule 7: while the inline editor\'s Save is on its way, another row\'s Yes sends nothing and says so with aria-busy, never disabled; it takes a press again once the answer is in', async () => {
+    const held = heldHandler(() => json(422, { code: 'number_ambiguous' }));
+    const seen = api({ confirm: true }, { [`POST /api/projects/${PROJECT}/fields/edit`]: held.handler });
+    renderAt(`/projects/${PROJECT}/steps/3`);
+    await screen.findByRole('region', { name: 'Extracted details' });
+    const rooms = () => valueElements(ROOMS).find((element) => details().contains(element)) as HTMLElement;
+    fireEvent.click(within(rooms()).getByRole('button', { name: 'Edit' }));
+    fireEvent.change(await within(details()).findByRole('textbox'), { target: { value: 'TEST typed rooms' } });
+    const save = within(details()).getByRole('button', { name: 'Save' });
+    fireEvent.click(save);
+    await settle();
+    expect(sentTo(seen, 'POST', '/fields/edit')).toBe(1);
+    const yes = within(details()).getAllByRole('button', { name: 'Yes' })[0] as HTMLElement;
+    expect(yes.getAttribute('aria-busy')).toBe('true');
+    expect(yes.hasAttribute('disabled')).toBe(false);
+    fireEvent.click(yes);
+    await settle();
+    expect(sentTo(seen, 'POST', '/fields/confirm')).toBe(0);
+    held.answer();
+    await waitFor(() => expect(save.getAttribute('aria-busy')).toBe('false'));
+    const again = within(details()).getAllByRole('button', { name: 'Yes' })[0] as HTMLElement;
+    expect(again.getAttribute('aria-busy')).toBe('false');
+    fireEvent.click(again);
+    await waitFor(() => expect(sentTo(seen, 'POST', '/fields/confirm')).toBe(1));
   });
 
   it('A-1 · rule 7: Continue pressed twice before the page renders again sends one Continue; it shows aria-busy while that is on its way, is never disabled, and after a refusal takes a press again', async () => {

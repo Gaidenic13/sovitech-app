@@ -8,6 +8,7 @@ import { stderrApiLog, type ApiServices } from './services';
 import { dataDirectoryFromEnvironment } from './storage/data-dir';
 import { FileStore } from './storage/file-store';
 import { fixtureUploadGuard } from './uploads/fixture-guard';
+import { PRODUCTION_API_REGISTRY } from './wizard/registry';
 
 /**
  * The API's services for local development, when the local database is configured
@@ -35,6 +36,8 @@ function localServices(): ApiServices | undefined {
     log: stderrApiLog,
     // The development login (docs/adr/0038): the accounts `pnpm --filter @sovitech/api dev-accounts` printed.
     devAccounts: devAccountIds(settings),
+    // The registry seam (docs/adr/0044 decision 4): the production registry, and nothing else, in the app.
+    registry: PRODUCTION_API_REGISTRY,
   };
 }
 

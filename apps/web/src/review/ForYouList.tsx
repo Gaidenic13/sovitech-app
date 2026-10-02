@@ -15,8 +15,9 @@
  *   for a first-estimate field still missing, the way to its inline ask on this step (rule 7).
  * - Neither acting on an item nor leaving it open blocks "Generate Proposal" (AC6; rule 7).
  * - One write per press (./field-writes.ts): while an item's write is on its way, and until the step
- *   has read its view again after it, a further Yes or "Choose this value" sends nothing, and the
- *   pressed control shows aria-busy; each takes presses again once the answer is in.
+ *   has read its view again after it, a further Yes, "Looks right", "Something's wrong" or "Choose this
+ *   value" sends nothing, and every such control shows aria-busy (the kit's Value `busy`, V-8; ADR 0039
+ *   decision 11); each takes presses again once the answer is in. Nothing is ever disabled (rule 7).
  * - A refused write says so beside the alert icon, as step 8's other failures do (DR-20).
  */
 import { Button, FieldError, StatusLine, Value } from '@sovitech/ui';
@@ -106,7 +107,14 @@ function Item({ projectId, item, displays, writes, onChanged, onAnswer, labelFor
           )}
         </div>
       ) : (
-        <Value display={display} {...(label === undefined ? {} : { label })} onAction={onAction} actionLabels={ACTION_LABELS} evidenceLabel={copy.review.showExcerpt} />
+        <Value
+          display={display}
+          {...(label === undefined ? {} : { label })}
+          onAction={onAction}
+          actionLabels={ACTION_LABELS}
+          evidenceLabel={copy.review.showExcerpt}
+          busy={writes.busy}
+        />
       )}
       {resolve === undefined ? null : (
         <ul className="flex list-none flex-col gap-3">

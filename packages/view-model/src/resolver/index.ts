@@ -212,6 +212,9 @@ export interface ResolveFieldInput {
 // One candidate's value, badges and source line
 // ---------------------------------------------------------------------------------------------
 
+/** What a source line reads besides the evidence: the documents, their names as served, the project's type (2.3). */
+type SourceContext = Pick<ResolveFieldInput, 'document' | 'fileName' | 'projectType'>;
+
 interface Reading {
   readonly text: string;
   readonly parts: readonly string[];
@@ -241,7 +244,7 @@ function ambiguousReading(candidate: Candidate, format: FormatOptions): Reading 
 }
 
 /** One candidate's value as its element shows it. */
-function readingOf(input: ResolveFieldInput, candidate: Candidate, ambiguous: boolean): Reading {
+function readingOf(input: Pick<ResolveFieldInput, 'field' | 'format' | 'calculatedSignificantFigures'>, candidate: Candidate, ambiguous: boolean): Reading {
   const { field, format } = input;
   const quantity = candidate.quantity;
   if (quantity !== undefined) {
@@ -293,7 +296,7 @@ function readingOf(input: ResolveFieldInput, candidate: Candidate, ambiguous: bo
 }
 
 /** Whether every document a candidate cites is a design-stage document (2.3). */
-function fromDesignStage(candidate: Candidate, input: ResolveFieldInput): boolean {
+function fromDesignStage(candidate: Pick<Candidate, 'evidence'>, input: SourceContext): boolean {
   if (candidate.evidence.length === 0) return false;
   return candidate.evidence.every((entry) => {
     const document = input.document(entry.documentId);
@@ -332,7 +335,7 @@ function candidateBadges(input: ResolveFieldInput, candidate: Candidate, derived
 }
 
 /** Where one evidence entry sits: "<file>, page <n>", or its sheet and cell. */
-function placeOf(entry: Evidence, input: ResolveFieldInput): string {
+function placeOf(entry: Evidence, input: SourceContext): string {
   const name = input.fileName(entry.documentId) ?? 'an uploaded document';
   const { page, sheet, cell } = entry.locator;
   if (sheet !== undefined && cell !== undefined) return `${name}, sheet ${sheet}, cell ${cell}`;
@@ -342,7 +345,7 @@ function placeOf(entry: Evidence, input: ResolveFieldInput): string {
 }
 
 /** The places a candidate's evidence names, each once, in order. */
-function placesOf(candidate: Candidate, input: ResolveFieldInput): string {
+function placesOf(candidate: Pick<Candidate, 'evidence'>, input: SourceContext): string {
   return [...new Set(candidate.evidence.map((entry) => placeOf(entry, input)))].join('; ');
 }
 
@@ -355,7 +358,7 @@ function stageUnknownNote(candidate: Candidate, input: ResolveFieldInput): strin
 }
 
 /** The design-stage line: "<stage> <revision> (<year>): <places>" (2.3: "labels name the stage"; G2-6). */
-function designStageLine(candidate: Candidate, input: ResolveFieldInput): string {
+function designStageLine(candidate: Pick<Candidate, 'evidence'>, input: SourceContext): string {
   const first = candidate.evidence[0];
   const document = first === undefined ? undefined : input.document(first.documentId);
   const stage = document === undefined ? undefined : stageLabel(document.stage);
@@ -963,6 +966,81 @@ export function resolveDocument(input: { readonly document: DocumentRecord; read
       ? { valueId: statusId, kind: 'record', text: badgeOf('reading_documents').label, shape: 'missing', missing: 'reading_documents', badge: badgeOf('reading_documents') }
       : undefined;
   return { fileName: nameDisplay(documentValueId(document.id, 'fileName'), input.fileName), status, ...(reading === undefined ? {} : { reading }), stage, revision };
+}
+
+/**
+ * A text written in the project's documents, shown as written with its source (phase 4): an asset's tag as written
+ * (2.5, "tag ... as written: 'CTA-01'"; PRD R-065: rows per tag) and one evidence entry of an asset (UD-08, R-068).
+ * Not a registry field's candidate: the store keeps it with the appearance that shows it (2.5), so its one badge is
+ * the document's (From document, or From design drawings on an existing building or BMS modernization project when
+ * every place it is written is a design-stage document, 2.3; G2-6), its source line names every place, each once
+ * ("Found in <file>, page <n>"; the design-stage line), and its excerpts are shown verbatim ("[erased]" after
+ * erasure, rule 13). Nothing is parsed or counted from it.
+ */
+export function resolveWrittenText(input: {
+  readonly valueId: ValueId;
+  readonly text: string;
+  readonly evidence: readonly Evidence[];
+  readonly document: (documentId: string) => DocumentRecord | undefined;
+  readonly fileName: (documentId: string) => string | undefined;
+  readonly projectType: string | undefined;
+}): DisplayObject {
+  if (!VALUE_ID_PATTERN.test(input.valueId)) throw new Error(`view-model: "${input.valueId}" is not a value id`);
+  const text = input.text.replace(/\s+/gu, ' ').trim();
+  if (text === '') return { valueId: input.valueId, kind: 'record', text: badgeOf('unknown').label, shape: 'missing', missing: 'unknown', badge: badgeOf('unknown') };
+  const written = { evidence: input.evidence };
+  const design = EXISTING(input.projectType) && fromDesignStage(written, input);
+  const badge = badgeOf(design ? 'from_design_drawings' : 'from_document');
+  const sourceLine: Line | undefined =
+    input.evidence.length === 0 ? undefined : design ? { id: 'design_stage', kind: 'source_line', text: designStageLine(written, input) } : { id: 'document', kind: 'source_line', text: `Found in ${placesOf(written, input)}` };
+  const evidence: EvidenceExcerpt[] = [];
+  for (const entry of input.evidence) {
+    const contentHash = entry.contentHash.replace(/^sha256:/u, '');
+    if (!UUID.test(entry.documentId) || !HEX_HASH.test(contentHash) || entry.excerpt.trim() === '') continue;
+    evidence.push({ documentId: entry.documentId, contentHash, excerpt: entry.excerpt });
+  }
+  return withOptional({ valueId: input.valueId, kind: 'record' as const, text, shape: 'value' as const, badge }, { parts: holdsDigit(text) ? [text] : [], sourceLine, evidence });
+}
+
+/**
+ * One candidate's value as text, formatted as its display would show it (rule 9: rounding at display; a document value
+ * as written), for a field's history entry (UD-08; R-068). Never a badge or a line: the history entry carries who and
+ * when beside it.
+ */
+export function candidateReading(field: RegistryFieldDefinition, candidate: Candidate, format: FormatOptions): { readonly text: string; readonly parts: readonly string[] } {
+  const reading = readingOf({ field, format }, candidate, (candidate.alternatives ?? []).length > 0);
+  return { text: reading.text, parts: reading.parts };
+}
+
+/**
+ * The 2.8 status lines a field's history entry may carry for a value that is no longer current (2.3: "Withdrawn values
+ * are never shown as current"; "Old-only values stay visible, marked 'from a superseded revision'"; 2.8 "Status lines").
+ */
+export type HistoryStatusLineId = 'source_document_removed' | 'from_superseded_revision';
+
+/**
+ * One candidate of a field as an entry of the field's history (UD-08; R-068), resolved as the field's own display
+ * resolves a value (rule 2: its one 2.8 badge and its source line; rule 3: an inference keeps Likely or Possible while
+ * it is eligible; rule 9: formatted at display, a document value as written; its evidence verbatim), as a `record`
+ * display (never the field's own, so it carries no action and no field reference). `statusLine` names a value that is no
+ * longer current (2.3), so it never reads as current; the caller leaves out an entry 2.8 has no wording for.
+ */
+export function resolveCandidateEntry(input: ResolveFieldInput, candidateId: string, valueId: ValueId, statusLine?: HistoryStatusLineId): DisplayObject {
+  if (!VALUE_ID_PATTERN.test(valueId)) throw new Error(`view-model: "${valueId}" is not a value id`);
+  const candidate = candidateById(input, candidateId);
+  if (candidate === undefined) throw new Error(`view-model: the field ${input.field.key} holds no candidate ${candidateId}`);
+  const ambiguous = (candidate.alternatives ?? []).length > 0;
+  const view = viewOf(input, candidate, ambiguous);
+  const qualified = (input.field.kind === 'quantity' || input.field.kind === 'count') && (input.field.qualifierRequired === true || (input.field.qualifiers ?? []).length > 0);
+  return withOptional(
+    { valueId, kind: 'record' as const, text: view.reading.text, shape: view.reading.shape, badge: view.badge, measure: measureOf(input.field, qualified ? statedQualifier(candidate) : undefined) },
+    {
+      parts: view.reading.parts,
+      sourceLine: view.sourceLine,
+      lines: statusLine === undefined ? [] : [fillLine(statusLine, {}, input.format).line],
+      evidence: view.evidence,
+    },
+  );
 }
 
 /** An upload's file name while it is still being sent (`upload:<id>.fileName`), bound. */

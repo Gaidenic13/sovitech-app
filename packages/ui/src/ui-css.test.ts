@@ -187,3 +187,135 @@ describe('DR-26 · ADR 0035: icon sizes', () => {
     expect(declared('.sov-icon', 'width')).toBe('var(--sov-icon-size)');
   });
 });
+
+describe('phase 4 · ADR 0043 decision 5 · App theme "Shell sizes": the workspace frame', () => {
+  test('ADR 0043: tokens.css carries the shell sizes of App theme "Shell sizes" (sidebar 208px at a 32px pitch, inspector 360px, footer 48px, 16px gutter, 12px panel gap)', () => {
+    const tokens = rulesOf(TOKENS_CSS).find((rule) => rule.selectors.includes(':root'));
+    expect(tokens?.declarations.get('--sov-sidebar-width')).toBe('208px');
+    expect(tokens?.declarations.get('--sov-sidebar-row')).toBe('32px');
+    expect(tokens?.declarations.get('--sov-inspector-width')).toBe('360px');
+    expect(tokens?.declarations.get('--sov-footer-height')).toBe('48px');
+    expect(tokens?.declarations.get('--sov-gutter')).toBe('16px');
+    expect(tokens?.declarations.get('--sov-panel-gap')).toBe('12px');
+  });
+
+  test('R-139 · rule 10 · GS-1: the status footer is at least 48px and sticks to the window\'s foot, so the demo line never scrolls away; the frame places the sidebar and the inspector at their widths', () => {
+    expect(declared('.sov-status-footer', 'min-height')).toBe('var(--sov-footer-height)');
+    expect(declared('.sov-workspace__footer', 'position')).toBe('sticky');
+    expect(declared('.sov-workspace__footer', 'bottom')).toBe('0');
+    expect(declared('.sov-workspace', 'grid-template-columns')).toBe('var(--sov-sidebar-width) minmax(0, 1fr)');
+    expect(declared(".sov-inspector-layout[data-inspector='open']", 'grid-template-columns')).toBe('minmax(0, 1fr) var(--sov-inspector-width)');
+    expect(declared('.sov-inspector-layout', 'gap')).toBe('var(--sov-panel-gap)');
+    // In the footer the demo line keeps its words in full: nothing truncates it (2.8 "Prominence").
+    for (const selector of ['.sov-status-footer', '.sov-status-footer .sov-demo-line', '.sov-demo-line']) {
+      expect(declared(selector, 'text-overflow'), selector).toBeUndefined();
+      expect(declared(selector, 'overflow'), selector).toBeUndefined();
+    }
+  });
+});
+
+describe('phase 4 · App theme "Sidebar selected row": one mark for "this one", never colour alone', () => {
+  test('App theme: the current page, the open register row and the chosen option take a 2px mint edge and the mint 8% fill; the page and the option also change weight', () => {
+    const nav = ".sov-side-nav__link[aria-current='page']";
+    expect(declared(nav, 'border-inline-start-color')).toBe('var(--sov-accent)');
+    expect(declared(nav, 'background-color')).toBe('var(--sov-surface-selected)');
+    expect(declared(nav, 'font-weight')).toBe('var(--sov-weight-semibold)');
+    expect(declared('.sov-side-nav__link', 'border-inline-start')).toBe('2px solid transparent');
+    expect(declared('.sov-side-nav__link', 'min-height')).toBe('var(--sov-sidebar-row)');
+    expect(declared(".sov-register__row[aria-current='true']", 'background-color')).toBe('var(--sov-surface-selected)');
+    expect(declared(".sov-register__row[aria-current='true'] > :first-child", 'border-inline-start-color')).toBe('var(--sov-accent)');
+    const option = ".sov-selection-list__option[aria-selected='true']";
+    expect(declared(option, 'border-inline-start-color')).toBe('var(--sov-accent)');
+    expect(declared(option, 'font-weight')).toBe('var(--sov-weight-semibold)');
+    expect(declared(".sov-tabs__tab[aria-selected='true']", 'border-bottom-color')).toBe('var(--sov-accent)');
+    expect(declared(".sov-tabs__tab[aria-selected='true']", 'font-weight')).toBe('var(--sov-weight-semibold)');
+    expect(declared('.sov-chips__chip:has(.sov-chips__input:checked)', 'font-weight')).toBe('var(--sov-weight-semibold)');
+  });
+
+  test('App theme "Shape": 9999px only on badges, the radio and the stepper\'s marks; the switch\'s track and knob take the control radius (no pill)', () => {
+    const pills = RULES.filter((rule) => rule.declarations.get('border-radius') === 'var(--sov-radius-pill)').flatMap((rule) => rule.selectors);
+    expect(pills.sort()).toEqual(['.sov-badge', ".sov-check[data-type='radio'] .sov-check__input", '.sov-stepper__dot', '.sov-stepper__mark'].sort());
+    expect(declared('.sov-switch__track', 'border-radius')).toBe('var(--sov-radius-control)');
+    expect(declared('.sov-switch__knob', 'border-radius')).toBe('var(--sov-radius-control)');
+  });
+
+  test('prompt 3 section 11: the switch, the tabs, the chips and the register keep the accent focus outline; hidden tab panels stay hidden', () => {
+    expect(declared('.sov-switch__input:focus-visible + .sov-switch__track', 'outline')).toBe('var(--sov-focus-width) solid var(--sov-focus-ring)');
+    expect(declared('.sov-chips__chip:has(.sov-chips__input:focus-visible)', 'outline')).toBe('var(--sov-focus-width) solid var(--sov-focus-ring)');
+    for (const selector of ['.sov-tabs__tab:focus-visible', '.sov-icon-button:focus-visible', '.sov-register__sort:focus-visible', '.sov-side-nav__link:focus-visible']) {
+      expect(declared(selector, 'outline'), selector).toBe('var(--sov-focus-width) solid var(--sov-focus-ring)');
+    }
+    expect(declared('.sov-tabs__panel[hidden]', 'display')).toBe('none');
+  });
+
+  test('prompt 3 section 11 · G2-8: under reduced motion the workspace controls do not transition; no value inside a register cell animates', () => {
+    for (const selector of ['.sov-switch__track', '.sov-tabs__tab', '.sov-chips__chip', '.sov-side-nav__link', '.sov-register__row', '.sov-selection-list__option', '.sov-menu__item']) {
+      expect(declared(selector, 'transition', { reducedMotion: true }), selector).toBe('none');
+    }
+    expect(declared('.sov-value *', 'animation')).toBe('none');
+  });
+});
+
+describe('phase 4 part B · the design review\'s kit findings', () => {
+  test('DR-1 · G7-17 · rule 7 "Nothing fills the gap" · rule 3: the mixed state is drawn for checkboxes only, so an unanswered radio group draws empty rings; the select-all checkbox keeps its fill and dash', () => {
+    const indeterminate = RULES.flatMap((rule) => rule.selectors).filter((selector) => selector.includes(':indeterminate'));
+    expect(indeterminate.sort()).toEqual([".sov-check__input[type='checkbox']:indeterminate", ".sov-check__input[type='checkbox']:indeterminate ~ .sov-check__partial"].sort());
+    expect(declared(".sov-check__input[type='checkbox']:indeterminate", 'background-color')).toBe('var(--sov-accent)');
+    expect(declared(".sov-check__input[type='checkbox']:indeterminate", 'border-color')).toBe('var(--sov-accent)');
+    expect(declared(".sov-check__input[type='checkbox']:indeterminate ~ .sov-check__partial", 'opacity')).toBe('1');
+    // An unchecked radio: the control boundary on no fill; only :checked fills.
+    expect(declared('.sov-check__input', 'background-color')).toBe('transparent');
+    expect(declared('.sov-check__input', 'border')).toBe('1px solid var(--sov-control-border)');
+    expect(declared('.sov-check__input:checked', 'background-color')).toBe('var(--sov-accent)');
+  });
+
+  test('DR-2 · App theme "Shell sizes": the page column takes the one padding of the page, from the gutter token (24px, 32px at the foot)', () => {
+    expect(declared('.sov-workspace__page', 'padding')).toBe('calc(var(--sov-gutter) * 1.5) calc(var(--sov-gutter) * 1.5) calc(var(--sov-gutter) * 2)');
+    expect(declared('.sov-workspace__page', 'min-width')).toBe('0');
+  });
+
+  test('DR-2: in a table wider than its region, the row\'s name and its controls are pinned with an opaque background, the open row keeping its mint mark under the content; separate borders move with them', () => {
+    expect(declared('.sov-register__table', 'border-collapse')).toBe('separate');
+    expect(declared('.sov-register__table', 'border-spacing')).toBe('0');
+    expect(declared('.sov-register [data-pin]', 'position')).toBe('sticky');
+    expect(declared('.sov-register [data-pin]', 'background-color')).toBe('var(--sov-bg)');
+    expect(declared('.sov-register thead [data-pin]', 'background-color')).toBe('var(--sov-surface)');
+    expect(declared(".sov-register [data-pin='select']", 'inset-inline-start')).toBe('0');
+    expect(declared(".sov-register [data-pin='name']", 'inset-inline-start')).toBe('0');
+    expect(declared(".sov-register[data-select='true'] [data-pin='name']", 'inset-inline-start')).toBe('var(--sov-register-lead, 46px)');
+    expect(declared(".sov-register [data-pin='action']", 'inset-inline-end')).toBe('0');
+    expect(declared(".sov-register [data-pin='open']", 'inset-inline-end')).toBe('0');
+    expect(declared(".sov-register[data-row-action='true'] [data-pin='open']", 'inset-inline-end')).toBe('var(--sov-register-trail, 56px)');
+    expect(declared('.sov-register__row:hover > [data-pin]', 'background-color')).toBe('var(--sov-surface)');
+    expect(declared(".sov-register__row[aria-current='true'] > [data-pin]", 'background-color')).toBe('var(--sov-bg)');
+    const mark = ".sov-register__row[aria-current='true'] > [data-pin]::before";
+    expect(declared(mark, 'background-color')).toBe('var(--sov-surface-selected)');
+    expect(declared(mark, 'z-index')).toBe('-1');
+    // The mark's generated box holds no text (the render test reads ::before).
+    expect(declared(mark, 'content')).toBe("''");
+    expect(declared(".sov-register__row:has(.sov-menu__button[aria-expanded='true']) > [data-pin]", 'z-index')).toBe('3');
+  });
+
+  test('DR-3: the page column is the main that takes the focus when a page opens; the whole column draws no outline for it', () => {
+    expect(declared('.sov-workspace__page:focus', 'outline')).toBe('none');
+  });
+
+  test('DR-8 · ADR 0040 decision 6: in the inspector a value\'s badge moves under its text where both do not fit, and its words never split', () => {
+    expect(declared('.sov-inspector .sov-value__line', 'flex-wrap')).toBe('wrap');
+    expect(declared('.sov-inspector .sov-value__text', 'overflow-wrap')).toBe('break-word');
+  });
+
+  test('DR-10: the small status line is 13px, in the line\'s text-tertiary', () => {
+    expect(declared(".sov-status-line[data-size='small']", 'font-size')).toBe('13px');
+    expect(declared('.sov-status-line', 'color')).toBe('var(--sov-text-tertiary)');
+    expect(declared(".sov-status-line[data-size='small']", 'color')).toBeUndefined();
+  });
+
+  test('A-1: a numeric name delegated to the value element reads at the size of the heading, button or option it sits in, its badge moving under it where both do not fit', () => {
+    const text = ".sov-value-name[data-delegated='value'] .sov-value__text";
+    expect(declared(text, 'font-size')).toBe('inherit');
+    expect(declared(text, 'font-weight')).toBe('inherit');
+    expect(declared(text, 'line-height')).toBe('inherit');
+    expect(declared(".sov-value-name[data-delegated='value'] .sov-value__line", 'flex-wrap')).toBe('wrap');
+  });
+});

@@ -104,6 +104,13 @@
     line-height: 1.2;
   }
 
+  /* The workspace frame's status footer stays in view at the bottom of the window (docs/adr/0043, decision 5).
+     Scrolling an element into view, as the focus moves, leaves room for it, so the footer never covers
+     the element that has the focus (WCAG 2.2 2.4.11). */
+  html:has(.sov-workspace) {
+    scroll-padding-bottom: calc(var(--sov-footer-height) + var(--sov-gutter));
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -112,5 +119,24 @@
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
     }
+  }
+}
+
+/*
+ * App-level adjustments of kit parts, in the kit's own layer (ui.css is `@layer components`), so a more
+ * specific selector here wins over the kit's rule and Tailwind's utilities still win over both.
+ */
+@layer components {
+  /* Documents' inspector footer (DR-15; approved screen 15): the wide outline Download fills the row, and the
+     menu beside it is a 40px square with the secondary button's hairline, not the register's 32px kebab. */
+  [data-inspector-menu] .sov-menu__button {
+    width: var(--sov-button-height-compact);
+    height: var(--sov-button-height-compact);
+    border-color: var(--sov-secondary-border);
+  }
+
+  [data-inspector-menu] .sov-menu__button:hover,
+  [data-inspector-menu] .sov-menu__button[aria-expanded='true'] {
+    border-color: var(--sov-border-hover);
   }
 }

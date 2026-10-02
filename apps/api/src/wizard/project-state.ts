@@ -27,6 +27,7 @@ import {
 import {
   deriveAssetRegister,
   documentStatuses,
+  type AssetAppearance,
   type AssetRegister,
   type Candidate,
   type CandidateEvent,
@@ -35,6 +36,7 @@ import {
   type DocumentStatuses,
   type FieldEvent,
   type FieldState,
+  type SubjectKind,
 } from '@sovitech/domain';
 import { FIELD } from '@sovitech/registry';
 import type { RegistryFieldDefinition } from '@sovitech/registry/validation';
@@ -42,13 +44,13 @@ import type { IntakeField } from '@sovitech/view-model/server';
 import { notFound } from '../errors';
 import { AI_SEARCH_PART_PREFIX, formatCoverage, readAiSearches, searchedCoverage, type FieldSearch } from '../documents/coverage';
 import { servedFileName } from '../documents/file-names';
-import { FIELDS, deriveField } from './registry';
+import { PRODUCTION_API_REGISTRY, deriveField, type ApiRegistry } from './registry';
 
-/** One production field of the project, derived. */
+/** One registered field of the project, derived (the project's and the building's; and, phase 4, a level's, a zone's or an asset's). */
 export interface WizardField {
   readonly field: RegistryFieldDefinition;
   readonly subjectId: string;
-  readonly subjectKind: 'project' | 'building';
+  readonly subjectKind: Extract<SubjectKind, 'project' | 'building' | 'level' | 'zone' | 'asset'>;
   readonly candidates: readonly Candidate[];
   /** The field's candidate events (the dates 2.8's generated sentences name). */
   readonly candidateEvents: readonly CandidateEvent[];
@@ -59,6 +61,8 @@ export interface WizardField {
 }
 
 export interface ProjectState {
+  /** The registry the state was read with (the API's registry seam: production in the app, TEST in tests; docs/adr/0044 decision 4). */
+  readonly registry: ApiRegistry;
   readonly projectId: string;
   readonly userId: string;
   readonly isDemo: boolean;
@@ -68,6 +72,14 @@ export interface ProjectState {
   /** Whether the request's user acts as the owner here (a member holding `owner`). */
   readonly actsAsOwner: boolean;
   readonly fields: ReadonlyMap<string, WizardField>;
+  /**
+   * The registered fields of the project's level, zone and asset subjects (phase 4's registers), by subject and key
+   * (`subjectFieldKey`): none while the registry declares no field for those kinds (the production registry: ADR 0045
+   * decision 1). The question engine never plans them (`intakeFields` reads `fields` only).
+   */
+  readonly subjectFields: ReadonlyMap<string, WizardField>;
+  /** The project's level, zone and asset subjects, oldest first. */
+  readonly subjects: readonly { readonly id: string; readonly kind: SubjectKind }[];
   /** The project type as the owner answered it on step 1 (the active candidate's key), or undefined. */
   readonly projectType: string | undefined;
   readonly documents: readonly DocumentRecord[];
@@ -82,6 +94,8 @@ export interface ProjectState {
    */
   readonly fileName: (documentId: string) => string | undefined;
   readonly register: AssetRegister;
+  /** Every stored asset appearance (its tag as written and its evidence; 2.5). */
+  readonly appearances: readonly AssetAppearance[];
   /** The coverage a completed AI run searched for a field, as a "Not found in the analysed documents" line may cite it; undefined while nothing was. */
   readonly searchedCoverage: (fieldKey: string) => string | undefined;
 }
@@ -112,7 +126,11 @@ async function searchesOf(request: Request, documents: readonly DocumentRecord[]
  * reads as not found. `createBuilding`: create the building subject when the project has none and
  * the user acts as the owner (projects made through the API and the demo seed have one already).
  */
-export async function readProjectState(request: Request, input: { readonly userId: string; readonly projectId: string }): Promise<ProjectState> {
+export async function readProjectState(
+  request: Request,
+  input: { readonly userId: string; readonly projectId: string },
+  registry: ApiRegistry = PRODUCTION_API_REGISTRY,
+): Promise<ProjectState> {
   const isDemo = await projectIsDemo(request);
   if (isDemo === undefined) throw notFound();
   const asOf = await databaseTime(request);
@@ -123,13 +141,18 @@ export async function readProjectState(request: Request, input: { readonly userI
     if (!actsAsOwner) throw notFound();
     buildingId = await ensureBuildingSubject(request, input.userId);
   }
-  const inputs = await readProjectFieldInputs(request, [input.projectId, buildingId]);
+  // A level's, a zone's or an asset's fields are read only where the registry declares a field for that kind.
+  const registered = new Set(registry.bundle.fields.map((field) => field.subject));
+  const others = subjects.filter((subject): subject is typeof subject & { readonly kind: WizardField['subjectKind'] } =>
+    (subject.kind === 'level' || subject.kind === 'zone' || subject.kind === 'asset') && registered.has(subject.kind),
+  );
+  const inputs = await readProjectFieldInputs(request, [input.projectId, buildingId, ...others.map((subject) => subject.id)]);
   const fields = new Map<string, WizardField>();
-  for (const field of FIELDS) {
+  for (const field of registry.bundle.fields) {
     if (field.subject !== 'project' && field.subject !== 'building') continue;
     const subjectId = field.subject === 'project' ? input.projectId : buildingId;
     const fieldInputs = inputs.fieldInputs(subjectId, field.key);
-    const state = deriveField(field, subjectId, fieldInputs.candidates, fieldInputs.events, fieldInputs.documents);
+    const state = deriveField(registry, field, subjectId, fieldInputs.candidates, fieldInputs.events, fieldInputs.documents);
     const intake: IntakeField = { field, subjectId, state, candidates: fieldInputs.candidates, skippedAt: ownerSkips(state, fieldInputs.events.field) };
     fields.set(field.key, {
       field,
@@ -141,6 +164,25 @@ export async function readProjectState(request: Request, input: { readonly userI
       state,
       intake,
     });
+  }
+  const subjectFields = new Map<string, WizardField>();
+  for (const subject of others) {
+    for (const field of registry.bundle.fields) {
+      if (field.subject !== subject.kind) continue;
+      const fieldInputs = inputs.fieldInputs(subject.id, field.key);
+      const state = deriveField(registry, field, subject.id, fieldInputs.candidates, fieldInputs.events, fieldInputs.documents);
+      const intake: IntakeField = { field, subjectId: subject.id, state, candidates: fieldInputs.candidates, skippedAt: ownerSkips(state, fieldInputs.events.field) };
+      subjectFields.set(subjectFieldKey(subject.id, field.key), {
+        field,
+        subjectId: subject.id,
+        subjectKind: subject.kind,
+        candidates: fieldInputs.candidates,
+        candidateEvents: fieldInputs.events.candidate,
+        fieldEvents: fieldInputs.events.field,
+        state,
+        intake,
+      });
+    }
   }
   const typeField = fields.get(FIELD.projectType);
   const typeCandidate = typeField?.candidates.find((candidate) => candidate.id === typeField.state.activeCandidateId);
@@ -156,10 +198,12 @@ export async function readProjectState(request: Request, input: { readonly userI
     const name = servedFileName(await readDocumentText(request, document.contentHash, fileNamePart(document.id)));
     if (name !== undefined) names.set(document.id, name);
   }
-  const register = deriveAssetRegister(await readAssetRegisterInputs(request));
+  const registerInputs = await readAssetRegisterInputs(request);
+  const register = deriveAssetRegister(registerInputs);
   const searched = await searchesOf(request, documents, statuses);
 
   return {
+    registry,
     projectId: input.projectId,
     userId: input.userId,
     isDemo,
@@ -167,6 +211,8 @@ export async function readProjectState(request: Request, input: { readonly userI
     buildingId,
     actsAsOwner,
     fields,
+    subjectFields,
+    subjects: subjects.filter((subject) => subject.kind === 'level' || subject.kind === 'zone' || subject.kind === 'asset').map((subject) => ({ id: subject.id, kind: subject.kind })),
     projectType: typeCandidate?.choice,
     documents,
     documentEvents: inputs.documentEvents,
@@ -175,8 +221,21 @@ export async function readProjectState(request: Request, input: { readonly userI
     files,
     fileName: (documentId) => names.get(documentId),
     register,
+    appearances: registerInputs.appearances,
     searchedCoverage: searched,
   };
+}
+
+/** The key of a field on a level, zone or asset subject in `ProjectState.subjectFields`. */
+export function subjectFieldKey(subjectId: string, fieldKey: string): string {
+  return `${subjectId}\u0000${fieldKey}`;
+}
+
+/** A registered field of the state on any of the project's subjects (the project's, the building's, a level's, a zone's or an asset's), or undefined. */
+export function fieldOnSubject(state: ProjectState, subjectId: string, fieldKey: string): WizardField | undefined {
+  const own = state.fields.get(fieldKey);
+  if (own !== undefined && own.subjectId === subjectId) return own;
+  return state.subjectFields.get(subjectFieldKey(subjectId, fieldKey));
 }
 
 /** A field of the state, which every production field of the project and its building is. */

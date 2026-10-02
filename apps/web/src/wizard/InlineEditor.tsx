@@ -24,7 +24,9 @@
  * - Save is the secondary button: the step's own primary action stays Next, Continue or Generate
  *   (one primary per page, the kit's Button). One save per press (./use-in-flight.ts): while it is
  *   on its way Save shows aria-busy and a further press sends nothing; it takes presses again once
- *   the answer is in.
+ *   the answer is in. A screen that guards all its writes as one (step 3's rows, ADR 0039 decision 11)
+ *   hands its guard in (`inFlight`), so the editor's Save and another row's Yes are never on their way
+ *   at once (V-8): while either is, the other sends nothing and says so with aria-busy.
  */
 import { useState } from 'react';
 import { Button, Choice, SelectField, TextField } from '@sovitech/ui';
@@ -34,7 +36,7 @@ import { copy } from '../copy';
 import { useOnSignedOut } from '../session/SessionProvider';
 import { countryName } from '../steps/step-1/options';
 import { STALE_REFUSALS } from './WizardProvider';
-import { useInFlight } from './use-in-flight';
+import { useInFlight, type InFlight } from './use-in-flight';
 
 type EditAction = Extract<Action, { kind: 'edit' }>;
 
@@ -94,6 +96,12 @@ export interface InlineEditorProps {
   readonly onCancel: () => void;
   /** Called when the value changed under the owner (409 shown_value_changed): the screen reads its view again. */
   readonly onStale?: () => void;
+  /**
+   * The screen's one write guard, when the screen holds one for all its writes (step 3's rows): Save
+   * claims it, so no other write of the screen is on its way at the same time. Without it the editor
+   * guards its own Save.
+   */
+  readonly inFlight?: InFlight;
 }
 
 /** The text a text answer starts from: the owner's stored text, never a missing value's wording. */
@@ -102,7 +110,7 @@ function initialText(display: DisplayObject, action: EditAction): string {
   return display.text;
 }
 
-export function InlineEditor({ projectId, action, display, label, onSaved, onCancel, onStale }: InlineEditorProps) {
+export function InlineEditor({ projectId, action, display, label, onSaved, onCancel, onStale, inFlight }: InlineEditorProps) {
   const onSignedOut = useOnSignedOut();
   const input = action.input;
   const fieldKey = action.field.fieldKey;
@@ -110,7 +118,8 @@ export function InlineEditor({ projectId, action, display, label, onSaved, onCan
   const [choice, setChoice] = useState('');
   const [qualifier, setQualifier] = useState('');
   const [error, setError] = useState<string | undefined>(undefined);
-  const saving = useInFlight();
+  const own = useInFlight();
+  const saving = inFlight ?? own;
   const name = `edit-${display.valueId.replace(/[^A-Za-z0-9_-]/gu, '-')}`;
 
   const answer = (): AnswerValue | null => {

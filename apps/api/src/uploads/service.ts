@@ -29,6 +29,7 @@ import {
   createUploadSession,
   deleteAbandonedUpload,
   deleteUploadSession,
+  lockProjectWrites,
   readUploadSession,
   releaseAbandonedUpload,
   releaseUploadLease,
@@ -297,10 +298,16 @@ export interface CompletedUpload {
 /**
  * Completes an upload, under its lease: every declared byte held (checked under the lease),
  * the declared bytes copied into a sealed file while hashed, the owner's fixtures-only guard
- * applied to that hash before anything is stored (docs/adr/0028), the sealed file moved to
- * `<projectId>/<contentHash>/original`, and the document registered in the owner's request
- * with its analysis queued; the staged bytes go after. A refused file is removed from
- * staging with the guard's message, and nothing is registered.
+ * applied to that hash before anything is stored (docs/adr/0028), and then, in the owner's
+ * request under the project's write lock (`lockProjectWrites`, as `documents.delete` takes it:
+ * phase 4 part B, A-4; ADR 0044 decision 6), the sealed file moved to
+ * `<projectId>/<contentHash>/original` when no original of those bytes is stored, and the
+ * document registered with its analysis queued. The sealed copy is kept until the registration
+ * has committed, so a deletion of another document with the same bytes that removes their
+ * folder in between (its file removal takes the same lock and reads the documents holding the
+ * hash first) never leaves this document without its original (US-DOCS-21 AC8; rule 13
+ * "Erasure"; G13-10). The staged bytes and any sealed copy left go after. A refused file is
+ * removed from staging with the guard's message, and nothing is registered.
  */
 export async function completeUpload(services: ApiServices & ModelReadingServices, scope: Scope, uploadId: string): Promise<CompletedUpload> {
   const session = await sessionOf(services, scope, uploadId);
@@ -317,9 +324,14 @@ export async function completeUpload(services: ApiServices & ModelReadingService
       const fileName = resolveUploadFileName(uploadId, servedFileName(session.fileName) ?? '');
       throw new ApiRefusal(422, 'not_a_fixture', NOT_A_FIXTURE_MESSAGE, undefined, undefined, { fileName: fileName.valueId, displayObjects: [fileName] });
     }
-    await services.files.promoteSealed(scope.projectId, session.id, contentHash);
     const document = await inProject(services, scope, async (request) => {
       await requireOwner(request);
+      // A-4: the project's writes one at a time, so a deletion's file removal never runs between this check and the
+      // registration's commit; the sealed copy moves in only when the original is missing, and is kept otherwise.
+      await lockProjectWrites(request);
+      if (!(await services.files.exists(services.files.originalPath(scope.projectId, contentHash)))) {
+        await services.files.promoteSealed(scope.projectId, session.id, contentHash);
+      }
       return registerUpload(services, request, { session, contentHash, byteSize: session.declaredSize });
     });
     await services.files.removeStaged(scope.projectId, session.id);

@@ -2,7 +2,8 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { Outlet, RouterProvider, createMemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RequireSession, SessionProvider } from '../../session/SessionProvider';
-import { AS_OF, PROJECT, installFakeApi, json, projectList, type Handler } from '../../test/harness';
+import { AS_OF, PROJECT, installFakeApi, json, projectList, renderAt, type Handler } from '../../test/harness';
+import { frameResponse } from '../../workspace/test-views';
 import { ProjectLayout } from '../../wizard/ProjectLayout';
 import { AREA_BOX, CAPEX_LABEL, CAPEX_LABEL_TEXT, CAPEX_LINE, STILL_READING, proposalView, step8View } from './step8-fixture';
 import { ProposalPage } from './ProposalPage';
@@ -122,7 +123,7 @@ describe('UD-07 · US-INTAKE-16 · R-003 · R-012 · prompt 3 5.2 "Generate befo
     await waitFor(() => expect(router.state.location.pathname).toBe(`/projects/${PROJECT}/proposal`));
     expect(skipped.has(areaAsk?.questionId ?? '')).toBe(true);
     // The proposal page, not step 8 on its way out (step 8 names the same "Add" on its own output list).
-    const proposal = (await screen.findByRole('heading', { name: 'Preliminary proposal', level: 1 })).closest('div') as HTMLElement;
+    const proposal = (await screen.findByRole('heading', { name: 'Preliminary proposal', level: 1 })).closest('[data-proposal-page]') as HTMLElement;
     fireEvent.click(await within(proposal).findByRole('button', { name: 'TEST add the area' }));
     await waitFor(() => expect(router.state.location.pathname).toBe(`/projects/${PROJECT}/steps/8`));
     const input = await screen.findByRole('textbox', { name: AREA_BOX });
@@ -147,6 +148,29 @@ describe('UD-07 · US-INTAKE-16 · R-003 · R-012 · prompt 3 5.2 "Generate befo
     expect(seen.filter((request) => request.path.endsWith('/proposal'))).toHaveLength(2);
     fireEvent.click(screen.getByRole('button', { name: 'Back to review' }));
     await waitFor(() => expect(router.state.location.pathname).toBe(`/projects/${PROJECT}/steps/8`));
+  });
+
+  it('DR-7 · DR-2 · ADR 0043 decision 3: in the workspace frame the page takes the workspace page layout (the kit\'s left-aligned page header, no padding or width of its own) on its generating state and once loaded, and "Back to review" is a 40px secondary button, not the wizard\'s footer button', async () => {
+    let answer: ((response: Response) => void) | undefined;
+    installFakeApi({
+      'GET /api/projects': () => json(200, projectList([{ projectId: PROJECT, name: 'TEST project' }])),
+      [`GET /api/projects/${PROJECT}/workspace`]: () => json(200, frameResponse(PROJECT, { name: 'TEST project' })),
+      [`GET /api/projects/${PROJECT}/proposal`]: () => new Promise<Response>((resolve) => (answer = resolve)),
+      [`GET /api/projects/${PROJECT}/late-findings`]: () => json(200, { asOf: AS_OF, displayObjects: [], dots: [], notice: null }),
+    });
+    renderAt(`/projects/${PROJECT}/proposal`);
+    const generating = await screen.findByRole('heading', { name: 'Preparing your preliminary proposal', level: 1 });
+    expect(generating.classList.contains('sov-page-header__title')).toBe(true);
+    expect(screen.getByRole('navigation', { name: 'Project pages' })).toBeTruthy();
+    answer?.(json(200, proposalView()));
+    const title = await screen.findByRole('heading', { name: 'Preliminary proposal', level: 1 });
+    expect(title.classList.contains('sov-page-header__title')).toBe(true);
+    expect(screen.getByText('No investment figure is available yet. Each output below names what it still needs.').classList.contains('sov-page-header__subtitle')).toBe(true);
+    const page = title.closest('[data-proposal-page]') as HTMLElement;
+    expect(page.className).not.toMatch(/(^|\s)(mx-auto|max-w-\S+|w-full|p[xytblr]?-\S+)(\s|$)/u);
+    const back = screen.getByRole('button', { name: 'Back to review' });
+    expect(back.getAttribute('data-variant')).toBe('secondary');
+    expect(back.getAttribute('data-size')).toBe('default');
   });
 
   it('G10-10 · US-REVIEW-03 AC1 · GS-1 (web side): the demo line shows on the generating state and on the page of the demo project', async () => {

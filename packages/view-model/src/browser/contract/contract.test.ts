@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DisplayObjectSchema, ROUTES, VALUE_ID_PATTERN, isDisplayObjectRequest, pathOf, servedDisplayOf, type DisplayObject } from './index';
+import { DisplayObjectSchema, LevelRegisterSchema, ROUTES, VALUE_ID_PATTERN, ZoneDetailSchema, isDisplayObjectRequest, pathOf, servedDisplayOf, type DisplayObject } from './index';
 
 const PROJECT = '0192f0e4-7c1a-7d2b-9e3f-4a5b6c7d8e9f';
 
@@ -67,5 +67,42 @@ describe('ADR 0036 · F-RENDER-06: the wizard contract', () => {
     });
     expect(servedDisplayOf(missing)).toEqual({ text: 'Not provided yet' });
     expect(DisplayObjectSchema.safeParse({ ...missing, text: '' }).success).toBe(false);
+  });
+
+  it('ADR 0044 · F-RENDER-06: every workspace read serves display objects, and the raw phase 2 document routes do not', () => {
+    for (const route of ROUTES.filter((candidate) => candidate.phase === 4)) {
+      expect(route.servesDisplayObjects, route.id).toBe(true);
+      expect(route.session, route.id).toBe(true);
+    }
+    expect(isDisplayObjectRequest('GET', `/api/projects/${PROJECT}/workspace`)).toBe(true);
+    expect(isDisplayObjectRequest('GET', `/api/projects/${PROJECT}/workspace/documents`)).toBe(true);
+    expect(isDisplayObjectRequest('GET', `/api/projects/${PROJECT}/workspace/documents/${PROJECT}/delete-effect`)).toBe(true);
+    expect(isDisplayObjectRequest('POST', `/api/projects/${PROJECT}/workspace/system-scope/decisions`)).toBe(true);
+    expect(isDisplayObjectRequest('GET', `/api/projects/${PROJECT}/workspace/equipment/${PROJECT}`)).toBe(true);
+    expect(isDisplayObjectRequest('DELETE', `/api/projects/${PROJECT}/documents/${PROJECT}`)).toBe(false);
+    expect(pathOf('workspace.asset', { projectId: PROJECT, assetId: PROJECT })).toBe(`/api/projects/${PROJECT}/workspace/equipment/${PROJECT}`);
+  });
+
+  it('V-4 · G7-16 · rule 4 · rule 7: the level register\'s conflict branch carries the floors field\'s own display and the action to resolve it, never the line alone', () => {
+    const line = `project:${PROJECT}.floors.conflict`;
+    const field = `building:${PROJECT}.floors`;
+    expect(LevelRegisterSchema.safeParse({ state: 'conflict', line }).success).toBe(false);
+    expect(LevelRegisterSchema.safeParse({ state: 'conflict', line, field, actions: ['enter_floors'] }).success).toBe(true);
+    expect(LevelRegisterSchema.safeParse({ state: 'conflict', line, field, actions: [] }).success).toBe(true);
+    expect(LevelRegisterSchema.safeParse({ state: 'conflict', line, field, actions: ['enter_floors'], levels: [] }).success).toBe(false);
+  });
+
+  it('V-6 · rule 11 · 7.1.1-L1: a zone\'s system chips carry the decision, the catalogue system and its life-safety flag', () => {
+    const detail = {
+      zoneId: PROJECT,
+      fields: [`zone:${PROJECT}.code`],
+      systemDecisions: [{ decision: `project:${PROJECT}.scope.fire_safety`, systemId: 'fire_safety', lifeSafety: true }],
+      equipment: `project:${PROJECT}.register.total`,
+      points: `zone:${PROJECT}.points`,
+      documents: [],
+    };
+    expect(ZoneDetailSchema.safeParse(detail).success).toBe(true);
+    expect(ZoneDetailSchema.safeParse({ ...detail, systemDecisions: [`project:${PROJECT}.scope.fire_safety`] }).success).toBe(false);
+    expect(ZoneDetailSchema.safeParse({ ...detail, systemDecisions: [{ decision: `project:${PROJECT}.scope.fire_safety`, systemId: 'fire_safety' }] }).success).toBe(false);
   });
 });

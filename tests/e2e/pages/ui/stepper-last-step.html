@@ -17,23 +17,71 @@
         color: var(--sov-text-primary);
         font-family: var(--sov-font-sans);
       }
-      main {
+      .kit-main {
         display: grid;
         gap: 32px;
         max-width: 1180px;
         margin: 0 auto;
         padding: 32px 48px;
       }
-      h1 {
+      .kit-main > h1 {
         margin: 0;
         font-size: var(--sov-title-size);
         font-weight: var(--sov-title-weight);
         letter-spacing: var(--sov-title-tracking);
       }
-      h2 {
+      .kit-section > h2 {
         margin: 0 0 16px;
         font-size: 17px;
         font-weight: var(--sov-weight-semibold);
+      }
+      .kit-plain-group {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+      .kit-file {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        min-width: 128px;
+      }
+      .kit-file > .sov-icon {
+        margin-top: 2px;
+        color: var(--sov-text-tertiary);
+      }
+      .kit-file__name {
+        min-width: 0;
+      }
+      .kit-details {
+        display: grid;
+        margin: 0;
+      }
+      .kit-detail {
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr);
+        align-items: start;
+        gap: 16px;
+        padding: 8px 0;
+        font-size: 14px;
+      }
+      .kit-detail > dt {
+        color: var(--sov-text-tertiary);
+      }
+      .kit-detail > dd {
+        min-width: 0;
+        margin: 0;
+      }
+      .kit-inspector-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+      }
+      .kit-inspector-actions > .sov-button {
+        flex: 1 1 auto;
       }
       .kit-stack {
         display: grid;
@@ -51,13 +99,59 @@
       .kit-inline .sov-badge {
         display: inline;
       }
+      .kit-stack-tight {
+        display: grid;
+        justify-items: start;
+        gap: 8px;
+      }
+      .kit-panel {
+        flex: 1 1 320px;
+        max-width: 420px;
+      }
+      .kit-half {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      .kit-menu-slot {
+        min-height: 220px;
+      }
+      .kit-switch-row {
+        display: grid;
+        grid-template-columns: 160px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 16px;
+        max-width: 560px;
+      }
+      .kit-note {
+        margin: 0;
+        color: var(--sov-text-tertiary);
+      }
+      .kit-sidebar-project {
+        display: grid;
+        gap: 4px;
+        margin: 0;
+        font-size: 14px;
+      }
+      .kit-sidebar-label {
+        margin: 0;
+        color: var(--sov-text-muted);
+        font-size: 13px;
+        font-weight: var(--sov-weight-medium);
+      }
+      .kit-facts {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
     </style>
     <script type="application/json" data-render-display-objects>
       {}
     </script>
   </head>
   <body data-render-ready="">
-    <main>
+    <main class="kit-main">
       <h1>UI kit: stepper on the last step</h1>
       <nav class="sov-stepper" aria-label="Intake steps"><ol class="sov-stepper__list" data-render-stepper="wizard-step-number" style="list-style:none"><li class="sov-stepper__item" data-state="done" data-dot="false" aria-describedby="_R_0_-done"><span class="sov-stepper__connector" aria-hidden="true"></span><span class="sov-stepper__mark"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check sov-icon" data-size="small" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="sov-stepper__title">Project</span></li><li class="sov-stepper__item" data-state="done" data-dot="false" aria-describedby="_R_0_-done"><span class="sov-stepper__connector" aria-hidden="true"></span><span class="sov-stepper__mark"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check sov-icon" data-size="small" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="sov-stepper__title">Documents</span></li><li class="sov-stepper__item" data-state="done" data-dot="false" aria-describedby="_R_0_-done"><span class="sov-stepper__connector" aria-hidden="true"></span><span class="sov-stepper__mark"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check sov-icon" data-size="small" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="sov-stepper__title">Building</span></li><li class="sov-stepper__item" data-state="done" data-dot="false" aria-describedby="_R_0_-done"><span class="sov-stepper__connector" aria-hidden="true"></span><span class="sov-stepper__mark"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check sov-icon" data-size="small" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="sov-stepper__title">Systems</span></li><li class="sov-stepper__item" data-state="done" data-dot="false" aria-describedby="_R_0_-done"><span class="sov-stepper__connector" aria-hidden="true"></span><span class="sov-stepper__mark"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check sov-icon" data-size="small" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="sov-stepper__title">Operations</span></li><li class="sov-stepper__item" data-state="done" data-dot="false" aria-describedby="_R_0_-done"><span class="sov-stepper__connector" aria-hidden="true"></span><span class="sov-stepper__mark"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check sov-icon" data-size="small" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="sov-stepper__title">Goals</span></li><li class="sov-stepper__item" data-state="done" data-dot="false" aria-describedby="_R_0_-done"><span class="sov-stepper__connector" aria-hidden="true"></span><span class="sov-stepper__mark"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check sov-icon" data-size="small" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="sov-stepper__title">Automation</span></li><li class="sov-stepper__item" data-state="current" data-dot="false" aria-current="step"><span class="sov-stepper__mark"><span data-render-allow="wizard-step-number">8</span></span><span class="sov-stepper__title">Proposal</span></li></ol><span id="_R_0_-done" hidden="">Done</span><span id="_R_0_-dot" hidden="">New findings on this step</span></nav>
     </main>

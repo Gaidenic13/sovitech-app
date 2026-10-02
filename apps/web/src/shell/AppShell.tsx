@@ -16,10 +16,12 @@ export interface AppShellProps {
   readonly projectName?: DisplayObject;
   readonly demoLine?: ReactNode;
   readonly notices?: ReactNode;
+  /** As the Shell's: `none` where the workspace frame draws the page's main (./Shell.tsx). */
+  readonly landmark?: 'main' | 'none';
   readonly children: ReactNode;
 }
 
-export function AppShell({ projectName, demoLine, notices, children }: AppShellProps) {
+export function AppShell({ projectName, demoLine, notices, landmark = 'main', children }: AppShellProps) {
   const user = useSessionUser();
   const { signOut } = useSession();
   const navigate = useNavigate();
@@ -35,6 +37,7 @@ export function AppShell({ projectName, demoLine, notices, children }: AppShellP
       menu={<HeaderMenu user={user} onSignOut={onSignOut} />}
       demoLine={demoLine}
       notices={notices}
+      landmark={landmark}
     >
       {children}
     </Shell>

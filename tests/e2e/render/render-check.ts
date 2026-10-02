@@ -187,9 +187,26 @@ function isPage(target: Page | BrowserContext): target is Page {
   return 'goto' in target;
 }
 
+/** The page a request belongs to; undefined for a request with no frame (a service worker's), which is never dropped. */
+function pageOf(request: Request): Page | undefined {
+  try {
+    return request.frame().page();
+  } catch {
+    return undefined;
+  }
+}
+
 function trackNetwork(target: Page | BrowserContext): NetworkTracker {
   const tracker: NetworkTracker = { inflight: new Set(), lastSettledAt: Date.now() };
   const started = (request: Request): void => {
+    // A new document in a page's main frame ends every request of the document it replaces: the browser cancels
+    // them, and a request the API adapter had routed may then never report finished or failed. Left here, such a
+    // request kept every later check of the page "in flight" until its settle budget ran out, so the check read an
+    // unsettled page (phase 4: a late-findings poll cut by a `page.goto`). Only that page's requests are dropped.
+    if (request.isNavigationRequest() && request.frame().parentFrame() === null) {
+      const page = request.frame().page();
+      for (const open of tracker.inflight) if (pageOf(open) === page) tracker.inflight.delete(open);
+    }
     tracker.inflight.add(request);
   };
   const settled = (request: Request): void => {

@@ -15,8 +15,14 @@
  * - **Load failure** (UD-47): what could not be loaded, "Try again", and "Back to review"; no answer is
  *   lost (every answer was stored by its own request).
  * - The demo line comes with the project's layout, on every state (rule 10; GS-1).
+ * - **Layout** (DR-7): the page sits in the workspace frame (docs/adr/0043-workspace-navigation-and-shell.md
+ *   decision 3), so it takes the workspace page layout: the kit's left-aligned `PageHeader` in the page
+ *   column with the frame's own page padding (no padding or width of its own, DR-2), as every other
+ *   workspace page. "Back to review" (phase 3's control; R-012 "Until decided" keeps any way back to the
+ *   intake out of the menus) is a 40px secondary button at the page's foot, a workspace control, not the
+ *   wizard's 190 x 48 footer button.
  */
-import { Button, Progress, StatusLine } from '@sovitech/ui';
+import { Button, PageHeader, Progress, StatusLine } from '@sovitech/ui';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
@@ -56,18 +62,17 @@ export function ProposalPage() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-10 px-12 pt-16 pb-12">
+    <div className="flex flex-col gap-8" data-proposal-page="">
       {state.status === 'loading' ? (
-        <header className="flex flex-col items-center gap-8 py-10 text-center">
-          <h1 className="text-(length:--sov-title-size) leading-tight font-light tracking-(--sov-title-tracking) text-(--sov-text-primary)">{copy.proposal.generating}</h1>
+        <div className="flex max-w-[760px] flex-col gap-6">
+          <PageHeader title={copy.proposal.generating} />
           <Progress label={copy.proposal.generating} />
-        </header>
+        </div>
       ) : (
-        <header className="flex flex-col gap-4">
-          <h1 className="text-(length:--sov-title-size) leading-tight font-light tracking-(--sov-title-tracking) text-(--sov-text-primary)">{copy.proposal.title}</h1>
-          {data === undefined ? null : <p className="max-w-[720px] text-[17px] leading-7 font-light text-(--sov-text-tertiary)">{copy.proposal.intro}</p>}
+        <div className="flex flex-col gap-4">
+          <PageHeader title={copy.proposal.title} {...(data === undefined ? {} : { subtitle: copy.proposal.intro })} />
           {stillReading === undefined ? null : <StatusLine display={stillReading} />}
-        </header>
+        </div>
       )}
       {state.status === 'failed' && data === undefined ? <LoadFailed message={copy.proposal.loadFailed} onRetry={() => void reload()} /> : null}
       {data === undefined ? null : (
@@ -79,7 +84,7 @@ export function ProposalPage() {
         </section>
       )}
       <div className="border-t border-(--sov-border) pt-6">
-        <Button variant="secondary" size="wizard" icon={ArrowLeft} onClick={toReview}>
+        <Button variant="secondary" icon={ArrowLeft} onClick={toReview}>
           {copy.nav.backToReview}
         </Button>
       </div>

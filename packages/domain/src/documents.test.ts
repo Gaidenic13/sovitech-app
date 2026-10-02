@@ -181,6 +181,23 @@ describe('documentStatuses: a declaration is corrected, never a cycle (phase 1 a
     expect([...withD.successors(docA.id)]).toEqual([docD.id]);
   });
 
+  test('G4-44 · A-5 · `predecessor` names only a declaration derive applies: one direction per pair, none on a cycle', () => {
+    // A rev of B, then B rev of A: the later direction stands, so only B names a predecessor.
+    const pair = documentStatuses([declares(docA, docB, 1), declares(docB, docA, 2)], all);
+    expect(pair.predecessor(docB.id)).toBe(docA.id);
+    expect(pair.predecessor(docA.id)).toBeUndefined();
+    // Two opposite declarations at the same time cancel: neither names one.
+    const tied = documentStatuses([declares(docA, docB, 1), declares(docB, docA, 1)], all);
+    expect([tied.predecessor(docA.id), tied.predecessor(docB.id)]).toEqual([undefined, undefined]);
+    // A -> B -> C -> A: the whole cycle is ignored; a revision from outside it still names its predecessor.
+    const cycle = documentStatuses([declares(docA, docB, 1), declares(docB, docC, 2), declares(docC, docA, 3), declares(docD, docA, 4)], all);
+    for (const doc of [docA, docB, docC]) expect(cycle.predecessor(doc.id), doc.id).toBeUndefined();
+    expect(cycle.predecessor(docD.id)).toBe(docA.id);
+    // A removed revision names none.
+    const removed = documentStatuses([declares(docD, docA, 1), { documentId: docD.id, type: 'withdrawn', by: 'test-owner', role: 'owner', at: '2026-09-25T10:02:00.000000Z' }], all);
+    expect(removed.predecessor(docD.id)).toBeUndefined();
+  });
+
   test('a later declaration by one revision replaces its earlier one', () => {
     const statuses = documentStatuses([declares(docC, docA, 1), declares(docC, docB, 2)], all);
     expect(statuses.status(docA.id)).toBe('active');

@@ -15,7 +15,7 @@ import type { FieldState } from '@sovitech/domain';
 import { appendGuardrailEvent, lockProjectWrites, readGuardrailEvents, type Request } from '@sovitech/db';
 import type { StepView } from '@sovitech/view-model/browser';
 import type { ProjectState } from './project-state';
-import { questionOf } from './registry';
+import { PRODUCTION_API_REGISTRY, questionOf, type ApiRegistry } from './registry';
 
 /** One ask a view serves: the question and the fields it asks for. */
 export interface ServedAsk {
@@ -31,8 +31,8 @@ export interface KnownFieldAsk {
 }
 
 /** The fields of a registered question, with no subject named (the view names none for step 4's systems). */
-function registryFields(questionId: string): ServedAsk['fields'] {
-  return (questionOf(questionId)?.fieldKeys ?? []).map((fieldKey) => ({ subjectId: undefined, fieldKey }));
+function registryFields(registry: ApiRegistry, questionId: string): ServedAsk['fields'] {
+  return (questionOf(registry, questionId)?.fieldKeys ?? []).map((fieldKey) => ({ subjectId: undefined, fieldKey }));
 }
 
 /** Whether a served question asks now: served unanswered, or with its "Skip for now" action. */
@@ -41,10 +41,10 @@ function asks(question: { readonly state: string; readonly skip: unknown }): boo
 }
 
 /** What a served step view asks for: its questions served unanswered or with Skip, and step 8's inline asks. */
-export function servedAsks(view: StepView): ServedAsk[] {
+export function servedAsks(view: StepView, registry: ApiRegistry = PRODUCTION_API_REGISTRY): ServedAsk[] {
   switch (view.step) {
     case 4:
-      return asks(view.question) ? [{ questionId: view.question.questionId, fields: registryFields(view.question.questionId) }] : [];
+      return asks(view.question) ? [{ questionId: view.question.questionId, fields: registryFields(registry, view.question.questionId) }] : [];
     case 5:
       return view.questions.filter(asks).map((question) => ({ questionId: question.questionId, fields: question.fields }));
     case 6:
@@ -66,9 +66,10 @@ export function servedAsks(view: StepView): ServedAsk[] {
 export function servedAsksForKnownFields(
   view: StepView,
   fieldState: (fieldKey: string) => { readonly subjectId: string; readonly state: FieldState } | undefined,
+  registry: ApiRegistry = PRODUCTION_API_REGISTRY,
 ): KnownFieldAsk[] {
   const found = new Map<string, KnownFieldAsk>();
-  for (const ask of servedAsks(view)) {
+  for (const ask of servedAsks(view, registry)) {
     for (const field of ask.fields) {
       const derived = fieldState(field.fieldKey);
       if (derived === undefined || (field.subjectId !== undefined && field.subjectId !== derived.subjectId)) continue;
@@ -86,10 +87,14 @@ export function servedAsksForKnownFields(
  * defects found in this view.
  */
 export async function logServedAsksForKnownFields(request: Request, state: ProjectState, view: StepView): Promise<KnownFieldAsk[]> {
-  const defects = servedAsksForKnownFields(view, (fieldKey) => {
-    const wizardField = state.fields.get(fieldKey);
-    return wizardField === undefined ? undefined : { subjectId: wizardField.subjectId, state: wizardField.state };
-  });
+  const defects = servedAsksForKnownFields(
+    view,
+    (fieldKey) => {
+      const wizardField = state.fields.get(fieldKey);
+      return wizardField === undefined ? undefined : { subjectId: wizardField.subjectId, state: wizardField.state };
+    },
+    state.registry,
+  );
   if (defects.length === 0) return defects;
   // Once per field however many views are served together: the project's write lock before the events are read.
   await lockProjectWrites(request);

@@ -96,6 +96,17 @@ async function evidenceFor(
   return byOwner;
 }
 
+/**
+ * When each document of the project in scope was registered (the database's clock): record metadata the Documents page
+ * shows as the date a document was added (phase 4; PRD R-016; traceability 10.2 item 13), never a value of the value
+ * model. Withdrawn and erased documents are included; the caller lists only active ones.
+ */
+export async function readDocumentRegistrations(request: Request): Promise<readonly { readonly documentId: string; readonly addedAt: string }[]> {
+  projectOf(request);
+  const rows = await request.trx.selectFrom('documents').select(['id', 'created_at']).orderBy('id').execute();
+  return rows.map((row) => ({ documentId: row.id, addedAt: row.created_at }));
+}
+
 /** Candidates by id, with their evidence, in the project in scope. */
 export async function readCandidates(request: Request, ids: readonly string[]): Promise<Candidate[]> {
   if (ids.length === 0) return [];

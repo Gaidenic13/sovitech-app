@@ -10,15 +10,22 @@
  * its own, from its own read of stored state; the value id is the same, and what the value element
  * may show (the render contract's projection, `servedDisplayOf`: text, badge, lines, parts,
  * evidence) is identical. The same holds for an estimate's range and rounding, and for a conflict's
- * range. Phase 4 adds the dashboard screens.
+ * range.
+ *
+ * Phase 4 adds the workspace's pages (packages/view-model/src/workspace): the project type and the area on the project
+ * card are the step 3 and step 8 displays; a scope decision on System Scope and in Topology's group is step 4's and
+ * step 8's display; a system's equipment line on System Scope's row and Topology's group is one value id with one
+ * display, at every floor filter. Each page asks the one resolver (`resolve`) and serves what it gives, unchanged. The
+ * rendered half (the same element text on two pages) is the e2e suite's.
  */
 import fc from 'fast-check';
 import { expect, test } from 'vitest';
 import type { Candidate } from '@sovitech/domain';
 import { servedDisplayOf, type DisplayObject } from '@sovitech/view-model/browser';
-import { editActionOf, resolveField } from '@sovitech/view-model/server';
+import { editActionOf, frameView, resolveField, systemScopeView, topologyView } from '@sovitech/view-model/server';
 import { documentReading, ownerAnswer, ownerConfirmation, testDocument, testEvents } from './_support/builders';
 import { intakeFieldOf, productionField, registryField, resolveInputOf, uuid } from './_support/view-model';
+import { displayOf, testWorkspace } from './_support/workspace';
 
 const PROJECT = uuid(1);
 const BUILDING = uuid(2);
@@ -80,4 +87,47 @@ test('US-REVIEW-01 AC11 · US-INTAKE-15 AC3 · F-VALUE-10 · G2-7: the area on s
   expect(display?.text).toBe('about 5,800 (5,200 to 6,400)');
   expect(display?.badge?.id).toBe('estimated');
   onTwoScreens(estimateField, [estimate]);
+});
+
+test('US-REVIEW-14 · US-SCOPE-05 · US-TOPO-01 · F-VALUE-14 · G2-7: on the workspace, the card\'s area and project type, a scope decision and a system\'s equipment line are the wizard\'s displays, identical on every page that shows them', () => {
+  const area = productionField('building.grossFloorArea');
+  const projectType = productionField('project.type');
+  const hvac = productionField('project.scope.hvac');
+  const read = { ...documentReading({ id: uuid(40), subjectId: BUILDING, field: area, document: schedule, value: { quantity: { value: 2345, unit: 'm2', qualifier: 'gross_total' } }, minute: 1, page: 4 }), original: { text: '2.345 mp' } };
+  const type = ownerAnswer({ id: uuid(41), subjectId: PROJECT, field: projectType, value: { choice: 'existing_building' }, minute: 2 });
+  const include = ownerAnswer({ id: uuid(42), subjectId: PROJECT, field: hvac, value: { choice: 'include' }, minute: 3 });
+  const project = testWorkspace({
+    projectId: PROJECT,
+    buildingId: BUILDING,
+    projectType: 'existing_building',
+    documents: [schedule],
+    fileNames: FILE_NAMES,
+    fields: [
+      { field: area, subjectId: BUILDING, subjectKind: 'building', candidates: [read] },
+      { field: projectType, subjectId: PROJECT, subjectKind: 'project', candidates: [type], candidateEvents: [ownerConfirmation(type)] },
+      { field: hvac, subjectId: PROJECT, subjectKind: 'project', candidates: [include], candidateEvents: [ownerConfirmation(include)] },
+    ],
+  });
+  // What step 3, step 4 and step 8 show for the same values: the one resolver over the same stored state.
+  const wizard = (subjectId: string, key: string): DisplayObject | undefined => project.resolve(subjectId, key)?.[0];
+
+  const frame = frameView(project);
+  expect(frame.view.projectCard.grossFloorArea).toBe(`building:${BUILDING}.grossFloorArea`);
+  expect(shown(displayOf(frame.displayObjects, frame.view.projectCard.grossFloorArea))).toEqual(shown(wizard(BUILDING, area.key)));
+  expect(shown(displayOf(frame.displayObjects, frame.view.projectCard.projectType))).toEqual(shown(wizard(PROJECT, projectType.key)));
+
+  for (const level of [undefined, 'upper_1']) {
+    const scope = systemScopeView(project, level === undefined ? {} : { level });
+    const topology = topologyView(project, level === undefined ? {} : { level });
+    const row = scope.view.systems.find((entry) => entry.systemId === 'hvac');
+    const [group] = topology.view.groups;
+    expect(row?.decision).toBe(`project:${PROJECT}.scope.hvac`);
+    expect(group?.decision).toBe(row?.decision);
+    expect(shown(displayOf(scope.displayObjects, row?.decision ?? ''))).toEqual(shown(wizard(PROJECT, hvac.key)));
+    expect(shown(displayOf(topology.displayObjects, group?.decision ?? ''))).toEqual(shown(wizard(PROJECT, hvac.key)));
+    // One value id for a system's equipment with one filter, one display, on both pages.
+    expect(group?.equipment).toBe(row?.equipment);
+    expect(row?.equipment).toBe(level === undefined ? `project:${PROJECT}.register.hvac` : `project:${PROJECT}.register.hvac.${level}`);
+    expect(displayOf(topology.displayObjects, group?.equipment ?? '')).toEqual(displayOf(scope.displayObjects, row?.equipment ?? ''));
+  }
 });

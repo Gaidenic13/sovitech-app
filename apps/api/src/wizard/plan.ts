@@ -7,11 +7,8 @@
  * the project's derived fields and collects its answers for the views and the writes.
  */
 import type { QuestionDefinition } from '@sovitech/registry/validation';
-import { productionRegistry } from '@sovitech/registry';
 import type { StepNumber } from '@sovitech/view-model/browser';
 import {
-  PRODUCTION_QUESTIONS,
-  PRODUCTION_SUGGESTION_RULES,
   confirmationCandidates,
   inlineAsks,
   planQuestion,
@@ -26,7 +23,6 @@ import {
   type SuggestionRule,
 } from '@sovitech/view-model/server';
 import type { ProjectState } from './project-state';
-import { stepOfField } from './registry';
 
 export interface WizardPlan {
   /** Rule 5's budget over steps 3 to 7: the confirmations shown (by impactRank) and those over the budget. */
@@ -52,23 +48,28 @@ export function intakeFields(state: ProjectState): IntakeField[] {
   return [...state.fields.values()].map((wizardField) => wizardField.intake);
 }
 
-/** Plans the project with the given suggestion rules (the production rules; a TEST rule only in a test that proves the mechanism). */
-export function planProject(state: ProjectState, rules: readonly SuggestionRule[] = PRODUCTION_SUGGESTION_RULES): WizardPlan {
+/**
+ * Plans the project with the registry it was read with (the API's registry seam: its questions, settings, steps and
+ * suggestion rules; the production registry in the app), or with the given suggestion rules (a TEST rule only in a
+ * test that proves the mechanism).
+ */
+export function planProject(state: ProjectState, rules: readonly SuggestionRule[] = state.registry.suggestionRules): WizardPlan {
+  const { registry } = state;
   const fields = intakeFields(state);
   // A confirmation the owner declined (left on Continue after its value arrived) is not prompted again during the
   // intake (rule 7, "Skip means skip"), so it takes no place in the budget.
-  const candidates = confirmationCandidates(fields, (field) => stepOfField(field.field.key) ?? null).filter((entry) => {
+  const candidates = confirmationCandidates(fields, (field) => registry.stepOfField(field.field.key) ?? null).filter((entry) => {
     const field = fields.find((item) => item.field.key === entry.fieldKey);
     const candidate = field?.candidates.find((item) => item.id === entry.candidateId);
     return field !== undefined && candidate !== undefined && !skippedSince(field, candidate.createdAt);
   });
-  const confirmations = selectConfirmations(candidates, productionRegistry.settings.confirmationBudget.value);
+  const confirmations = selectConfirmations(candidates, registry.bundle.settings.confirmationBudget.value);
   const confirmationOf = new Map(confirmations.shown.map((entry) => [entry.fieldKey, entry.candidateId]));
   const shownConfirmations = new Set(confirmations.shown.map((entry) => entry.candidateId));
 
   const suggestions = suggestionsFor(fields, rules);
   const questions = new Map<string, QuestionPlan>();
-  for (const question of PRODUCTION_QUESTIONS) {
+  for (const question of registry.bundle.questions) {
     const questionFields = fields.filter((field) => question.fieldKeys.includes(field.field.key));
     if (questionFields.length === 0) continue;
     const visibleSuggestion = suggestions.some((suggestion) => question.fieldKeys.includes(suggestion.fieldKey));
@@ -96,10 +97,10 @@ export function planOf(plan: WizardPlan, question: QuestionDefinition): Question
  * inlineAsks over the registry's first-estimate set, each named by the question that asks for its first field.
  */
 export function inlineAskQuestionIds(state: ProjectState): string[] {
-  const asks = inlineAsks(intakeFields(state), productionRegistry.settings.firstEstimateSet.members);
+  const asks = inlineAsks(intakeFields(state), state.registry.bundle.settings.firstEstimateSet.members);
   return asks.flatMap((ask) => {
     const [firstKey] = ask.fieldKeys;
-    const question = firstKey === undefined ? undefined : PRODUCTION_QUESTIONS.find((entry) => entry.kind === 'question' && entry.fieldKeys.includes(firstKey));
+    const question = firstKey === undefined ? undefined : state.registry.bundle.questions.find((entry) => entry.kind === 'question' && entry.fieldKeys.includes(firstKey));
     return question === undefined ? [] : [question.id];
   });
 }

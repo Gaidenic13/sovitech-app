@@ -6,6 +6,7 @@
  */
 import type { Store } from '@sovitech/db';
 import type { SessionStore } from './auth/sessions';
+import type { ApiRegistry } from './wizard/registry';
 import type { FileStore } from './storage/file-store';
 import type { UploadGuard } from './uploads/fixture-guard';
 
@@ -49,4 +50,11 @@ export interface ApiServices {
    * owner's fixtures-only guard (./auth/dev-login.ts).
    */
   readonly devAccounts?: readonly string[];
+  /**
+   * The registry every wizard and workspace read uses (the registry seam; docs/adr/0044 decision 4). The entry points
+   * (src/index.ts, src/worker-main.ts) set the production one (`PRODUCTION_API_REGISTRY`) and nothing else; no
+   * environment variable or config file selects another. Absent, the production one is read (`registryOf`). Tests
+   * pass TEST registries they build in tests/.
+   */
+  readonly registry?: ApiRegistry;
 }

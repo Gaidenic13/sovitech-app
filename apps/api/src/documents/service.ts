@@ -17,6 +17,7 @@ import {
   eraseDocument,
   fileNamePart,
   lockProjectMembership,
+  lockProjectWrites,
   projectVisible,
   readDocumentFiles,
   readDocumentFindings,
@@ -201,6 +202,9 @@ export async function engineerDocumentRecord(request: Request, documentId: strin
 export async function declareRevision(request: Request, input: { readonly userId: string; readonly documentId: string; readonly revisionOf: string }): Promise<void> {
   const role = (await requestActsAs(request, 'owner')) ? 'owner' : (await requestActsAs(request, 'sovitech_engineer')) ? 'sovitech_engineer' : undefined;
   if (role === undefined) throw forbidden('owner_or_engineer_only');
+  // Phase 4 (docs/adr/0044 decision 6): a declaration sent with another write of the project (two tabs, a double press
+  // on Documents' "Revision of…") decides on the other's result: the project's write lock before the state is read.
+  await lockProjectWrites(request);
   const { documents, statuses } = await projectDocuments(request);
   for (const id of [input.documentId, input.revisionOf]) {
     const status = documents.some((document) => document.id === id) ? statuses.status(id) : undefined;
@@ -226,10 +230,14 @@ export interface DeletionReport {
  * "Deleting a document") and the audited erasure in the same request (rule 13: the
  * excerpts become "[erased]", the extracted text and the file name go, the erased event,
  * the values only this document supports withdrawn with their ids and values kept), the
- * document's queued analyses cancelled; then, once that has committed, every file keyed to
- * its content hash in the project, the original, derived files and job folders, unless
- * another document of the project holds the same bytes. Nothing is left keyed to the
- * erased hash (the stricter choice ifc-input 6.2.16 would make a rule).
+ * document's queued analyses cancelled; then, once that has committed, in a second request
+ * under the project's write lock that reads again the documents holding the same bytes
+ * (phase 4 part B, A-4: an upload of the same bytes registers under that lock, so it either
+ * committed before this read, and its document keeps the files, or it runs after the
+ * removal and moves its own sealed copy in; G13-10), every file keyed to its content hash in
+ * the project, the original, derived files and job folders, unless another document of the
+ * project, not erased, holds the same bytes. Nothing is left keyed to the erased hash (the
+ * stricter choice ifc-input 6.2.16 would make a rule).
  */
 export async function deleteDocument(
   services: Pick<ApiServices, 'store' | 'files' | 'log'>,
@@ -238,6 +246,8 @@ export async function deleteDocument(
 ): Promise<DeletionReport> {
   const report = await inProject(services, scope, async (request) => {
     await requireOwner(request);
+    // Phase 4 (docs/adr/0044 decision 6): Documents' Delete runs after any other write of the project sent with it.
+    await lockProjectWrites(request);
     const { documents, statuses } = await projectDocuments(request);
     const document = documents.find((candidate) => candidate.id === documentId);
     if (document === undefined) throw notFound();
@@ -254,8 +264,17 @@ export async function deleteDocument(
     );
     return { documentId, contentHash: document.contentHash, filesKeptForAnotherDocument: twin };
   });
-  if (!report.filesKeptForAnotherDocument) {
+  if (report.filesKeptForAnotherDocument) {
+    services.log({ event: 'document_erased', projectId: scope.projectId, documentId });
+    return report;
+  }
+  const kept = await inProject(services, scope, async (request) => {
+    await lockProjectWrites(request);
+    if (await bytesHeld(request, report.contentHash)) return true;
     await services.files.removeHash(scope.projectId, report.contentHash);
+    return false;
+  });
+  if (!kept) {
     const left = await services.files.filesKeyedTo(scope.projectId, report.contentHash);
     if (left.length > 0) {
       services.log({ event: 'erasure_files_left', code: 'files_left', projectId: scope.projectId, documentId });
@@ -263,15 +282,24 @@ export async function deleteDocument(
     }
   }
   services.log({ event: 'document_erased', projectId: scope.projectId, documentId });
-  return report;
+  return { ...report, filesKeptForAnotherDocument: kept };
+}
+
+/** Whether a document of the project that is not erased holds these bytes (read in the caller's request, under its lock). */
+async function bytesHeld(request: Request, contentHash: string): Promise<boolean> {
+  const { documents, statuses } = await projectDocuments(request);
+  return documents.some((document) => document.contentHash === contentHash && statuses.status(document.id) !== 'erased');
 }
 
 /**
  * Removes every content-hash folder of the project that no document of the project, not
  * erased, holds: bytes promoted by an upload whose registration never committed, or left by
- * an erasure interrupted after its commit. Run in any request scoped to the project.
+ * an erasure interrupted after its commit. Run in any request scoped to the project; it takes
+ * the project's write lock first, so an upload registering the same bytes is never caught
+ * between its check and its commit (A-4).
  */
 export async function removeUnheldFiles(services: Pick<ApiServices, 'files'>, request: Request, projectId: string): Promise<readonly string[]> {
+  await lockProjectWrites(request);
   const { documents, statuses } = await projectDocuments(request);
   const held = new Set(documents.filter((document) => statuses.status(document.id) !== 'erased').map((document) => document.contentHash));
   const removed: string[] = [];

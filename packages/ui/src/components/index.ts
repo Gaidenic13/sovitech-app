@@ -35,3 +35,53 @@ export { StatusLine, type StatusLineProps } from './StatusLine';
 export { Stepper, type StepperLabels, type StepperProps } from './Stepper';
 export { TextField, type TextFieldProps } from './TextField';
 export { Value, type ValueActionLabels, type ValueLayout, type ValueProps } from './Value';
+export { ValueName, type ValueNameProps } from './ValueName';
+export {
+  InspectorLayout,
+  PageHeader,
+  StatusFooter,
+  WorkspaceFrame,
+  type InspectorLayoutProps,
+  type PageBackLink,
+  type PageHeaderProps,
+  type StatusFooterProps,
+  type WorkspaceFrameProps,
+} from './frame';
+export { ModelArea, type ModelAreaProps, type ModelAreaStatus } from './ModelArea';
+export {
+  RegisterTable,
+  type ContentColumn,
+  type RegisterColumn,
+  type RegisterSelection,
+  type RegisterTableProps,
+  type SortDirection,
+  type ValueColumn,
+} from './RegisterTable';
+export {
+  ActiveFilters,
+  SelectionList,
+  type ActiveFilter,
+  type ActiveFiltersProps,
+  type SelectionListProps,
+  type SelectionOption,
+} from './SelectionList';
+export { SideNav, type SideNavItem, type SideNavProps } from './SideNav';
+export {
+  ChipGroup,
+  InlinePanel,
+  Inspector,
+  MenuButton,
+  Pager,
+  Switch,
+  Tabs,
+  type ChipGroupProps,
+  type ChipOption,
+  type InlinePanelProps,
+  type InspectorProps,
+  type MenuButtonProps,
+  type MenuItem,
+  type PagerProps,
+  type SwitchProps,
+  type TabItem,
+  type TabsProps,
+} from './workspace';

@@ -79,6 +79,13 @@ export interface DocumentStatuses {
   readonly removed: (documentId: string) => boolean;
   /** The declared revisions that supersede the document, directly or through a chain of declared revisions. */
   readonly successors: (documentId: string) => ReadonlySet<string>;
+  /**
+   * The document this one is a declared revision of, as derive applies the declarations (2.3, "Revisions are declared,
+   * never guessed"): the declaration that stands for it (its latest; on a pair, the later direction) and is on no cycle;
+   * undefined when none stands. A screen that names a document's predecessor reads this, never a raw declaration, so it
+   * shows only what supersedes a value (G4-44).
+   */
+  readonly predecessor: (documentId: string) => string | undefined;
   /** The withdrawn and erased events that do not hold, with why, in the order given. They remove nothing. */
   readonly refused: readonly RefusedDocumentEvent[];
 }
@@ -230,5 +237,7 @@ export function documentStatuses(
     return successors(documentId).size > 0 ? 'superseded' : 'active';
   };
 
-  return { status, removed, successors, refused };
+  const predecessor = (documentId: string): string | undefined => (onCycle.has(documentId) ? undefined : predecessorOf.get(documentId));
+
+  return { status, removed, successors, predecessor, refused };
 }

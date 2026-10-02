@@ -15,7 +15,9 @@
  * - the store's TEST machinery, @sovitech/db/testing, is reached only from tests/ and the
  *   store's own *.test.ts files, through any chain of imports (phase 1 review);
  * - the e2e stack (tests/e2e/setup/) imports the store only through @sovitech/db/testing
- *   (phase 3 part B, V-13).
+ *   (phase 3 part B, V-13);
+ * - the phase 4 viewer spike (@sovitech/viewer-spike) is imported by nothing but itself and the
+ *   proposed suite (docs/adr/0046-viewer-spike.md).
  *
  * Two more rules close gaps the list above leaves open, and are recorded in
  * tools/eslint-rules/README.md: browser-side code never reaches server-side code
@@ -255,6 +257,14 @@ module.exports = {
         path: DB_TESTING,
         reachable: true,
       },
+    },
+    {
+      name: 'viewer-spike-imported-by-nothing',
+      comment:
+        'The phase 4 viewer spike (@sovitech/viewer-spike; docs/adr/0046-viewer-spike.md) is wired into nothing: no app, package, tool, indexed case or e2e spec imports it, so no viewer reaches the live app (the owner\'s answer of 2026-10-02, "Trial now, decide later"; PRD R-078 "Until decided"). Its own files may import each other, and the proposed suite (tests/proposed/) may read its plan input for ifc-input 5.4\'s IFC-12, which waits for D-03, D-04 and D-01. Its runner (tools/viewer-spike/) reaches it by path (esbuild and docker), never by import.',
+      severity: 'error',
+      from: { pathNot: ['^packages/viewer-spike/', '^tests/proposed/'] },
+      to: { path: pkg('viewer-spike') },
     },
     {
       name: 'not-to-unresolvable',

@@ -20,9 +20,10 @@
  */
 import { randomUUID } from 'node:crypto';
 import { createTestService, testContentHash, type TestDatabase } from '@sovitech/db/testing';
+import { normaliseTag } from '@sovitech/domain';
 
 /** The TEST states the control route writes, by name. */
-export const TEST_STATES = ['document-being-read', 'owner-conflicts', 'building-type-inference', 'floors-conflict'] as const;
+export const TEST_STATES = ['document-being-read', 'owner-conflicts', 'building-type-inference', 'floors-conflict', 'assets-listed', 'assets-numbered'] as const;
 export type TestStateName = (typeof TEST_STATES)[number];
 
 export function isTestState(name: string): name is TestStateName {
@@ -129,6 +130,48 @@ async function storeCandidate(
   );
 }
 
+/**
+ * Stores one TEST appearance of equipment written on page 1 of a TEST document, with its evidence and excerpt (2.5):
+ * a tagged appearance joins a new asset of its tag (its subject and its identity, one tag one asset); an untagged one
+ * joins none and is never listed (G4-17). One statement, so the store's evidence guards check it at commit.
+ */
+async function storeAppearance(database: TestDatabase, scope: Scope, input: { readonly tag: string | undefined; readonly document: TestDocument; readonly excerpt: string }): Promise<void> {
+  if (!input.document.page.includes(input.excerpt)) throw new Error('a TEST excerpt occurs on its page, as the evidence verifier requires');
+  const appearanceId = randomUUID();
+  const evidenceId = randomUUID();
+  const evidence = `locator AS (
+       INSERT INTO sovitech.evidence_locators (id, project_id, appearance_id, ordinal, document_id, content_hash, page, evidence_check)
+       SELECT $3::uuid, $1::uuid, id, 0, $4::uuid, $5::text, 1, 'text_match' FROM appearance RETURNING id
+     )
+     INSERT INTO sovitech.evidence_excerpts (evidence_id, project_id, content_hash, text)
+     SELECT id, $1::uuid, $5::text, $6::text FROM locator`;
+  const common = [scope.projectId, appearanceId, evidenceId, input.document.documentId, input.document.contentHash, input.excerpt, scope.userId];
+  const tag = normaliseTag(input.tag);
+  if (input.tag === undefined || tag === null) {
+    await database.as(
+      'app',
+      `WITH appearance AS (
+         INSERT INTO sovitech.asset_appearances (id, project_id, asset_id, tag_as_written, created_by) VALUES ($2::uuid, $1::uuid, NULL, NULL, $7::text) RETURNING id
+       ), ${evidence}`,
+      common,
+      scope,
+    );
+    return;
+  }
+  await database.as(
+    'app',
+    `WITH subject AS (
+       INSERT INTO sovitech.subjects (id, project_id, kind, created_by) VALUES ($8::uuid, $1::uuid, 'asset', $7::text) RETURNING id
+     ), identity AS (
+       INSERT INTO sovitech.asset_identities (asset_id, project_id, normalised_tag, created_by) SELECT id, $1::uuid, $9::text, $7::text FROM subject RETURNING asset_id
+     ), appearance AS (
+       INSERT INTO sovitech.asset_appearances (id, project_id, asset_id, tag_as_written, created_by) SELECT $2::uuid, $1::uuid, asset_id, $10::text, $7::text FROM identity RETURNING id
+     ), ${evidence}`,
+    [...common, randomUUID(), tag, input.tag],
+    scope,
+  );
+}
+
 /** One TEST document stating one value, and the value read from it (source `document`). */
 async function documentValue(
   database: TestDatabase,
@@ -156,7 +199,14 @@ async function documentValue(
  *   medium confidence): rule 5's confirmation, "Yes, it's a hotel";
  * - `floors-conflict`: two TEST documents giving the building two upper-floor counts: a conflict on
  *   an engineer field, routed to SOVITECH (G7-4's situation, when written while the owner is on
- *   step 6).
+ *   step 6);
+ * - `assets-listed` (phase 4): one TEST equipment list whose page writes three tags and one piece of
+ *   equipment with no tag: three assets in the register, each with its tag as written and its evidence,
+ *   and the untagged appearance never listed (2.5; G4-17). No asset field is registered in production
+ *   (docs/adr/0045 decision 1), so every other cell reads Unknown (Equipment, the inspector, UD-08);
+ * - `assets-numbered` (phase 4 part B, A-1): one TEST equipment list whose page numbers its equipment, as
+ *   numbered lists do: two tags written only in digits, "101" and "1.2" (each tag as written is a figure the
+ *   page shows bound to its display object, and a heading on the asset record).
  */
 export async function writeTestState(database: TestDatabase, name: TestStateName, projectId: string): Promise<void> {
   const [project] = await database.asAdministrator<{ isDemo: boolean }>('SELECT is_demo AS "isDemo" FROM sovitech.projects WHERE id = $1', [projectId]);
@@ -197,5 +247,28 @@ export async function writeTestState(database: TestDatabase, name: TestStateName
       await documentValue(database, scope, { label: 'plan etaj A', subjectId: building.id, fieldKey: 'building.floors', value: { count: 6, qualifier: 'upper' }, excerpt: '6 etaje' });
       await documentValue(database, scope, { label: 'plan etaj B', subjectId: building.id, fieldKey: 'building.floors', value: { count: 8, qualifier: 'upper' }, excerpt: '8 etaje' });
       return;
+    case 'assets-listed': {
+      const document = await registerDocument(database, scope, {
+        label: 'equipment list',
+        fileName: 'TEST equipment list.pdf',
+        page: 'TEST equipment list. TEST-AHU-A air handling unit. TEST-FCU-A fan coil. TEST-FCU-B fan coil. A fan coil with no tag.',
+        status: 'analysed',
+        coverage: 'pages 1-1 of 1',
+      });
+      for (const tag of ['TEST-AHU-A', 'TEST-FCU-A', 'TEST-FCU-B']) await storeAppearance(database, scope, { tag, document, excerpt: tag });
+      await storeAppearance(database, scope, { tag: undefined, document, excerpt: 'A fan coil with no tag' });
+      return;
+    }
+    case 'assets-numbered': {
+      const document = await registerDocument(database, scope, {
+        label: 'numbered equipment list',
+        fileName: 'TEST numbered equipment list.pdf',
+        page: 'TEST numbered equipment list. Item 101 TEST fan coil. Item 1.2 TEST pump.',
+        status: 'analysed',
+        coverage: 'pages 1-1 of 1',
+      });
+      for (const tag of ['101', '1.2']) await storeAppearance(database, scope, { tag, document, excerpt: tag });
+      return;
+    }
   }
 }

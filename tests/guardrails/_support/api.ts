@@ -39,6 +39,7 @@ import { readModelsForTests, type ModelReadingServices } from '../../../apps/api
 import type { ApiLogRecord, ApiServices } from '../../../apps/api/src/services';
 import { FileStore } from '../../../apps/api/src/storage/file-store';
 import { fixtureUploadGuard, type UploadGuard } from '../../../apps/api/src/uploads/fixture-guard';
+import type { ApiRegistry } from '../../../apps/api/src/wizard/registry';
 
 export const REPOSITORY_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 
@@ -65,7 +66,9 @@ export interface TestApi {
   stop(): Promise<void>;
 }
 
-export async function startTestApi(options: { readonly uploadGuard?: UploadGuard; readonly readModels?: boolean; readonly devLogin?: boolean } = {}): Promise<TestApi> {
+export async function startTestApi(
+  options: { readonly uploadGuard?: UploadGuard; readonly readModels?: boolean; readonly devLogin?: boolean; readonly registry?: ApiRegistry } = {},
+): Promise<TestApi> {
   const database = await startTestDatabase();
   const dataDirectory = mkdtempSync(join(tmpdir(), 'sovitech-test-data-'));
   const files = new FileStore(dataDirectory);
@@ -84,6 +87,7 @@ export async function startTestApi(options: { readonly uploadGuard?: UploadGuard
       log.push(record);
     },
     devAccounts: devAccountIds,
+    ...(options.registry === undefined ? {} : { registry: options.registry }),
   };
   const app = buildServer({ gates: assertGatesStartupSafe(), services });
   await app.ready();

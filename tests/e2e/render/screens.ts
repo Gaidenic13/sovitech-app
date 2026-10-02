@@ -36,13 +36,31 @@
  * (G8-21) is checked by tests/e2e/flows/inline-ask-refusal.spec.ts instead: the digits the owner typed
  * show unbound in the box until stored, so the render test reads that state only once the box is
  * cleared, after a new observation, which a flow takes and a screen entry does not.
+ * Phase 4 (2026-10-02): the workspace (docs/adr/0043): System Scope (DB-16), Topology's Logical view (DB-08),
+ * Zones (DB-20), Equipment (DB-17) with its inspector and the asset record (UD-08), and Documents (DB-15) with its
+ * inspector, menus, filter panel, upload panel (UD-21), delete confirmation (UD-42) and revision panel (UD-43), the
+ * project switcher open (UD-32), on the demo and on new projects; their empty states as the register states them
+ * (no documents, being read, nothing read: never "not found", G12-10), loading and load failure, the frame failing;
+ * and, through the control route, a register of three TEST tags (`assets-listed`) and a TEST inference whose
+ * document's delete returns one value to Unknown (G4-39). No zone row is checked: no zone field is registered in
+ * production (docs/adr/0045 decision 1), so no zone exists in the stack; the zone details and editor are proven in
+ * their component tests with TEST registries.
+ * Phase 4 part B (2026-10-02): the floor field in conflict (`floors-conflict`) on System Scope and Topology: the floor
+ * control shows the "two values" line, the floors field's two readings with their sources, and the routing line or the
+ * action to enter the floors, never a level list (V-4; rule 4, rule 7); the switcher open on the demo with more than
+ * twelve projects, its panel ending above the status footer and the demo line uncovered (DR-4; rule 10); tags written
+ * only in digits ("101", "1.2"; `assets-numbered`) on Equipment's inspector and the asset record, inside the kept frame
+ * and footer (A-1; rule 7); "Show details" as the one name of the details control (DR-13); and the floor control as
+ * the one filter in each page's header, a dropdown or the served line with its actions (DR-5).
  */
 import type { Page } from '@playwright/test';
+import { ruleLineById, statusLineById } from '@sovitech/registry';
 import { displayObjectsFromApi, type ApiDisplayObjectSource } from './api-display-objects';
 import { REPO_ROOT } from '../setup/paths';
 import { writeTestState, type TestState } from '../support/control';
-import { failRequests, holdRequests, projectList, proposalView, stepView, uploadChunk } from '../support/network';
+import { failRequests, holdRequests, projectList, proposalView, stepView, uploadChunk, workspaceFrame, workspaceView } from '../support/network';
 import { createProject, demoProjectId, newProjectAt, openProjectScreen, pressPrimary, screenReady, signIn, signedInAt, skipEverything, testProject } from '../support/wizard';
+import { includeSystems, openSwitcher, openWorkspaceScreen } from '../support/workspace';
 
 /** A screen that shows no value: no display objects. */
 export type ShowsNoValues = Readonly<Record<string, never>>;
@@ -130,6 +148,159 @@ const withState = (label: string, state: TestState, screen: string, shown: (page
   await openProjectScreen(page, id, screen);
   await shown(page);
 };
+
+// ---- Phase 4: the workspace (docs/adr/0043) -----------------------------------------------------------------
+
+/** A workspace page's route (APP_PATHS). */
+const WORKSPACE = (screen: string) => `/projects/:projectId/${screen}`;
+
+/** The demo's workspace page (query included), signed in as the development owner. */
+const demoWorkspace = (screen: string) => async (page: Page) => {
+  await signIn(page);
+  await openWorkspaceScreen(page, demoProjectId(), screen);
+};
+
+/** A new TEST project with no documents, at one of its workspace pages (query included). */
+const freshWorkspace = (label: string, screen: string) => async (page: Page) => {
+  const id = await newProjectAt(page, label, 'steps/2');
+  await openWorkspaceScreen(page, id, screen);
+};
+
+/** A new TEST project with a TEST state written through the control route, at one of its workspace pages. */
+const withWorkspaceState = (label: string, state: TestState, screen: string, shown: (page: Page) => Promise<void>) => async (page: Page) => {
+  await signIn(page);
+  const id = await createProject(page, testProject(label));
+  await writeTestState(state, id);
+  await openWorkspaceScreen(page, id, screen);
+  await shown(page);
+};
+
+/** Opens the first register row's menu (the kit's MenuButton, "More actions") and waits for its items. */
+async function openFirstRowMenu(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'More actions', exact: true }).first().click();
+  await page.getByRole('menuitem').first().waitFor();
+}
+
+/** Opens a document's Delete confirmation from its row menu and waits for the stated effect (UD-42). */
+async function openDeleteConfirmation(page: Page): Promise<void> {
+  await openFirstRowMenu(page);
+  await page.getByRole('menuitem', { name: 'Delete', exact: true }).click();
+  await page.locator('[data-delete-confirmation]').getByText(/will return to Unknown$/u).waitFor();
+  await screenReady(page);
+}
+
+/** A workspace page opened afresh while its page view is held: the frame answers, the page says it is loading. */
+const workspaceLoading = (open: (page: Page) => Promise<string>, screen: string) => async (page: Page) => {
+  const id = await open(page);
+  await holdRequests(page, workspaceView, { releaseAfterMs: LOADING_MS });
+  await page.goto(`/projects/${id}/${screen}`);
+  await loadingShown(page);
+};
+
+/** Signs in and answers the demo's id; or creates a TEST project and answers its id. */
+const demoOpened = async (page: Page): Promise<string> => {
+  await signIn(page);
+  return demoProjectId();
+};
+const freshOpened = (label: string) => (page: Page) => newProjectAt(page, label, 'steps/2');
+
+/** A new TEST project at System Scope, the named systems included by the owner's own presses (US-SCOPE-05 AC4). */
+const freshIncluded = (label: string, systems: readonly string[], screen: string) => async (page: Page) => {
+  const id = await newProjectAt(page, label, 'steps/2');
+  await openWorkspaceScreen(page, id, 'system-scope');
+  await includeSystems(page, systems);
+  await openWorkspaceScreen(page, id, screen);
+};
+
+/** The page column of the workspace frame (the sidebar's project card shows the floors field too, so it is left out). */
+const pageColumn = (page: Page) => page.locator('.sov-workspace__page');
+
+/** The floor control in a workspace page's header: the "Floor" dropdown when the levels are known, or the served line with its actions (DR-5). */
+const floorControl = (page: Page) => pageColumn(page).getByRole('group', { name: 'Floor', exact: true });
+
+/**
+ * Waits for the floor control of a page whose floor field is in conflict (the `floors-conflict` TEST state: two TEST
+ * documents, 6 and 8 upper floors; V-4): the served "Not available yet: two values for floors", the floors field's own
+ * display with its Two values badge and both readings' sources, and rule 4's routing line ("Documents disagree on
+ * this. A SOVITECH engineer will check it.", the floors being an engineer's field) or, routed to the owner, the action
+ * to enter the floors. No level list is offered from either value (rule 4: "It never runs on one of the values"), so
+ * the page holds no "Floor" listbox or dropdown; the arrange fails if it does.
+ */
+async function floorsConflictShown(page: Page): Promise<void> {
+  const control = floorControl(page);
+  await control.getByText('Not available yet: two values for floors', { exact: true }).waitFor();
+  await control.getByText('Two values', { exact: true }).first().waitFor();
+  for (const source of [/TEST plan etaj A\.pdf/u, /TEST plan etaj B\.pdf/u]) await control.getByText(source).first().waitFor();
+  await control
+    .getByText(ruleLineById('conflict_for_engineer').template)
+    .or(control.getByRole('link', { name: 'Enter the floors', exact: true }))
+    .first()
+    .waitFor();
+  const lists = (await pageColumn(page).getByRole('listbox', { name: 'Floor' }).count()) + (await pageColumn(page).getByRole('button', { name: /^Floor\b/u }).count());
+  if (lists > 0) throw new Error('V-4 · rule 4: a level list or dropdown is offered while the floor field is in conflict');
+  await screenReady(page);
+}
+
+/** 2.8's demo line, as the registry holds it. */
+const DEMO_LINE = statusLineById('demo_data').text;
+
+/** More than twelve: the switcher's list is then taller than the room between the sidebar and the footer at 1440x900 (DR-4). */
+const MANY_PROJECTS = 13;
+
+/** A digit-free suffix for the n-th extra project (A, B, … Z, then AA …), as every typed name here is digit-free. */
+function letters(index: number): string {
+  const letter = String.fromCharCode(65 + (index % 26));
+  return index < 26 ? letter : `${letters(Math.floor(index / 26) - 1)}${letter}`;
+}
+
+/**
+ * The demo's System Scope with the switcher open, the signed-in owner holding more than twelve projects (TEST projects
+ * are created through step 1 until they do; a full run has made most of them already). The panel must end above the
+ * status footer, so the demo line stays uncovered (DR-4; rule 10 "Labelled everywhere"; 2.8 "Prominence"): the arrange
+ * fails when the panel's bottom runs past the footer's top or when anything covers the demo line's middle.
+ */
+async function switcherOpenWithMany(page: Page): Promise<void> {
+  await signIn(page);
+  await openWorkspaceScreen(page, demoProjectId(), 'system-scope');
+  await openSwitcher(page);
+  const listed = await page.locator('[data-switcher-entry]').count();
+  if (listed < MANY_PROJECTS) {
+    for (let index = listed; index < MANY_PROJECTS; index += 1) await createProject(page, testProject(`Render Switcher ${letters(index)}`));
+    await openWorkspaceScreen(page, demoProjectId(), 'system-scope');
+    await openSwitcher(page);
+  }
+  const entries = await page.locator('[data-switcher-entry]').count();
+  if (entries < MANY_PROJECTS) throw new Error(`DR-4: the switcher lists ${String(entries)} projects, fewer than the state needs`);
+  const panelId = await page.getByRole('button', { name: /^Switch project/u }).getAttribute('aria-controls');
+  if (panelId === null) throw new Error('DR-4: the switcher names no panel');
+  const panel = await page.locator(`[id="${panelId}"]`).boundingBox();
+  const footer = await page.locator('.sov-workspace__footer').boundingBox();
+  if (panel === null || footer === null) throw new Error('DR-4: the switcher panel or the status footer is not drawn');
+  if (panel.y + panel.height > footer.y + 0.5) {
+    throw new Error(`DR-4 · rule 10: the switcher panel ends at ${String(Math.round(panel.y + panel.height))}px, past the status footer's top at ${String(Math.round(footer.y))}px`);
+  }
+  const demoLine = page.locator('.sov-workspace__footer').getByText(DEMO_LINE, { exact: true });
+  await demoLine.waitFor();
+  const uncovered = await demoLine.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    return hit !== null && element.contains(hit);
+  });
+  if (!uncovered) throw new Error('DR-4 · rule 10 · 2.8 "Prominence": something covers the demo line in the status footer');
+  await screenReady(page);
+}
+
+/**
+ * Waits until a page of the `assets-numbered` state (tags written only in digits) stands inside the kept workspace
+ * frame: the sidebar's page list and the status footer drawn, and no router error page in their place (A-1; rule 7:
+ * never a dead end; rule 10: the footer carries the demo line on the demo).
+ */
+async function frameKept(page: Page): Promise<void> {
+  await page.getByRole('navigation', { name: 'Project pages' }).waitFor();
+  await page.locator('.sov-workspace__footer').waitFor();
+  if ((await page.getByText(/Unexpected Application Error/u).count()) > 0) throw new Error('A-1 · rule 7: the page replaced the workspace frame with an error page');
+  await screenReady(page);
+}
 
 export const RENDER_SCREENS: readonly RenderScreen[] = [
   // ---- Session (UD-36) and the project list (UD-37) --------------------------------------------
@@ -338,6 +509,361 @@ export const RENDER_SCREENS: readonly RenderScreen[] = [
       // The next late-findings poll (every 10 s) brings the dot and the one notice; nothing else moves.
       await page.getByText(/^We found \d+ more things? in your documents\./u).first().waitFor({ timeout: 30_000 });
       await page.locator('[data-render-stepper="wizard-step-number"] > li[data-dot="true"]').first().waitFor();
+    },
+  },
+
+  // ---- Phase 4: System Scope (DB-16) ----------------------------------------------------------------------------------
+  {
+    name: 'DB-16 System Scope, demo: the stored decisions, the first system in the detail panel (R-052, R-053, R-058)',
+    path: WORKSPACE('system-scope'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('system-scope')(page);
+      await page.locator('[data-system-detail]').first().waitFor();
+    },
+  },
+  {
+    name: 'DB-16 System Scope, demo: the floor control in the header, Not available yet naming the floor structure with its actions (R-077; G7-14; DR-5)',
+    path: WORKSPACE('system-scope'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('system-scope')(page);
+      // With no floor structure the control is the served line with its two actions in the header's slot (DR-5); a
+      // dropdown, where one is drawn, is opened to show them.
+      const enter = floorControl(page).getByRole('link', { name: 'Enter the floors', exact: true });
+      if ((await enter.count()) === 0) await pageColumn(page).getByRole('button', { name: /^Floor\b/u }).click();
+      await enter.first().waitFor();
+      await floorControl(page).getByRole('link', { name: 'Upload a document', exact: true }).first().waitFor();
+      await screenReady(page);
+    },
+  },
+  {
+    name: 'DB-16 System Scope, demo: the system filter open after Floor, All systems and the eight (V-10; rule 3; G3-22)',
+    path: WORKSPACE('system-scope'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('system-scope')(page);
+      await pageColumn(page).getByRole('button', { name: /^System\b/u }).click();
+      await page.getByRole('listbox').first().waitFor();
+      await screenReady(page);
+    },
+  },
+  {
+    name: "DB-16 System Scope, demo: Fire Safety's detail panel, its Equipment tab (US-SCOPE-07; rule 11)",
+    path: WORKSPACE('system-scope'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('system-scope?system=fire_safety')(page);
+      const panel = page.getByRole('region', { name: 'Fire Safety' });
+      await panel.getByRole('tab', { name: 'Equipment', exact: true }).click();
+      await panel.getByRole('link', { name: 'View the equipment', exact: true }).waitFor();
+      await screenReady(page);
+    },
+  },
+  {
+    name: 'UD-32 project switcher open on System Scope, demo: the projects of the signed-in owner (R-145; G13-9)',
+    path: WORKSPACE('system-scope'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('system-scope')(page);
+      await openSwitcher(page);
+    },
+  },
+  {
+    name: 'UD-32 project switcher open on System Scope, demo: more than twelve projects, the list ending above the status footer and the demo line uncovered (DR-4; rule 10)',
+    path: WORKSPACE('system-scope'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: switcherOpenWithMany,
+  },
+  {
+    name: 'DB-16 System Scope, new project: no decision recorded, Include and Leave out on each system (US-SCOPE-05 AC4)',
+    path: WORKSPACE('system-scope'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshWorkspace('Render Scope Undecided', 'system-scope')(page);
+      await page.getByRole('button', { name: 'Include HVAC', exact: true }).waitFor();
+    },
+  },
+  {
+    name: 'DB-16 System Scope, new project: load failure, its view and the project list failing (R-003)',
+    path: WORKSPACE('system-scope'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Scope Failed', 'steps/2');
+      await failRequests(page, workspaceView, projectList);
+      await page.goto(`/projects/${id}/system-scope`);
+      await loadFailedShown(page);
+    },
+  },
+  {
+    name: 'DB-16 System Scope, new project: the floor field in conflict, the floor control with the two-values line, both readings and the routing line, no level list (V-4; rules 4 and 7; G7-16; TEST documents)',
+    path: WORKSPACE('system-scope'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: withWorkspaceState('Render Scope Floors Conflict', 'floors-conflict', 'system-scope', floorsConflictShown),
+  },
+
+  // ---- Phase 4: Topology's Logical view (DB-08) -----------------------------------------------------------------------
+  {
+    name: "DB-08 Topology, demo: SOVITECH's design not available yet, one group per included system (R-071; G1-27)",
+    path: WORKSPACE('topology'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('topology')(page);
+      await page.locator('[data-topology-group]').first().waitFor();
+    },
+  },
+  {
+    name: 'DB-08 Topology, demo: the system filter open (R-077)',
+    path: WORKSPACE('topology'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('topology')(page);
+      await page.getByRole('button', { name: /^System\b/u }).click();
+      await page.getByRole('listbox').first().waitFor();
+      await screenReady(page);
+    },
+  },
+  {
+    name: 'DB-08 Topology, demo: load failure, its view failing (the frame still names the demo)',
+    path: WORKSPACE('topology'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await signIn(page);
+      await failRequests(page, workspaceView);
+      await page.goto(`/projects/${demoProjectId()}/topology`);
+      await loadFailedShown(page);
+    },
+  },
+  {
+    name: 'DB-08 Topology, new project: no include decision, Not available yet naming the systems in scope with its action (G7-15)',
+    path: WORKSPACE('topology'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshWorkspace('Render Topology Undecided', 'topology')(page);
+      await page.locator('[data-topology-no-decision]').waitFor();
+    },
+  },
+  {
+    name: "DB-08 Topology, new project: HVAC and Fire Safety included, Fire Safety in its monitoring lane with a one-way link (G11-11; 7.1-r18)",
+    path: WORKSPACE('topology'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshIncluded('Render Topology Fire', ['HVAC', 'Fire Safety'], 'topology')(page);
+      await page.locator('[data-monitoring-link]').waitFor();
+    },
+  },
+  {
+    name: 'DB-08 Topology, new project: the floor field in conflict, the floor control with the two-values line, both readings and the routing line, no level list (V-4; rules 4 and 7; G7-16; TEST documents)',
+    path: WORKSPACE('topology'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: withWorkspaceState('Render Topology Floors Conflict', 'floors-conflict', 'topology', floorsConflictShown),
+  },
+
+  // ---- Phase 4: Zones (DB-20) ---------------------------------------------------------------------------------------
+  {
+    name: 'DB-20 Zones, demo: no zone has come from the documents, the floor not available yet (G12-10; G7-14)',
+    path: WORKSPACE('zones'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: demoWorkspace('zones'),
+  },
+  { name: 'DB-20 Zones, new project: no documents (G12-10)', path: WORKSPACE('zones'), displayObjects: displayObjectsFromApi(), arrange: freshWorkspace('Render Zones', 'zones') },
+  {
+    name: 'DB-20 Zones, new project: loading, its view held',
+    path: WORKSPACE('zones'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: workspaceLoading(freshOpened('Render Zones Loading'), 'zones'),
+  },
+
+  // ---- Phase 4: Equipment (DB-17) and the asset record (UD-08) ----------------------------------------------------------
+  {
+    name: 'DB-17 Equipment, demo: no equipment has come from the documents, the Filters row open (UD-26; G12-10)',
+    path: WORKSPACE('equipment'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('equipment')(page);
+      await page.getByRole('button', { name: 'Filters', exact: true }).click();
+      await page.getByRole('group', { name: 'Filter equipment' }).or(page.getByRole('region', { name: 'Filter equipment' })).first().waitFor();
+      await screenReady(page);
+    },
+  },
+  { name: 'DB-17 Equipment, new project: no documents (G12-10)', path: WORKSPACE('equipment'), displayObjects: displayObjectsFromApi(), arrange: freshWorkspace('Render Equipment', 'equipment') },
+  {
+    name: 'DB-17 Equipment, new project: loading, its view held',
+    path: WORKSPACE('equipment'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: workspaceLoading(freshOpened('Render Equipment Loading'), 'equipment'),
+  },
+  {
+    name: 'DB-17 Equipment, new project: three tags in the register, each type Unknown under the closed taxonomy gate (R-065, R-067; TEST appearances)',
+    path: WORKSPACE('equipment'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: withWorkspaceState('Render Equipment Listed', 'assets-listed', 'equipment', async (page) => {
+      await page.locator('[data-equipment-row]').nth(2).waitFor();
+    }),
+  },
+  {
+    name: "DB-17 Equipment, new project: an asset's inspector, Overview (UD-26; TEST appearances)",
+    path: WORKSPACE('equipment'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: withWorkspaceState('Render Equipment Inspector', 'assets-listed', 'equipment', async (page) => {
+      await page.getByRole('button', { name: 'Show details', exact: true }).first().click();
+      await page.locator('[data-equipment-inspector]').waitFor();
+      await screenReady(page);
+    }),
+  },
+  {
+    name: "DB-17 Equipment, new project: an asset's inspector, its Documents tab (UD-26; TEST appearances)",
+    path: WORKSPACE('equipment'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: withWorkspaceState('Render Equipment Documents', 'assets-listed', 'equipment', async (page) => {
+      await page.getByRole('button', { name: 'Show details', exact: true }).first().click();
+      const inspector = page.locator('[data-equipment-inspector]');
+      await inspector.getByRole('tab', { name: 'Documents', exact: true }).click();
+      await inspector.getByRole('tabpanel').getByText('TEST equipment list.pdf').first().waitFor();
+      await screenReady(page);
+    }),
+  },
+  {
+    name: 'UD-08 asset record, new project: the tag as written, where it was found, its history (R-067, R-068; TEST appearances)',
+    path: WORKSPACE('equipment/:assetId'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: withWorkspaceState('Render Asset Record', 'assets-listed', 'equipment', async (page) => {
+      await page.getByRole('link', { name: 'Open the full record', exact: true }).first().click();
+      await page.locator('[data-asset-record]').waitFor();
+      await screenReady(page);
+    }),
+  },
+  {
+    name: "UD-08 asset record, new project: an id not in this project's register (rule 13)",
+    path: WORKSPACE('equipment/:assetId'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshWorkspace('Render Asset Missing', 'equipment/00000000-0000-4000-8000-000000000000')(page);
+      await page.getByText("This equipment is not in this project's register.", { exact: true }).waitFor();
+    },
+  },
+  {
+    name: "DB-17 Equipment, new project: tags written only in digits ('101', '1.2'), the inspector of '101' open inside the kept frame and footer (A-1; rule 7; TEST appearances)",
+    path: WORKSPACE('equipment'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: withWorkspaceState('Render Equipment Numbered', 'assets-numbered', 'equipment', async (page) => {
+      const row = page.locator('tr', { has: page.locator('[data-equipment-row]') }).filter({ hasText: '101' });
+      await row.getByRole('button', { name: 'Show details', exact: true }).click();
+      await page.locator('[data-equipment-inspector]').getByText('101', { exact: true }).first().waitFor();
+      await frameKept(page);
+    }),
+  },
+  {
+    name: "UD-08 asset record, new project: a tag written only in digits ('1.2') as its heading, inside the kept frame and footer (A-1; rule 7; TEST appearances)",
+    path: WORKSPACE('equipment/:assetId'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: withWorkspaceState('Render Asset Numbered', 'assets-numbered', 'equipment', async (page) => {
+      const row = page.locator('tr', { has: page.locator('[data-equipment-row]') }).filter({ hasText: '1.2' });
+      await row.getByRole('link', { name: 'Open the full record', exact: true }).click();
+      await page.locator('[data-asset-record]').waitFor();
+      await page.getByRole('heading', { level: 1 }).filter({ hasText: '1.2' }).waitFor();
+      await frameKept(page);
+    }),
+  },
+
+  // ---- Phase 4: Documents (DB-15; UD-21, UD-22, UD-42, UD-43) ---------------------------------------------------------
+  { name: 'DB-15 Documents, demo: the register, each category Unknown while unclassified (R-016; G1-26)', path: WORKSPACE('documents'), displayObjects: displayObjectsFromApi(), arrange: demoWorkspace('documents') },
+  {
+    name: "DB-15 Documents, demo: a document's inspector (UD-22; R-017, R-018, R-019)",
+    path: WORKSPACE('documents'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('documents')(page);
+      await page.getByRole('button', { name: 'Show details', exact: true }).first().click();
+      await page.locator('[data-document-inspector]').waitFor();
+      await screenReady(page);
+    },
+  },
+  {
+    name: 'DB-15 Documents, demo: a row menu open (UD-22; US-DOCS-15 AC1)',
+    path: WORKSPACE('documents'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('documents')(page);
+      await openFirstRowMenu(page);
+      await screenReady(page);
+    },
+  },
+  {
+    name: 'DB-15 Documents, demo: the filter panel open (UD-22)',
+    path: WORKSPACE('documents'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('documents')(page);
+      await page.getByRole('button', { name: 'Filters', exact: true }).click();
+      await page.getByText('All stages', { exact: true }).first().waitFor();
+      await screenReady(page);
+    },
+  },
+  {
+    name: 'UD-42 Documents, demo: the delete confirmation stating its effect before anything is removed (G4-39; 7.1.1-D4)',
+    path: WORKSPACE('documents'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('documents')(page);
+      await openDeleteConfirmation(page);
+    },
+  },
+  {
+    name: 'UD-43 Documents, demo: declaring a revision, the older document to choose (R-028)',
+    path: WORKSPACE('documents'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('documents')(page);
+      await openFirstRowMenu(page);
+      await page.getByRole('menuitem', { name: 'Mark as a revision of another document', exact: true }).click();
+      await page.getByRole('heading', { name: 'Which document does this file revise?' }).waitFor();
+      await screenReady(page);
+    },
+  },
+  {
+    name: 'DB-15 Documents, demo: loading, its view held',
+    path: WORKSPACE('documents'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: workspaceLoading(demoOpened, 'documents'),
+  },
+  { name: 'DB-15 Documents, new project: no documents yet (UD-21 empty)', path: WORKSPACE('documents'), displayObjects: displayObjectsFromApi(), arrange: freshWorkspace('Render Documents Empty', 'documents') },
+  {
+    name: "UD-21 Documents, new project: the upload panel open, step 2's dropzone (?upload=open)",
+    path: WORKSPACE('documents'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshWorkspace('Render Documents Upload', 'documents?upload=open')(page);
+      await page.locator('.sov-dropzone').waitFor();
+    },
+  },
+  {
+    name: 'DB-15 Documents, new project: a file being read, Still reading in the footer (R-016; a TEST document queued)',
+    path: WORKSPACE('documents'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: withWorkspaceState('Render Documents Reading', 'document-being-read', 'documents', async (page) => {
+      await page.getByRole('progressbar').first().waitFor();
+    }),
+  },
+  {
+    name: 'UD-42 Documents, new project: Delete states that 1 value will return to Unknown (G4-39; a TEST inference read from one document)',
+    path: WORKSPACE('documents'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: withWorkspaceState('Render Documents Delete', 'building-type-inference', 'documents', async (page) => {
+      await openDeleteConfirmation(page);
+      await page.locator('[data-delete-confirmation]').getByText('1 value will return to Unknown', { exact: true }).waitFor();
+    }),
+  },
+  {
+    name: 'Workspace frame, new project: the frame failing, the page still shown, the card saying so with Try again (rule 7)',
+    path: WORKSPACE('documents'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Frame Failed', 'steps/2');
+      await failRequests(page, workspaceFrame);
+      await page.goto(`/projects/${id}/documents`);
+      await page.getByRole('button', { name: 'Try again', exact: true }).first().waitFor();
+      await screenReady(page);
     },
   },
 ];

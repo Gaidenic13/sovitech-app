@@ -18,7 +18,7 @@ import {
   type ResolvedDocument,
 } from '@sovitech/view-model/server';
 import type { Suggestion } from '@sovitech/view-model/server';
-import { fieldIn, type ProjectState, type WizardField } from './project-state';
+import { fieldIn, fieldOnSubject, type ProjectState, type WizardField } from './project-state';
 import { STEP_3_FACTS, questionOfField } from './registry';
 
 export const FORMAT = DEFAULT_FORMAT_OPTIONS;
@@ -56,7 +56,7 @@ export class Displays {
  * document (PRD R-047 "Until decided": with no document uploaded, each fact reads "Not provided yet").
  */
 export function askedOf(state: ProjectState, wizardField: WizardField): boolean {
-  if (questionOfField(wizardField.field.key) !== undefined) return true;
+  if (questionOfField(state.registry, wizardField.field.key) !== undefined) return true;
   if (wizardField.intake.skippedAt.length > 0) return true;
   return STEP_3_FACTS.includes(wizardField.field.key) && state.activeDocuments.length === 0;
 }
@@ -73,9 +73,9 @@ export function shownCandidateIds(wizardField: WizardField): string[] {
  * a document or inferred, "Looks right" and "Something's wrong" (rule 3) until the owner has answered.
  * Never an owner confirmation on an engineer field (rule 3), and never "Confirm all" (§5-3b).
  */
-export function actionsFor(wizardField: WizardField, confirmation: string | undefined): Action[] {
+export function actionsFor(wizardField: WizardField, confirmation: string | undefined, options: { readonly edit?: boolean } = {}): Action[] {
   const shown = shownCandidateIds(wizardField);
-  const actions: Action[] = [editActionOf(wizardField.field, wizardField.subjectId, shown)];
+  const actions: Action[] = options.edit === false ? [] : [editActionOf(wizardField.field, wizardField.subjectId, shown)];
   const confirmed = confirmation === undefined ? undefined : wizardField.candidates.find((candidate) => candidate.id === confirmation);
   if (confirmed !== undefined) actions.push(confirmActionOf(wizardField.field, confirmed));
   if (wizardField.field.confirmBy === 'engineer') {
@@ -137,4 +137,33 @@ export function documentDisplays(state: ProjectState, documentId: string): Resol
   const document = state.documents.find((entry) => entry.id === documentId);
   if (document === undefined) throw new Error(`no document ${documentId}`);
   return resolveDocument({ document, fileName: state.fileName(documentId) ?? null, format: FORMAT });
+}
+
+/**
+ * A registered field on a level, zone or asset subject (phase 4's registers; docs/adr/0044, 0045), resolved by the one
+ * resolver with the actions the owner has on it, the same on every page (G2-7):
+ * - a zone's field: Edit (UD-09: each correction is `fields.edit` on the zone's field; PRD R-061), and "Looks right"
+ *   and "Something's wrong" on an engineer field's value read from a document, as on step 3;
+ * - an asset's or a level's field: no Edit. Every asset is treated as possibly life-safety for every purpose (prompt 3
+ *   5.2; ADR 0045 decision 5): the owner's only responses are "Looks right" and "Something's wrong" on a value read from
+ *   a document or inferred (PRD R-065; rule 3).
+ * No confirmation: rule 5's budget covers steps 3 to 7, and the question engine plans none of these fields.
+ */
+export function resolveSubjectField(state: ProjectState, subjectId: string, fieldKey: string): readonly DisplayObject[] {
+  const wizardField = fieldOnSubject(state, subjectId, fieldKey);
+  if (wizardField === undefined) throw new Error(`the workspace reads no field ${fieldKey} on that subject`);
+  return resolveField({
+    field: wizardField.field,
+    subject: { id: wizardField.subjectId, kind: wizardField.subjectKind },
+    state: wizardField.state,
+    candidates: wizardField.candidates,
+    candidateEvents: wizardField.candidateEvents,
+    document: (documentId) => state.documents.find((document) => document.id === documentId),
+    fileName: (documentId) => state.fileName(documentId),
+    projectType: state.projectType,
+    asked: wizardField.intake.skippedAt.length > 0,
+    searchedCoverage: state.searchedCoverage(fieldKey),
+    actions: actionsFor(wizardField, undefined, { edit: wizardField.subjectKind === 'zone' }),
+    format: FORMAT,
+  });
 }

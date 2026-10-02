@@ -49,11 +49,12 @@ import { servedFileName } from '../documents/file-names';
 import { inProject, requireOwner } from '../documents/service';
 import { ApiRefusal } from '../errors';
 import type { ApiServices } from '../services';
+import { namedSubjectDisplays } from '../workspace/naming';
 import { appendRecords, ownerValueOf, writeOwnerAnswer } from './answers';
-import { Displays, FORMAT, resolveWizardField } from './displays';
+import { Displays, FORMAT, resolveSubjectField, resolveWizardField } from './displays';
 import { inlineAskQuestionIds, intakeFields, planProject, type WizardPlan } from './plan';
-import { fieldIn, readProjectState, type ProjectState, type WizardField } from './project-state';
-import { STEP_1_FIELDS, closedGates, questionOf } from './registry';
+import { fieldIn, fieldOnSubject, readProjectState, type ProjectState, type WizardField } from './project-state';
+import { STEP_1_FIELDS, closedGates, questionOf, registryOf, type ApiRegistry } from './registry';
 import { logPlanDefects, logServedAsksForKnownFields } from './defects';
 import { extractedResponse, proposalResponse, stepResponse, type StepViewOptions, type ViewContext } from './views';
 
@@ -71,7 +72,7 @@ type Scope = { readonly userId: string; readonly projectId: string };
  */
 async function logDefects(request: Request, state: ProjectState, plan: WizardPlan): Promise<void> {
   const knownFieldAsks = plan.questionsForKnownFields.flatMap((questionId) => {
-    const key = questionOf(questionId)?.fieldKeys[0];
+    const key = questionOf(state.registry, questionId)?.fieldKeys[0];
     return key === undefined ? [] : [{ subjectId: fieldIn(state, key).subjectId, fieldKey: key }];
   });
   const overBudget = plan.confirmations.defect
@@ -80,8 +81,8 @@ async function logDefects(request: Request, state: ProjectState, plan: WizardPla
   await logPlanDefects(request, state.userId, { knownFieldAsks, overBudget });
 }
 
-async function viewContext(request: Request, gates: GateSource, scope: Scope): Promise<ViewContext> {
-  const state = await readProjectState(request, scope);
+async function viewContext(request: Request, registry: ApiRegistry, gates: GateSource, scope: Scope): Promise<ViewContext> {
+  const state = await readProjectState(request, scope, registry);
   const plan = planProject(state);
   await logDefects(request, state, plan);
   return { state, plan, displays: new Displays(), gates: closedGates(gates) };
@@ -89,7 +90,7 @@ async function viewContext(request: Request, gates: GateSource, scope: Scope): P
 
 export async function stepView(services: ApiServices, gates: GateSource, scope: Scope, step: StepNumber, options: StepViewOptions = {}): Promise<StepResponse> {
   return inProject(services, scope, async (request) => {
-    const context = await viewContext(request, gates, scope);
+    const context = await viewContext(request, registryOf(services), gates, scope);
     // An upload's name as served (servedFileName); the resolver shows its missing wording when nothing is left.
     const uploads = step === 2 ? (await readUserUploadSessions(request.trx, scope)).map((session) => ({ uploadId: session.id, fileName: servedFileName(session.fileName) ?? '' })) : [];
     const response = stepResponse(context, step, uploads, options);
@@ -100,20 +101,36 @@ export async function stepView(services: ApiServices, gates: GateSource, scope: 
 }
 
 export async function extractedView(services: ApiServices, gates: GateSource, scope: Scope): Promise<ExtractedResponse> {
-  return inProject(services, scope, async (request) => extractedResponse(await viewContext(request, gates, scope)));
+  return inProject(services, scope, async (request) => extractedResponse(await viewContext(request, registryOf(services), gates, scope)));
 }
 
 export async function proposalView(services: ApiServices, gates: GateSource, scope: Scope): Promise<ProposalPreviewResponse> {
-  return inProject(services, scope, async (request) => proposalResponse(await viewContext(request, gates, scope)));
+  return inProject(services, scope, async (request) => proposalResponse(await viewContext(request, registryOf(services), gates, scope)));
 }
 
-/** The displays of the fields a write touched, as the project now reads, for the write's answer. */
-async function displaysOf(request: Request, scope: Scope, fieldKeys: readonly string[]): Promise<DisplayObject[]> {
-  const state = await readProjectState(request, scope);
+/**
+ * The displays of the fields a write touched, as the project now reads, for the write's answer: a project or building
+ * field by its key, or a field on another subject (a zone's or an asset's, phase 4) by its subject and key.
+ */
+async function displaysOf(request: Request, registry: ApiRegistry, scope: Scope, fields: readonly (string | { readonly subjectId: string; readonly fieldKey: string })[]): Promise<DisplayObject[]> {
+  const state = await readProjectState(request, scope, registry);
   const plan = planProject(state);
   const displays = new Displays();
-  for (const key of new Set(fieldKeys)) displays.addAll(resolveWizardField(state, key, plan.confirmationOf.get(key), plan.suggestions));
+  const seen = new Set<string>();
+  for (const entry of fields) {
+    const key = typeof entry === 'string' ? entry : `${entry.subjectId} ${entry.fieldKey}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (typeof entry === 'string') displays.addAll(resolveWizardField(state, entry, plan.confirmationOf.get(entry), plan.suggestions));
+    // A level or zone field is named as the workspace names it (G8-24; G2-7: one display per value id).
+    else displays.addAll(namedSubjectDisplays(state, entry.subjectId, entry.fieldKey, resolveSubjectField(state, entry.subjectId, entry.fieldKey)));
+  }
   return displays.list();
+}
+
+/** What a write touched, as `displaysOf` takes it: the key of a project or building field, else its subject and key. */
+function touchedRef(wizardField: WizardField): string | { readonly subjectId: string; readonly fieldKey: string } {
+  return wizardField.subjectKind === 'project' || wizardField.subjectKind === 'building' ? wizardField.field.key : { subjectId: wizardField.subjectId, fieldKey: wizardField.field.key };
 }
 
 /**
@@ -123,10 +140,10 @@ async function displaysOf(request: Request, scope: Scope, fieldKeys: readonly st
  * a stale answer is refused `shown_value_changed` (rule 4, G4-36) and a repeated skip writes nothing
  * (rule 7, G7-10), nor does a repeated "Looks right" or "Something's wrong" on the same value.
  */
-async function ownerState(request: Request, scope: Scope): Promise<{ readonly state: ProjectState; readonly plan: WizardPlan; readonly at: string }> {
+async function ownerState(request: Request, registry: ApiRegistry, scope: Scope): Promise<{ readonly state: ProjectState; readonly plan: WizardPlan; readonly at: string }> {
   await requireOwner(request);
   await lockProjectWrites(request);
-  const state = await readProjectState(request, scope);
+  const state = await readProjectState(request, scope, registry);
   return { state, plan: planProject(state), at: await databaseTime(request) };
 }
 
@@ -150,10 +167,22 @@ function requiredName(fieldKey: string): (typeof REQUIRED_FIELD_NAMES)[number] |
   }
 }
 
-/** A field of the project named by a request: a production field on its own subject, else 400. */
+/** A field of the project named by a request: a registered field of the project or the building on its own subject, else 400. */
 function requestedField(state: ProjectState, ref: { readonly subjectId: string; readonly fieldKey: string }): WizardField {
   const wizardField = state.fields.get(ref.fieldKey);
   if (wizardField === undefined || wizardField.subjectId !== ref.subjectId) throw new ApiRefusal(400, 'request_invalid');
+  return wizardField;
+}
+
+/**
+ * A field Edit may write (phase 4): a field of the project or the building, or a zone's registered field (UD-09: "each
+ * correction is `fields.edit` on the zone's field"; PRD R-061). Never an asset's field: every asset is treated as
+ * possibly life-safety, so nothing beyond view, log and documents is offered on it (prompt 3 5.2; ADR 0045 decision
+ * 5), and an Edit on one is refused as no field the owner may write (400).
+ */
+function editableField(state: ProjectState, ref: { readonly subjectId: string; readonly fieldKey: string }): WizardField {
+  const wizardField = fieldOnSubject(state, ref.subjectId, ref.fieldKey);
+  if (wizardField === undefined || wizardField.subjectKind === 'asset' || wizardField.subjectKind === 'level') throw new ApiRefusal(400, 'request_invalid');
   return wizardField;
 }
 
@@ -168,8 +197,9 @@ function blankRequired(state: ProjectState, answers: ContinueRequest['answers'])
 }
 
 export async function continueStep(services: ApiServices, scope: Scope, step: StepNumber, body: ContinueRequest): Promise<ContinueResponse> {
+  const registry = registryOf(services);
   return inProject(services, scope, async (request) => {
-    const { state, plan, at } = await ownerState(request, scope);
+    const { state, plan, at } = await ownerState(request, registry, scope);
     const blank = blankRequired(state, body.answers);
     if (blank.length > 0) throw new ApiRefusal(422, 'required_fields_missing', undefined, undefined, blank);
     if (step === 1) {
@@ -181,9 +211,9 @@ export async function continueStep(services: ApiServices, scope: Scope, step: St
         const wizardField = requestedField(state, answer.field);
         if (!STEP_1_FIELDS.includes(wizardField.field.key)) throw new ApiRefusal(400, 'request_invalid');
         const value = ownerValueOf(wizardField.field, answer.value);
-        if (await writeOwnerAnswer(request, { projectId: scope.projectId, userId: scope.userId, wizardField, value, corrects: answer.corrects })) touched.push(wizardField.field.key);
+        if (await writeOwnerAnswer(request, registry, { projectId: scope.projectId, userId: scope.userId, wizardField, value, corrects: answer.corrects })) touched.push(wizardField.field.key);
       }
-      return { nextStep: 2, displayObjects: await displaysOf(request, scope, touched) };
+      return { nextStep: 2, displayObjects: await displaysOf(request, registry, scope, touched) };
     }
     // Step 1's own checks (project types, country codes, lengths) before the engine reads the answers.
     const answers = body.answers.map((answer) => {
@@ -192,14 +222,14 @@ export async function continueStep(services: ApiServices, scope: Scope, step: St
       return value.text === undefined ? answer : { ...answer, value: { kind: 'text' as const, text: value.text } };
     });
     const fields = intakeFields(state);
-    const writes = planContinue({ step, fields, suggestions: plan.suggestions, request: { ...body, answers }, shownConfirmations: plan.shownConfirmations });
+    const writes = planContinue({ step, fields, suggestions: plan.suggestions, request: { ...body, answers }, shownConfirmations: plan.shownConfirmations, questions: registry.bundle.questions });
     const records = continueRecords({ projectId: scope.projectId, writes, fields, owner: scope.userId, at, newId });
-    await appendRecords(request, records, scope.userId, 'continue');
+    await appendRecords(request, registry, records, scope.userId, 'continue');
     if (writes.ignoredSuggestions > 0) services.log({ event: 'suggestion_ignored', code: 'not_suggested_now', projectId: scope.projectId });
     const touched = [...writes.answers.map((entry) => entry.fieldKey), ...writes.acceptedSuggestions.map((entry) => entry.fieldKey), ...writes.skips.map((entry) => entry.fieldKey)];
     // PRD R-008 "Until decided": Continue moves to the next step in order; step 8's is Generate (the proposal page).
     const nextStep: ContinueResponse['nextStep'] = step === 8 ? 'proposal' : ((step + 1) as StepNumber);
-    return { nextStep, displayObjects: await displaysOf(request, scope, touched) };
+    return { nextStep, displayObjects: await displaysOf(request, registry, scope, touched) };
   });
 }
 
@@ -208,22 +238,26 @@ export async function continueStep(services: ApiServices, scope: Scope, step: St
 // ---------------------------------------------------------------------------------------------
 
 export async function editField(services: ApiServices, scope: Scope, body: EditRequest): Promise<FieldWriteResponse> {
+  const registry = registryOf(services);
   return inProject(services, scope, async (request) => {
-    const { state } = await ownerState(request, scope);
-    const wizardField = requestedField(state, body.field);
+    const { state } = await ownerState(request, registry, scope);
+    const wizardField = editableField(state, body.field);
     if (wizardField.field.criticality === 'required' && body.value.kind === 'text' && isBlankOwnerText(body.value.text)) {
       const name = requiredName(wizardField.field.key);
       throw new ApiRefusal(422, 'required_fields_missing', undefined, undefined, name === undefined ? [] : [name]);
     }
     const value = ownerValueOf(wizardField.field, body.value);
-    await writeOwnerAnswer(request, { projectId: scope.projectId, userId: scope.userId, wizardField, value, corrects: body.corrects });
-    return { displayObjects: await displaysOf(request, scope, [wizardField.field.key]) };
+    await writeOwnerAnswer(request, registry, { projectId: scope.projectId, userId: scope.userId, wizardField, value, corrects: body.corrects });
+    return { displayObjects: await displaysOf(request, registry, scope, [touchedRef(wizardField)]) };
   });
 }
 
-/** The field holding a candidate of the project, or 404 (another project's candidate reads as none: rule 13). */
-function fieldOfCandidate(state: ProjectState, candidateId: string): WizardField {
-  for (const wizardField of state.fields.values()) {
+/**
+ * The field holding a candidate of the project, on any of its subjects (an asset's values are answered with "Looks
+ * right" and "Something's wrong" too, phase 4: R-065), or 404 (another project's candidate reads as none: rule 13).
+ */
+export function fieldOfCandidate(state: ProjectState, candidateId: string): WizardField {
+  for (const wizardField of [...state.fields.values(), ...state.subjectFields.values()]) {
     if (wizardField.candidates.some((candidate) => candidate.id === candidateId)) return wizardField;
   }
   throw new ApiRefusal(404, 'not_found');
@@ -231,12 +265,13 @@ function fieldOfCandidate(state: ProjectState, candidateId: string): WizardField
 
 /** "Yes" on a confirmation rule 5's test and budget show now (never an engineer field: rule 3). */
 export async function confirmField(services: ApiServices, scope: Scope, candidateId: string): Promise<FieldWriteResponse> {
+  const registry = registryOf(services);
   return inProject(services, scope, async (request) => {
-    const { state, plan, at } = await ownerState(request, scope);
+    const { state, plan, at } = await ownerState(request, registry, scope);
     const wizardField = fieldOfCandidate(state, candidateId);
     const event = planConfirmation({ fields: intakeFields(state), candidateId, shownConfirmations: plan.shownConfirmations, by: scope.userId, at });
-    await appendRecords(request, { candidateEvents: [event] }, scope.userId, 'confirm');
-    return { displayObjects: await displaysOf(request, scope, [wizardField.field.key]) };
+    await appendRecords(request, registry, { candidateEvents: [event] }, scope.userId, 'confirm');
+    return { displayObjects: await displaysOf(request, registry, scope, [touchedRef(wizardField)]) };
   });
 }
 
@@ -247,14 +282,15 @@ export async function confirmField(services: ApiServices, scope: Scope, candidat
  * event, as a repeated skip does.
  */
 export async function acknowledgeItems(services: ApiServices, scope: Scope, candidateIds: readonly string[]): Promise<FieldWriteResponse> {
+  const registry = registryOf(services);
   return inProject(services, scope, async (request) => {
-    const { state, at } = await ownerState(request, scope);
+    const { state, at } = await ownerState(request, registry, scope);
     const named = candidateIds.map((id) => fieldOfCandidate(state, id));
     const prior = [...new Set(named)].flatMap((wizardField) => wizardField.candidateEvents);
-    const events = planAcknowledge({ fields: intakeFields(state), candidateIds, by: scope.userId, at, prior });
+    const events = planAcknowledge({ fields: [...intakeFields(state), ...[...state.subjectFields.values()].map((entry) => entry.intake)], candidateIds, by: scope.userId, at, prior });
     const bulkId = events.length > 1 ? newId() : undefined;
-    await appendRecords(request, { candidateEvents: events.map((event) => ({ ...event, reason: 'looks_right', ...(bulkId === undefined ? {} : { bulkId }) })) }, scope.userId, 'acknowledge');
-    return { displayObjects: await displaysOf(request, scope, named.map((wizardField) => wizardField.field.key)) };
+    await appendRecords(request, registry, { candidateEvents: events.map((event) => ({ ...event, reason: 'looks_right', ...(bulkId === undefined ? {} : { bulkId }) })) }, scope.userId, 'acknowledge');
+    return { displayObjects: await displaysOf(request, registry, scope, named.map(touchedRef)) };
   });
 }
 
@@ -264,12 +300,13 @@ export async function acknowledgeItems(services: ApiServices, scope: Scope, cand
  * stored events under the project's write lock): sent twice, it answers 200 and appends one event.
  */
 export async function raiseConcern(services: ApiServices, scope: Scope, candidateId: string): Promise<FieldWriteResponse> {
+  const registry = registryOf(services);
   return inProject(services, scope, async (request) => {
-    const { state, at } = await ownerState(request, scope);
+    const { state, at } = await ownerState(request, registry, scope);
     const wizardField = fieldOfCandidate(state, candidateId);
-    const event = planConcern({ fields: intakeFields(state), candidateId, by: scope.userId, at, prior: wizardField.candidateEvents });
-    await appendRecords(request, { candidateEvents: event === null ? [] : [event] }, scope.userId, 'concern');
-    return { displayObjects: await displaysOf(request, scope, [wizardField.field.key]) };
+    const event = planConcern({ fields: [wizardField.intake], candidateId, by: scope.userId, at, prior: wizardField.candidateEvents });
+    await appendRecords(request, registry, { candidateEvents: event === null ? [] : [event] }, scope.userId, 'concern');
+    return { displayObjects: await displaysOf(request, registry, scope, [touchedRef(wizardField)]) };
   });
 }
 
@@ -279,12 +316,13 @@ export async function resolveConflict(
   scope: Scope,
   body: { readonly field: { readonly subjectId: string; readonly fieldKey: string }; readonly chosenCandidateId: string },
 ): Promise<FieldWriteResponse> {
+  const registry = registryOf(services);
   return inProject(services, scope, async (request) => {
-    const { state, at } = await ownerState(request, scope);
+    const { state, at } = await ownerState(request, registry, scope);
     const wizardField = requestedField(state, body.field);
     const event = planConflictResolution({ field: wizardField.intake, chosenCandidateId: body.chosenCandidateId, by: scope.userId, at });
-    await appendRecords(request, { fieldEvents: [event] }, scope.userId, 'resolve');
-    return { displayObjects: await displaysOf(request, scope, [wizardField.field.key]) };
+    await appendRecords(request, registry, { fieldEvents: [event] }, scope.userId, 'resolve');
+    return { displayObjects: await displaysOf(request, registry, scope, [wizardField.field.key]) };
   });
 }
 
@@ -294,10 +332,11 @@ export async function resolveConflict(
  * (G7-10; the engine's planSkip with the question's plan, step 8's inline asks and the step the page names).
  */
 export async function skipQuestion(services: ApiServices, scope: Scope, body: { readonly questionId: string; readonly step: StepNumber }): Promise<FieldWriteResponse> {
+  const registry = registryOf(services);
   return inProject(services, scope, async (request) => {
-    const question = questionOf(body.questionId);
+    const question = questionOf(registry, body.questionId);
     if (question === undefined || question.kind !== 'question') throw new ApiRefusal(400, 'request_invalid');
-    const { state, plan, at } = await ownerState(request, scope);
+    const { state, plan, at } = await ownerState(request, registry, scope);
     const fields = intakeFields(state);
     const [firstKey] = question.fieldKeys;
     const events = planSkip({
@@ -314,8 +353,8 @@ export async function skipQuestion(services: ApiServices, scope: Scope, body: { 
       },
     });
     const guardrail = events.map((event) => ({ type: 'skipped' as const, projectId: scope.projectId, subjectId: event.subjectId, fieldKey: event.fieldKey, reason: event.reason ?? 'skip_for_now' }));
-    await appendRecords(request, { fieldEvents: events, guardrailEvents: guardrail }, scope.userId, 'skip_for_now');
-    return { displayObjects: await displaysOf(request, scope, question.fieldKeys) };
+    await appendRecords(request, registry, { fieldEvents: events, guardrailEvents: guardrail }, scope.userId, 'skip_for_now');
+    return { displayObjects: await displaysOf(request, registry, scope, question.fieldKeys) };
   });
 }
 
@@ -335,7 +374,7 @@ export interface LateFindingsQuery {
  */
 export async function lateFindingsView(services: ApiServices, scope: Scope, query: LateFindingsQuery): Promise<LateFindingsResponse> {
   return inProject(services, scope, async (request) => {
-    const state = await readProjectState(request, scope);
+    const state = await readProjectState(request, scope, registryOf(services));
     const found = lateFindings({ left: query.left, current: query.current, since: query.since, findings: findingsOf(intakeFields(state)) });
     const displays = new Displays();
     const notice =

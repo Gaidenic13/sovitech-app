@@ -19,6 +19,11 @@
  * Over a TEST database, through the API (the contract's fields.edit and steps.continue), each round sent with
  * Promise.all and repeated, since one round may happen to run one request after the other. The same answer sent
  * twice at once is stored once (the second is the owner's own value, a no-op). Every value is TEST data.
+ *
+ * Phase 4 extends it to System Scope, the only scope editor after Generate (PRD R-052; the contract's
+ * workspace.systemScope.decide): two decisions for one system sent at once from screens that showed no value are one
+ * stored decision, Provided by you, and a different decision sent with it is refused `shown_value_changed` (the
+ * decision takes the project's write lock before it reads, as every owner write does: docs/adr/0044 decision 6).
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { StepResponseSchema, type DisplayObject } from '@sovitech/view-model/browser';
@@ -102,6 +107,26 @@ describe('G4-38 · rule 4: two answers to one field sent at once', { timeout: 18
       const shown = await displayOf(projectId, 5, `building:${buildingId}.type`);
       expect(shown?.badge?.id).toBe('provided_by_you');
       expect(['Hotel', 'Office']).toContain(shown?.text);
+    }
+  });
+
+  it('G4-38 · workspace/system-scope/decisions: two decisions for one system sent at once from screens that showed no value: one stored, Provided by you; a different one refused shown_value_changed; the same one twice stored once', async () => {
+    for (let round = 1; round <= ROUNDS; round += 1) {
+      const { projectId } = await newProject(`scope ${String(round)}`);
+      const decide = (choice: string) =>
+        post(projectId, 'workspace/system-scope/decisions', { decisions: [{ field: { subjectId: projectId, fieldKey: 'project.scope.hvac' }, choice, corrects: [] }], visibleSuggestions: [] });
+      const answers = await Promise.all([decide('include'), decide('exclude')]);
+      expect(answers.map((answer) => answer.statusCode).sort(), `round ${String(round)}`).toEqual([200, 409]);
+      expect(answers.find((answer) => answer.statusCode === 409)?.json()).toEqual({ code: 'shown_value_changed' });
+      expect(await candidateCount(projectId, 'project.scope.hvac')).toBe(1);
+      const shown = await displayOf(projectId, 4, `project:${projectId}.scope.hvac`);
+      expect(shown?.badge?.id).toBe('provided_by_you');
+
+      const same = await newProject(`scope same ${String(round)}`);
+      const twice = () =>
+        post(same.projectId, 'workspace/system-scope/decisions', { decisions: [{ field: { subjectId: same.projectId, fieldKey: 'project.scope.lighting' }, choice: 'include', corrects: [] }], visibleSuggestions: [] });
+      expect((await Promise.all([twice(), twice()])).map((answer) => answer.statusCode)).toEqual([200, 200]);
+      expect(await candidateCount(same.projectId, 'project.scope.lighting')).toBe(1);
     }
   });
 });
