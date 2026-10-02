@@ -9,7 +9,9 @@
  * words or figures (names, descriptions, tags, long names, elevations, dimensions, addresses),
  * every property set, quantity set, material, type and unit, and every relation but aggregation
  * and spatial containment. The header's FILE_NAME and FILE_DESCRIPTION, which the importer always
- * copies into the model's metadata, are removed after the conversion (./convert.ts). Rule 13
+ * copies into the model's metadata, and the items the importer writes in its own categories for
+ * grids and alignments, whose JSON holds every axis tag and which the attribute exclusion never
+ * sees (Finding 12), are removed after the conversion (./convert.ts, viewDerivative). Rule 13
  * still applies to what is left: the file is keyed by project id and content hash and erased with
  * its document (ifc-input 6.2.16, the stricter choice built in phase 2).
  *
@@ -49,6 +51,13 @@ export const VIEW_RELATIONS: ReadonlyMap<number, { forRelating: string; forRelat
   [WebIFC.IFCRELCONTAINEDINSPATIALSTRUCTURE, { forRelated: 'ContainedInStructure', forRelating: 'ContainsElements' }],
 ]);
 
+/**
+ * IFC2X3 element classes with shapes that the importer's own element list leaves out (both were
+ * removed in IFC4): without them a model's electrical elements and equipment would lose their
+ * shapes with no code (ADR 0046, "The owner's sample model"). The view profile adds them.
+ */
+export const VIEW_EXTRA_ELEMENT_CLASSES: readonly number[] = [WebIFC.IFCELECTRICALELEMENT, WebIFC.IFCEQUIPMENTELEMENT];
+
 /** Which settings a conversion uses: the view profile, or the library's own defaults (measured for comparison only). */
 export type ConversionProfile = 'view' | 'library-defaults';
 
@@ -66,6 +75,7 @@ export function viewerImporter(wasmDirectory: string, profile: ConversionProfile
   // change of default cannot move it silently.
   importer.webIfcSettings = { COORDINATE_TO_ORIGIN: true };
   if (profile === 'view') {
+    for (const elementClass of VIEW_EXTRA_ELEMENT_CLASSES) importer.classes.elements.add(elementClass);
     importer.classes.abstract = new DataSet<number>();
     importer.attributesToExclude = new EveryAttributeExcept(VIEW_KEPT_ATTRIBUTES);
     importer.relations = new Map(VIEW_RELATIONS);

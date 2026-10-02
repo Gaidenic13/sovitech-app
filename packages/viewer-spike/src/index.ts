@@ -13,6 +13,6 @@
  * - src/plan/: storey plans cut from the converted geometry, inline SVG with no text;
  * - src/bench/: the bench page (browser; bundled and driven by tools/viewer-spike/).
  */
-export { CONVERTED_MODEL_ID, convertModel, withoutHeaderMetadata, type Conversion, type ConversionTimes } from './convert/convert';
-export { EveryAttributeExcept, VIEW_KEPT_ATTRIBUTES, VIEW_RELATIONS, viewerImporter, type ConversionProfile } from './convert/importer';
+export { CONVERTED_MODEL_ID, convertModel, viewDerivative, type Conversion, type ConversionTimes } from './convert/convert';
+export { EveryAttributeExcept, VIEW_EXTRA_ELEMENT_CLASSES, VIEW_KEPT_ATTRIBUTES, VIEW_RELATIONS, viewerImporter, type ConversionProfile } from './convert/importer';
 export { CUT_ABOVE_STOREY_BASE_M, storeyPlans, type StoreyPlan } from './plan/section';
