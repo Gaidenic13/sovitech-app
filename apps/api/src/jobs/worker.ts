@@ -66,6 +66,13 @@ export interface WorkerOptions {
   readonly afterStored?: (job: AnalysisJob) => Promise<void>;
   /** Tests only (../documents/model-reading.ts): the switch that lets this worker run a model's job. */
   readonly modelReading?: ModelReadingSwitch;
+  /**
+   * A step once a job has ended for good (done, or failed with no attempt left): the stored proposal's regeneration
+   * when the documents it recorded as still being read have all finished (phase 5; ../proposal/service.ts
+   * `regenerateAfterAnalysis`; rule 7, "Your estimate will update when they finish"). Its failure never changes the
+   * job's end: it is logged by code.
+   */
+  readonly afterJobEnded?: (job: AnalysisJob) => Promise<void>;
 }
 
 /** Sandbox failures that a second run cannot mend: the job ends at once. */
@@ -121,11 +128,18 @@ export class AnalysisWorker {
     if (job === undefined) return { kind: 'idle' };
     const workDirectory = services.files.workDirectory(job.projectId, job.contentHash, job.id);
     let analysed = false;
+    const ended = async (): Promise<void> => {
+      if (options.afterJobEnded === undefined) return;
+      await options.afterJobEnded(job).catch(() => {
+        services.log({ event: 'proposal_regeneration_failed', code: 'regeneration_failed', projectId: job.projectId, jobId: job.id });
+      });
+    };
     const fail = async (code: string, retry: boolean): Promise<WorkerStep> => {
       const again = retry && job.attempts < options.maxAttempts;
       if (!again) await recordFailed(services, options, job, analysed).catch(() => undefined);
       const state = await failAnalysisJob(services.store.db, { jobId: job.id, workerId: options.workerId, errorCode: code, retry: again, retryAfterSeconds: options.retryAfterSeconds });
       services.log({ event: 'analysis_job_ended', code, projectId: job.projectId, documentId: job.documentId, jobId: job.id });
+      if (state !== 'queued') await ended();
       return { kind: state === 'queued' ? 'retry' : 'failed', job, code };
     };
     try {
@@ -171,6 +185,7 @@ export class AnalysisWorker {
       if (analysed && options.afterStored !== undefined) await options.afterStored(job);
       await finishAnalysisJob(services.store.db, { jobId: job.id, workerId: options.workerId });
       services.log({ event: 'analysis_job_ended', code: 'done', projectId: job.projectId, documentId: job.documentId, jobId: job.id });
+      await ended();
       return { kind: 'done', job };
     } catch (error) {
       if (error instanceof StoreRefusal) return await fail(error.refusal === 'document_erased' ? 'document_erased' : 'store_refused', error.refusal !== 'document_erased');

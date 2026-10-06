@@ -273,3 +273,21 @@ export function formatDate(isoTimestamp: string): { readonly datetime: string; r
   if (monthName === undefined || day < 1 || day > daysInMonth) throw new RangeError('formatting: the timestamp names no real day');
   return { datetime: `${yearText}-${monthText}-${dayText}`, text: `${String(day)} ${monthName} ${yearText}` };
 }
+
+/**
+ * A date with its time, "D MMM YYYY, HH:MM" ("6 Oct 2026, 14:05"), from the ISO timestamp's own text: the calendar
+ * date as `formatDate` writes it and the hours and minutes the timestamp carries, in the zone it carries (the store
+ * writes UTC), with no arithmetic. One place for a displayed time (phase 5 part B, DR-5: Reports' "Date Generated" and
+ * a stored proposal's generation, so two versions of one day read apart; US-PROPOSAL-11 AC3). Which zone a displayed
+ * time is shown in is the owner's open question (phase 5's "Questions for the owner", 2); the answer lands here. Throws
+ * as `formatDate` does.
+ */
+export function formatDateAndTime(isoTimestamp: string): { readonly datetime: string; readonly text: string } {
+  const date = formatDate(isoTimestamp);
+  const time = /T(\d{2}):(\d{2})/u.exec(isoTimestamp);
+  const [, hours, minutes] = time ?? [];
+  if (hours === undefined || minutes === undefined || Number.parseInt(hours, 10) > 23 || Number.parseInt(minutes, 10) > 59) {
+    throw new RangeError('formatting: a time needs an ISO 8601 date-time with a zone');
+  }
+  return { datetime: isoTimestamp, text: `${date.text}, ${hours}:${minutes}` };
+}

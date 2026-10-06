@@ -15,4 +15,13 @@ describe('US-ADMIN-08 AC1 · US-INTAKE-01 AC1 · OD-2: the logo', () => {
     expect(image.matches('[data-render-unreadable="brand-logo"]')).toBe(true);
     expect(image.getAttribute('style')).toBeNull();
   });
+
+  test('phase 5 DR-14: the logo sits in its plate, which keeps it on the brand background in forced colours (ui.css); the image itself carries no style or filter', () => {
+    const { container } = render(<Logo />);
+    const plate = container.firstElementChild;
+    expect(plate?.className).toBe('sov-logo-plate');
+    expect(plate?.children).toHaveLength(1);
+    expect(plate?.querySelector('img.sov-logo')).not.toBeNull();
+    expect(plate?.getAttribute('style')).toBeNull();
+  });
 });

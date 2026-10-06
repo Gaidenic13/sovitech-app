@@ -11,7 +11,7 @@ export class ApiRefusal extends Error {
   override name = 'ApiRefusal';
 
   constructor(
-    readonly status: 400 | 401 | 403 | 404 | 409 | 413 | 415 | 422,
+    readonly status: 400 | 401 | 403 | 404 | 409 | 413 | 415 | 422 | 503,
     readonly code: string,
     readonly ownerMessage?: string,
     /** For a resumable upload: the bytes the server holds, so the client resumes from there. */

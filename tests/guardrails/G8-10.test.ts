@@ -12,11 +12,22 @@
  * (confirmBy engineer: only engineer_verified clears it; an owner's click does
  * not). Without a range, the check does not run: nothing is flagged and
  * nothing is invented.
+ *
+ * Phase 5 (the engine builder; Expected unchanged): "Not used in totals" in the engine. A total
+ * (`exclude_and_count`) leaves a Please-check value out and counts it, so it reads incomplete
+ * naming the item; a formula that takes no exclusion names it as missing (`please_check`);
+ * once the engineer verifies the value, the total uses it. TEST formulas and TEST fields
+ * (packages/engine/test-formulas/), inside the test runner only.
  */
 import fc from 'fast-check';
 import { expect, test } from 'vitest';
 import { checkPlausibility, parseNumber, parseQuantityText } from '@sovitech/registry';
-import { testField } from './_support/builders';
+import { runEngine, type EngineRun } from '@sovitech/engine';
+import type { CandidateEvent, FieldDefinition } from '@sovitech/domain';
+import { testCatalogue } from '../../packages/engine/test-formulas/engine';
+import { LINE_ITEM_FIELDS, TEST_FIELDS } from '../../packages/engine/test-formulas/fields';
+import { testEngineInput, type TestEntry } from '../../packages/engine/test-formulas/inputs';
+import { documentReading, engineerVerificationInMemory, testDocument, testField } from './_support/builders';
 
 /** A TEST field with a TEST plausible range: a fan coil's rated electrical input, in W. */
 const fanCoilInput = testField('asset.TEST_fanCoilRatedInput', {
@@ -76,4 +87,54 @@ test('G8-10 · any value outside the TEST range, in W or kW, reads Please check 
       expect(verdict).toMatchObject({ status: 'outside', badge: 'please_check', usableInTotals: false });
     }),
   );
+});
+
+// --- Phase 5: not used in the engine's totals ------------------------------------------------
+
+const ENGINE_PROJECT = 'test-project-g8-10';
+const ENGINE_BUILDING = 'test-building-g8-10';
+const schedule = testDocument('test-doc-g8-10', ENGINE_PROJECT, 'technical_design');
+/** Line item 01 with a TEST plausible range; its document value lies outside it. */
+const checkedItem: FieldDefinition = { ...(LINE_ITEM_FIELDS[0] as FieldDefinition), plausible: { low: 1, high: 50, basis: 'TEST range for G8-10' } };
+
+function lineItems(verifiedOutlier: boolean): TestEntry[] {
+  return LINE_ITEM_FIELDS.map((field, index): TestEntry => {
+    const definition = index === 0 ? checkedItem : field;
+    const value = index === 0 ? 2_500 : index + 1;
+    const reading = documentReading({ id: `test-cand-g8-10-item-${String(index + 1)}`, subjectId: ENGINE_BUILDING, field: definition, document: schedule, value: { quantity: { value, unit: 'count' } }, minute: 1, page: index + 1 });
+    const events: CandidateEvent[] = index === 0 && verifiedOutlier ? [engineerVerificationInMemory(reading.id, 5)] : [];
+    return { definition, subjectId: ENGINE_BUILDING, candidates: [reading], events: { candidate: events } };
+  });
+}
+
+let engineIds = 0;
+const runTotal = (entries: readonly TestEntry[], extra: string): EngineRun =>
+  runEngine(testCatalogue({ mirrored: false, extra: [extra] }), testEngineInput({ projectId: ENGINE_PROJECT, entries, subjects: { building: ENGINE_BUILDING, project: ENGINE_PROJECT } }), {
+    newId: () => `test-cand-g8-10-out-${String((engineIds += 1))}`,
+    at: '2026-10-05T09:00:00Z',
+  });
+
+test('G8-10 · a Please-check value is not used in an engine total: the total leaves it out, counts it and reads incomplete', () => {
+  const [total] = runTotal(lineItems(false), 'TEST-capexLineItems').outputs;
+  expect(total?.kind).toBe('incomplete');
+  if (total?.kind !== 'incomplete') return;
+  expect(total.excluded).toEqual(['TEST line item 01']);
+  expect(total.candidate.method.inputCandidateIds).not.toContain('test-cand-g8-10-item-1');
+});
+
+test('G8-10 · once an engineer verifies it, the total uses it (an owner click would not: confirmBy engineer)', () => {
+  const [total] = runTotal(lineItems(true), 'TEST-capexLineItems').outputs;
+  expect(total?.kind).toBe('figure');
+  if (total?.kind === 'figure') expect(total.candidate.method.inputCandidateIds).toContain('test-cand-g8-10-item-1');
+});
+
+test('G8-10 · a formula that leaves nothing out names the Please-check value as missing', () => {
+  const utility: FieldDefinition = { ...TEST_FIELDS.utilityMeterTotal, plausible: { low: 10, high: 50_000, basis: 'TEST range for G8-10' } };
+  const bill = testDocument('test-doc-g8-10-bill', ENGINE_PROJECT, 'bill');
+  const entries: TestEntry[] = [
+    { definition: utility, subjectId: 'test-meter-g8-10', candidates: [documentReading({ id: 'test-cand-g8-10-utility', subjectId: 'test-meter-g8-10', field: utility, document: bill, value: { quantity: { value: 2_500_000, unit: 'kWh' } }, minute: 1 })] },
+    { definition: TEST_FIELDS.subMeterTotal, subjectId: 'test-meter-g8-10-sub', candidates: [documentReading({ id: 'test-cand-g8-10-sub', subjectId: 'test-meter-g8-10-sub', field: TEST_FIELDS.subMeterTotal, document: bill, value: { quantity: { value: 40, unit: 'kWh' } }, minute: 1 })] },
+  ];
+  const [site] = runTotal(entries, 'TEST-siteConsumption').outputs;
+  expect(site).toMatchObject({ kind: 'not_available', missing: [{ kind: 'input', fieldKey: utility.key, reason: 'please_check' }] });
 });

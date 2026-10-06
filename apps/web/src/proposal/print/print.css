@@ -1,0 +1,286 @@
+/*
+ * The print route's stylesheet (phase 5, the print builder; docs/adr/0050-exports-print-route-and-pdf.md decision 1):
+ * the printed proposal on A4 paper, in the brand's light values (the print scope of packages/ui/src/tokens.css, which
+ * the page switches on with `data-print-page` on the document element).
+ *
+ * - Every colour is a token (no colour literal outside tokens.css); no shadow; radii are the brand's.
+ * - Every rule is scoped to the print page (`.sov-print`, `:root[data-print-page]`), except the named page rule, which
+ *   applies only to the elements that ask for that page: this file is bundled with the app's CSS.
+ * - Rules are not layered, so they win over the kit's (`@layer components`) and Tailwind's base layer on the print
+ *   page only; they set the margins and sizes the print needs with or without Tailwind's preflight, so the page reads
+ *   the same in the app and as the guardrail cases print it (tests/guardrails/_support/print.tsx).
+ * - The page frame (the kit's PrintFrame) is a table whose header row, the demo line on the demo project, the browser
+ *   repeats at the top of every printed page (G10-13). No page number is printed (prompt 3 section 7).
+ * - No generated content holds text, and no CSS image (the render test reads both).
+ */
+
+/* A4, with the page's margins; the body of each page starts under the repeated demo line. */
+@page sov-proposal {
+  size: A4;
+  margin: 14mm 16mm 16mm;
+}
+
+:root[data-print-page],
+:root[data-print-page] body {
+  background-color: var(--sov-bg);
+  color: var(--sov-text-primary);
+}
+
+.sov-print {
+  page: sov-proposal;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 16mm;
+  font-family: var(--sov-font-sans);
+  font-size: 14px;
+  font-weight: var(--sov-weight-regular);
+  line-height: 20px;
+  color: var(--sov-text-primary);
+}
+
+@media print {
+  .sov-print {
+    max-width: none;
+    padding: 0;
+  }
+}
+
+.sov-print h1,
+.sov-print h2,
+.sov-print h3,
+.sov-print p,
+.sov-print ul,
+.sov-print ol,
+.sov-print blockquote {
+  margin: 0;
+}
+
+.sov-print ul,
+.sov-print ol {
+  padding: 0;
+  list-style: none;
+}
+
+/* ------------------------------------------------------------------ the frame (packages/ui print.tsx) */
+.sov-print-frame {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.sov-print-frame td {
+  padding: 0;
+  vertical-align: top;
+  text-align: start;
+}
+
+.sov-print-frame__running td {
+  padding-bottom: 6mm;
+}
+
+.sov-print-frame__running .sov-demo-line {
+  padding: 6px 0;
+  border-block: 0;
+  border-bottom: 1px solid var(--sov-border);
+  background-color: var(--sov-bg);
+}
+
+/* ------------------------------------------------------------------ the cover */
+.sov-print__cover {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 24mm;
+  break-after: page;
+}
+
+/* The title at the brand's title size and weight; untracked on paper, so a PDF reader keeps its words apart (the
+   brand's -0.05em tracking at this size closes the space between words in the PDF's text, which a search or a screen
+   reader then reads as one word). */
+.sov-print__cover h1 {
+  font-size: var(--sov-title-size);
+  font-weight: var(--sov-title-weight);
+  letter-spacing: normal;
+  line-height: 1.2;
+}
+
+.sov-print__subtitle {
+  font-size: 16px;
+  font-weight: var(--sov-weight-light);
+  line-height: 24px;
+}
+
+.sov-print__project {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.sov-print__note {
+  padding-top: 8px;
+  border-top: 1px solid var(--sov-border);
+}
+
+/* ------------------------------------------------------------------ sections and rows */
+.sov-print__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8mm;
+}
+
+/* The control points section is short: it never breaks, so rule 11's interface points never open a page alone, away
+   from the section that names them (DR-15). */
+.sov-print__section[data-print-section='points'] {
+  break-inside: avoid;
+}
+
+/* A sub-heading and its rows inside a section (the investment's "Not in scope"). */
+.sov-print__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sov-print__section h2 {
+  font-size: var(--sov-heading-section-size);
+  font-weight: var(--sov-heading-section-weight);
+  line-height: var(--sov-heading-section-leading);
+  break-after: avoid;
+}
+
+.sov-print__section h3 {
+  padding-top: 8px;
+  font-size: var(--sov-heading-group-size);
+  font-weight: var(--sov-heading-group-weight);
+  line-height: var(--sov-heading-group-leading);
+  break-after: avoid;
+}
+
+.sov-print__lead {
+  font-weight: var(--sov-weight-light);
+}
+
+.sov-print__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+/* A named value: its name, then the value element across the page's whole width, so a figure and its badge print on
+   one line (2.8 "Prominence"), with its source and status lines under it; a row is never split across two pages. */
+.sov-print__row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0;
+  border-top: 1px solid var(--sov-border);
+  break-inside: avoid;
+}
+
+.sov-print__name {
+  font-weight: var(--sov-weight-medium);
+}
+
+.sov-print__reason {
+  padding-bottom: 4px;
+  font-weight: var(--sov-weight-medium);
+}
+
+.sov-print__drafted {
+  line-height: 24px;
+}
+
+/* A value token in a drafted paragraph runs with the prose: its text, its badge and its source line in the line. */
+.sov-print__drafted .sov-value-name,
+.sov-print__drafted .sov-value {
+  display: inline;
+}
+
+.sov-print__drafted .sov-value__line,
+.sov-print__drafted .sov-value__source,
+.sov-print__drafted .sov-value__status {
+  display: inline;
+  margin-inline-start: 6px;
+}
+
+/* A value prints at the body's size on paper, so no value outweighs the lines around it (the investment's outputs read
+   "Not available yet" at this size: DR-2); only an investment figure keeps the kit's figure size, and the cover's
+   project name its own. Layout only: the same content at every size (G2-7). */
+.sov-print .sov-value__text {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.sov-print .sov-price .sov-value:not([data-shape='missing']) .sov-value__text {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.sov-print__project .sov-value__text {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+/* A price that cannot be produced prints its "Not available yet" line at the body's size, not the figure's. */
+.sov-print .sov-price .sov-value[data-shape='missing'] .sov-value__text {
+  font-size: 14px;
+  font-weight: var(--sov-weight-regular);
+  line-height: 20px;
+}
+
+/* A compact two-column table (what the estimate is based on: DR-12): each input's name in the first column and, where it
+   fits there, its element in the second, the badge on its figure's line and its source and status lines under it. A
+   value too wide for the second column moves under its name, across the page's width, so a long range is never
+   wrapped away from its badge (ADR 0050: "in a two-column row a long range wrapped and its badge was read after the
+   range's second line in the PDF's text"); a value with no name takes the whole row; a row is never split across two
+   pages. The appendix keeps one row across the page per value. */
+.sov-print__table {
+  display: flex;
+  flex-direction: column;
+}
+
+.sov-print__table-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8mm;
+  padding: 4px 0;
+  border-top: 1px solid var(--sov-border);
+  break-inside: avoid;
+}
+
+.sov-print__table-row > .sov-print__name {
+  flex: 0 0 calc(50% - 4mm);
+  min-width: 0;
+}
+
+.sov-print__cell {
+  flex: 1 0 auto;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.sov-print__cell[data-whole-row='true'] {
+  flex-basis: 100%;
+}
+
+/* ------------------------------------------------------------------ the appendix */
+.sov-print__appendix {
+  break-before: page;
+}
+
+.sov-print-value {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The badge and the value's lines print in the ink, at the kit's sizes; the excerpts in full, never cut. */
+.sov-print .sov-excerpt {
+  break-inside: avoid;
+}
+
+/* The page's states while it loads or when its view could not be loaded (never printed: the printer refuses both). */
+.sov-print__state {
+  padding: 24mm 0;
+}

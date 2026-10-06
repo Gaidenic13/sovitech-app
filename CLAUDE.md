@@ -1,6 +1,6 @@
 # SOVITECH App
 
-<!-- Checked against: docs/guardrails.md v1.9 -->
+<!-- Checked against: docs/guardrails.md v1.10 -->
 
 SOVITECH designs and integrates SAUTER-based building management systems (BMS) in Romania. This app lets a property owner describe a building, mostly by uploading documents. The app reads them, shows back what it found with sources, and produces a preliminary BMS proposal and dashboards. SOVITECH engineers review everything before it becomes a quotation. The app is desktop-first with a dark UI, and it is a SOVITECH brand tool: it carries the company brand in its dark variant (`company/brand/app-alignment.md`). The demo project is a fictional hotel, working name "Demo Hotel Bucharest". The mockups show a real hotel's name, which the demo does not use. The demo is always labelled as demo.
 

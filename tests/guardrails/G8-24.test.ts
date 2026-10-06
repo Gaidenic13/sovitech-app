@@ -6,7 +6,7 @@
  * structure of two upper floors.
  * Expected (as indexed in section 7): Zones, Equipment, the asset record and System Scope's panel show that level by the
  * level register's label, the same on each, and the asset's zone by the zone's name. No display shows the stored key or
- * the zone's id. (The register's label for `upper_1` is E1 in the interim notation, ADR 0045 decision 3, D-18.)
+ * the zone's id. (The register's label for `upper_1` is Level 1: English labels, D-18, the owner's decision of 2026-10-05; ADR 0045 decision 3 as amended.)
  *
  * The level and zone fields keep their own display (value id, badge, source line, actions) with the text named by the
  * register (packages/view-model/src/workspace/registers.ts `referenceDisplays`), the same function on every page, so a
@@ -40,7 +40,7 @@ function read(id: number, subjectId: string, fieldKey: string, value: { readonly
   return { id: uuid(id), subjectId, fieldKey, ...value, source: 'document' as const, evidence: [evidence], createdBy: 'test-extractor', authorRole: 'system' as const, createdAt: testTime(id) };
 }
 
-test('V-1 · A-12 · R-077 · US-ASSETS-05 AC2 · US-ZONES-02 AC2 · 7.1.1-E4 · G8-24: a stored level upper_1 shows E1 on Zones, Equipment, the asset record and System Scope; the asset\'s zone shows the zone\'s name', () => {
+test('V-1 · A-12 · R-077 · US-ASSETS-05 AC2 · US-ZONES-02 AC2 · 7.1.1-E4 · G8-24: a stored level upper_1 shows Level 1 on Zones, Equipment, the asset record and System Scope; the asset\'s zone shows the zone\'s name', () => {
   const project = testWorkspace({
     projectId: PROJECT,
     buildingId: BUILDING,
@@ -62,7 +62,7 @@ test('V-1 · A-12 · R-077 · US-ASSETS-05 AC2 · US-ZONES-02 AC2 · 7.1.1-E4 ·
   const equipment = equipmentView(project, {});
   const [row] = equipment.view.rows;
   const level = displayOf(equipment.displayObjects, row?.level ?? '');
-  expect(level).toMatchObject({ valueId: `asset:${ASSET}.level`, text: 'E1', badge: { id: 'sovitech_will_check' }, sourceLine: { text: 'Found in TEST schedule.pdf, page 1' } });
+  expect(level).toMatchObject({ valueId: `asset:${ASSET}.level`, text: 'Level 1', badge: { id: 'sovitech_will_check' }, sourceLine: { text: 'Found in TEST schedule.pdf, page 1' } });
   expect(displayOf(equipment.displayObjects, row?.zone ?? '')).toMatchObject({ valueId: `asset:${ASSET}.zone`, text: 'TEST Zona 1' });
 
   const record = assetView(project, ASSET);
@@ -70,15 +70,15 @@ test('V-1 · A-12 · R-077 · US-ASSETS-05 AC2 · US-ZONES-02 AC2 · 7.1.1-E4 ·
   expect(displayOf(record.displayObjects, `asset:${ASSET}.level`)).toEqual(level);
   expect(displayOf(record.displayObjects, `asset:${ASSET}.zone`).text).toBe('TEST Zona 1');
   const histories = record.view.history.flatMap((entry) => entry.entries.map((item) => displayOf(record.displayObjects, item.display).text));
-  expect(histories).toEqual(expect.arrayContaining(['E1', 'TEST Zona 1']));
+  expect(histories).toEqual(expect.arrayContaining(['Level 1', 'TEST Zona 1']));
 
   const zones = zonesView(project, {});
-  expect(displayOf(zones.displayObjects, zones.view.rows[0]?.level ?? '').text).toBe('E1');
-  expect(zones.view.details[0]?.fields.map((id) => displayOf(zones.displayObjects, id).text)).toContain('E1');
+  expect(displayOf(zones.displayObjects, zones.view.rows[0]?.level ?? '').text).toBe('Level 1');
+  expect(zones.view.details[0]?.fields.map((id) => displayOf(zones.displayObjects, id).text)).toContain('Level 1');
 
   const scope = systemScopeView(project);
   const hvac = scope.view.systems.find((entry) => entry.systemId === 'hvac');
-  expect(displayOf(scope.displayObjects, hvac?.levels ?? '').text).toBe('E1');
+  expect(displayOf(scope.displayObjects, hvac?.levels ?? '').text).toBe('Level 1');
 
   const all: readonly DisplayObject[] = [...equipment.displayObjects, ...record.displayObjects, ...zones.displayObjects, ...scope.displayObjects];
   for (const text of shownTexts(all)) {

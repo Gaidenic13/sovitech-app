@@ -61,11 +61,14 @@ import { VisibleSuggestionSchema } from './actions';
  *   not built (PRD 10.2: "no separate Overview or Property page is built, and after Generate the
  *   owner sees the stored proposal"); phase 3's proposal page until phase 5 stores a proposal;
  * - `system_scope` (DB-16), `topology` (DB-08, its Logical view only: R-073), `zones` (DB-20, List
- *   only: R-063), `equipment` (DB-17, its list only: R-070, R-084), `documents` (DB-15).
- * Not in the list, with the reason: Overview and Property (R-050, PRD 10.2: not built while D-02 is
- * open), Alarms (operations; the `operations` gate), Reports (phase 5), Metrics (phase 6).
+ *   only: R-063), `equipment` (DB-17, its list only: R-070, R-084), `documents` (DB-15);
+ * - `reports` (DB-18, phase 5: the generated outputs, R-119; last, as the approved list draws it).
+ * Phase 5: `proposal` is the stored proposal's landing (proposal.ts; docs/adr/0048), or phase 3's
+ * preview while no proposal is stored.
+ * Not in the list, with the reason: Overview and Property (R-050, R-116, PRD 10.2: not built while D-02
+ * and D-14 are open), Alarms (operations; the `operations` gate), Metrics (phase 6).
  */
-export const WORKSPACE_PAGES = ['proposal', 'system_scope', 'topology', 'zones', 'equipment', 'documents'] as const;
+export const WORKSPACE_PAGES = ['proposal', 'system_scope', 'topology', 'zones', 'equipment', 'documents', 'reports'] as const;
 export const WorkspacePageSchema = z.enum(WORKSPACE_PAGES);
 export type WorkspacePage = z.infer<typeof WorkspacePageSchema>;
 
@@ -108,9 +111,9 @@ export type RegisterState = z.infer<typeof RegisterStateSchema>;
  * facts (`building.floors` by level type), never from a sheet count, a model's storeys, the building
  * type or a mockup (R-076). `key` is `<level type>_<n>` (`below_ground_2`, `ground_1`, `upper_3`),
  * the filter's query value; `label` the value id of its generated label
- * (`building:<id>.levels.<key>`), the same display on every page (G2-7). Until D-18 decides the label
- * scheme, labels follow the document's own notation and numbering (rule 8: "Numbering follows the
- * document"; PRD R-076 interim).
+ * (`building:<id>.levels.<key>`), the same display on every page (G2-7). Labels are English (D-18, the
+ * owner's decision of 2026-10-05: B1, GF, Level 1; docs/adr/0045 decision 3 as amended); a document's
+ * own notation stays the floors field's original text, shown as written (rule 8, "Floors").
  */
 export const LevelOptionSchema = z.strictObject({
   key: z.string().regex(/^[a-z][a-z_]*_[1-9][0-9]{0,2}$/u),

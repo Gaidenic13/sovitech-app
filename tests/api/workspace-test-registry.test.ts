@@ -102,7 +102,7 @@ describe('R-060 · R-065 · R-066 · UD-09: the registers over TEST asset and zo
     expect((byId.get(row?.system ?? '')?.actions ?? []).map((action) => action.kind).sort()).toEqual(['acknowledge', 'concern']);
     // V-1 · A-12 · G8-24 (the API half): the Floor cell names the level by the register's label, the Zone cell the zone by
     // its name; badge, source line and the owner's actions kept; never the stored key or the zone's id.
-    expect(byId.get(row?.level ?? '')).toMatchObject({ valueId: `asset:${assetId}.level`, text: 'E1', badge: { id: 'sovitech_will_check' }, sourceLine: { text: 'Found in TEST schedule.pdf, page 1' } });
+    expect(byId.get(row?.level ?? '')).toMatchObject({ valueId: `asset:${assetId}.level`, text: 'Level 1', badge: { id: 'sovitech_will_check' }, sourceLine: { text: 'Found in TEST schedule.pdf, page 1' } });
     expect(byId.get(row?.zone ?? '')).toMatchObject({ valueId: `asset:${assetId}.zone`, text: 'TEST Zona 1' });
     expect((byId.get(row?.level ?? '')?.actions ?? []).map((action) => action.kind).sort()).toEqual(['acknowledge', 'concern']);
     for (const display of listed.displayObjects) expect(display.text, display.valueId).not.toMatch(new RegExp(`upper_1|${zoneId}`, 'u'));
@@ -115,7 +115,7 @@ describe('R-060 · R-065 · R-066 · UD-09: the registers over TEST asset and zo
     const scope = SystemScopeResponseSchema.parse((await get(projectId, 'workspace/system-scope')).json());
     const hvac = scope.view.systems.find((entry) => entry.systemId === 'hvac');
     const scopeIds = new Map(scope.displayObjects.map((display) => [display.valueId, display]));
-    expect(scopeIds.get(hvac?.levels ?? '')?.text).toBe('E1');
+    expect(scopeIds.get(hvac?.levels ?? '')?.text).toBe('Level 1');
     expect(scopeIds.get(hvac?.zones ?? '')?.text).toBe('TEST Zona 1');
     expect(scopeIds.get(scope.view.systems.find((entry) => entry.systemId === 'lighting')?.levels ?? '')?.text).toBe('Unknown');
 
@@ -152,7 +152,7 @@ describe('R-060 · R-065 · R-066 · UD-09: the registers over TEST asset and zo
     // V-1 · G8-24 (the wizard's write answers): fields.acknowledge, fields.concern and fields.edit name the level and the
     // zone as Equipment does, never by the stored key or the zone's id (G2-7: one display per value id).
     const acknowledgedDisplays = FieldWriteResponseSchema.parse(acknowledged.json()).displayObjects;
-    expect(acknowledgedDisplays.find((display) => display.valueId === `asset:${assetId}.level`)?.text).toBe('E1');
+    expect(acknowledgedDisplays.find((display) => display.valueId === `asset:${assetId}.level`)?.text).toBe('Level 1');
     for (const display of acknowledgedDisplays) expect(display.text, display.valueId).not.toMatch(new RegExp(`upper_1|${zoneId}`, 'u'));
     for (const round of [1, 2]) {
       const concern = await post(projectId, 'fields/concern-many', { candidateIds: [levelId, zoneValueId] });

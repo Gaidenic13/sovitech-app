@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { RouterProvider, createMemoryRouter, type RouteObject } from 'react-router';
+import { WORKSPACE_PAGES } from '@sovitech/view-model/browser';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { routes } from '../routes';
 import { OTHER_PROJECT, PROJECT, heldHandler, installFakeApi, json, projectList, renderAt, type Handler } from '../test/harness';
@@ -46,15 +47,15 @@ function sidebarNav() {
 }
 
 describe('ADR 0043 · R-146 · R-049 · R-139 · R-145 · UD-32: the workspace frame', () => {
-  it('R-146 · US-ADMIN-13 AC1 · R-050 · US-REVIEW-15 AC1: the sidebar lists the built pages in the approved order, each a link to its built page; no Overview, Property, Alarms, Reports or Metrics item; the page on screen is the current one', async () => {
+  it('R-146 · US-ADMIN-13 AC1 · R-050 · US-REVIEW-15 AC1 · R-119: the sidebar lists the built pages in the approved order, Reports last (phase 5), each a link to its built page; no Overview, Property, Alarms or Metrics item; the page on screen is the current one', async () => {
     api();
     await openDocuments();
     const links = within(sidebarNav()).getAllByRole('link');
-    expect(links.map((link) => link.textContent)).toEqual(['Proposal', 'System Scope', 'Topology', 'Zones', 'Equipment', 'Documents']);
+    expect(links.map((link) => link.textContent)).toEqual(['Proposal', 'System Scope', 'Topology', 'Zones', 'Equipment', 'Documents', 'Reports']);
     expect(links.map((link) => link.getAttribute('href'))).toEqual(
-      ['proposal', 'system-scope', 'topology', 'zones', 'equipment', 'documents'].map((segment) => `/projects/${PROJECT}/${segment}`),
+      ['proposal', 'system-scope', 'topology', 'zones', 'equipment', 'documents', 'reports'].map((segment) => `/projects/${PROJECT}/${segment}`),
     );
-    for (const absent of ['Overview', 'Property', 'Alarms', 'Reports', 'Metrics']) expect(within(sidebarNav()).queryByText(absent)).toBeNull();
+    for (const absent of ['Overview', 'Property', 'Alarms', 'Metrics']) expect(within(sidebarNav()).queryByText(absent)).toBeNull();
     expect(within(sidebarNav()).getByRole('link', { name: 'Documents' }).getAttribute('aria-current')).toBe('page');
     expect(within(sidebarNav()).getByRole('link', { name: 'Zones' }).getAttribute('aria-current')).toBeNull();
     // No tab set in the header (R-146 "Until decided").
@@ -148,7 +149,7 @@ describe('ADR 0043 · R-146 · R-049 · R-139 · R-145 · UD-32: the workspace f
     await screen.findByRole('heading', { name: 'Project Documents', level: 1 });
     const failed = await screen.findByText('The building facts could not be loaded. Try again.');
     expect(screen.queryByText('This page could not be loaded. Nothing you entered is lost.')).toBeNull();
-    expect(within(sidebarNav()).getAllByRole('link')).toHaveLength(6);
+    expect(within(sidebarNav()).getAllByRole('link')).toHaveLength(WORKSPACE_PAGES.length);
     await waitFor(() => expect(document.body.hasAttribute('data-render-ready')).toBe(true));
     fail = false;
     fireEvent.click(within(failed.closest('[role="alert"]') as HTMLElement).getByRole('button', { name: 'Try again' }));
@@ -191,7 +192,7 @@ describe('ADR 0043 · R-146 · R-049 · R-139 · R-145 · UD-32: the workspace f
       render(<RouterProvider router={router} />);
       const alert = await screen.findByRole('alert');
       expect(alert.textContent).toContain('This page could not be loaded. Nothing you entered is lost.');
-      expect(within(sidebarNav()).getAllByRole('link')).toHaveLength(6);
+      expect(within(sidebarNav()).getAllByRole('link')).toHaveLength(WORKSPACE_PAGES.length);
       await waitFor(() => expect(document.querySelectorAll('[data-demo-line]')).toHaveLength(1));
       expect(document.querySelector('[data-demo-line]')?.closest('footer')?.textContent).toContain('TEST demo line');
       await waitFor(() => expect(document.body.hasAttribute('data-render-ready')).toBe(true));
@@ -199,7 +200,7 @@ describe('ADR 0043 · R-146 · R-049 · R-139 · R-145 · UD-32: the workspace f
       fireEvent.click(within(alert).getByRole('button', { name: 'Try again' }));
       await screen.findByRole('heading', { name: 'TEST page rendered', level: 1 });
       expect(router.state.location.pathname).toBe(`/projects/${PROJECT}/documents`);
-      expect(within(sidebarNav()).getAllByRole('link')).toHaveLength(6);
+      expect(within(sidebarNav()).getAllByRole('link')).toHaveLength(WORKSPACE_PAGES.length);
     } finally {
       quiet.mockRestore();
     }

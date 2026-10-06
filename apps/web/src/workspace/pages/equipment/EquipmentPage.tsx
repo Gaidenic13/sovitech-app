@@ -29,8 +29,11 @@
  * - **The inspector** (./EquipmentInspector.tsx; Overview, Points, Documents; no Alarms) from a row's open button or
  *   a click on the row; the row's "›" opens the full record (UD-08). `?asset=<id>` opens an asset's inspector.
  * - **No plan strip, Floor Plan mode, pin, popover, "View on Floor Plan" or "View in 3D"** (R-070, R-080, R-084: no
- *   plan or model view is built; the owner's answer of 2026-10-02), no Export (phase 5), no product photo (7.2.9).
- *   Nothing on the page waits for a model (US-ASSETS-05 AC12).
+ *   plan or model view is built; the owner's answer of 2026-10-02), no product photo (7.2.9). Nothing on the page
+ *   waits for a model (US-ASSETS-05 AC12).
+ * - **Export** (phase 5; R-066; US-ASSETS-11 AC6; ./EquipmentExport.tsx): the register as the filters narrow it, as a
+ *   CSV with each value's badge and source beside it, Unknown as text, the demo line first on the demo; one request
+ *   per press, never disabled.
  * - **States:** loading (one polite line; on a later query the rows stay with `aria-busy` until the answer is in),
  *   failed (Try again), no documents (with "Upload a document"), reading, documents read with no equipment from them
  *   (never "not found": no completed AI run searched them, G12-10), nothing matching the filters. "← Back to System
@@ -51,6 +54,7 @@ import { useInFlight } from '../../../wizard/use-in-flight';
 import { pagePath, workspaceActionPath } from '../../navigation';
 import { useWorkspaceView } from '../../use-workspace';
 import { ActionLink, FloorFilter, useHeldLevel } from '../topology/ViewFilter';
+import { EquipmentExport } from './EquipmentExport';
 import { EquipmentFilters } from './EquipmentFilters';
 import { EquipmentInspector, assetPath } from './EquipmentInspector';
 import { answersOf, offersAnswers, queryOfSearch, requestQuery, searchWith, type QueryKey } from './equipment-query';
@@ -258,7 +262,7 @@ export function EquipmentPage() {
         }
       >
         <div className="flex min-w-0 flex-col gap-4 [&>*]:min-w-0">
-          <EquipmentFilters filters={view?.filters} displays={displays} query={query} onChange={change} />
+          <EquipmentFilters filters={view?.filters} displays={displays} query={query} onChange={change} actions={<EquipmentExport projectId={projectId} query={query} />} />
           {view === undefined ? null : (
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span className="text-[13px] font-semibold text-(--sov-text-primary)">{EQ.countHeading}</span>

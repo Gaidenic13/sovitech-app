@@ -99,6 +99,19 @@
   --sov-heading-group-size: 16px;
   --sov-heading-group-weight: 500;
   --sov-heading-group-leading: 24px;
+  /* Three text roles under the headings (phase 4's design review, DR-11, built in phase 5's kit pass): ROLES
+     proposed, pending the owner's OK; their values are Brand type (app-alignment: body text 14-17px on dark, Inter
+     at a brand weight). Sizes only, no colour.
+     - Body: running text and a section's lead sentence, 15px on a 24px line. Class `sov-text-body`.
+     - Small: a line under a name or a value, a register cell's second line, 13px on 20px. Class `sov-text-small`.
+     - Caption: a metadata name beside its value (a preview's "Name", "Category"), 12px on 16px at 500, the badge's
+       own minimum (2.8 "Prominence"). Class `sov-text-caption`. */
+  --sov-text-body-size: 15px;
+  --sov-text-body-leading: 24px;
+  --sov-text-small-size: 13px;
+  --sov-text-small-leading: 20px;
+  --sov-text-caption-size: 12px;
+  --sov-text-caption-leading: 16px;
 
   /* ---- Motion (Brand: colour-only hovers; no value animates, G2-8) -------------------------- */
   --sov-ease: cubic-bezier(0.4, 0, 0.2, 1);
@@ -119,4 +132,61 @@
   --sov-footer-height: 48px; /* status footer 48px, always present */
   --sov-gutter: 16px; /* 16px gutter */
   --sov-panel-gap: 12px; /* 12px panel gap */
+}
+
+/*
+ * ---- The print scope: the brand's light values, on white paper (phase 5, the print builder) ------
+ *
+ * The print route of a stored proposal (apps/web/src/proposal/ProposalPrintPage.tsx; docs/adr/0050 decision 1)
+ * sets `data-print-page` on the document element while it is shown, and the API prints that page to PDF. A printed
+ * proposal is a light page: app-alignment "Decision (2026-09-24)", "Proposal exports ... On white paper they would
+ * use logo.svg", and its comparison table's light column. Every value here is a Brand value of that table, in its
+ * brand role on light ("Brand" rows, decided by the owner on 2026-09-24):
+ * - paper: white (the website's white cards and header);
+ * - ink: the brand's primary dark #0D2E2B (14.56:1 on white), for every text role: the brand gives no lighter text
+ *   value on light that keeps 4.5:1 (its muted grey is not a model, app-alignment "Muted text contrast"), so the
+ *   text roles differ by size and weight only;
+ * - accent on light: green #1F6B4A (6.44:1 on white), for the focus ring, links and text selection;
+ * - borders: #0D2E2B at 12% on light (the brand's 10-12%), for every hairline, the badge's pill included (the badge's
+ *   words carry its meaning, 2.8);
+ * - the primary button on light: the #0D2E2B fill with a white label, green on hover (no button is printed; set so
+ *   no dark-variant value is left in the scope).
+ * Shape, type, motion and sizes are the same as on dark and are not repeated.
+ *
+ * The same light values apply inside an element marked `data-paper`: a printed page drawn within the dark app, as
+ * Reports' cover preview (DB-18 shows it as a white page; the integrator, phase 5 part A). No value is added.
+ */
+:root[data-print-page],
+[data-paper] {
+  color-scheme: light;
+
+  /* Surfaces: paper */
+  --sov-bg: #ffffff;
+  --sov-surface: #ffffff;
+  --sov-green: #1f6b4a;
+  --sov-surface-selected: #ffffff;
+  /* Accent on light: green */
+  --sov-accent: #1f6b4a;
+  --sov-on-accent: #ffffff;
+  /* Text: ink */
+  --sov-text-primary: #0d2e2b;
+  --sov-text-tertiary: #0d2e2b;
+  --sov-text-muted: #0d2e2b;
+  /* Lines: ink at 12% */
+  --sov-border: rgb(13 46 43 / 12%);
+  --sov-border-hover: rgb(13 46 43 / 12%);
+  --sov-control-border: rgb(13 46 43 / 12%);
+  /* Buttons on light */
+  --sov-primary-fill: #0d2e2b;
+  --sov-primary-fill-hover: #1f6b4a;
+  --sov-primary-label: #ffffff;
+  --sov-secondary-border: rgb(13 46 43 / 12%);
+  --sov-secondary-label: #0d2e2b;
+  /* Focus, badges, the late-findings dot, text selection */
+  --sov-focus-ring: #1f6b4a;
+  --sov-badge-label: #0d2e2b;
+  --sov-badge-border: rgb(13 46 43 / 12%);
+  --sov-dot: #0d2e2b;
+  --sov-selection-bg: #1f6b4a;
+  --sov-selection-label: #ffffff;
 }

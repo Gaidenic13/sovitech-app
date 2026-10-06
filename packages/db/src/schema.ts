@@ -345,6 +345,56 @@ export interface ProposalSnapshotFormulasTable {
   formula_version: string;
 }
 
+/**
+ * 0015: one output of a generated proposal: the output key, the formula and version that gave it or would have
+ * given it, the produced candidate or none, the missing items as codes (never text: rule 13), whether the total was
+ * incomplete. Written only with its snapshot, by the snapshot's writer (SVX17).
+ */
+export interface ProposalSnapshotOutputsTable {
+  snapshot_id: string;
+  project_id: string;
+  ordinal: number;
+  output_key: string;
+  formula_id: string;
+  formula_version: string;
+  candidate_id: string | null;
+  missing: string[];
+  incomplete: boolean;
+  created_by: string;
+  created_at: DatabaseTime;
+}
+
+/** 0015: the documents still being read when a proposal was generated (rule 7). */
+export interface ProposalSnapshotPendingDocumentsTable {
+  snapshot_id: string;
+  project_id: string;
+  document_id: string;
+  created_by: string;
+  created_at: DatabaseTime;
+}
+
+/** 0015: an AI-drafted paragraph the output validator accepted, with the model id (PRD R-115). */
+export interface ProposalSnapshotParagraphsTable {
+  snapshot_id: string;
+  project_id: string;
+  slot: string;
+  ordinal: number;
+  text: string;
+  model_id: string;
+  created_by: string;
+  created_at: DatabaseTime;
+}
+
+/** 0015: an export the owner started (a proposal PDF of one snapshot; ADR 0050). No file is stored. */
+export interface GeneratedOutputsTable {
+  id: string;
+  project_id: string;
+  kind: 'proposal_pdf';
+  snapshot_id: string;
+  started_by: string;
+  started_at: DatabaseTime;
+}
+
 /** The detected format of a stored file (0010; the extraction contract's Format). */
 export type StoredFormat = 'pdf' | 'xlsx' | 'ifc' | 'rvt' | 'dwg' | 'docx' | 'jpg' | 'png' | 'zip' | 'other';
 
@@ -429,6 +479,10 @@ export interface Database {
   proposal_snapshots: ProposalSnapshotsTable;
   proposal_snapshot_candidates: ProposalSnapshotCandidatesTable;
   proposal_snapshot_formulas: ProposalSnapshotFormulasTable;
+  proposal_snapshot_outputs: ProposalSnapshotOutputsTable;
+  proposal_snapshot_pending_documents: ProposalSnapshotPendingDocumentsTable;
+  proposal_snapshot_paragraphs: ProposalSnapshotParagraphsTable;
+  generated_outputs: GeneratedOutputsTable;
   document_files: DocumentFilesTable;
   document_findings: DocumentFindingsTable;
   document_model_records: DocumentModelRecordsTable;

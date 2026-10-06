@@ -331,6 +331,35 @@ describe('R-065 · G3-3 · prompt 3 section 11: selection, the open row and the 
     expect(pins(container.querySelector('tbody tr'))).toEqual(['name', null, 'open']);
   });
 
+  test('phase 5 DR-7 · DB-18 · prompt 3 section 11 ("Tables have headers"): with `controlsHeader`, one visible heading spans the open and action columns, pinned with them; each row keeps both controls; the action column is measured from its first row', () => {
+    const observer = observeResizes();
+    const { container } = table({
+      open: { onOpen: vi.fn(), label: 'TEST show preview', header: 'TEST preview' },
+      rowAction: { header: 'TEST download', render: () => <button type="button">TEST download</button> },
+      controlsHeader: 'TEST actions',
+    });
+    const heads = [...(container.querySelector('thead tr')?.children ?? [])];
+    expect(heads.map((cell) => cell.textContent)).toEqual(['TEST tag', 'TEST type', 'TEST actions']);
+    const controls = screen.getByRole('columnheader', { name: 'TEST actions' });
+    expect(controls.getAttribute('scope')).toBe('colgroup');
+    expect(controls.getAttribute('colspan')).toBe('2');
+    expect(controls.getAttribute('data-pin')).toBe('controls');
+    // Visible: not the hidden heading of a control column.
+    expect(controls.querySelector('.sov-visually-hidden')).toBeNull();
+    expect(screen.queryByText('TEST preview')).toBeNull();
+    for (const row of container.querySelectorAll('tbody tr')) {
+      expect([...row.children].map((cell) => cell.getAttribute('data-pin'))).toEqual(['name', null, 'open', 'action']);
+    }
+    setBoxWidth(container.querySelector('tbody [data-pin="action"]'), 64);
+    observer().report();
+    expect(screen.getByRole('region', { name: 'TEST equipment' }).style.getPropertyValue('--sov-register-trail')).toBe('64px');
+    // Without it, the control columns keep their hidden headings (Documents, Equipment, Zones are unchanged).
+    cleanup();
+    const plain = table({ open: { onOpen: vi.fn(), label: 'TEST show preview', header: 'TEST preview' }, rowAction: { header: 'TEST download', render: () => null } });
+    expect([...(plain.container.querySelector('thead tr')?.children ?? [])].map((cell) => cell.getAttribute('data-pin'))).toEqual(['name', null, 'open', 'action']);
+    expect(plain.container.querySelector('thead [data-pin="open"] .sov-visually-hidden')?.textContent).toBe('TEST preview');
+  });
+
   test('rule 7: nothing in the register is disabled or a dialog; a refetch says aria-busy and keeps the rows', () => {
     const { container } = table({ busy: true, open: { onOpen: vi.fn(), label: 'TEST open details', header: 'TEST details' }, selection: selection(new Set()) });
     expect(screen.getByRole('table').getAttribute('aria-busy')).toBe('true');

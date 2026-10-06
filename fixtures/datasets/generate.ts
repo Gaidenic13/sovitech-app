@@ -26,7 +26,9 @@
  * Who reads them: the sensitivity suite (tools/checks/registry/sensitivity-suite.ts)
  * hands the first five to the TEST formulas (packages/engine/test-formulas/);
  * the stand-in shaped like a website product list is G1-12's, and the dataset
- * loader must refuse it (no approval record, and a TEST id).
+ * loader must refuse it (no approval record, and a TEST id); the engine tables
+ * feed the TEST bodies of the engine cases (packages/engine/test-formulas/bodies/,
+ * phase 5), with the first four.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -202,10 +204,61 @@ const glossary: TestDataset = {
   },
 };
 
+/**
+ * The engine cases' TEST tables (prompt 3 phase 5: "Engine cases run against TEST datasets ... and TEST formulas in
+ * packages/engine/test-formulas/"; docs/adr/0047 "Built"). Read only by the TEST bodies of
+ * packages/engine/test-formulas/bodies/, inside the test runner. Each table exists to exercise one mechanism: a range
+ * from a method (rule 9), a range over options (rule 1 "Reuse"; rule 10 supply split), points per motor (2.5), points
+ * by I/O type and protocol (rule 8 "Points"). None is SOVITECH's method, a benchmark, a template or a price.
+ */
+const engineTables: TestDataset = {
+  id: 'TEST-engine-tables',
+  version: 'TEST-1',
+  description: 'TEST tables for the engine cases of phase 5: synthetic whole numbers. Not SOVITECH data, not a benchmark, not a price.',
+  entries: {
+    // EUR per building, by building type and system: the TEST stage 1 method reads no area (rule 7's fallback when the area is missing).
+    perBuildingByTypeAndSystem: Object.fromEntries(
+      BUILDING_TYPES.map((type, typePosition) => [
+        type,
+        Object.fromEntries(SYSTEMS.map((system, systemPosition) => [system, stepRange(typePosition + systemPosition, 1, 1)])),
+      ]),
+    ),
+    // EUR per TEST device of a line item (G1-2).
+    perLineItem: stepRange(0, 11, 1),
+    // EUR per TEST field device, if reused and if replaced (G1-7: reuse is never assumed; rule 1 "Reuse").
+    perDevice: { reuse: stepRange(0, 13, 1), replace: stepRange(0, 15, 2) },
+    // Hardware points per motor or drive (G4-4: 2.5 "Points are derived per motor or drive").
+    perMotor: { hardwareIo: stepRange(0, 18, 1) },
+    // Room control points per guest room, by who supplies room control (G10-6: rule 10's supply split).
+    roomControl: {
+      sovitech_supplied: { hardwareIo: stepRange(0, 20, 1), integration: stepRange(0, 22, 1) },
+      grms_integrated: { hardwareIo: stepRange(0, 24, 1), integration: stepRange(0, 26, 1) },
+    },
+    // Points per system in scope, by hardware I/O type, integration protocol and virtual (G9-3: rule 8 "Points").
+    pointsByType: Object.fromEntries(
+      SYSTEMS.map((system, position) => [
+        system,
+        {
+          hardwareIo: { AI: synthetic(30 + position), AO: synthetic(38 + position), DI: synthetic(46 + position), DO: synthetic(54 + position), UI: synthetic(62 + position) },
+          integration: { bacnet_ip: synthetic(70 + position), modbus_rtu: synthetic(78 + position) },
+          virtual: synthetic(86 + position),
+        },
+      ]),
+    ),
+    // The method's spread on the points by type, in percent of the count.
+    pointsSpreadPercent: { low: synthetic(94), high: synthetic(95) },
+    // Operating hours a year, by schedule, and the method's spread in percent (G9-7).
+    hoursBySchedule: { '24_7': synthetic(96), business_hours: synthetic(97), extended_hours: synthetic(98), seasonal: synthetic(99) },
+    energySpreadPercent: { low: synthetic(92), high: synthetic(93) },
+    // A TEST return in percent of an investment (G1-2: nothing is computed from an incomplete total).
+    returnPercent: { low: synthetic(90), high: synthetic(91) },
+  },
+};
+
 // Versions: TEST-2 for the four tables whose numbers moved into the synthetic band in the phase 1
 // review (a dataset version never changes its values); the function set, the stand-in and the
-// glossary hold no number and stay TEST-1.
-export const TEST_DATASETS: readonly TestDataset[] = [costRanges, pointTemplates, energyBenchmarks, savingsFactors, functionSet, productListStandIn, glossary];
+// glossary hold no number and stay TEST-1; the engine tables (phase 5) start at TEST-1.
+export const TEST_DATASETS: readonly TestDataset[] = [costRanges, pointTemplates, energyBenchmarks, savingsFactors, functionSet, productListStandIn, glossary, engineTables];
 
 function main(argv: readonly string[]): void {
   const at = argv.indexOf('--out');

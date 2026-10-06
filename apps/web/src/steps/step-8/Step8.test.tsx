@@ -263,6 +263,34 @@ describe('US-INTAKE-15 · US-INTAKE-16 · R-003: step 8 summary and Proposal car
   });
 });
 
+describe('phase 5 DR-1 · R-012 · rule 7 ("names what is missing and offers the action"): every served Add on step 8', () => {
+  it('DR-1: an output whose line names three owner inputs offers the three served Adds in served order, on the outputs list and on the Proposal card; each is described by its own output\'s name or the card\'s title', async () => {
+    const adds = [
+      { kind: 'add' as const, field: refOf('building.grossFloorArea'), label: 'TEST add the area', step: 8 as const },
+      { kind: 'add' as const, field: refOf('building.type'), label: 'TEST add the type', step: 8 as const },
+      { kind: 'add' as const, field: refOf('project.scope.hvac'), label: 'TEST add the systems', step: 8 as const },
+    ];
+    api({
+      view: () => {
+        const response = step8View({ stageLabel: 'TEST preliminary estimate stage label', stage2: 'not_available_yet' });
+        const displayObjects = response.displayObjects.map((display) => (display.valueId === CAPEX_LINE || display.valueId === CAPEX_STAGE2_LINE ? { ...display, actions: adds } : display));
+        return json(200, { ...response, displayObjects });
+      },
+    });
+    renderAt(STEP8);
+    await screen.findByText('TEST owner count line');
+    const outputs = screen.getByRole('region', { name: 'What your proposal will show' });
+    const line = outputs.querySelector(`[data-value-id="${CAPEX_LINE}"]`) as HTMLElement;
+    expect(within(line).getAllByRole('button').map((button) => button.textContent)).toEqual(['TEST add the area', 'TEST add the type', 'TEST add the systems']);
+    const typeAdds = within(outputs).getAllByRole('button', { name: 'TEST add the type' });
+    expect(typeAdds.map((button) => document.getElementById(button.getAttribute('aria-describedby') ?? '')?.textContent)).toEqual([CAPEX_LABEL_TEXT, CAPEX_STAGE2_LABEL_TEXT]);
+    const proposal = screen.getByRole('region', { name: 'Proposal' });
+    const cardAdds = within(proposal).getAllByRole('button', { name: /^TEST add the/u });
+    expect(cardAdds.map((button) => button.textContent)).toEqual(['TEST add the area', 'TEST add the type', 'TEST add the systems']);
+    for (const button of cardAdds) expect(document.getElementById(button.getAttribute('aria-describedby') ?? '')?.textContent).toBe('Proposal');
+  });
+});
+
 describe('US-INTAKE-17 · R-003: step 8 inline asks', () => {
   it('US-INTAKE-17 AC3 · AC7 · G8-21 (web half): the ask reads its served sentence inline; a number the API refuses as ambiguous shows the refusal and nothing else changes', async () => {
     const seen = api({}, { [`POST /api/projects/${PROJECT}/fields/edit`]: () => json(422, { code: 'number_ambiguous' }) });

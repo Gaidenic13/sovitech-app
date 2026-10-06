@@ -26,6 +26,7 @@
     "@sovitech/registry": "workspace:*",
     "@sovitech/view-model": "workspace:*",
     "fastify": "5.12.5",
+    "playwright-core": "1.63.0",
     "yaml": "2.9.1",
     "zod": "4.6.5"
   }

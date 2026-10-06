@@ -1,6 +1,7 @@
 /**
  * The route table of the API contract (the wizard, phase 3; the workspace, phase 4: workspace.ts,
- * docs/adr/0044-workspace-api-contract.md): every route the web calls, with its method,
+ * docs/adr/0044-workspace-api-contract.md; the proposal, Reports and exports, phase 5: proposal.ts,
+ * docs/adr/0049-proposal-reports-export-contract.md): every route the web calls, with its method,
  * path, whether it needs a session and the CSRF token, its request and response schemas, the
  * refusal codes it may answer, whether its 2xx responses carry display objects, and the stories,
  * functions and cases it serves. apps/api registers exactly these (a unit test of the API
@@ -51,6 +52,18 @@ import {
   ZonesQuerySchema,
   ZonesResponseSchema,
 } from './workspace';
+import {
+  EquipmentExportQuerySchema,
+  ExportRequestSchema,
+  ExportResponseSchema,
+  GenerateRequestSchema,
+  GenerateResponseSchema,
+  ProposalPrintResponseSchema,
+  ProposalResponseSchema,
+  ProposalVersionsResponseSchema,
+  ReportsQuerySchema,
+  ReportsResponseSchema,
+} from './proposal';
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
@@ -71,8 +84,11 @@ export interface RouteSpec {
   readonly servesDisplayObjects: boolean;
   /** Story, function, requirement and case ids, and screens. */
   readonly serves: readonly string[];
-  /** Built in phase 2 (kept as they are), phase 3 (the wizard) or phase 4 (the workspace: workspace.ts; docs/adr/0044). */
-  readonly phase: 2 | 3 | 4;
+  /**
+   * Built in phase 2 (kept as they are), phase 3 (the wizard), phase 4 (the workspace: workspace.ts; docs/adr/0044) or
+   * phase 5 (the proposal, Reports and exports: proposal.ts; docs/adr/0049).
+   */
+  readonly phase: 2 | 3 | 4 | 5;
 }
 
 const P = '/api/projects/:projectId';
@@ -167,6 +183,43 @@ export const ROUTES = [
   { id: 'workspace.zones', method: 'GET', path: `${P}/workspace/zones`, session: true, csrf: false, query: ZonesQuerySchema, response: ZonesResponseSchema, refusals: [], servesDisplayObjects: true, serves: ['DB-20', 'UD-09', 'UD-27', 'R-060', 'R-061', 'R-062', 'R-063', 'R-064', 'US-ZONES-01', 'US-ZONES-02', 'US-ZONES-03', 'US-ZONES-04', 'G2-7', 'G12-10'], phase: 4 },
   { id: 'workspace.topology', method: 'GET', path: `${P}/workspace/topology`, session: true, csrf: false, query: LevelQuerySchema, response: TopologyResponseSchema, refusals: [], servesDisplayObjects: true, serves: ['DB-08', 'DB-07', 'DB-10', 'R-071', 'R-072', 'R-073', 'R-075', 'US-TOPO-01', 'US-TOPO-03', 'US-TOPO-04', 'US-TOPO-05', 'US-TOPO-06', 'US-TOPO-07', 'US-TOPO-08', 'US-TOPO-10', 'G1-27', 'G2-7', 'G7-15', 'G11-11'], phase: 4 },
   { id: 'fields.concernMany', method: 'POST', path: `${P}/fields/concern-many`, session: true, csrf: true, request: ConcernManyRequestSchema, response: FieldWriteResponseSchema, refusals: ['403 not_an_engineer_field', '409 shown_value_changed', '403 owner_only'], servesDisplayObjects: true, serves: ['DB-17', 'R-065', 'US-ASSETS-04', 'F-REVIEW-03', 'G3-10', 'G3-19'], phase: 4 },
+
+  // ---- Phase 5: the stored proposal, Reports and exports (proposal.ts; docs/adr/0047 to 0050) --------------
+  // Generate and the export record take the owner check, then the project's write lock (lockProjectWrites; ADR 0036
+  // decision 13); one request per press. `proposal.preview` (phase 3) stays the landing's state for a project with no
+  // stored proposal. The two file routes answer a file, not display objects: the PDF is printed from the print route,
+  // whose view the render test reads (`proposals.print`), and the CSV holds each value's badge and source beside it.
+  { id: 'proposals.list', method: 'GET', path: `${P}/proposals`, session: true, csrf: false, response: ProposalVersionsResponseSchema, refusals: [], servesDisplayObjects: true, serves: ['UD-06', 'R-110', 'US-PROPOSAL-11 AC3', 'F-PROPOSAL-02', 'G4-45'], phase: 5 },
+  {
+    id: 'proposals.generate',
+    method: 'POST',
+    path: `${P}/proposals`,
+    session: true,
+    csrf: true,
+    request: GenerateRequestSchema,
+    response: GenerateResponseSchema,
+    refusals: ['403 owner_only'],
+    servesDisplayObjects: false,
+    serves: ['OB-8', 'UD-07', 'UD-47', 'R-109', 'R-110', 'US-PROPOSAL-01', 'US-PROPOSAL-02', 'US-PROPOSAL-03', 'US-PROPOSAL-11', 'F-PROPOSAL-01', 'F-PROPOSAL-02', 'F-CALC-02', 'F-CALC-03', 'G3-23', 'G4-45', 'G7-18', 'prompt 3 5.2 "After Generate"'],
+    phase: 5,
+  },
+  {
+    id: 'proposals.view',
+    method: 'GET',
+    path: `${P}/proposals/:snapshotId`,
+    session: true,
+    csrf: false,
+    response: ProposalResponseSchema,
+    refusals: [],
+    servesDisplayObjects: true,
+    serves: ['UD-06', 'UD-01', 'UD-38', 'R-110', 'R-111', 'R-112', 'R-113', 'R-115', 'R-116', 'R-127', 'R-129', 'US-PROPOSAL-03', 'US-PROPOSAL-04', 'US-PROPOSAL-05 AC1', 'US-PROPOSAL-06', 'US-PROPOSAL-08', 'US-PROPOSAL-10', 'US-PROPOSAL-13', 'US-ENGINEER-14', 'F-PRICE-01', 'F-PRICE-05', 'F-PROPOSAL-02', 'F-PROPOSAL-05', 'G1-2', 'G2-7', 'G4-12', 'G7-2a', 'G7-2b', 'G9-1', 'G9-3', 'G9-8', 'G9-10', 'G10-1', 'G10-2', 'G10-7', 'G10-9', 'G10-11', 'G11-1', 'G11-12'],
+    phase: 5,
+  },
+  { id: 'proposals.print', method: 'GET', path: `${P}/proposals/:snapshotId/print`, session: true, csrf: false, response: ProposalPrintResponseSchema, refusals: [], servesDisplayObjects: true, serves: ['UD-06', 'R-118', 'US-REPORTS-01', 'US-REPORTS-02', 'US-REPORTS-03', 'F-EXPORT-01', 'F-EXPORT-02', 'F-EXPORT-03', 'G10-5', 'G10-13', 'G13-12'], phase: 5 },
+  { id: 'proposals.export', method: 'POST', path: `${P}/proposals/:snapshotId/exports`, session: true, csrf: true, request: ExportRequestSchema, response: ExportResponseSchema, refusals: ['403 owner_only'], servesDisplayObjects: false, serves: ['R-118', 'R-119', 'US-REPORTS-02', 'US-REPORTS-05', 'F-EXPORT-02', 'F-EXPORT-05'], phase: 5 },
+  { id: 'exports.file', method: 'GET', path: `${P}/exports/:outputId/file`, session: true, csrf: false, refusals: ['503 export_unavailable'], servesDisplayObjects: false, serves: ['R-118', 'R-119', 'US-REPORTS-02', 'US-REPORTS-05 AC6', 'F-EXPORT-01', 'F-EXPORT-02', 'G10-5', 'G10-13', 'G13-12', 'docs/adr/0050'], phase: 5 },
+  { id: 'reports.list', method: 'GET', path: `${P}/reports`, session: true, csrf: false, query: ReportsQuerySchema, response: ReportsResponseSchema, refusals: [], servesDisplayObjects: true, serves: ['DB-18', 'R-119', 'R-120', 'R-123', 'US-REPORTS-05', 'US-REPORTS-14 AC1', 'US-REPORTS-06 AC1', 'US-REPORTS-07 AC1', 'US-REPORTS-11 AC1', 'F-EXPORT-05', '7.1.1-D6', '7.1.1-D8', 'G2-1'], phase: 5 },
+  { id: 'exports.equipment', method: 'GET', path: `${P}/exports/equipment`, session: true, csrf: false, query: EquipmentExportQuerySchema, refusals: [], servesDisplayObjects: false, serves: ['DB-17', 'UD-26', 'R-066', 'US-ASSETS-11 AC6', 'F-EXPORT-01', 'F-EXPORT-04', '7.1-r25', 'G10-14'], phase: 5 },
 
   // ---- Uploads (phase 2, ADR 0019; step 2) ---------------------------------------------------
   { id: 'uploads.create', method: 'POST', path: `${P}/uploads`, session: true, csrf: true, request: CreateUploadRequestSchema, response: UploadStateSchema, refusals: ['415 format_not_accepted', '413 file_too_large', '400 file_name_invalid', '400 size_invalid', '403 owner_only'], servesDisplayObjects: false, serves: ['OB-2', 'UD-33', 'US-DOCS-01', 'R-013', 'F-INGEST-01'], phase: 2 },

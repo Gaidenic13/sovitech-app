@@ -108,6 +108,12 @@ export interface PageHeaderProps {
   readonly back?: PageBackLink;
   /** The page's controls on the title's right (Upload Document; filters). One primary button at most (dashboards-spec 3.6). */
   readonly actions?: ReactNode;
+  /**
+   * Where the controls sit against the title block: `end` (the default) on its last line; `start` at its top, so the
+   * title keeps one position whatever the controls' height (the stored proposal's Download PDF, whose status and
+   * failure lines show under it; phase 5 DR-16).
+   */
+  readonly actionsAlign?: 'end' | 'start';
 }
 
 /**
@@ -117,7 +123,7 @@ export interface PageHeaderProps {
  * The eyebrow follows the brand's eyebrow row (mint, 14px, weight 600, a bullet before it); the bullet is
  * a decorative, hidden character, never generated content.
  */
-export function PageHeader({ title, subtitle, eyebrow, back, actions }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, eyebrow, back, actions, actionsAlign = 'end' }: PageHeaderProps) {
   return (
     <header className="sov-page-header">
       {back === undefined ? null : (
@@ -134,7 +140,7 @@ export function PageHeader({ title, subtitle, eyebrow, back, actions }: PageHead
           <span>{back.label}</span>
         </a>
       )}
-      <div className="sov-page-header__row">
+      <div className="sov-page-header__row" data-actions-align={actionsAlign === 'start' ? 'start' : undefined}>
         <div className="sov-page-header__titles">
           {eyebrow === undefined ? null : (
             <p className="sov-eyebrow">

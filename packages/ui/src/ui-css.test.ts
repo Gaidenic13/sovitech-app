@@ -23,12 +23,30 @@ interface Rule {
   readonly declarations: ReadonlyMap<string, string>;
   /** Whether the rule sits in the `prefers-reduced-motion: reduce` block. */
   readonly reducedMotion: boolean;
+  /** Whether the rule sits in the `forced-colors: active` block (phase 5 DR-14). */
+  readonly forcedColors: boolean;
+}
+
+/** Where an at-rule's block starts and ends in the source (its braces matched), or none. */
+function blockOf(source: string, atRule: string): { readonly start: number; readonly end: number } | undefined {
+  const start = source.indexOf(atRule);
+  if (start < 0) return undefined;
+  let depth = 0;
+  for (let index = source.indexOf('{', start); index < source.length; index += 1) {
+    if (source[index] === '{') depth += 1;
+    if (source[index] === '}') {
+      depth -= 1;
+      if (depth === 0) return { start, end: index };
+    }
+  }
+  return { start, end: source.length };
 }
 
 /** The innermost rules of a stylesheet (selectors and declarations; nested at-rules flattened). */
 function rulesOf(css: string): Rule[] {
   const source = css.replace(/\/\*[\s\S]*?\*\//gu, '');
   const reducedAt = source.indexOf('@media (prefers-reduced-motion: reduce)');
+  const forced = blockOf(source, '@media (forced-colors: active)');
   const rules: Rule[] = [];
   for (const match of source.matchAll(/([^{}]+)\{([^{}]*)\}/gu)) {
     const [, selectorText = '', body = ''] = match;
@@ -43,19 +61,24 @@ function rulesOf(css: string): Rule[] {
       .map((selector) => selector.replace(/\s+/gu, ' ').trim())
       .filter((selector) => selector !== '');
     const at = match.index;
-    rules.push({ selectors, declarations, reducedMotion: reducedAt >= 0 && at !== undefined && at > reducedAt });
+    const inForced = forced !== undefined && at !== undefined && at > forced.start && at < forced.end;
+    rules.push({ selectors, declarations, reducedMotion: reducedAt >= 0 && at !== undefined && at > reducedAt, forcedColors: inForced });
   }
   return rules;
 }
 
 const RULES = rulesOf(UI_CSS);
 
-/** The declared value of a property on a selector (the last rule that sets it, outside the reduced-motion block unless asked). */
-function declared(selector: string, property: string, options: { readonly reducedMotion?: boolean } = {}): string | undefined {
+/**
+ * The declared value of a property on a selector (the last rule that sets it, outside the reduced-motion and
+ * forced-colours blocks unless asked).
+ */
+function declared(selector: string, property: string, options: { readonly reducedMotion?: boolean; readonly forcedColors?: boolean } = {}): string | undefined {
   const wanted = options.reducedMotion ?? false;
+  const forcedWanted = options.forcedColors ?? false;
   let found: string | undefined;
   for (const rule of RULES) {
-    if (rule.reducedMotion !== wanted || !rule.selectors.includes(selector)) continue;
+    if (rule.reducedMotion !== wanted || rule.forcedColors !== forcedWanted || !rule.selectors.includes(selector)) continue;
     const value = rule.declarations.get(property);
     if (value !== undefined) found = value;
   }
@@ -177,6 +200,30 @@ describe('DR-18: two heading roles', () => {
     }
     expect(declared('.sov-card__title', 'font-size')).toBe('17px');
     expect(declared('.sov-card__title', 'font-weight')).toBe('var(--sov-weight-semibold)');
+  });
+});
+
+describe('DR-11 · DR-5 (phase 4 design review, built in phase 5\'s kit pass): the text roles and the one search field', () => {
+  test('DR-11: tokens.css holds the body, small and caption roles (sizes only), marked as roles proposed, pending the owner\'s OK; the kit exposes each as one class', () => {
+    const tokens = rulesOf(TOKENS_CSS).find((rule) => rule.selectors.includes(':root'));
+    expect(tokens?.declarations.get('--sov-text-body-size')).toBe('15px');
+    expect(tokens?.declarations.get('--sov-text-small-size')).toBe('13px');
+    expect(tokens?.declarations.get('--sov-text-caption-size')).toBe('12px');
+    const note = TOKENS_CSS.slice(TOKENS_CSS.indexOf('Three text roles'), TOKENS_CSS.indexOf('--sov-text-body-size')).replace(/\s+/gu, ' ');
+    expect(note).toContain("ROLES proposed, pending the owner's OK");
+    expect(declared('.sov-text-body', 'font-size')).toBe('var(--sov-text-body-size)');
+    expect(declared('.sov-text-small', 'font-size')).toBe('var(--sov-text-small-size)');
+    expect(declared('.sov-text-caption', 'font-size')).toBe('var(--sov-text-caption-size)');
+    // 2.8 "Prominence": nothing smaller than a badge's 12px among the roles (12px is the smallest).
+    expect(['12px', '13px', '15px']).toContain(tokens?.declarations.get('--sov-text-caption-size'));
+  });
+
+  test('DR-5 · WCAG 1.4.11 · prompt 3 section 11: one width for the search field, the control boundary, the accent focus outline on the whole box, no transition under reduced motion', () => {
+    expect(declared('.sov-search', 'width')).toBe('320px');
+    expect(declared('.sov-search', 'max-width')).toBe('100%');
+    expect(declared('.sov-search', 'border')).toBe('1px solid var(--sov-control-border)');
+    expect(declared('.sov-search:focus-within', 'outline')).toBe('var(--sov-focus-width) solid var(--sov-focus-ring)');
+    expect(declared('.sov-search', 'transition', { reducedMotion: true })).toBe('none');
   });
 });
 
@@ -317,5 +364,32 @@ describe('phase 4 part B · the design review\'s kit findings', () => {
     expect(declared(text, 'font-weight')).toBe('inherit');
     expect(declared(text, 'line-height')).toBe('inherit');
     expect(declared(".sov-value-name[data-delegated='value'] .sov-value__line", 'flex-wrap')).toBe('wrap');
+  });
+});
+
+describe('phase 5 part B · the design review\'s kit findings', () => {
+  test('DR-14 · WCAG 1.4.11 · App theme "Sidebar selected row": in forced colours the open register row keeps a 2px CanvasText edge on its first cell, every other row\'s edge in Canvas, so the open row is told apart by more than a fill', () => {
+    expect(declared('.sov-register__row > :first-child', 'border-inline-start-color', { forcedColors: true })).toBe('Canvas');
+    expect(declared(".sov-register__row[aria-current='true'] > :first-child", 'border-inline-start-color', { forcedColors: true })).toBe('CanvasText');
+    // The edge itself stays 2px wide in every mode (the base rule), and the brand's mint mark is unchanged outside forced colours.
+    expect(declared('.sov-register__row > :first-child', 'border-inline-start')).toBe('2px solid transparent');
+    expect(declared(".sov-register__row[aria-current='true'] > :first-child", 'border-inline-start-color')).toBe('var(--sov-accent)');
+  });
+
+  test('DR-14 · app-alignment "Shape, type, motion and logo": in forced colours the white logo keeps its plate in the brand background, out of the forced palette, with no CSS filter; outside them the plate draws nothing', () => {
+    expect(declared('.sov-logo-plate', 'forced-color-adjust', { forcedColors: true })).toBe('none');
+    expect(declared('.sov-logo-plate', 'background-color', { forcedColors: true })).toBe('var(--sov-bg)');
+    expect(declared('.sov-logo-plate', 'background-color')).toBeUndefined();
+    expect(RULES.some((rule) => rule.declarations.has('filter') && rule.selectors.some((selector) => selector.includes('sov-logo')))).toBe(false);
+  });
+
+  test('DR-16: a page header whose controls align to the top keeps its title at the top of the row; by default the controls sit on the title block\'s last line', () => {
+    expect(declared(".sov-page-header__row[data-actions-align='start']", 'align-items')).toBe('flex-start');
+    expect(declared('.sov-page-header__row', 'align-items')).toBe('flex-end');
+  });
+
+  test('DR-7: the one visible heading over a register\'s control columns is pinned to the region\'s end with them', () => {
+    expect(declared(".sov-register [data-pin='controls']", 'inset-inline-end')).toBe('0');
+    expect(declared('.sov-register [data-pin]', 'position')).toBe('sticky');
   });
 });

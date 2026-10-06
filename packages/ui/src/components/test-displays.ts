@@ -90,6 +90,23 @@ export const OUTPUT_MISSING_INPUT: DisplayObject = {
   actions: [{ kind: 'add', field: { subjectId: TEST_SUBJECT, fieldKey: 'building.grossFloorArea' }, label: 'Add TEST gross floor area', step: 8 }],
 };
 
+/**
+ * An output that waits for a dataset and three owner inputs (DR-1): its line names each, and the API serves one Add
+ * per input, in the order the line names them (packages/view-model intake.test.ts, F-PROPOSAL-07).
+ */
+export const OUTPUT_MISSING_INPUTS: DisplayObject = {
+  valueId: `project:${TEST_SUBJECT}.outputs.capex.indicativeRange`,
+  kind: 'line',
+  text: 'Not available yet: TEST cost ranges; TEST gross floor area; TEST building type; TEST systems in scope',
+  shape: 'missing',
+  missing: 'not_available_yet',
+  actions: [
+    { kind: 'add', field: { subjectId: TEST_SUBJECT, fieldKey: 'building.grossFloorArea' }, label: 'Add TEST gross floor area', step: 8 },
+    { kind: 'add', field: { subjectId: TEST_SUBJECT, fieldKey: 'building.type' }, label: 'Add TEST building type', step: 8 },
+    { kind: 'add', field: { subjectId: TEST_SUBJECT, fieldKey: 'project.scope.hvac' }, label: 'Add TEST systems in scope', step: 8 },
+  ],
+};
+
 /** An output that waits for a SOVITECH dataset: it names the dataset and offers no owner action. */
 export const OUTPUT_MISSING_DATASET: DisplayObject = {
   valueId: `project:${TEST_SUBJECT}.outputs.points`,

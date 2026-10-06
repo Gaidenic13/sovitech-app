@@ -68,12 +68,20 @@ function typeBadge(project: WorkspaceProject, assetId: string): string | undefin
 }
 
 /** Whether an asset matches every active filter (filters write nothing: R-066). */
-function matches(project: WorkspaceProject, assetId: string, query: EquipmentQuery): boolean {
+function matches(project: WorkspaceProject, assetId: string, query: Omit<EquipmentQuery, 'page'>): boolean {
   if (query.system !== undefined && assetValue(project, assetId, 'system') !== query.system) return false;
   if (query.level !== undefined && assetValue(project, assetId, 'level') !== query.level) return false;
   if (query.zone !== undefined && assetValue(project, assetId, 'zone') !== query.zone) return false;
   if (query.badge !== undefined && typeBadge(project, assetId) !== query.badge) return false;
   return matchesSearch(project, assetId, query.search);
+}
+
+/**
+ * The register's assets the filters and the search leave, in the list's order, every page (the Equipment export, ADR 0050
+ * decision 4: "the register as the page's filters narrow it, every row"). Filters write nothing (R-066).
+ */
+export function equipmentMatching(project: WorkspaceProject, query: Omit<EquipmentQuery, 'page'>): readonly string[] {
+  return listedAssets(project).filter((assetId) => matches(project, assetId, query));
 }
 
 /** The total's path: the active filters it counts under (`register.total[.system_<s>][.level_<k>]…`). */

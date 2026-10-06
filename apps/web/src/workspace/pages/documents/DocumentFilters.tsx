@@ -13,9 +13,9 @@
  * on the surface colour under the bar, with one list per stored field side by side, and the active
  * filters as chips under it.
  */
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import { useId, useRef, useState } from 'react';
-import { ActiveFilters, ChipGroup, SelectionList, ValueName, type ActiveFilter } from '@sovitech/ui';
+import { ActiveFilters, ChipGroup, SearchField, SelectionList, ValueName, type ActiveFilter } from '@sovitech/ui';
 import { DOCUMENT_CATEGORIES, DOCUMENT_FORMATS, type DocumentRow } from '@sovitech/view-model/browser';
 import { copy } from '../../../copy';
 import type { Displays } from '../../../wizard/use-step-view';
@@ -65,21 +65,7 @@ export function DocumentFilterBar({ rows, displays, filters, onChange }: Documen
           }}
         />
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-[280px] items-center gap-2 rounded-(--sov-radius-surface) border border-(--sov-control-border) px-3 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-(--sov-focus-ring)">
-            <Search size={16} strokeWidth={1.5} aria-hidden="true" focusable="false" className="shrink-0 text-(--sov-text-tertiary)" />
-            <label htmlFor={searchId} className="sr-only">
-              {DOC.searchLabel}
-            </label>
-            <input
-              id={searchId}
-              type="search"
-              value={filters.search}
-              placeholder={DOC.searchPlaceholder}
-              maxLength={80}
-              onChange={(event) => onChange({ ...filters, search: event.currentTarget.value })}
-              className="min-w-0 flex-1 bg-transparent text-[14px] text-(--sov-text-primary) outline-none placeholder:text-(--sov-text-muted)"
-            />
-          </div>
+          <SearchField label={DOC.searchLabel} placeholder={DOC.searchPlaceholder} value={filters.search} onChange={(search) => onChange({ ...filters, search })} maxLength={80} id={searchId} />
           <button
             ref={trigger}
             type="button"

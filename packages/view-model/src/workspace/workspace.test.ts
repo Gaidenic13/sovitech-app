@@ -115,19 +115,24 @@ function project(input: TestProjectInput): WorkspaceProject {
 
 const byId = (displays: readonly DisplayObject[], id: string): DisplayObject | undefined => displays.find((display) => display.valueId === id);
 
-describe('levels (R-076; ADR 0045 decision 3; D-18 interim)', () => {
-  it('R-076: the regim\'s letters, numbered as rule 8 numbers floors; level types with no letter by their registered label', () => {
+describe('levels (R-076; ADR 0045 decision 3; D-18, English, owner decision 2026-10-05)', () => {
+  it('R-076 · D-18: English labels, B1 the nearest the ground, GF, Level 1 the first floor above the ground; level types with no short label by their registered label, numbered only when counted more than once', () => {
     expect([levelLabel('below_ground', 1, 1), levelLabel('below_ground', 2, 3), levelLabel('ground', 1, 1), levelLabel('mezzanine', 1, 1), levelLabel('upper', 1, 1), levelLabel('upper', 12, 12), levelLabel('setback_or_technical', 2, 2)]).toEqual([
-      'S',
-      'S2',
-      'P',
-      'Mz',
-      'E1',
-      'E12',
-      'Er2',
+      'B1',
+      'B2',
+      'GF',
+      'Mezzanine',
+      'Level 1',
+      'Level 12',
+      'Setback or technical floor 2',
     ]);
     expect([levelLabel('semi_basement', 1, 1), levelLabel('attic', 2, 2), levelLabel('roof_plant', 1, 1)]).toEqual(['Semi-basement', 'Attic 2', 'Roof plant']);
-    expect(levelsOf(new Map([['upper', 2], ['below_ground', 2], ['ground', 1], ['attic', 0]])).map((level) => level.label)).toEqual(['S2', 'S1', 'P', 'E1', 'E2']);
+    expect(levelsOf(new Map([['upper', 2], ['below_ground', 2], ['ground', 1], ['attic', 0]])).map((level) => level.label)).toEqual(['B2', 'B1', 'GF', 'Level 1', 'Level 2']);
+  });
+
+  it('D-18 · rule 8 "Floors": no label is a regim letter; the notation stays the floors field\'s original text', () => {
+    const labels = levelsOf(new Map([['below_ground', 3], ['ground', 1], ['mezzanine', 1], ['upper', 12], ['setback_or_technical', 1]])).map((level) => level.label);
+    for (const label of labels) expect(label).not.toMatch(/^(?:S\d*|P|Mz|E\d+|Er\d*)$/u);
   });
 });
 
@@ -414,14 +419,14 @@ describe('levels and zones named, never by key or id (V-1; rule 8 "Floors"; G8-2
     const workspace = project(base(true));
     const equipment = equipmentView(workspace, {});
     const [row] = equipment.view.rows;
-    expect(byId(equipment.displayObjects, row?.level ?? '')).toMatchObject({ text: 'E1', parts: ['E1'], badge: { id: 'sovitech_will_check' }, sourceLine: { text: 'Found in TEST plan.pdf, page 1' } });
+    expect(byId(equipment.displayObjects, row?.level ?? '')).toMatchObject({ text: 'Level 1', parts: ['Level 1'], badge: { id: 'sovitech_will_check' }, sourceLine: { text: 'Found in TEST plan.pdf, page 1' } });
     expect(byId(equipment.displayObjects, row?.zone ?? '')).toMatchObject({ text: 'TEST Zona 1', parts: ['TEST Zona 1'], badge: { id: 'sovitech_will_check' } });
     const record = assetView(workspace, asset);
     const shown = (record?.view.fields ?? []).map((id) => byId(record?.displayObjects ?? [], id)?.text);
-    expect(shown).toContain('E1');
+    expect(shown).toContain('Level 1');
     expect(shown).toContain('TEST Zona 1');
     const zones = zonesView(workspace, {});
-    expect(byId(zones.displayObjects, zones.view.rows[0]?.level ?? '')?.text).toBe('E2');
+    expect(byId(zones.displayObjects, zones.view.rows[0]?.level ?? '')?.text).toBe('Level 2');
     for (const display of [...equipment.displayObjects, ...(record?.displayObjects ?? []), ...zones.displayObjects]) {
       expect(display.text, display.valueId).not.toMatch(/upper_\d|[0-9a-f]{8}-[0-9a-f]{4}-/u);
     }
@@ -429,15 +434,15 @@ describe('levels and zones named, never by key or id (V-1; rule 8 "Floors"; G8-2
 
   it('V-1: with no floor structure known, a stored key is named by the one label function from its own type and number; a text that is no key shows as written', () => {
     const workspace = project(base(false));
-    expect(levelKeyLabel(workspace, 'upper_1')).toBe('E1');
-    expect(levelKeyLabel(workspace, 'below_ground_1')).toBe('S');
-    expect(levelKeyLabel(workspace, 'below_ground_2')).toBe('S2');
-    expect(levelKeyLabel(workspace, 'ground_1')).toBe('P');
+    expect(levelKeyLabel(workspace, 'upper_1')).toBe('Level 1');
+    expect(levelKeyLabel(workspace, 'below_ground_1')).toBe('B1');
+    expect(levelKeyLabel(workspace, 'below_ground_2')).toBe('B2');
+    expect(levelKeyLabel(workspace, 'ground_1')).toBe('GF');
     expect(levelKeyLabel(workspace, 'roof_plant_1')).toBe('Roof plant');
     expect(levelKeyLabel(workspace, 'Etaj 1')).toBeUndefined();
     expect(levelKeyLabel(workspace, 'nonsense_3')).toBeUndefined();
     const equipment = equipmentView(workspace, {});
-    expect(byId(equipment.displayObjects, equipment.view.rows[0]?.level ?? '')?.text).toBe('E1');
+    expect(byId(equipment.displayObjects, equipment.view.rows[0]?.level ?? '')?.text).toBe('Level 1');
   });
 
   // The asset is also written in a second TEST document, so it stays listed once the plan is deleted.

@@ -72,4 +72,6 @@ it('F-INGEST-07 · rule 13 · G13-3: erasing a document whose twin stays removes
   expect(last).toMatchObject({ textKeptForAnotherDocument: false, textPartsDeleted: 2 });
   expect(await parts()).toEqual([]);
   expect(await database.asAdministrator('SELECT problem FROM sovitech_guard.check_invariants()')).toEqual([]);
-});
+  // Eight requests and an invariant check over Testcontainers: the store's other tests allow 120 s (LONG); under the full
+  // run's load this one ran past Vitest's 5 s default (phase 5's integrator, `pnpm check`).
+}, 120_000);

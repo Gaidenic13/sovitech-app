@@ -13,6 +13,7 @@ import {
   formatCalculated,
   formatCount,
   formatDate,
+  formatDateAndTime,
   formatEstimate,
   formatExactNumber,
   formatOwnerQuantity,
@@ -181,5 +182,14 @@ describe('F-RENDER-04 · rule 2: dates in the render allowlist\'s format', () =>
     expect(() => formatDate('on request of the designer')).toThrow(/ISO 8601/u);
     expect(() => formatDate('2026-02-30T00:00:00Z')).toThrow();
     expect(() => formatDate('2026-09-30')).toThrow(/ISO 8601/u);
+  });
+
+  it('DR-5 · US-PROPOSAL-11 AC3: a date with its time is "D MMM YYYY, HH:MM", from the timestamp\'s own text, so two times of one day read apart', () => {
+    expect(formatDateAndTime('2026-10-06T09:04:56.123456Z')).toEqual({ datetime: '2026-10-06T09:04:56.123456Z', text: '6 Oct 2026, 09:04' });
+    expect(formatDateAndTime('2026-10-06T21:30:00Z').text).not.toBe(formatDateAndTime('2026-10-06T09:04:00Z').text);
+    // The zone the timestamp carries, with no arithmetic (which zone to show is the owner's open question 2).
+    expect(formatDateAndTime('2026-10-02T00:15:00+03:00').text).toBe('2 Oct 2026, 00:15');
+    expect(() => formatDateAndTime('2026-10-06')).toThrow(/ISO 8601/u);
+    expect(() => formatDateAndTime('2026-10-06T24:00:00Z')).toThrow();
   });
 });

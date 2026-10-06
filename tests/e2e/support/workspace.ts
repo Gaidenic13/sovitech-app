@@ -19,6 +19,7 @@ export const WORKSPACE_PAGES = {
   Zones: 'zones',
   Equipment: 'equipment',
   Documents: 'documents',
+  Reports: 'reports',
 } as const;
 export type WorkspacePageName = keyof typeof WORKSPACE_PAGES;
 

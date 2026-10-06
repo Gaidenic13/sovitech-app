@@ -9,7 +9,8 @@
  *    the demo (PRD R-136 interim, `addToDemoProject`);
  * 4. the API on 127.0.0.1:4174 and the analysis worker, each a child process with the TEST database's
  *    app login, a random session secret, the extraction account, the data folder, the images and
- *    SOVITECH_DEV_ACCOUNTS; no ANTHROPIC_API_KEY is passed on, so no AI runs (the owner's answers
+ *    SOVITECH_DEV_ACCOUNTS, and (phase 5) SOVITECH_WEB_ORIGIN, `vite preview`'s origin, which the API's PDF printer
+ *    opens the print route on (ADR 0050); no ANTHROPIC_API_KEY is passed on, so no AI runs (the owner's answers
  *    in force: no key is set);
  * 5. a TEST-only control route on the loopback interface, for what a spec must read from the store or
  *    write into it and no app route serves: the guardrail events of a project (prompt 3 phase 3 exit:
@@ -38,7 +39,7 @@ import { DockerExtractorRunner } from '../../../apps/api/src/jobs/sandbox';
 import { seedDemo } from '../../../apps/api/src/seed/demo-seed';
 import { FileStore } from '../../../apps/api/src/storage/file-store';
 import { fixtureUploadGuard } from '../../../apps/api/src/uploads/fixture-guard';
-import { API_ORIGIN, API_PORT, E2E_OUTPUT, REPO_ROOT, STATE_FILE, type StackState } from './paths';
+import { API_ORIGIN, API_PORT, E2E_OUTPUT, REPO_ROOT, STATE_FILE, WEB_ORIGIN, type StackState } from './paths';
 
 /** The two sandbox images (ADR 0018, ADR 0031), built locally. */
 const IMAGES = { extractor: 'sovitech-extractor:dev', ifcReader: 'sovitech-ifc-reader:dev' } as const;
@@ -221,6 +222,8 @@ async function main(): Promise<void> {
       SOVITECH_EXTRACTOR_IMAGE: IMAGES.extractor,
       SOVITECH_IFC_READER_IMAGE: IMAGES.ifcReader,
       SOVITECH_DEV_ACCOUNTS: devOwnerId,
+      // Phase 5: the origin the API prints the proposal's print route from (ADR 0050 decision 2); the worker ignores it.
+      SOVITECH_WEB_ORIGIN: WEB_ORIGIN,
     });
     children.push(startChild('api', 'apps/api/src/index.ts', environment));
     children.push(startChild('worker', 'apps/api/src/worker-main.ts', environment));

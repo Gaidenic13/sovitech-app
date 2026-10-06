@@ -1,0 +1,353 @@
+{
+  "id": "TEST-engine-tables",
+  "version": "TEST-1",
+  "description": "TEST tables for the engine cases of phase 5: synthetic whole numbers. Not SOVITECH data, not a benchmark, not a price.",
+  "entries": {
+    "perBuildingByTypeAndSystem": {
+      "hotel": {
+        "hvac": {
+          "low": 9001,
+          "high": 9002
+        },
+        "lighting": {
+          "low": 9002,
+          "high": 9003
+        },
+        "energy": {
+          "low": 9003,
+          "high": 9004
+        },
+        "access_control": {
+          "low": 9004,
+          "high": 9005
+        },
+        "fire_safety": {
+          "low": 9005,
+          "high": 9006
+        },
+        "water": {
+          "low": 9006,
+          "high": 9007
+        },
+        "elevators": {
+          "low": 9007,
+          "high": 9008
+        },
+        "cctv": {
+          "low": 9008,
+          "high": 9009
+        }
+      },
+      "office": {
+        "hvac": {
+          "low": 9002,
+          "high": 9003
+        },
+        "lighting": {
+          "low": 9003,
+          "high": 9004
+        },
+        "energy": {
+          "low": 9004,
+          "high": 9005
+        },
+        "access_control": {
+          "low": 9005,
+          "high": 9006
+        },
+        "fire_safety": {
+          "low": 9006,
+          "high": 9007
+        },
+        "water": {
+          "low": 9007,
+          "high": 9008
+        },
+        "elevators": {
+          "low": 9008,
+          "high": 9009
+        },
+        "cctv": {
+          "low": 9009,
+          "high": 9010
+        }
+      },
+      "retail": {
+        "hvac": {
+          "low": 9003,
+          "high": 9004
+        },
+        "lighting": {
+          "low": 9004,
+          "high": 9005
+        },
+        "energy": {
+          "low": 9005,
+          "high": 9006
+        },
+        "access_control": {
+          "low": 9006,
+          "high": 9007
+        },
+        "fire_safety": {
+          "low": 9007,
+          "high": 9008
+        },
+        "water": {
+          "low": 9008,
+          "high": 9009
+        },
+        "elevators": {
+          "low": 9009,
+          "high": 9010
+        },
+        "cctv": {
+          "low": 9010,
+          "high": 9011
+        }
+      },
+      "hospital": {
+        "hvac": {
+          "low": 9004,
+          "high": 9005
+        },
+        "lighting": {
+          "low": 9005,
+          "high": 9006
+        },
+        "energy": {
+          "low": 9006,
+          "high": 9007
+        },
+        "access_control": {
+          "low": 9007,
+          "high": 9008
+        },
+        "fire_safety": {
+          "low": 9008,
+          "high": 9009
+        },
+        "water": {
+          "low": 9009,
+          "high": 9010
+        },
+        "elevators": {
+          "low": 9010,
+          "high": 9011
+        },
+        "cctv": {
+          "low": 9011,
+          "high": 9012
+        }
+      },
+      "residential": {
+        "hvac": {
+          "low": 9005,
+          "high": 9006
+        },
+        "lighting": {
+          "low": 9006,
+          "high": 9007
+        },
+        "energy": {
+          "low": 9007,
+          "high": 9008
+        },
+        "access_control": {
+          "low": 9008,
+          "high": 9009
+        },
+        "fire_safety": {
+          "low": 9009,
+          "high": 9010
+        },
+        "water": {
+          "low": 9010,
+          "high": 9011
+        },
+        "elevators": {
+          "low": 9011,
+          "high": 9012
+        },
+        "cctv": {
+          "low": 9012,
+          "high": 9013
+        }
+      }
+    },
+    "perLineItem": {
+      "low": 9011,
+      "high": 9012
+    },
+    "perDevice": {
+      "reuse": {
+        "low": 9013,
+        "high": 9014
+      },
+      "replace": {
+        "low": 9015,
+        "high": 9017
+      }
+    },
+    "perMotor": {
+      "hardwareIo": {
+        "low": 9018,
+        "high": 9019
+      }
+    },
+    "roomControl": {
+      "sovitech_supplied": {
+        "hardwareIo": {
+          "low": 9020,
+          "high": 9021
+        },
+        "integration": {
+          "low": 9022,
+          "high": 9023
+        }
+      },
+      "grms_integrated": {
+        "hardwareIo": {
+          "low": 9024,
+          "high": 9025
+        },
+        "integration": {
+          "low": 9026,
+          "high": 9027
+        }
+      }
+    },
+    "pointsByType": {
+      "hvac": {
+        "hardwareIo": {
+          "AI": 9030,
+          "AO": 9038,
+          "DI": 9046,
+          "DO": 9054,
+          "UI": 9062
+        },
+        "integration": {
+          "bacnet_ip": 9070,
+          "modbus_rtu": 9078
+        },
+        "virtual": 9086
+      },
+      "lighting": {
+        "hardwareIo": {
+          "AI": 9031,
+          "AO": 9039,
+          "DI": 9047,
+          "DO": 9055,
+          "UI": 9063
+        },
+        "integration": {
+          "bacnet_ip": 9071,
+          "modbus_rtu": 9079
+        },
+        "virtual": 9087
+      },
+      "energy": {
+        "hardwareIo": {
+          "AI": 9032,
+          "AO": 9040,
+          "DI": 9048,
+          "DO": 9056,
+          "UI": 9064
+        },
+        "integration": {
+          "bacnet_ip": 9072,
+          "modbus_rtu": 9080
+        },
+        "virtual": 9088
+      },
+      "access_control": {
+        "hardwareIo": {
+          "AI": 9033,
+          "AO": 9041,
+          "DI": 9049,
+          "DO": 9057,
+          "UI": 9065
+        },
+        "integration": {
+          "bacnet_ip": 9073,
+          "modbus_rtu": 9081
+        },
+        "virtual": 9089
+      },
+      "fire_safety": {
+        "hardwareIo": {
+          "AI": 9034,
+          "AO": 9042,
+          "DI": 9050,
+          "DO": 9058,
+          "UI": 9066
+        },
+        "integration": {
+          "bacnet_ip": 9074,
+          "modbus_rtu": 9082
+        },
+        "virtual": 9090
+      },
+      "water": {
+        "hardwareIo": {
+          "AI": 9035,
+          "AO": 9043,
+          "DI": 9051,
+          "DO": 9059,
+          "UI": 9067
+        },
+        "integration": {
+          "bacnet_ip": 9075,
+          "modbus_rtu": 9083
+        },
+        "virtual": 9091
+      },
+      "elevators": {
+        "hardwareIo": {
+          "AI": 9036,
+          "AO": 9044,
+          "DI": 9052,
+          "DO": 9060,
+          "UI": 9068
+        },
+        "integration": {
+          "bacnet_ip": 9076,
+          "modbus_rtu": 9084
+        },
+        "virtual": 9092
+      },
+      "cctv": {
+        "hardwareIo": {
+          "AI": 9037,
+          "AO": 9045,
+          "DI": 9053,
+          "DO": 9061,
+          "UI": 9069
+        },
+        "integration": {
+          "bacnet_ip": 9077,
+          "modbus_rtu": 9085
+        },
+        "virtual": 9093
+      }
+    },
+    "pointsSpreadPercent": {
+      "low": 9094,
+      "high": 9095
+    },
+    "hoursBySchedule": {
+      "24_7": 9096,
+      "business_hours": 9097,
+      "extended_hours": 9098,
+      "seasonal": 9099
+    },
+    "energySpreadPercent": {
+      "low": 9092,
+      "high": 9093
+    },
+    "returnPercent": {
+      "low": 9090,
+      "high": 9091
+    }
+  }
+}

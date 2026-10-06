@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { Badge } from './Badge';
 import { DemoLine } from './DemoLine';
@@ -6,7 +6,7 @@ import { NotAvailableYet } from './NotAvailableYet';
 import { Notice, NoticeRegion } from './Notice';
 import { Price } from './Price';
 import { StatusLine } from './StatusLine';
-import { DEMO_LINE, LATE_NOTICE, OPEN_ITEMS, OUTPUT_MISSING_DATASET, OUTPUT_MISSING_INPUT, PRICE_STAGE_2, TEST_SUBJECT, UNKNOWN } from './test-displays';
+import { DEMO_LINE, LATE_NOTICE, OPEN_ITEMS, OUTPUT_MISSING_DATASET, OUTPUT_MISSING_INPUT, OUTPUT_MISSING_INPUTS, PRICE_STAGE_2, TEST_SUBJECT, UNKNOWN } from './test-displays';
 
 afterEach(cleanup);
 
@@ -98,6 +98,33 @@ describe('US-REVIEW-01 AC7 · rule 7 · 2.8: "Not available yet" names what is m
     expect(screen.queryByRole('button')).toBeNull();
   });
 
+  test('DR-1 · R-012 · rule 7 ("names what is missing and offers the action"): every served Add shows, in served order, in one row under the line, inside its bound element; each is described by its output\'s label', () => {
+    const onAdd = vi.fn();
+    const { container } = render(
+      <>
+        <p id="TEST-output-label">TEST indicative range</p>
+        <NotAvailableYet display={OUTPUT_MISSING_INPUTS} onAdd={onAdd} describedBy="TEST-output-label" />
+      </>,
+    );
+    const bound = container.querySelector(`[data-value-id="${OUTPUT_MISSING_INPUTS.valueId}"]`) as HTMLElement;
+    const buttons = within(bound).getAllByRole('button');
+    expect(buttons.map((button) => button.textContent)).toEqual(['Add TEST gross floor area', 'Add TEST building type', 'Add TEST systems in scope']);
+    // One row of link buttons under the line (the kit's action row), never one per line of text.
+    const row = bound.querySelector('.sov-value__actions');
+    expect(row?.children).toHaveLength(3);
+    for (const button of buttons) {
+      expect(button.getAttribute('data-variant')).toBe('link');
+      expect(button.getAttribute('aria-describedby')).toBe('TEST-output-label');
+    }
+    expect(screen.getByRole('button', { name: 'Add TEST building type' }).getAttribute('aria-describedby')).toBe('TEST-output-label');
+    fireEvent.click(screen.getByRole('button', { name: 'Add TEST building type' }));
+    expect(onAdd).toHaveBeenCalledWith(OUTPUT_MISSING_INPUTS.actions?.[1]);
+    // Without a label to point at, the buttons carry no description.
+    cleanup();
+    render(<NotAvailableYet display={OUTPUT_MISSING_INPUTS} onAdd={vi.fn()} />);
+    for (const button of screen.getAllByRole('button')) expect(button.hasAttribute('aria-describedby')).toBe(false);
+  });
+
   test('US-REVIEW-01 AC7 · rule 7: a bare "Not available yet" that names nothing is refused, and so is a display that is not one', () => {
     const bare = { ...OUTPUT_MISSING_DATASET, text: 'Not available yet' };
     quietly(() => {
@@ -127,6 +154,81 @@ describe('F-RENDER-02 · G10-9 · rule 10: the price component reads its stage f
     });
     render(<Price display={{ ...formal, quotationRecordId: TEST_SUBJECT }} />);
     expect(screen.getByText('Formal quotation')).toBeTruthy();
+  });
+
+  test('G10-2 · rule 10 "A quotation goes stale": the Superseded line renders under the figure, bound to its own value id; beside the stage 3 label it is refused', () => {
+    const superseded = { valueId: `project:${TEST_SUBJECT}.outputs.capex.superseded`, kind: 'line' as const, text: 'Superseded: inputs changed on TEST 6 Oct 2026', shape: 'value' as const };
+    const { container } = render(<Price display={PRICE_STAGE_2} superseded={superseded} />);
+    const line = screen.getByText(superseded.text);
+    expect(line.closest('[data-value-id]')?.getAttribute('data-value-id')).toBe(superseded.valueId);
+    // Its own element, outside the figure's: one value id per element (prompt 3 section 7).
+    expect(container.querySelector(`[data-value-id="${PRICE_STAGE_2.valueId}"]`)?.contains(line)).toBe(false);
+    // A figure whose own lines carry the same line shows it once, inside the figure's element.
+    cleanup();
+    const carried = { ...PRICE_STAGE_2, lines: [...(PRICE_STAGE_2.lines ?? []), { id: 'superseded_inputs_changed', kind: 'status_line' as const, text: superseded.text }] };
+    const once = render(<Price display={carried} superseded={superseded} />);
+    expect(screen.getAllByText(superseded.text)).toHaveLength(1);
+    expect(once.container.querySelector(`[data-value-id="${PRICE_STAGE_2.valueId}"]`)?.contains(screen.getByText(superseded.text))).toBe(true);
+    const formal = { ...PRICE_STAGE_2, quotationRecordId: TEST_SUBJECT, lines: [{ id: 'formal_quotation', kind: 'stage_label' as const, text: 'Formal quotation' }] };
+    quietly(() => {
+      expect(() => render(<Price display={formal} superseded={superseded} />)).toThrow(/stage 2/u);
+    });
+  });
+
+  test('rule 7 · G7-2b: a price that cannot be produced for a missing owner input offers its served Add action inside its bound element; without a handler none shows', () => {
+    const onAdd = vi.fn();
+    const { container, unmount } = render(<Price display={OUTPUT_MISSING_INPUT} onAdd={onAdd} />);
+    const action = OUTPUT_MISSING_INPUT.actions?.find((candidate) => candidate.kind === 'add');
+    if (action === undefined || action.kind !== 'add') throw new Error('the TEST display has no add action');
+    const button = screen.getByRole('button', { name: action.label });
+    expect(container.querySelector(`[data-value-id="${OUTPUT_MISSING_INPUT.valueId}"]`)?.contains(button)).toBe(true);
+    fireEvent.click(button);
+    expect(onAdd).toHaveBeenCalledWith(action);
+    unmount();
+    render(<Price display={OUTPUT_MISSING_INPUT} />);
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  test('DR-1 · R-012 · rule 7 · G7-2b: a price that cannot be produced offers every served Add, in served order, in one row inside its bound element, each described by the price\'s label', () => {
+    const onAdd = vi.fn();
+    const { container } = render(<Price display={OUTPUT_MISSING_INPUTS} label="TEST indicative range" onAdd={onAdd} />);
+    const bound = container.querySelector(`[data-value-id="${OUTPUT_MISSING_INPUTS.valueId}"]`) as HTMLElement;
+    const buttons = within(bound).getAllByRole('button');
+    expect(buttons.map((button) => button.textContent)).toEqual(['Add TEST gross floor area', 'Add TEST building type', 'Add TEST systems in scope']);
+    expect(bound.querySelector('.sov-value__actions')?.children).toHaveLength(3);
+    const label = screen.getByText('TEST indicative range');
+    expect(label.id).not.toBe('');
+    for (const button of buttons) expect(button.getAttribute('aria-describedby')).toBe(label.id);
+    fireEvent.click(buttons[2] as HTMLElement);
+    expect(onAdd).toHaveBeenCalledWith(OUTPUT_MISSING_INPUTS.actions?.[2]);
+    // A label drawn by the page outside the price: the caller names it.
+    cleanup();
+    render(<Price display={OUTPUT_MISSING_INPUTS} onAdd={vi.fn()} describedBy="TEST-row-name" />);
+    for (const button of screen.getAllByRole('button')) expect(button.getAttribute('aria-describedby')).toBe('TEST-row-name');
+  });
+
+  test('V-1 (kit half) · rule 1 "Material exclusions": a price served as its "Incomplete: excludes …" line with its stage label shows the line once, with the stage, and no other text', () => {
+    const incomplete = {
+      valueId: `project:${TEST_SUBJECT}.outputs.capex`,
+      kind: 'line' as const,
+      text: 'Incomplete: excludes TEST item A, TEST item B',
+      shape: 'value' as const,
+      lines: [
+        { id: 'preliminary_investment_estimate', kind: 'stage_label' as const, text: 'Preliminary investment estimate' },
+        { id: 'incomplete_exclusions', kind: 'status_line' as const, text: 'Incomplete: excludes TEST item A, TEST item B' },
+      ],
+    };
+    const { container } = render(<Price display={incomplete} size="headline" />);
+    const bound = container.querySelector(`[data-value-id="${incomplete.valueId}"]`) as HTMLElement;
+    expect(within(bound).getAllByText(incomplete.text)).toHaveLength(1);
+    expect(within(bound).getByText('Preliminary investment estimate')).toBeTruthy();
+    expect(bound.textContent).toBe(`Preliminary investment estimate${incomplete.text}`);
+  });
+
+  test('phase 5 (the stored proposal\'s head): the headline size is layout only; the same content shows', () => {
+    const { container } = render(<Price display={PRICE_STAGE_2} size="headline" />);
+    expect(container.querySelector('.sov-price')?.getAttribute('data-size')).toBe('headline');
+    expect(container.querySelector(`[data-value-id="${PRICE_STAGE_2.valueId}"]`)?.textContent).toContain('about TEST 1,200 (TEST 1,100 to TEST 1,300) EUR');
   });
 
   test('F-RENDER-02 · rule 10: an investment figure with no stage label is refused; a missing price reads its badge', () => {

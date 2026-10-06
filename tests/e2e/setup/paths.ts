@@ -13,6 +13,13 @@ export const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..
 export const API_PORT = 4174;
 export const API_ORIGIN = `http://127.0.0.1:${String(API_PORT)}`;
 
+/**
+ * The web app `vite preview` serves (playwright.config.ts's web server). Phase 5: the API prints the proposal's print
+ * route from this origin (SOVITECH_WEB_ORIGIN; docs/adr/0050 decision 2), so "Download PDF" works in the e2e run.
+ */
+export const WEB_PORT = 4173;
+export const WEB_ORIGIN = `http://127.0.0.1:${String(WEB_PORT)}`;
+
 /** What the stack writes for the specs (git-ignored under test-results/). */
 export const E2E_OUTPUT = join(REPO_ROOT, 'test-results', 'e2e');
 export const STATE_FILE = join(E2E_OUTPUT, 'state.json');

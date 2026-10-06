@@ -1,0 +1,18 @@
+{
+  "TEST-annualConsumptionFromBills@1.0.0": "sha256:8512224b228caa10c2e08f9ac231df28d914480334650d983a179405765e9983",
+  "TEST-annualReturn@1.0.0": "sha256:2690f340b0a1e6efe7a7b32844bd0564e50391944eefae89df56e0a67ba70b96",
+  "TEST-capexFieldDevices@1.0.0": "sha256:02221f460852d675dff8568b5e9f8bda5541af75195c6828acf72f8d6c80fa19",
+  "TEST-capexIndicativeRange@1.0.0": "sha256:b3876bc325c0c23233dd5f652fd3edf9d7ac7f9417364d7b04ce543820568e4b",
+  "TEST-capexLineItems@1.0.0": "sha256:4f6e2dcd9ec760966e9c2f7b27f8353b49a5221e7bad2e1f147cdd7c01ffb2aa",
+  "TEST-capexPreliminaryEstimate@1.0.0": "sha256:02e61cfa0f412c7458b1afdb1f351ce20c7796aef2656e036a71ef7ec2ee33a9",
+  "TEST-fireInterfacePoints@1.0.0": "sha256:803af0100cd8f12033220d0a9224e27ad469fc32a828450283a970ef246f8008",
+  "TEST-levelsTotal@1.0.0": "sha256:5812d2b5d4998d579ccf8684a28d6a5fd6e83a3b786033ba691f8288b675f182",
+  "TEST-operatingEnergyEstimate@1.0.0": "sha256:3ffe5f6b06f814ff5f3832a69f370a158edb415827a3def65205bf46235b04dd",
+  "TEST-operatingEnergyFromRegister@1.0.0": "sha256:62366bd14313db3c16fc2b359d0c160e85f99dc82e952fdf225deef2263b1fd0",
+  "TEST-pointsByType@1.0.0": "sha256:4bd823015b980e1fb2a8be72a32c1c79a2cfb3476ea4edb6ec450aec0d0d8a1c",
+  "TEST-pointsEstimate@1.0.0": "sha256:61e70af6bdff61cc30a501719f629ec1eadce1a2e2105c1b17622e2c5c566a7d",
+  "TEST-pumpPoints@1.0.0": "sha256:a2cb2c446c9fabeaeddfe191b18051cb259afa2e2e38aa817b3db2223ff3da53",
+  "TEST-roomControlPoints@1.0.0": "sha256:1f039bfddaa8ecc210a8ea8ed34693d80f78a8d5ca31e4ac0c196a9f8567407c",
+  "TEST-savingsEstimate@1.0.0": "sha256:5a1d6fd62104fe976f38e3bb7543d6a358585907d70ce56d850d5e45f86ea3bf",
+  "TEST-siteConsumption@1.0.0": "sha256:8cd0073817ab8e999c33a0a821713ab040e4c770acba3a255dc7c7048c06e65e"
+}

@@ -59,10 +59,20 @@ export function stepOnScreen(page: Page): number | 'proposal' | undefined {
   return step === undefined ? undefined : Number.parseInt(step, 10);
 }
 
-/** Waits for a wizard step (or the proposal page) to open and render. */
+/**
+ * Waits for a wizard step (or the proposal page) to open and render. Phase 5: the proposal page is the landing, and
+ * after Generate it shows the generating state (UD-07, ready on its own) until the stored proposal is read, so the
+ * wait is for what the landing settles on: the stored proposal's head, the "not generated" preview or the failed state.
+ */
 export async function waitForStep(page: Page, step: number | 'proposal'): Promise<void> {
   await page.waitForURL((url) => url.pathname.endsWith(step === 'proposal' ? '/proposal' : `/steps/${String(step)}`), { timeout: 30_000 });
+  if (step === 'proposal') await proposalSettled(page);
   await screenReady(page);
+}
+
+/** The proposal's landing past its generating and loading states: a stored version's head, the preview or a failure. */
+export async function proposalSettled(page: Page): Promise<void> {
+  await page.locator('[data-proposal-head], [data-not-generated], [data-generation-failed]').first().waitFor({ timeout: 60_000 });
 }
 
 export interface NewProject {

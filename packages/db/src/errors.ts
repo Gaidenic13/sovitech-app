@@ -1,7 +1,8 @@
 /**
  * The store's refusals and errors. The database raises each refusal with its own
- * SQLSTATE (migrations 0006, 0008, 0009); the data-access layer turns it into a
- * StoreRefusal naming why, so callers never parse a message.
+ * SQLSTATE (migrations 0006, 0008, 0009, and the guards of 0010 to 0016); the
+ * data-access layer turns it into a StoreRefusal naming why, so callers never
+ * parse a message.
  *
  * Rule 13, "Logs and error reports never contain document text": a database
  * error can carry stored text in its DETAIL (the failing row of a CHECK
@@ -51,6 +52,9 @@ export const STORE_REFUSALS = {
   SVX14: 'withdrawal_not_own_value',
   SVX15: 'system_withdrawal_without_request',
   SVX16: 'ingestion_record_not_from_its_writer',
+  SVX17: 'snapshot_part_not_with_its_snapshot',
+  SVX18: 'output_not_started_by_the_requesting_owner',
+  SVX19: 'snapshot_not_from_the_requesting_writer',
   SVG01: 'guard_would_be_lost',
   '42501': 'insufficient_privilege',
 } as const;

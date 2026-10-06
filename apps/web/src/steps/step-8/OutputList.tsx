@@ -14,10 +14,13 @@
  *   missing owner input with its served "Add <field>" action, which opens step 8's inline ask for that
  *   field (PRD R-012 "Until decided"). An output that will be a range shows its served value through
  *   the Value component.
+ * - Every Add the API served shows, in served order, each described by its output's name (phase 5 DR-1): a line
+ *   naming three missing inputs offers three ways in, and "Add gross floor area" under several outputs reads as the
+ *   one for that output.
  */
 import { NotAvailableYet, StatusLine, Value } from '@sovitech/ui';
 import type { OutputAvailability } from '@sovitech/view-model/browser';
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { copy } from '../../copy';
 import type { Displays } from '../../wizard/use-step-view';
 
@@ -41,27 +44,34 @@ export interface OutputListProps {
   readonly onAdd?: (fieldKey: string) => void;
 }
 
+/** One output: its name, and its served line or value; the line's Adds point at the name (DR-1). */
+function OutputRow({ entry, displays, onAdd }: { readonly entry: OutputAvailability; readonly displays: Displays; readonly onAdd?: (fieldKey: string) => void }) {
+  const nameId = useId();
+  const display = displays.get(entry.line);
+  return (
+    <li className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] items-start gap-6 border-t border-(--sov-border) py-4">
+      <div
+        id={nameId}
+        className="text-[15px] leading-6 text-(--sov-text-primary) [&_.sov-status-line]:text-[15px] [&_.sov-status-line]:leading-6 [&_.sov-status-line]:text-(--sov-text-primary)"
+        data-output={entry.output}
+      >
+        <OutputName entry={entry} displays={displays} />
+      </div>
+      {display === undefined ? null : display.missing === 'not_available_yet' || display.badge?.id === 'not_available_yet' ? (
+        <NotAvailableYet display={display} describedBy={nameId} {...(onAdd === undefined ? {} : { onAdd: (action) => onAdd(action.field.fieldKey) })} />
+      ) : (
+        <Value display={display} label={null} />
+      )}
+    </li>
+  );
+}
+
 export function OutputList({ outputs, displays, onAdd }: OutputListProps) {
   return (
     <ul className="flex list-none flex-col">
-      {outputs.map((entry) => {
-        const display = displays.get(entry.line);
-        return (
-          <li key={entry.output} className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] items-start gap-6 border-t border-(--sov-border) py-4">
-            <div
-              className="text-[15px] leading-6 text-(--sov-text-primary) [&_.sov-status-line]:text-[15px] [&_.sov-status-line]:leading-6 [&_.sov-status-line]:text-(--sov-text-primary)"
-              data-output={entry.output}
-            >
-              <OutputName entry={entry} displays={displays} />
-            </div>
-            {display === undefined ? null : display.missing === 'not_available_yet' || display.badge?.id === 'not_available_yet' ? (
-              <NotAvailableYet display={display} {...(onAdd === undefined ? {} : { onAdd: (action) => onAdd(action.field.fieldKey) })} />
-            ) : (
-              <Value display={display} label={null} />
-            )}
-          </li>
-        );
-      })}
+      {outputs.map((entry) => (
+        <OutputRow key={entry.output} entry={entry} displays={displays} {...(onAdd === undefined ? {} : { onAdd })} />
+      ))}
     </ul>
   );
 }

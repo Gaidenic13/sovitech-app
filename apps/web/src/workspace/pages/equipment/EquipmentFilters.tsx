@@ -17,9 +17,9 @@
  * Undesigned (UD-26's Filters menu), per the frontend-design skill within the brand: one hairline row on the surface
  * colour, one list per filter side by side under its label, the active filters as chips under it.
  */
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { ActiveFilters, Badge, SelectionList, ValueName, type ActiveFilter } from '@sovitech/ui';
+import { ActiveFilters, Badge, SearchField, SelectionList, ValueName, type ActiveFilter } from '@sovitech/ui';
 import type { EquipmentQuery, EquipmentResponse } from '@sovitech/view-model/browser';
 import { copy } from '../../../copy';
 import type { Displays } from '../../../wizard/use-step-view';
@@ -38,6 +38,8 @@ export interface EquipmentFiltersProps {
   readonly displays: Displays;
   readonly query: EquipmentQuery;
   readonly onChange: (changes: Partial<Record<QueryKey, string | undefined>>) => void;
+  /** Controls after "Filters" on the toolbar's row (phase 5: Equipment's Export, ./EquipmentExport.tsx; DB-17's "Export"). */
+  readonly actions?: ReactNode;
 }
 
 function FilterList({ label, children }: { readonly label: string; readonly children: ReactNode }) {
@@ -49,7 +51,7 @@ function FilterList({ label, children }: { readonly label: string; readonly chil
   );
 }
 
-export function EquipmentFilters({ filters, displays, query, onChange }: EquipmentFiltersProps) {
+export function EquipmentFilters({ filters, displays, query, onChange, actions }: EquipmentFiltersProps) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState(query.search ?? '');
   const searchId = useId();
@@ -95,32 +97,21 @@ export function EquipmentFilters({ filters, displays, query, onChange }: Equipme
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex h-10 w-[360px] max-w-full items-center gap-2 rounded-(--sov-radius-surface) border border-(--sov-control-border) px-3 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-(--sov-focus-ring)">
-          <Search size={16} strokeWidth={1.5} aria-hidden="true" focusable="false" className="shrink-0 text-(--sov-text-tertiary)" />
-          <label htmlFor={searchId} className="sr-only">
-            {EQ.searchLabel}
-          </label>
-          <input
-            id={searchId}
-            type="search"
-            value={text}
-            placeholder={EQ.searchPlaceholder}
-            maxLength={80}
-            onChange={(event) => setText(event.currentTarget.value)}
-            className="min-w-0 flex-1 bg-transparent text-[14px] text-(--sov-text-primary) outline-none placeholder:text-(--sov-text-muted)"
-          />
+        <SearchField label={EQ.searchLabel} placeholder={EQ.searchPlaceholder} value={text} onChange={setText} maxLength={80} id={searchId} />
+        <div className="flex flex-wrap items-start gap-3">
+          <button
+            ref={trigger}
+            type="button"
+            aria-expanded={open}
+            aria-controls={panelId}
+            onClick={() => setOpen((previous) => !previous)}
+            className="flex h-10 items-center gap-2 rounded-(--sov-radius-control) border border-(--sov-secondary-border) px-3 text-[14px] text-(--sov-text-primary) transition-colors duration-300 hover:border-(--sov-border-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--sov-focus-ring)"
+          >
+            <SlidersHorizontal size={16} strokeWidth={1.5} aria-hidden="true" focusable="false" />
+            <span>{EQ.filters.label}</span>
+          </button>
+          {actions}
         </div>
-        <button
-          ref={trigger}
-          type="button"
-          aria-expanded={open}
-          aria-controls={panelId}
-          onClick={() => setOpen((previous) => !previous)}
-          className="flex h-10 items-center gap-2 rounded-(--sov-radius-control) border border-(--sov-secondary-border) px-3 text-[14px] text-(--sov-text-primary) transition-colors duration-300 hover:border-(--sov-border-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--sov-focus-ring)"
-        >
-          <SlidersHorizontal size={16} strokeWidth={1.5} aria-hidden="true" focusable="false" />
-          <span>{EQ.filters.label}</span>
-        </button>
       </div>
       <div
         id={panelId}

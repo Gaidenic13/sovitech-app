@@ -25,6 +25,10 @@
  *   (no figure can be produced), and the investment output that carries the served stage is not available, with
  *   its "Not available yet: " line. The API still serves the stage the rules give for the figure
  *   (`proposal.stageLabel`), which the page reads to find that output; it does not show it.
+ * - phase 5 (the integrator; Expected unchanged): the stored proposal, read through `proposals.view` after Generate,
+ *   names each investment output by its stage label (`label`) beside its "Not available yet" line, and its head names
+ *   no stage (the web half of the stored proposal page: apps/web/src/proposal/ProposalPage.test.tsx, "G10-11 (web
+ *   half, the stored proposal)");
  * - the rendered half: the app's own route table (apps/web/src/routes.tsx) in a memory router, with its real step
  *   8 page, API client and the page's own `fetch`, in Vitest's happy-dom environment, against a TEST API this file
  *   serves over HTTP on 127.0.0.1 that answers with the responses the API half was served for the same project
@@ -41,7 +45,9 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { builtinEnvironments } from 'vitest/runtime';
 import {
+  GenerateResponseSchema,
   ProposalPreviewResponseSchema,
+  ProposalResponseSchema,
   StepResponseSchema,
   type DisplayObject,
   type OutputAvailability,
@@ -155,6 +161,34 @@ describe('G10-11 (API half, over a TEST database)', () => {
     const response = ProposalPreviewResponseSchema.parse((await api.app.inject({ method: 'GET', url: `/api/projects/${projectId}/proposal`, headers: { ...owner } })).json());
     checkOutputs(response.view.outputs, response.displayObjects);
     expect(wordsOf(response.displayObjects).filter((text) => text.includes('Formal quotation'))).toEqual([]);
+  });
+
+  it('G10-11 · R-111 · R-116 · US-PROPOSAL-04 (phase 5, the stored proposal; Expected unchanged): each investment output is named only by its stage label, beside its "Not available yet" line; the head names no stage; no other stage wording', async () => {
+    if (projectId === undefined) throw new Error('no TEST project');
+    const generated = await api.app.inject({ method: 'POST', url: `/api/projects/${projectId}/proposals`, headers: { ...owner }, payload: {} });
+    expect(generated.statusCode, generated.body).toBe(201);
+    const { snapshotId } = GenerateResponseSchema.parse(generated.json());
+    const read = await api.app.inject({ method: 'GET', url: `/api/projects/${projectId}/proposals/${snapshotId}`, headers: { ...owner } });
+    expect(read.statusCode, read.body).toBe(200);
+    const { view, displayObjects } = ProposalResponseSchema.parse(read.json());
+    const byId = (valueId: string | null | undefined): DisplayObject | undefined => displayObjects.find((display) => display.valueId === valueId);
+    for (const [output, label] of Object.entries(INVESTMENT_OUTPUTS)) {
+      const entry = view.investment.outputs.find((candidate) => candidate.output === output);
+      expect(entry?.availability, output).toBe('not_available_yet');
+      expect(byId(entry?.label), output).toMatchObject({ kind: 'line', text: label, lines: [{ kind: 'stage_label', text: label }] });
+      const line = byId(entry?.display);
+      expect(line?.text.startsWith('Not available yet: '), output).toBe(true);
+      expect(line?.lines?.some((entryLine) => entryLine.kind === 'stage_label') ?? false, output).toBe(false);
+      // No stage is stated for a figure that does not exist.
+      expect(entry?.price).toMatchObject({ stage: null, stageId: null, quotationRecordId: null, superseded: null });
+    }
+    // The head (the Proposal card's content): the stage-carrying output's "Not available yet" line, with no stage named.
+    expect(view.headline.investment.price.stage).toBeNull();
+    expect(byId(view.headline.investment.price.figure)?.text.startsWith('Not available yet: ')).toBe(true);
+    // Each stage label once, on its own output; nothing else names a stage, "Formal quotation" nowhere.
+    expect(wordsOf(displayObjects).filter((text) => STAGE_WORDS.some((label) => text.includes(label))).sort()).toEqual(
+      ['Indicative range', 'Indicative range', 'Preliminary investment estimate', 'Preliminary investment estimate'].sort(),
+    );
   });
 });
 

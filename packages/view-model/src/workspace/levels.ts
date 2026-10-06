@@ -6,11 +6,14 @@
  * - One level per counted level, in building order (rule 8's level types, bottom up: below ground from the deepest,
  *   semi-basement, ground, mezzanine, upper floors, setback or technical, attic, roof plant). A level type stated as 0
  *   has no level; a level type no source states is named once as Unknown (rule 8: "Parts with no source are Unknown").
- * - Labels: one function (D-18 open; PRD R-076 interim: "level labels use the document's own names and numbering"):
- *   the regim de înălțime's letter where the floor notation reads one (S, P, Mz, E, Er; the parser's letters, the
- *   only ones rule 8's example shows), numbered as rule 8 numbers floors ("Etaj 1 is the first floor above parter";
- *   below ground, S1 is the nearest the ground); the level type's registered label otherwise. A level type counted
- *   once keeps its letter alone (S, Mz, Er), except the upper floors, which are always numbered (E1).
+ * - Labels: one function, in English (D-18, the owner's decision of 2026-10-05, "2 English": "B1, GF, Level 1";
+ *   docs/adr/0045 decision 3 as amended): below ground B1 … Bn, always numbered, B1 the nearest the ground; the ground
+ *   floor GF; the upper floors Level 1 … Level n, always numbered, as rule 8 numbers floors ("Etaj 1 is the first
+ *   floor above parter": Level 1); every other level type by its registered label (Semi-basement, Mezzanine, Setback
+ *   or technical floor, Attic, Roof plant), numbered only when the structure counts more than one of it (Attic 2). A
+ *   document's own notation ("3S+P+Mz+12E+Er") is never rewritten: it stays the floors field's original text, shown as
+ *   written with its evidence (rule 8, "Floors": "Numbering follows the document"; "The regim de înălțime is the
+ *   first source").
  * - The floor field in conflict, or a level type read two ways (an ambiguous reading): no list is built from either
  *   value (rule 4: "never runs on one of the values"): "Not available yet: two values for floors", never alone (rule 7):
  *   beside it the floors field's own display as step 3 resolves it (both readings with their sources, and rule 4's
@@ -20,15 +23,22 @@
  * - Nothing known: "Not available yet: floor structure", with the actions to upload a document and to enter the
  *   floors (rule 7; R-077; G7-14).
  */
-import { FIELD, FLOOR_NOTATION_LEVEL_TYPES, LEVEL_TYPES, type LevelType } from '@sovitech/registry';
+import { FIELD, LEVEL_TYPES, type LevelType } from '@sovitech/registry';
 import type { DisplayObject, LevelOption, LevelRegister, ValueId } from '../browser/contract';
 import { qualifierLabel, resolveLine } from '../resolver';
 import { MISSING } from './copy';
 import type { WorkspaceProject } from './inputs';
 import { DisplaySet, FORMAT, notAvailable, projectPath, valueIdFor } from './shared';
 
-/** The letter the floor notation writes for a level type, where the parser reads one (rule 8's example). */
-const LETTER_OF: ReadonlyMap<string, string> = new Map(Object.entries(FLOOR_NOTATION_LEVEL_TYPES).map(([letter, type]) => [type, letter]));
+/**
+ * The English short labels of D-18 (the owner's examples "B1, GF, Level 1"): the level types they name and the form
+ * each takes for the n-th level of its type. Every other level type is named by its registered label.
+ */
+const ENGLISH_LABELS: Readonly<Partial<Record<LevelType, (number: number, count: number) => string>>> = Object.freeze({
+  below_ground: (number) => `B${String(number)}`,
+  ground: (number, count) => (count === 1 ? 'GF' : `GF ${String(number)}`),
+  upper: (number) => `Level ${String(number)}`,
+});
 
 /** Rule 4's routing line ("Documents disagree on this. A SOVITECH engineer will check it."): the registry's rule line id. */
 const ROUTING_LINE = 'conflict_for_engineer';
@@ -41,17 +51,14 @@ export interface Level {
   readonly key: string;
   readonly label: string;
   readonly levelType: LevelType;
-  /** Its position from the bottom: 1 is the n-th of its type counted from the ground (S1, E1). */
+  /** Its position from the bottom: 1 is the n-th of its type counted from the ground (B1, Level 1). */
   readonly number: number;
 }
 
-/** The label of the n-th level of a type, out of `count` (the one label function: D-18 interim). */
+/** The label of the n-th level of a type, out of `count` (the one label function: D-18, English, 2026-10-05). */
 export function levelLabel(levelType: LevelType, number: number, count: number): string {
-  const letter = LETTER_OF.get(levelType);
-  if (letter !== undefined) {
-    if (levelType === 'upper') return `${letter}${String(number)}`;
-    return count === 1 ? letter : `${letter}${String(number)}`;
-  }
+  const english = ENGLISH_LABELS[levelType];
+  if (english !== undefined) return english(number, count);
   const word = qualifierLabel(levelType);
   const name = `${word.charAt(0).toUpperCase()}${word.slice(1)}`;
   return count === 1 ? name : `${name} ${String(number)}`;
@@ -65,7 +72,7 @@ export function levelsOf(counts: ReadonlyMap<LevelType, number>): Level[] {
     const count = counts.get(levelType);
     if (count === undefined) continue;
     const numbers = Array.from({ length: count }, (_unused, index) => index + 1);
-    // Below ground is listed from the deepest up: S3, S2, S1 (S1 is the nearest the ground).
+    // Below ground is listed from the deepest up: B3, B2, B1 (B1 is the nearest the ground).
     if (levelType === 'below_ground') numbers.reverse();
     for (const number of numbers) levels.push({ key: `${levelType}_${String(number)}`, label: levelLabel(levelType, number, count), levelType, number });
   }

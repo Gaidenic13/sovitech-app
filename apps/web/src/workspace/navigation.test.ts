@@ -12,6 +12,12 @@ describe('ADR 0043 · R-146 · R-012: the workspace paths', () => {
     expect(pageOfPath(`/projects/${PROJECT}/property`)).toBeUndefined();
   });
 
+  it('R-110 · US-PROPOSAL-11 AC3 · ADR 0043 (amended in phase 5): a stored version of the proposal is the Proposal page\'s, so the sidebar marks Proposal on it; the print route is no workspace page', () => {
+    expect(pageOfPath(`/projects/${PROJECT}/proposals/0192f0e4-7c1a-7d2b-9e3f-4a5b6c7d8e00`)).toBe('proposal');
+    expect(pageOfPath(`/projects/${PROJECT}/print/proposals/0192f0e4-7c1a-7d2b-9e3f-4a5b6c7d8e00`)).toBeUndefined();
+    expect(pageOfPath(`/projects/${PROJECT}/reports`)).toBe('reports');
+  });
+
   it('ADR 0043 decision 6 · R-077: the floor selection is kept on the pages that read it only', () => {
     expect(pagePath(PROJECT, 'zones', 'upper_3')).toBe(`/projects/${PROJECT}/zones?level=upper_3`);
     expect(pagePath(PROJECT, 'equipment', 'below_ground_1')).toBe(`/projects/${PROJECT}/equipment?level=below_ground_1`);

@@ -6,7 +6,8 @@
  * required fields), G7-3 (no Skip on an answered question), 5.2 "No documents" (no manual-entry
  * form; values read Unknown or Not provided yet; outputs "Not available yet"). Every screen and
  * state it reaches passes the render test, axe and the reserved-term scan, and carries no demo line
- * (screen-checks.ts).
+ * (screen-checks.ts). Phase 5: Generate stores a proposal and the landing shows it, every output "Not available yet",
+ * naming what is missing (ADR 0048).
  */
 import { expect, test } from '@playwright/test';
 import { displayObjectsFromApi } from '../render/api-display-objects';
@@ -70,7 +71,15 @@ test('US-INTAKE-01 · US-INTAKE-02 · US-INTAKE-06 · US-INTAKE-16 · US-REVIEW-
   await waitForStep(page, 'proposal');
   await expect(page).toHaveURL(new RegExp(`/projects/${projectId}/proposal$`, 'u'));
   await checkScreen(page, { demo: false, label: 'c-UD-07-proposal' }, checked);
-  await expect(page.getByText('No investment figure is available yet. Each output below names what it still needs.')).toBeVisible();
+  // Phase 5: Generate stores a proposal, and the landing shows it (UD-06 with UD-01's content at its head; R-116): no
+  // figure while no dataset is approved, each investment output named by its stage label beside its "Not available
+  // yet" line (G10-11), and the head names no stage.
+  const head = page.getByRole('region', { name: 'Where your proposal stands' });
+  await expect(head).toContainText('Not available yet: SOVITECH point templates; SOVITECH cost ranges and benchmarks');
+  await expect(head).not.toContainText(/Indicative range|Preliminary investment estimate/u);
+  const investment = page.getByRole('region', { name: 'Investment' });
+  await expect(investment.getByText('Indicative range', { exact: true })).toBeVisible();
+  await expect(investment.getByText('Preliminary investment estimate', { exact: true })).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
 
   expect(checked).toHaveLength(16);

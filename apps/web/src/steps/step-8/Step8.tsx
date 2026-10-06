@@ -12,8 +12,12 @@
  * - **Generate is never disabled** (rule 7; US-INTAKE-16 AC5, US-INTAKE-18 AC4): whatever is open,
  *   loading, still being read or failed, it skips the inline asks left unanswered (rule 7: pressing
  *   Continue on an unanswered question skips it; "Generate without it" is the same press), sends the
- *   step's Continue and opens the proposal page, which shows the generating state (UD-07). Nothing
- *   is stored as a proposal before phase 5's engine (ADR 0039).
+ *   step's Continue, which opens the proposal's landing, and then sends the one `proposals.generate`
+ *   of this press (phase 5; PRD R-109; docs/adr/0048 decision 1; ../../proposal/generation.ts): the
+ *   landing shows the generating state (UD-07) while it is on its way, then the stored proposal, or
+ *   the failed state (UD-47). The POST is sent from the press, never from a page's effect, so a reload
+ *   or a remount never sends a second one. A Continue that is refused sends no POST and says why
+ *   here; a press while a generation is on its way sends its Continue and no second POST.
  * - **UD-35 states:** loading shows the card titles and no figure (AC1); a load failure keeps Back and
  *   Generate, shows no value it could not load, offers "Try again" and hides the "Everything ready?"
  *   banner, which would read as untrue there (AC3); incomplete data shows the asks and the list of
@@ -68,6 +72,7 @@ import { WizardStepper } from '../../wizard/WizardStepper';
 import { EMPTY_CONTINUE, useWizard } from '../../wizard/WizardProvider';
 import { useInFlight } from '../../wizard/use-in-flight';
 import type { Displays } from '../../wizard/use-step-view';
+import { abandonGeneration, beginGeneration, sendGeneration } from '../../proposal/generation';
 import { QUESTION_COPY } from '../step-5/Step5';
 import { InlineAsk } from './InlineAsk';
 import { OutputList } from './OutputList';
@@ -137,6 +142,7 @@ export function Step8() {
   const [failure, setFailure] = useState<string | null>(null);
   const failureId = useId();
   const changedId = useId();
+  const proposalTitleId = useId();
   const page = useRef<HTMLDivElement>(null);
   const refresh = useCallback(() => void reload({ quiet: true }), [reload]);
   /** Reads the view again after a write; the write's control stays busy until it is read. */
@@ -187,6 +193,9 @@ export function Step8() {
     if (!generating.claim()) return;
     setFailure(null);
     const asks = view?.proposal.inlineAsks ?? [];
+    const reading = view === undefined || view.stillReading === null ? null : (displays.get(view.stillReading) ?? null);
+    // The landing shows the generating state from here on (UD-07); false while an earlier press's POST is on its way.
+    const began = beginGeneration(projectId, reading);
     void (async () => {
       // The asks left unanswered are skipped once (rule 7); a skip that is refused never holds Generate back.
       for (const ask of asks) {
@@ -194,21 +203,27 @@ export function Step8() {
           await request('fields.skip', { params: { projectId }, body: { questionId: ask.questionId, step: 8 } });
         } catch (error) {
           if (isSignedOut(error)) {
+            if (began) abandonGeneration(projectId);
             onSignedOut();
             return;
           }
         }
       }
       try {
+        // Continue opens the landing (ADR 0048 decision 9), which shows the generating state while the POST is on its way.
         await continueFrom(8, asOf, EMPTY_CONTINUE);
       } catch (error) {
+        if (began) abandonGeneration(projectId);
         generating.release();
         if (isSignedOut(error)) {
           onSignedOut();
           return;
         }
         setFailure(copy.step8.generateFailed);
+        return;
       }
+      // The one POST of this press (R-109): it writes no answer and accepts no suggestion (rule 3; G3-23).
+      if (began) await sendGeneration(projectId, onSignedOut);
     })();
   };
 
@@ -227,13 +242,14 @@ export function Step8() {
     ) : proposalStage.kind === 'stage_line' ? (
       <StatusLine line={proposalStage.line} />
     ) : proposalStage.kind === 'not_available' ? (
-      <NotAvailableYet display={proposalStage.display} onAdd={(action) => showField(action.field.fieldKey)} />
+      // Every served Add, each described by the card's title, so it reads apart from the outputs list's (phase 5 DR-1).
+      <NotAvailableYet display={proposalStage.display} describedBy={proposalTitleId} onAdd={(action) => showField(action.field.fieldKey)} />
     ) : null;
   // A Save refused because the field changed, whose ask the view no longer serves: said once where the asks are.
   const changedGone = view !== undefined && [...changedAsks].some((questionId) => !view.proposal.inlineAsks.some((ask) => ask.questionId === questionId));
 
   const proposalCard = (
-    <Card title={copy.step8.cards.proposal} headingLevel={2} icon={ClipboardList}>
+    <Card title={<span id={proposalTitleId}>{copy.step8.cards.proposal}</span>} headingLevel={2} icon={ClipboardList}>
       <div className="flex flex-col gap-3">
         <p className="text-[15px] leading-6 text-(--sov-text-tertiary)">{copy.step8.proposalBody}</p>
         {stage}

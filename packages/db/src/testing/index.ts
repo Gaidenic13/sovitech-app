@@ -264,3 +264,71 @@ export async function createTestDocumentValue(
     return { subjectId: subject.id, documentId: document.id, contentHash, candidateId, serviceId };
   });
 }
+
+/** What insertTestQuotationRecord stores: a TEST stage 3 record (rule 10's fields) naming TEST accounts only. */
+export interface TestQuotationRecord {
+  readonly projectId: string;
+  /** A member of the project in whose scope the row is written (row-level security), a TEST account. */
+  readonly scopeUserId: string;
+  readonly snapshotId: string | null;
+  /** TEST accounts only, never a real person (rule 10, "Demo data"; ADR 0048 decision 8). */
+  readonly reviewingEngineerId: string;
+  readonly commercialReviewerId: string;
+  readonly issuedOn: string;
+  readonly validUntil: string;
+  /** The input candidates the record rests on, each with its hash ("a hash of every input candidate", rule 10; the engine's `candidateHashOf`). */
+  readonly inputs: readonly { readonly candidateId: string; readonly candidateHash: string }[];
+}
+
+/**
+ * A TEST quotation record, for the cases that prove how a stored record is read and when it goes stale (rule 10,
+ * "Stage 3 is derived, not passed", "A quotation goes stale when its inputs change"; G10-2, G10-9; ADR 0048 decision
+ * 8). Nothing in the app writes one: the table's writer guard names `no_writer_decided`, a role no store login holds,
+ * until PRD D-20 decides who creates records. This TEST machinery creates that role in the throwaway TEST database only
+ * (a cluster role, member of the table owner and of the app's role for the row-level policy's functions), and writes
+ * the record as it, in the scope of a TEST member of the project. The record number reads TEST. Never used by the
+ * app, the seed or a script (dependency-cruiser `db-testing-only-from-tests`).
+ */
+export async function insertTestQuotationRecord(database: TestDatabase, input: TestQuotationRecord): Promise<string> {
+  const id = newId();
+  await database.asAdministrator(
+    `DO $role$ BEGIN
+       IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = 'no_writer_decided') THEN
+         CREATE ROLE no_writer_decided NOLOGIN;
+         GRANT sovitech_db_owner TO no_writer_decided;
+         GRANT sovitech_db_app TO no_writer_decided;
+       END IF;
+     END $role$`,
+  );
+  const client = new pg.Client({ connectionString: database.administratorUrl, options: '-c TimeZone=UTC' });
+  await client.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(`SELECT pg_catalog.set_config('sovitech.user_id', $1, true), pg_catalog.set_config('sovitech.project_id', $2, true)`, [
+      input.scopeUserId,
+      input.projectId,
+    ]);
+    await client.query('SET LOCAL ROLE no_writer_decided');
+    await client.query(
+      `INSERT INTO sovitech.quotation_records (id, project_id, record_number, reviewing_engineer_id, commercial_reviewer_id, issued_on,
+         valid_until, currency, vat_basis, inclusions, exclusions, proposal_snapshot_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'EUR', 'TEST VAT basis', ARRAY['TEST inclusion'], ARRAY['TEST exclusion'], $8)`,
+      [id, input.projectId, `TEST-Q-${id.slice(-6)}`, input.reviewingEngineerId, input.commercialReviewerId, input.issuedOn, input.validUntil, input.snapshotId],
+    );
+    for (const entry of input.inputs) {
+      await client.query('INSERT INTO sovitech.quotation_record_inputs (record_id, project_id, candidate_id, candidate_hash) VALUES ($1, $2, $3, $4)', [
+        id,
+        input.projectId,
+        entry.candidateId,
+        entry.candidateHash,
+      ]);
+    }
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    await client.end();
+  }
+  return id;
+}

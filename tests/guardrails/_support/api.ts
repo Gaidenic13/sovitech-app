@@ -67,7 +67,15 @@ export interface TestApi {
 }
 
 export async function startTestApi(
-  options: { readonly uploadGuard?: UploadGuard; readonly readModels?: boolean; readonly devLogin?: boolean; readonly registry?: ApiRegistry } = {},
+  options: {
+    readonly uploadGuard?: UploadGuard;
+    readonly readModels?: boolean;
+    readonly devLogin?: boolean;
+    readonly registry?: ApiRegistry;
+    /** Phase 5: a TEST engine catalogue (the engine refuses it outside the test runner) and a TEST drafting service. */
+    readonly engine?: ApiServices['engine'];
+    readonly drafting?: ApiServices['drafting'];
+  } = {},
 ): Promise<TestApi> {
   const database = await startTestDatabase();
   const dataDirectory = mkdtempSync(join(tmpdir(), 'sovitech-test-data-'));
@@ -88,6 +96,8 @@ export async function startTestApi(
     },
     devAccounts: devAccountIds,
     ...(options.registry === undefined ? {} : { registry: options.registry }),
+    ...(options.engine === undefined ? {} : { engine: options.engine }),
+    ...(options.drafting === undefined ? {} : { drafting: options.drafting }),
   };
   const app = buildServer({ gates: assertGatesStartupSafe(), services });
   await app.ready();

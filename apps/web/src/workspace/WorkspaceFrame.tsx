@@ -44,7 +44,7 @@
  * states of the sidebar), drawn per the frontend-design skill within the brand: hairlines, no fills but
  * the selected row's, Inter at the brand's weights, the footer a single quiet line.
  */
-import { ClipboardList, FileText, Layers, LayoutGrid, Network, Server, type LucideIcon } from 'lucide-react';
+import { ClipboardList, FileDown, FileText, Layers, LayoutGrid, Network, Server, type LucideIcon } from 'lucide-react';
 import { useEffect, useId, useMemo, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { Button, Notice, SideNav, StatusFooter, WorkspaceFrame as FrameLayout, type SideNavItem } from '@sovitech/ui';
@@ -72,6 +72,7 @@ const PAGE_ICONS: Readonly<Record<WorkspacePage, LucideIcon>> = {
   zones: LayoutGrid,
   equipment: Server,
   documents: FileText,
+  reports: FileDown,
 };
 
 export function ProjectWorkspaceFrame({ children }: { readonly children: ReactNode }) {

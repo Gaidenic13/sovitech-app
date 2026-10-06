@@ -98,7 +98,10 @@ export interface WizardContextValue {
    * thrown to the step, which shows them inline; nothing else is blocked (rule 7).
    */
   readonly continueFrom: (step: StepNumber, asOf: string | undefined, body: ContinueRequest) => Promise<void>;
-  /** The proposal page (Generate before phase 5; ADR 0039 decision 4), recording step 8 as left. */
+  /**
+   * The proposal's landing (ADR 0039 decision 4; phase 5: the latest stored proposal, ADR 0048 decision 9), recording
+   * step 8 as left. It sends no Generate: step 8's press sends the one POST (apps/web/src/proposal/generation.ts).
+   */
   readonly openProposal: (from?: { readonly step: StepNumber; readonly asOf: string | undefined }) => void;
 }
 

@@ -30,6 +30,18 @@ export const proposalView: RequestMatch = (method, path) => method === 'GET' && 
 export const workspaceView: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/workspace/[a-z-]+$`, 'u').test(path);
 /** The workspace frame (`GET /api/projects/:projectId/workspace`, phase 4): the sidebar's pages, the project card and the footer. */
 export const workspaceFrame: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/workspace$`, 'u').test(path);
+/** Phase 5 (docs/adr/0049): the stored versions (`GET /api/projects/:projectId/proposals`, `proposals.list`). */
+export const proposalsList: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/proposals$`, 'u').test(path);
+/** Phase 5: Generate (`POST /api/projects/:projectId/proposals`, `proposals.generate`). */
+export const proposalsGenerate: RequestMatch = (method, path) => method === 'POST' && new RegExp(`^/api/projects/${UUID}/proposals$`, 'u').test(path);
+/** Phase 5: a stored version (`GET /api/projects/:projectId/proposals/:snapshotId`, `proposals.view`). */
+export const proposalVersion: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/proposals/${UUID}$`, 'u').test(path);
+/** Phase 5: an export of a stored version (`POST …/proposals/:snapshotId/exports`, `proposals.export`). */
+export const proposalExport: RequestMatch = (method, path) => method === 'POST' && new RegExp(`^/api/projects/${UUID}/proposals/${UUID}/exports$`, 'u').test(path);
+/** Phase 5: Reports (`GET /api/projects/:projectId/reports`, `reports.list`). */
+export const reportsList: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/reports$`, 'u').test(path);
+/** Phase 5: the Equipment register's CSV (`GET /api/projects/:projectId/exports/equipment`, `exports.equipment`). */
+export const equipmentExport: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/exports/equipment$`, 'u').test(path);
 /** An upload's chunk (`PUT /api/projects/:projectId/uploads/:uploadId`). */
 export const uploadChunk: RequestMatch = (method, path) => method === 'PUT' && new RegExp(`^/api/projects/${UUID}/uploads/${UUID}$`, 'u').test(path);
 

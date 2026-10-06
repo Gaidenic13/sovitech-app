@@ -428,4 +428,11 @@ describe('ADR 0043 decision 5 · dashboards-spec 3.4: the frame, the inspector l
     expect(screen.getByText('TEST subtitle').className).toBe('sov-page-header__subtitle');
     expect(screen.getByRole('button', { name: 'TEST upload' })).toBeTruthy();
   });
+
+  test('phase 5 DR-16: the controls sit at the title block\'s last line by default, and at its top with `actionsAlign="start"`, so the title keeps one position whatever their height', () => {
+    const { container, rerender } = render(<PageHeader title="TEST proposal" actions={<button type="button">TEST download</button>} />);
+    expect(container.querySelector('.sov-page-header__row')?.hasAttribute('data-actions-align')).toBe(false);
+    rerender(<PageHeader title="TEST proposal" actionsAlign="start" actions={<button type="button">TEST download</button>} />);
+    expect(container.querySelector('.sov-page-header__row')?.getAttribute('data-actions-align')).toBe('start');
+  });
 });

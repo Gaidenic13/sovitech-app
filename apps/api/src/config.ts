@@ -33,6 +33,9 @@ export const SETTING_NAMES = [
   // Phase 3 part B (docs/adr/0038 decision 9): how long a session lives unused, in minutes, and in all, in hours.
   'SOVITECH_SESSION_IDLE_MINUTES',
   'SOVITECH_SESSION_ABSOLUTE_HOURS',
+  // Phase 5 (docs/adr/0050-exports-print-route-and-pdf.md decision 2): the web origin the API prints the proposal's print
+  // route from (dev: Vite's origin; e2e: vite preview's). Unset: exports answer 503 `export_unavailable`.
+  'SOVITECH_WEB_ORIGIN',
 ] as const;
 export type SettingName = (typeof SETTING_NAMES)[number];
 
@@ -137,4 +140,26 @@ export function extractorImage(settings: Settings): string {
 /** The IFC reader image (services/ifc-reader/Dockerfile; ADR 0031), built locally. */
 export function ifcReaderImage(settings: Settings): string {
   return settings.SOVITECH_IFC_READER_IMAGE ?? DEFAULT_IFC_READER_IMAGE;
+}
+
+/**
+ * The web origin the PDF printer opens the print route on (ADR 0050 decision 2): an http origin on the loopback
+ * interface only (local development and e2e: prompt 3 5.2 "Hosting": local only), with no path, query or credentials.
+ * Unset: undefined, and exports answer 503 `export_unavailable` (the owner is told the PDF could not be prepared).
+ * Anything else stops the start (never printing the value).
+ */
+export function webOrigin(settings: Settings): string | undefined {
+  const raw = settings.SOVITECH_WEB_ORIGIN;
+  if (raw === undefined) return undefined;
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new SettingError('SOVITECH_WEB_ORIGIN is not an origin (see .env.example).');
+  }
+  const loopback = url.hostname === '127.0.0.1' || url.hostname === 'localhost' || url.hostname === '[::1]';
+  if ((url.protocol !== 'http:' && url.protocol !== 'https:') || !loopback || url.username !== '' || url.password !== '' || url.pathname !== '/' || url.search !== '' || url.hash !== '') {
+    throw new SettingError('SOVITECH_WEB_ORIGIN must be an http origin on the loopback interface, with no path (see .env.example).');
+  }
+  return url.origin;
 }

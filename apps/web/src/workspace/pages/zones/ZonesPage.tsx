@@ -30,10 +30,9 @@
  *   registered (ADR 0045 decision 1), so the empty states carry the page; TEST registries prove the rest. The demo line
  *   is the frame's (the status footer).
  */
-import { Search } from 'lucide-react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { ActiveFilters, InspectorLayout, MenuButton, PageHeader, RegisterTable, Value, type ActiveFilter, type RegisterColumn } from '@sovitech/ui';
+import { ActiveFilters, InspectorLayout, MenuButton, PageHeader, RegisterTable, SearchField, Value, type ActiveFilter, type RegisterColumn } from '@sovitech/ui';
 import { UUID_PATTERN, type ZonesResponse } from '@sovitech/view-model/browser';
 import { copy } from '../../../copy';
 import { LoadFailed, Loading } from '../../../pages/PageState';
@@ -285,21 +284,7 @@ export function ZonesPage() {
       >
         <div className="flex min-w-0 flex-col gap-4 [&>*]:min-w-0">
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex h-10 w-[280px] items-center gap-2 rounded-(--sov-radius-surface) border border-(--sov-control-border) px-3 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-(--sov-focus-ring)">
-              <Search size={16} strokeWidth={1.5} aria-hidden="true" focusable="false" className="shrink-0 text-(--sov-text-tertiary)" />
-              <label htmlFor={searchId} className="sr-only">
-                {ZONES.searchLabel}
-              </label>
-              <input
-                id={searchId}
-                type="search"
-                value={searchText}
-                placeholder={ZONES.searchPlaceholder}
-                maxLength={SEARCH_MAX}
-                onChange={(event) => setSearchText(event.currentTarget.value)}
-                className="min-w-0 flex-1 bg-transparent text-[14px] text-(--sov-text-primary) outline-none placeholder:text-(--sov-text-muted)"
-              />
-            </div>
+            <SearchField label={ZONES.searchLabel} placeholder={ZONES.searchPlaceholder} value={searchText} onChange={setSearchText} maxLength={SEARCH_MAX} id={searchId} />
             <ActiveFilters
               label={ZONES.filters.active}
               filters={active}

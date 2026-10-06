@@ -1,7 +1,8 @@
 import { openStore } from '@sovitech/db';
 import { assertGatesStartupSafe } from '@sovitech/registry/gates';
 import { SessionStore } from './auth/sessions';
-import { REPOSITORY_ROOT, databaseUrl, devAccountIds, readSettings, sessionLifetimes } from './config';
+import { REPOSITORY_ROOT, databaseUrl, devAccountIds, readSettings, sessionLifetimes, webOrigin } from './config';
+import { createPdfPrinter } from './proposal/export';
 import { readPort } from './port';
 import { buildServer } from './server';
 import { stderrApiLog, type ApiServices } from './services';
@@ -24,6 +25,9 @@ function localServices(): ApiServices | undefined {
     return undefined;
   }
   if (secret.length < 32) throw new Error('SOVITECH_SESSION_SECRET must be 32 characters or more.');
+  // The print route's origin (docs/adr/0050 decision 2): set, the API prints proposal PDFs with one headless browser,
+  // launched on the first export; unset, an export answers 503 `export_unavailable`.
+  const origin = webOrigin(settings);
   return {
     store: openStore(url),
     files: new FileStore(dataDirectoryFromEnvironment(REPOSITORY_ROOT, { ...process.env, ...(settings.SOVITECH_DATA_DIR === undefined ? {} : { SOVITECH_DATA_DIR: settings.SOVITECH_DATA_DIR }) })),
@@ -38,6 +42,9 @@ function localServices(): ApiServices | undefined {
     devAccounts: devAccountIds(settings),
     // The registry seam (docs/adr/0044 decision 4): the production registry, and nothing else, in the app.
     registry: PRODUCTION_API_REGISTRY,
+    // Phase 5: no engine seam (the production catalogue runs, with no dataset: none is approved) and no drafting (no
+    // key is set: PRD R-115 "Until decided"); the printer only with a web origin.
+    ...(origin === undefined ? {} : { webOrigin: origin, printer: createPdfPrinter({ timeoutMs: 60_000 }) }),
   };
 }
 

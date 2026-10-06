@@ -6,8 +6,8 @@
  * view offers beside a "Not available yet" line (the contract's `WorkspaceAction`: each opens a built
  * page, PRD R-012 "Until decided").
  *
- * No path here leads to a page that is not built (R-146 "Until decided"): Overview, Property, Alarms,
- * Reports and Metrics have none.
+ * No path here leads to a page that is not built (R-146 "Until decided"): Overview, Property, Alarms
+ * and Metrics have none. Reports (DB-18) is built in phase 5 (docs/adr/0049).
  */
 import { useCallback } from 'react';
 import { useSearchParams } from 'react-router';
@@ -21,6 +21,7 @@ export const PAGE_SEGMENTS: Readonly<Record<WorkspacePage, string>> = {
   zones: 'zones',
   equipment: 'equipment',
   documents: 'documents',
+  reports: 'reports',
 };
 
 /** The search parameter that holds the shared floor selection (a `LevelOption.key`). */
@@ -36,10 +37,18 @@ export function pagePath(projectId: string, page: WorkspacePage, level?: string)
   return `${path}?${new URLSearchParams({ [LEVEL_PARAM]: level }).toString()}`;
 }
 
-/** The built page a project path shows (`/projects/<id>/equipment/<asset>` is Equipment's), or undefined. */
+/**
+ * Path segments that belong to a built page without being its own segment: a stored version of the proposal
+ * (`/projects/<id>/proposals/<snapshot>`, phase 5; docs/adr/0043 amended) is the Proposal page's.
+ */
+const SEGMENT_PAGES: Readonly<Record<string, WorkspacePage>> = { proposals: 'proposal' };
+
+/** The built page a project path shows (`/projects/<id>/equipment/<asset>` is Equipment's, `/proposals/<snapshot>` the Proposal's), or undefined. */
 export function pageOfPath(pathname: string): WorkspacePage | undefined {
   const segment = /^\/projects\/[^/]+\/([^/?#]+)/u.exec(pathname)?.[1];
   if (segment === undefined) return undefined;
+  const page = SEGMENT_PAGES[segment];
+  if (page !== undefined) return page;
   const found = (Object.entries(PAGE_SEGMENTS) as Array<[WorkspacePage, string]>).find(([, value]) => value === segment);
   return found?.[0];
 }

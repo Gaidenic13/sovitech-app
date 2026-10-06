@@ -325,6 +325,9 @@ importers:
       fastify:
         specifier: 5.12.5
         version: 5.12.5
+      playwright-core:
+        specifier: 1.63.0
+        version: 1.63.0
       yaml:
         specifier: 2.9.1
         version: 2.9.1
@@ -489,6 +492,9 @@ importers:
       '@sovitech/domain':
         specifier: workspace:*
         version: link:../domain
+      '@sovitech/engine':
+        specifier: workspace:*
+        version: link:../engine
       '@sovitech/registry':
         specifier: workspace:*
         version: link:../registry

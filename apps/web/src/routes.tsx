@@ -18,7 +18,6 @@ import { Step4 } from './steps/step-4/Step4';
 import { Step5 } from './steps/step-5/Step5';
 import { Step6 } from './steps/step-6/Step6';
 import { Step7 } from './steps/step-7/Step7';
-import { ProposalPage } from './steps/step-8/ProposalPage';
 import { Step8 } from './steps/step-8/Step8';
 import { ProjectLayout } from './wizard/ProjectLayout';
 import { WorkspaceLayout, WorkspacePageFailed } from './workspace/WorkspaceLayout';
@@ -29,6 +28,10 @@ import { EquipmentPage } from './workspace/pages/equipment/EquipmentPage';
 import { SystemScopePage } from './workspace/pages/system-scope/SystemScopePage';
 import { TopologyPage } from './workspace/pages/topology/TopologyPage';
 import { ZonesPage } from './workspace/pages/zones/ZonesPage';
+import { ReportsPage } from './workspace/pages/reports/ReportsPage';
+import { ProposalPage } from './proposal/ProposalPage';
+import { StoredProposalPage } from './proposal/StoredProposalPage';
+import { ProposalPrintPage } from './proposal/ProposalPrintPage';
 
 /**
  * The app's routes (react-router 7, docs/adr/0035-phase-3-frontend-dependencies.md). `APP_PATHS` is
@@ -48,8 +51,13 @@ import { ZonesPage } from './workspace/pages/zones/ZonesPage';
  *   (the group's route carries ./workspace/handle.ts's handle; ../wizard/ProjectLayout.tsx draws the frame,
  *   ./workspace/WorkspaceFrame.tsx): the proposal page as the landing, `/projects/:projectId/system-scope` (DB-16), `/topology` (DB-08, its
  *   Logical view), `/zones` (DB-20), `/equipment` (DB-17), `/equipment/:assetId` (UD-08) and `/documents`
- *   (DB-15). No route for Overview, Property, Alarms, Reports or Metrics: not built in this phase (PRD R-050,
- *   R-146 "Until decided"; the `operations` gate; phases 5 and 6). The group has its own error element
+ *   (DB-15). No route for Overview, Property, Alarms or Metrics: not built (PRD R-050, R-116, R-146 "Until
+ *   decided"; the `operations` gate; phase 6);
+ * - phase 5 (docs/adr/0048 to 0050): `/projects/:projectId/proposals/:snapshotId` (a stored version, UD-06),
+ *   `/projects/:projectId/reports` (DB-18), both in the workspace frame, and the print route
+ *   `/projects/:projectId/print/proposals/:snapshotId` outside every frame (R-118). The landing
+ *   `/projects/:projectId/proposal` shows the latest stored version, the generating state (UD-07) and the failed
+ *   state (UD-47), or phase 3's preview while none is stored. The group has its own error element
  *   (A-1): a page that throws while it renders shows its failure state inside the kept frame, so the
  *   sidebar and the footer with the demo line stay (./workspace/WorkspaceLayout.tsx `WorkspacePageFailed`).
  * Every route but sign-in needs a session (rule 13); a screen of a project sits in its layout
@@ -74,6 +82,9 @@ export const APP_PATHS = [
   '/projects/:projectId/equipment',
   '/projects/:projectId/equipment/:assetId',
   '/projects/:projectId/documents',
+  '/projects/:projectId/proposals/:snapshotId',
+  '/projects/:projectId/reports',
+  '/projects/:projectId/print/proposals/:snapshotId',
 ] as const;
 
 /** A page's name in the document title: "<page> – SOVITECH". */
@@ -217,9 +228,19 @@ export const routes: RouteObject[] = [
                   { path: 'equipment', element: <EquipmentPage />, handle: projectPage(() => copy.titles.equipment) },
                   { path: 'equipment/:assetId', element: <AssetPage />, handle: projectPage(() => copy.titles.asset) },
                   { path: 'documents', element: <DocumentsPage />, handle: projectPage(() => copy.titles.documents) },
+                  // Phase 5 (docs/adr/0048, 0049): a stored version of the proposal, and Reports (DB-18).
+                  { path: 'proposals/:snapshotId', element: <StoredProposalPage />, handle: projectPage(() => copy.titles.proposalVersion) },
+                  { path: 'reports', element: <ReportsPage />, handle: projectPage(() => copy.titles.reports) },
                 ],
               },
             ],
+          },
+          // The print route (docs/adr/0050): outside the project's layout and the workspace frame (no header, sidebar
+          // or footer on paper), a light page the API's PDF printer opens with the requester's session.
+          {
+            path: '/projects/:projectId/print/proposals/:snapshotId',
+            element: <ProposalPrintPage />,
+            handle: projectPage(() => copy.titles.proposalPrint),
           },
         ],
       },

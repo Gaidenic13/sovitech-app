@@ -39,6 +39,10 @@ import { textIsBadgeOf, ValueElement } from './Value';
  * caption, which is a tab stop only while it scrolls (WCAG 2.1.1; DR-12); the row's name (its header
  * cell) and its controls are pinned to the region's edges, so a row's name and its actions never scroll
  * out of view (DR-2).
+ *
+ * The control columns' headings are hidden by default (each control names itself); with `controlsHeader`
+ * one visible heading spans them (DB-18's "Actions"; phase 5 DR-7). In forced colours (Windows High
+ * Contrast) the current row keeps a 2px CanvasText edge, since its fill is dropped (ui.css; phase 5 DR-14).
  */
 
 export type SortDirection = 'ascending' | 'descending' | 'none';
@@ -111,6 +115,12 @@ export interface RegisterTableProps<Row> {
   readonly current?: string | null;
   /** A trailing control per row (the "•••" menu, a link to the record), under a hidden heading. */
   readonly rowAction?: { readonly header: string; readonly render: (row: Row) => ReactNode };
+  /**
+   * One visible heading over the row's control columns (the open button and the trailing action), in place of their
+   * hidden headings ("Actions", as DB-18 draws it; phase 5 DR-7): a `colgroup` header cell spanning them, pinned to
+   * the region's end with them. Catalogue copy, no number. Without it each control column keeps its hidden heading.
+   */
+  readonly controlsHeader?: string;
   /** What shows in place of rows when there are none: the register's empty state, with its action. */
   readonly empty?: ReactNode;
   /** The rows are being fetched again (`aria-busy` on the table); the rows shown stay until the answer is in. */
@@ -164,8 +174,10 @@ function useRegionLayout(): { readonly attach: (element: HTMLDivElement | null) 
   const [scrolls, setScrolls] = useState(false);
   useEffect(() => {
     if (region === null || typeof ResizeObserver === 'undefined') return undefined;
+    // A column's width from its header cell, or from its first row's cell where one heading spans the control columns.
+    const pinCell = (pin: string) => region.querySelector(`thead [data-pin="${pin}"]`) ?? region.querySelector(`tbody [data-pin="${pin}"]`);
     const pinWidth = (property: string, pin: string) => {
-      const cell = region.querySelector(`thead [data-pin="${pin}"]`);
+      const cell = pinCell(pin);
       if (cell === null) region.style.removeProperty(property);
       else region.style.setProperty(property, `${String(cell.getBoundingClientRect().width)}px`);
     };
@@ -174,7 +186,8 @@ function useRegionLayout(): { readonly attach: (element: HTMLDivElement | null) 
       pinWidth('--sov-register-lead', 'select');
       pinWidth('--sov-register-trail', 'action');
     });
-    for (const element of [region, ...region.querySelectorAll('table, thead [data-pin="select"], thead [data-pin="action"]')]) observer.observe(element);
+    const measured = [pinCell('select'), pinCell('action')].filter((cell): cell is Element => cell !== null);
+    for (const element of [region, ...region.querySelectorAll('table'), ...measured]) observer.observe(element);
     return () => observer.disconnect();
   }, [region]);
   return { attach: setRegion, scrolls };
@@ -190,6 +203,7 @@ export function RegisterTable<Row>({
   open,
   current = null,
   rowAction,
+  controlsHeader,
   empty,
   busy = false,
 }: RegisterTableProps<Row>) {
@@ -200,7 +214,8 @@ export function RegisterTable<Row>({
   if (badgeColumn !== undefined && badgeOf === undefined) {
     throw new Error(`RegisterTable: the badge column names "${badgeColumn.column}", which is not a value column.`);
   }
-  const span = columns.length + (badgeColumn === undefined ? 0 : 1) + (selection === undefined ? 0 : 1) + (open === undefined ? 0 : 1) + (rowAction === undefined ? 0 : 1);
+  const controlColumns = (open === undefined ? 0 : 1) + (rowAction === undefined ? 0 : 1);
+  const span = columns.length + (badgeColumn === undefined ? 0 : 1) + (selection === undefined ? 0 : 1) + controlColumns;
   const keys = rows.map(rowKey);
   const allSelected = selection !== undefined && keys.length > 0 && keys.every((key) => selection.selected.has(key));
   const someSelected = selection !== undefined && keys.some((key) => selection.selected.has(key));
@@ -323,15 +338,23 @@ export function RegisterTable<Row>({
               }
               return heads;
             })}
-            {open === undefined ? null : (
-              <th scope="col" className="sov-register__head sov-register__control-head" data-pin="open">
-                <span className="sov-visually-hidden">{open.header}</span>
+            {controlsHeader !== undefined && controlColumns > 0 ? (
+              <th scope="colgroup" colSpan={controlColumns} className="sov-register__head sov-register__control-head" data-pin="controls">
+                {controlsHeader}
               </th>
-            )}
-            {rowAction === undefined ? null : (
-              <th scope="col" className="sov-register__head sov-register__control-head" data-pin="action">
-                <span className="sov-visually-hidden">{rowAction.header}</span>
-              </th>
+            ) : (
+              <>
+                {open === undefined ? null : (
+                  <th scope="col" className="sov-register__head sov-register__control-head" data-pin="open">
+                    <span className="sov-visually-hidden">{open.header}</span>
+                  </th>
+                )}
+                {rowAction === undefined ? null : (
+                  <th scope="col" className="sov-register__head sov-register__control-head" data-pin="action">
+                    <span className="sov-visually-hidden">{rowAction.header}</span>
+                  </th>
+                )}
+              </>
             )}
           </tr>
         </thead>

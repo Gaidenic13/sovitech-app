@@ -141,3 +141,19 @@ export {
   type VisibleAccount,
 } from './reads';
 export { readProjectSubjects, readUserProjects, type ProjectSubject, type UserProject } from './projects';
+export {
+  readGeneratedOutputs,
+  readPendingDocumentsBySnapshot,
+  readProposalSnapshot,
+  readProposalVersions,
+  readQuotationRecords,
+  recordGeneratedOutput,
+  recordGeneratedProposal,
+  type GeneratedProposalWrite,
+  type ParagraphWrite,
+  type SnapshotOutputWrite,
+  type StoredGeneratedOutput,
+  type StoredProposal,
+  type StoredProposalVersion,
+  type StoredQuotationRecordRow,
+} from './proposals';

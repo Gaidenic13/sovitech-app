@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DisplayObjectSchema, LevelRegisterSchema, ROUTES, VALUE_ID_PATTERN, ZoneDetailSchema, isDisplayObjectRequest, pathOf, servedDisplayOf, type DisplayObject } from './index';
+import { DisplayObjectSchema, LevelRegisterSchema, PriceSchema, ProposalOutputSchema, ROUTES, VALUE_ID_PATTERN, ZoneDetailSchema, isDisplayObjectRequest, pathOf, routeById, servedDisplayOf, type DisplayObject } from './index';
 
 const PROJECT = '0192f0e4-7c1a-7d2b-9e3f-4a5b6c7d8e9f';
 
@@ -104,5 +104,39 @@ describe('ADR 0036 · F-RENDER-06: the wizard contract', () => {
     expect(ZoneDetailSchema.safeParse(detail).success).toBe(true);
     expect(ZoneDetailSchema.safeParse({ ...detail, systemDecisions: [`project:${PROJECT}.scope.fire_safety`] }).success).toBe(false);
     expect(ZoneDetailSchema.safeParse({ ...detail, systemDecisions: [{ decision: `project:${PROJECT}.scope.fire_safety`, systemId: 'fire_safety' }] }).success).toBe(false);
+  });
+});
+
+describe('ADR 0049 · F-RENDER-06 · F-PRICE-01: the phase 5 contract (the proposal, Reports and exports)', () => {
+  const SNAPSHOT = '0192f0e4-7c1a-7d2b-9e3f-4a5b6c7d8e90';
+
+  it('ADR 0049: the stored proposal\'s views serve display objects; Generate, the export record and the two file routes do not; every write checks the CSRF token', () => {
+    expect(isDisplayObjectRequest('GET', `/api/projects/${PROJECT}/proposals`)).toBe(true);
+    expect(isDisplayObjectRequest('GET', `/api/projects/${PROJECT}/proposals/${SNAPSHOT}`)).toBe(true);
+    expect(isDisplayObjectRequest('GET', `/api/projects/${PROJECT}/proposals/${SNAPSHOT}/print`)).toBe(true);
+    expect(isDisplayObjectRequest('GET', `/api/projects/${PROJECT}/reports`)).toBe(true);
+    expect(isDisplayObjectRequest('POST', `/api/projects/${PROJECT}/proposals`)).toBe(false);
+    expect(isDisplayObjectRequest('POST', `/api/projects/${PROJECT}/proposals/${SNAPSHOT}/exports`)).toBe(false);
+    expect(isDisplayObjectRequest('GET', `/api/projects/${PROJECT}/exports/${SNAPSHOT}/file`)).toBe(false);
+    expect(isDisplayObjectRequest('GET', `/api/projects/${PROJECT}/exports/equipment`)).toBe(false);
+    for (const id of ['proposals.generate', 'proposals.export'] as const) expect(routeById(id).csrf, id).toBe(true);
+    expect(pathOf('proposals.print', { projectId: PROJECT, snapshotId: SNAPSHOT })).toBe(`/api/projects/${PROJECT}/proposals/${SNAPSHOT}/print`);
+  });
+
+  it('ADR 0049 · G2-7 · G9-8: the snapshot\'s value ids are its own, with the output keys as written', () => {
+    expect(VALUE_ID_PATTERN.test(`proposal:${SNAPSHOT}.outputs.capex.preliminaryEstimate`)).toBe(true);
+    expect(VALUE_ID_PATTERN.test(`proposal:${SNAPSHOT}.outputs.capex.preliminaryEstimate.stage`)).toBe(true);
+    expect(VALUE_ID_PATTERN.test(`proposal:${SNAPSHOT}.inputs.building.grossFloorArea`)).toBe(true);
+    expect(VALUE_ID_PATTERN.test(`output:${SNAPSHOT}.generatedAt`)).toBe(true);
+  });
+
+  it('ADR 0049 · rule 10 · G10-9 · G10-11: a price names a quotation record only beside a stage, and an output with no figure carries no stage of its own', () => {
+    const figure = `proposal:${SNAPSHOT}.outputs.capex.preliminaryEstimate`;
+    expect(PriceSchema.safeParse({ figure, stage: null, stageId: null, quotationRecordId: null, superseded: null }).success).toBe(true);
+    expect(PriceSchema.safeParse({ figure, stage: `${figure}.stage`, stageId: 'formal_quotation', quotationRecordId: SNAPSHOT, superseded: null }).success).toBe(true);
+    expect(PriceSchema.safeParse({ figure, stage: `${figure}.stage`, stageId: 'final_price', quotationRecordId: null, superseded: null }).success).toBe(false);
+    const output = { output: 'capex.preliminaryEstimate', formula: { id: 'capexPreliminaryEstimate', version: '1' }, display: figure, availability: 'not_available_yet', incomplete: false, outOfDate: false, price: null };
+    expect(ProposalOutputSchema.safeParse(output).success).toBe(true);
+    expect(ProposalOutputSchema.safeParse({ ...output, availability: 'zero' }).success).toBe(false);
   });
 });

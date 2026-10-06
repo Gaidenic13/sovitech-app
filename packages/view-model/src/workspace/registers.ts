@@ -131,11 +131,11 @@ function labelsOf(project: NamingProject): ReadonlyMap<string, string> {
 }
 
 /**
- * The label of a stored level key (`upper_1`): the level register's label where it lists the key (E1); for a key it
- * does not list (no floor structure known, the floors in conflict, or a level the structure does not count), the one
- * label function from the key's own type and number, the key's number standing as the count of its type (so S, P, Mz,
- * Er for the first of a type, E1 for the first upper floor; levels.ts). Undefined for a text that is no level key,
- * which shows as written.
+ * The label of a stored level key (`upper_1`): the level register's label where it lists the key (Level 1); for a key
+ * it does not list (no floor structure known, the floors in conflict, or a level the structure does not count), the
+ * one label function from the key's own type and number, the key's number standing as the count of its type (so B1,
+ * GF, Mezzanine and Level 1 for the first of a type, Attic 2 for the second; levels.ts; D-18, English). Undefined for
+ * a text that is no level key, which shows as written.
  */
 export function levelKeyLabel(project: NamingProject, key: string): string | undefined {
   const listed = labelsOf(project).get(key);

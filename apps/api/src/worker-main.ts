@@ -26,6 +26,8 @@ import { readFileSync } from 'node:fs';
 import { REPOSITORY_ROOT, extractorImage, ifcReaderImage, databaseUrl, readSettings } from './config';
 import { extractWithAi } from './ingestion/ai-extraction';
 import { AnalysisWorker } from './jobs/worker';
+import { regenerateAfterAnalysis } from './proposal/service';
+import { PRODUCTION_API_REGISTRY } from './wizard/registry';
 import { DockerExtractorRunner } from './jobs/sandbox';
 import { stderrApiLog } from './services';
 import { dataDirectoryFromEnvironment } from './storage/data-dir';
@@ -81,6 +83,11 @@ const worker = new AnalysisWorker({ store, files, log: stderrApiLog }, runner, {
   afterStored: async (job) => {
     const step = await extractWithAi({ store, serviceId, projectId: job.projectId, documentId: job.documentId }, ai);
     stderrApiLog({ event: 'ai_extraction', code: step.outcome, projectId: job.projectId, documentId: job.documentId, ...('codes' in step ? { codes: step.codes } : {}) });
+  },
+  // Phase 5 (docs/adr/0048 decision 5): the stored proposal is generated again, as the system, once every document it
+  // recorded as still being read has finished (rule 7). The production registry and catalogue; no drafting (no key).
+  afterJobEnded: async (job) => {
+    await regenerateAfterAnalysis({ store, registry: PRODUCTION_API_REGISTRY, extractionAccountId: serviceId, log: stderrApiLog }, gates, { projectId: job.projectId, systemAccountId: serviceId });
   },
 });
 

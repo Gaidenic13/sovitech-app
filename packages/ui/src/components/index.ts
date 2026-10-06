@@ -28,7 +28,10 @@ export * as KitIcons from './icons';
 export { NotAvailableYet, type NotAvailableYetProps } from './NotAvailableYet';
 export { Notice, NoticeRegion, type NoticeProps, type NoticeRegionProps } from './Notice';
 export { Price, type PriceProps } from './Price';
+// Phase 5 (the print builder): the printed document's frame and values (docs/adr/0050).
+export { PrintFrame, PrintValue, isNotAvailableYet, type PrintFrameProps, type PrintValueProps } from './print';
 export { Progress, type ProgressProps } from './Progress';
+export { SearchField, type SearchFieldProps } from './SearchField';
 export { SelectField, type SelectFieldProps, type SelectOption } from './SelectField';
 export { SkipForNow, type SkipForNowProps, type SkippableQuestion } from './SkipForNow';
 export { StatusLine, type StatusLineProps } from './StatusLine';

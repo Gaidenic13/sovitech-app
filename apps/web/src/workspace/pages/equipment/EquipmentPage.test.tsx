@@ -69,7 +69,7 @@ describe('DB-17 · R-065 · R-066 · US-ASSETS-05: the register', () => {
     expect(root?.closest('.sov-workspace__page')).not.toBeNull();
   });
 
-  it('US-ASSETS-05 AC1 · AC4 · AC10 · 7.1-r2 · 7.1.1-E5 · D14 · G2-1: tag, system, type, badge column, location, floor and zone, each cell bound to its value id; the badge column holds the type badge bound to the same id; no Status, Last Update, Alarms or Export', async () => {
+  it('US-ASSETS-05 AC1 · AC4 · AC10 · 7.1-r2 · 7.1.1-E5 · D14 · G2-1: tag, system, type, badge column, location, floor and zone, each cell bound to its value id; the badge column holds the type badge bound to the same id; no Status, Last Update or Alarms (Export is built in phase 5: ./EquipmentExport.test.tsx)', async () => {
     api();
     await openPage();
     const headers = within(table())
@@ -86,7 +86,7 @@ describe('DB-17 · R-065 · R-066 · US-ASSETS-05: the register', () => {
     const badge = row.querySelector(`.sov-register__badge[data-value-id="asset:${id}.type"]`);
     expect(badge?.textContent).toBe('');
     expect(badge?.getAttribute('aria-hidden')).toBe('true');
-    for (const absent of ['Export', 'Floor Plan', 'View on Floor Plan', 'View in 3D', 'Online', 'Offline', 'BMS Live']) expect(document.body.textContent).not.toContain(absent);
+    for (const absent of ['Floor Plan', 'View on Floor Plan', 'View in 3D', 'Online', 'Offline', 'BMS Live']) expect(document.body.textContent).not.toContain(absent);
     expect(document.querySelector('canvas, img:not(.sov-logo), .sov-model-area')).toBeNull();
   });
 

@@ -4,6 +4,7 @@
  * computed from the registry's formula signatures, the gates and the first-estimate fields. No
  * figure is computed here and nothing is stored (rule 9: arithmetic lives in the engine).
  */
+import { PRODUCTION_CATALOGUE } from '@sovitech/engine';
 import { productionRegistry } from '@sovitech/registry';
 import type { FormulaSignature } from '@sovitech/registry/validation';
 import type { Action, DisplayObject, Line } from '../browser/contract';
@@ -12,22 +13,20 @@ import { lineOf, projectValueId, resolveLine, type StageLabelId } from '../resol
 import { hasEligible, type IntakeField } from './model';
 
 /**
- * What each declared formula waits for besides its inputs: the SOVITECH datasets, by the gate that
- * holds each back (prompt 3 5.4) and the name the gate's "Waits for" gives it, or no gate where the
- * dataset has none (the SOVITECH function set, which rule 9 requires for automation levels and no
- * gate opens). The names are what the "Not available yet" line says is missing (rule 7).
+ * What each declared formula waits for besides its inputs: the SOVITECH datasets, by the gate that holds each back
+ * (prompt 3 5.4) and the name the gate's "Waits for" gives it, or no gate where the dataset has none (the SOVITECH
+ * function set and the savings factors, which no gate opens). The names are what the "Not available yet" line says is
+ * missing (rule 7). Read from the engine's production catalogue (phase 5; docs/adr/0047 decision 1: "The view-model reads
+ * the same catalogue for the names it shows"), so step 8, the stored proposal and its print route say the same words.
  */
-export const FORMULA_DATASETS: Readonly<Record<string, readonly { readonly gate: string | null; readonly name: string }[]>> = Object.freeze({
-  capexIndicativeRange: [{ gate: 'dataset-cost-ranges', name: 'SOVITECH cost ranges and benchmarks' }],
-  pointsEstimate: [{ gate: 'dataset-point-templates', name: 'SOVITECH point templates' }],
-  capexPreliminaryEstimate: [
-    { gate: 'dataset-point-templates', name: 'SOVITECH point templates' },
-    { gate: 'dataset-cost-ranges', name: 'SOVITECH cost ranges and benchmarks' },
-  ],
-  operatingEnergyEstimate: [{ gate: 'dataset-cost-ranges', name: 'SOVITECH cost ranges and benchmarks' }],
-  savingsEstimate: [{ gate: 'dataset-cost-ranges', name: 'SOVITECH cost ranges and benchmarks' }],
-  measurePriority: [{ gate: null, name: 'SOVITECH function set' }],
-});
+export const FORMULA_DATASETS: Readonly<Record<string, readonly { readonly gate: string | null; readonly name: string }[]>> = Object.freeze(
+  Object.fromEntries(
+    PRODUCTION_CATALOGUE.formulas.map((formula) => [
+      formula.signature.id,
+      formula.requires.flatMap((requirement) => (requirement.kind === 'dataset' ? [{ gate: requirement.gate, name: requirement.name }] : [])),
+    ]),
+  ),
+);
 
 /**
  * The rule 10 stage each investment output carries (2.8, "Investment figure, by stage (rule 10)": "Indicative

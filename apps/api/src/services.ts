@@ -6,6 +6,8 @@
  */
 import type { Store } from '@sovitech/db';
 import type { SessionStore } from './auth/sessions';
+import type { ProposalDrafting, ProposalEngine } from './proposal/engine';
+import type { PdfPrinter } from './proposal/export';
 import type { ApiRegistry } from './wizard/registry';
 import type { FileStore } from './storage/file-store';
 import type { UploadGuard } from './uploads/fixture-guard';
@@ -57,4 +59,20 @@ export interface ApiServices {
    * pass TEST registries they build in tests/.
    */
   readonly registry?: ApiRegistry;
+  /**
+   * The calculation engine's seam (phase 5; docs/adr/0047, 0048): the catalogue Generate runs and the datasets it may
+   * read. The entry points set nothing, so the production catalogue runs with no dataset (none is approved); tests pass
+   * a TEST catalogue, which the engine refuses outside the test runner (G1-16). No environment variable selects another.
+   */
+  readonly engine?: ProposalEngine;
+  /**
+   * Drafting the proposal's prose (PRD R-115; ADR 0048 decision 10): absent while no key is set (the entry points set
+   * none), so no paragraph is drafted; the `ai-processor-route` guard refuses every project but the demo while the gate
+   * is closed. Tests pass a TEST transport through the production boundary and validator.
+   */
+  readonly drafting?: ProposalDrafting;
+  /** The PDF printer (ADR 0050 decision 2), closed with the server; absent, exports answer 503 `export_unavailable`. */
+  readonly printer?: PdfPrinter;
+  /** The web origin the printer opens the print route on (`SOVITECH_WEB_ORIGIN`). */
+  readonly webOrigin?: string;
 }

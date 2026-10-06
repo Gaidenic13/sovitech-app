@@ -75,7 +75,7 @@ export function frameResponse(projectId: string, options: FrameOptions = {}) {
   return {
     ...envelopeOf(projectId, displays, options),
     view: {
-      pages: options.pages ?? ['proposal', 'system_scope', 'topology', 'zones', 'equipment', 'documents'],
+      pages: options.pages ?? ['proposal', 'system_scope', 'topology', 'zones', 'equipment', 'documents', 'reports'],
       projectCard: { projectType: projectType.valueId, buildingType: `building:${BUILDING}.type`, grossFloorArea: area.valueId, rooms: [], floors: [] },
       footer: { stillReading: options.stillReading === true ? `project:${projectId}.stillReading` : null },
       levels: { state: 'unknown', line: `project:${projectId}.floors.missing`, actions: ['upload_document', 'enter_floors'] },

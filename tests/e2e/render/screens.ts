@@ -52,14 +52,36 @@
  * only in digits ("101", "1.2"; `assets-numbered`) on Equipment's inspector and the asset record, inside the kept frame
  * and footer (A-1; rule 7); "Show details" as the one name of the details control (DR-13); and the floor control as
  * the one filter in each page's header, a dropdown or the served line with its actions (DR-5).
+ * Phase 5 (2026-10-05; docs/adr/0048 to 0050): the print route of a stored proposal (the print builder: the demo, a new
+ * project, loading, failing), and (the integrator) the landing with a stored proposal on the demo and on a new project,
+ * the landing never generated (phase 3's preview), generating with Generate's POST held (UD-07), generation failed
+ * (UD-47), generated while a document is still being read (G7-18), the stored versions failing to load; a stored version
+ * by its address on the demo, an earlier version, a
+ * version not in the project, loading; Download PDF failing; Reports (DB-18) on the demo with the seed's export, empty,
+ * two rows with the second previewed, no match, loading, failing; Equipment's Export failing.
  */
 import type { Page } from '@playwright/test';
 import { ruleLineById, statusLineById } from '@sovitech/registry';
 import { displayObjectsFromApi, type ApiDisplayObjectSource } from './api-display-objects';
 import { REPO_ROOT } from '../setup/paths';
 import { writeTestState, type TestState } from '../support/control';
-import { failRequests, holdRequests, projectList, proposalView, stepView, uploadChunk, workspaceFrame, workspaceView } from '../support/network';
-import { createProject, demoProjectId, newProjectAt, openProjectScreen, pressPrimary, screenReady, signIn, signedInAt, skipEverything, testProject } from '../support/wizard';
+import {
+  equipmentExport,
+  failRequests,
+  holdRequests,
+  projectList,
+  proposalExport,
+  proposalVersion,
+  proposalView,
+  proposalsGenerate,
+  proposalsList,
+  reportsList,
+  stepView,
+  uploadChunk,
+  workspaceFrame,
+  workspaceView,
+} from '../support/network';
+import { createProject, demoProjectId, newProjectAt, openProjectScreen, pressPrimary, proposalSettled, screenReady, signIn, signedInAt, skipEverything, testProject } from '../support/wizard';
 import { includeSystems, openSwitcher, openWorkspaceScreen } from '../support/workspace';
 
 /** A screen that shows no value: no display objects. */
@@ -95,6 +117,12 @@ const skippedOn = (label: string, step: number) => async (page: Page) => {
 
 /** How long a held view waits before it answers: long enough to read the loading state, short enough for the check's window. */
 const LOADING_MS = 7_000;
+/**
+ * The same for a long page (a stored proposal, its print view: some hundred elements the check hovers and focuses, ADR
+ * 0048): once its view is let go, the page needs more of the check's 10 s window to render, and under the full run's
+ * four workers the API answered a stored version in up to 5 s (the integrator's first `pnpm e2e`, phase 5).
+ */
+const LOADING_LONG_PAGE_MS = 3_000;
 
 /** Waits for the page's loading state: the step's words, never a figure (PageState.tsx `Loading`). */
 async function loadingShown(page: Page): Promise<void> {
@@ -302,6 +330,115 @@ async function frameKept(page: Page): Promise<void> {
   await screenReady(page);
 }
 
+// ---- Phase 5: the print route of a stored proposal (docs/adr/0050; R-118; the print builder) ------------------------
+
+/** The print route (APP_PATHS): a stored version's printed page, outside every frame, on the brand's light values. */
+const PRINT = '/projects/:projectId/print/proposals/:snapshotId';
+
+/** The print view's request (`proposals.print`). */
+const printView = (method: string, path: string): boolean => method === 'GET' && /^\/api\/projects\/[0-9a-f-]{36}\/proposals\/[0-9a-f-]{36}\/print$/u.test(path);
+
+/**
+ * A stored proposal of the project, as the signed-in owner reaches it: the latest stored version (`proposals.list`), or,
+ * where none is stored yet, one Generate (`proposals.generate`, with the session's CSRF token), so a render run adds no
+ * version to the demo once the seed stored its first.
+ */
+async function storedSnapshot(page: Page, projectId: string): Promise<string> {
+  const listed = await page.request.get(`/api/projects/${projectId}/proposals`);
+  if (!listed.ok()) throw new Error(`proposals.list answered ${String(listed.status())}`);
+  const latest = ((await listed.json()) as { view: { versions: Array<{ snapshotId: string }> } }).view.versions[0]?.snapshotId;
+  if (latest !== undefined) return latest;
+  const token = ((await (await page.request.get('/api/csrf')).json()) as { token: string }).token;
+  const generated = await page.request.post(`/api/projects/${projectId}/proposals`, { headers: { 'csrf-token': token }, data: {} });
+  if (generated.status() !== 201) throw new Error(`proposals.generate answered ${String(generated.status())}`);
+  return ((await generated.json()) as { snapshotId: string }).snapshotId;
+}
+
+/** Opens the print route of the project's stored proposal and waits for the printer's ready marker and the render marker. */
+async function openPrint(page: Page, projectId: string, marker: 'true' | 'failed' = 'true'): Promise<void> {
+  const snapshotId = await storedSnapshot(page, projectId);
+  await page.goto(`/projects/${projectId}/print/proposals/${snapshotId}`);
+  await page.locator(`html[data-print-ready="${marker}"]`).waitFor({ state: 'attached', timeout: 30_000 });
+  await screenReady(page);
+}
+
+/** The demo's printed proposal, signed in as the development owner. */
+const demoPrint = async (page: Page) => {
+  await signIn(page);
+  await openPrint(page, demoProjectId());
+};
+
+/** A new TEST project with no documents, generated with nothing answered, printed. */
+const freshPrint = (label: string) => async (page: Page) => {
+  const id = await newProjectAt(page, label, 'steps/2');
+  await openPrint(page, id);
+};
+
+// ---- Phase 5: the landing, stored versions, Reports and the exports (docs/adr/0048 to 0050; the integrator) ----------
+
+/** A stored version's route (APP_PATHS), in the workspace frame. */
+const VERSION = '/projects/:projectId/proposals/:snapshotId';
+/** Reports' route (APP_PATHS), the sidebar's last page. */
+const REPORTS = WORKSPACE('reports');
+
+/** The session's CSRF token, for the API requests an arrange sends as the signed-in owner. */
+async function csrfToken(page: Page): Promise<string> {
+  return ((await (await page.request.get('/api/csrf')).json()) as { token: string }).token;
+}
+
+/** One Generate through the API (`proposals.generate`), as the owner's press sends it: the new version's id. */
+async function generateOnce(page: Page, projectId: string): Promise<string> {
+  const generated = await page.request.post(`/api/projects/${projectId}/proposals`, { headers: { 'csrf-token': await csrfToken(page) }, data: {} });
+  if (generated.status() !== 201) throw new Error(`proposals.generate answered ${String(generated.status())}`);
+  return ((await generated.json()) as { snapshotId: string }).snapshotId;
+}
+
+/** One export of a stored version through the API (`proposals.export`), as Download PDF sends it: the output's id. */
+async function exportOnce(page: Page, projectId: string, snapshotId: string): Promise<string> {
+  const exported = await page.request.post(`/api/projects/${projectId}/proposals/${snapshotId}/exports`, { headers: { 'csrf-token': await csrfToken(page) }, data: {} });
+  if (exported.status() !== 201) throw new Error(`proposals.export answered ${String(exported.status())}`);
+  return ((await exported.json()) as { outputId: string }).outputId;
+}
+
+/** Opens a stored version of a project and waits for its head (UD-01's content) and the render marker. */
+async function openVersion(page: Page, projectId: string, snapshotId: string): Promise<void> {
+  await page.goto(`/projects/${projectId}/proposals/${snapshotId}`);
+  await page.locator(`[data-proposal-snapshot="${snapshotId}"] [data-proposal-head]`).waitFor({ timeout: 30_000 });
+  await screenReady(page);
+}
+
+/** A new TEST project with no documents, generated with nothing answered, at its landing (the stored proposal). */
+const freshGenerated = (label: string) => async (page: Page) => {
+  const id = await newProjectAt(page, label, 'steps/2');
+  await generateOnce(page, id);
+  await openProjectScreen(page, id, 'proposal');
+  await proposalSettled(page);
+  await screenReady(page);
+  return id;
+};
+
+/** Step 8 of a new TEST project, then "Generate Proposal" pressed, its POST held or failed by `hold`. */
+const generatePressed = (label: string, hold: (page: Page) => Promise<void>, shown: string) => async (page: Page) => {
+  await newProjectAt(page, label, 'steps/8');
+  await hold(page);
+  await page.getByRole('button', { name: 'Generate Proposal', exact: true }).click();
+  await page.locator(shown).waitFor({ timeout: 30_000 });
+};
+
+/** Reports of a new TEST project after `exports` Download PDF presses on one stored version (none: nothing exported). */
+const freshReports = (label: string, exports: number) => async (page: Page) => {
+  const id = await newProjectAt(page, label, 'steps/2');
+  if (exports > 0) {
+    const snapshotId = await generateOnce(page, id);
+    for (let count = 0; count < exports; count += 1) await exportOnce(page, id, snapshotId);
+  }
+  await openWorkspaceScreen(page, id, 'reports');
+  return id;
+};
+
+/** A UUID that names no version of any project (the store's ids are UUIDv7; this one is v4 and never issued). */
+const NO_VERSION = '6f1c2b9e-3a4d-4e5f-8a7b-9c0d1e2f3a4b';
+
 export const RENDER_SCREENS: readonly RenderScreen[] = [
   // ---- Session (UD-36) and the project list (UD-37) --------------------------------------------
   { name: 'entry: signed out, sent to sign-in (UD-36)', path: '/', displayObjects: displayObjectsFromApi() },
@@ -351,7 +488,15 @@ export const RENDER_SCREENS: readonly RenderScreen[] = [
   { name: 'OB-6 step 6, demo: goals answered', path: STEP, displayObjects: displayObjectsFromApi(), arrange: demo('steps/6') },
   { name: 'OB-7 step 7, demo: automation areas answered', path: STEP, displayObjects: displayObjectsFromApi(), arrange: demo('steps/7') },
   { name: 'OB-8 step 8, demo: the review, inline ask, For you, SOVITECH will check (UD-35)', path: STEP, displayObjects: displayObjectsFromApi(), arrange: demo('steps/8') },
-  { name: 'UD-07 proposal page, demo: each output not available yet', path: '/projects/:projectId/proposal', displayObjects: displayObjectsFromApi(), arrange: demo('proposal') },
+  {
+    name: 'UD-06 the landing, demo: the latest stored proposal, every output "Not available yet" naming what is missing, the head naming no stage (R-111, R-116; G10-11)',
+    path: '/projects/:projectId/proposal',
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demo('proposal')(page);
+      await proposalSettled(page);
+    },
+  },
 
   // ---- A new project with no documents ------------------------------------------------------------
   { name: 'OB-1 step 1, new project stored: the four answers (Provided by you)', path: STEP, displayObjects: displayObjectsFromApi(), arrange: fresh('Render Project Answers', 'steps/1') },
@@ -374,7 +519,16 @@ export const RENDER_SCREENS: readonly RenderScreen[] = [
   { name: 'OB-6 step 6, new project: unanswered', path: STEP, displayObjects: displayObjectsFromApi(), arrange: fresh('Render Goals', 'steps/6') },
   { name: 'OB-7 step 7, new project: unanswered', path: STEP, displayObjects: displayObjectsFromApi(), arrange: fresh('Render Automation', 'steps/7') },
   { name: 'OB-8 step 8, new project: incomplete data, the inline asks (UD-35)', path: STEP, displayObjects: displayObjectsFromApi(), arrange: fresh('Render Review', 'steps/8') },
-  { name: 'UD-07 proposal page, new project', path: '/projects/:projectId/proposal', displayObjects: displayObjectsFromApi(), arrange: fresh('Render Proposal', 'proposal') },
+  {
+    name: 'The landing, new project never generated: phase 3\'s preview, "No preliminary proposal has been generated", Go to the review (5.2 "Generate before phase 5")',
+    path: '/projects/:projectId/proposal',
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await fresh('Render Proposal', 'proposal')(page);
+      await page.locator('[data-not-generated]').waitFor();
+      await screenReady(page);
+    },
+  },
 
   // ---- Loading and load failure (UD-34, UD-35, UD-47; V-1) -----------------------------------------
   { name: 'OB-3 step 3, demo: loading, its view held (UD-34 loading)', path: STEP, displayObjects: displayObjectsFromApi(), arrange: demoLoading('steps/3') },
@@ -863,6 +1017,228 @@ export const RENDER_SCREENS: readonly RenderScreen[] = [
       await failRequests(page, workspaceFrame);
       await page.goto(`/projects/${id}/documents`);
       await page.getByRole('button', { name: 'Try again', exact: true }).first().waitFor();
+      await screenReady(page);
+    },
+  },
+
+  // ---- Phase 5: Generate, the landing and stored versions (R-109 to R-112, R-116; UD-06, UD-07, UD-47) ----------
+  {
+    name: 'UD-06 the landing, new project generated with nothing answered: every output "Not available yet" naming what is missing, each investment output named by its stage label, the head naming no stage (R-111; G10-11; G11-12)',
+    path: '/projects/:projectId/proposal',
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshGenerated('Render Generated')(page);
+    },
+  },
+  // The print route (R-118; docs/adr/0050; the exported PDF is this page printed): its four screens sit among the other
+  // phase 5 screens, not side by side: four long printed pages checked at once starved the machine in the integrator's
+  // first full run, and each ran past its time limit.
+  { name: 'R-118 print route, demo: the stored proposal on paper, the demo line in the running header (G10-5, G10-13)', path: PRINT, displayObjects: displayObjectsFromApi(), arrange: demoPrint },
+  {
+    name: 'UD-07 generating, new project: Generate pressed on step 8, its POST held: the title and a progress bar with no number, no figure (R-109; rule 7)',
+    path: '/projects/:projectId/proposal',
+    displayObjects: displayObjectsFromApi(),
+    arrange: generatePressed('Render Generating', async (page) => void (await holdRequests(page, proposalsGenerate, { releaseAfterMs: LOADING_MS })), '[data-generating]'),
+  },
+  {
+    name: 'UD-47 generation failed, new project: Generate\'s POST failing, "could not be generated", Try again and Back to review, nothing disabled (R-109; rule 7)',
+    path: '/projects/:projectId/proposal',
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await generatePressed('Render Generate Failed', (held) => failRequests(held, proposalsGenerate), '[data-generation-failed]')(page);
+      await screenReady(page);
+    },
+  },
+  {
+    name: 'UD-06 the landing, new project: generated while a document is still being read, its head saying "Still reading 1 file. Your estimate will update when they finish." (rule 7; G7-18; a TEST document queued)',
+    path: '/projects/:projectId/proposal',
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await signIn(page);
+      const id = await createProject(page, testProject('Render Proposal Still Reading'));
+      await writeTestState('document-being-read', id);
+      await generateOnce(page, id);
+      await openProjectScreen(page, id, 'proposal');
+      await proposalSettled(page);
+      await page.locator('[data-proposal-head]').getByText(/^Still reading 1 file\./u).waitFor();
+      await screenReady(page);
+    },
+  },
+  {
+    name: 'The landing, new project: the stored versions failing to load, "could not be loaded", Try again and Back to review (rule 7)',
+    path: '/projects/:projectId/proposal',
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Landing Failed', 'steps/2');
+      await failRequests(page, proposalsList);
+      await page.goto(`/projects/${id}/proposal`);
+      await loadFailedShown(page);
+    },
+  },
+  {
+    name: 'UD-06 a stored version, demo: the latest, opened by its address, the versions rail marking it (R-110; US-PROPOSAL-11)',
+    path: VERSION,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await signIn(page);
+      await openVersion(page, demoProjectId(), await storedSnapshot(page, demoProjectId()));
+    },
+  },
+  {
+    name: 'R-118 print route, new project with no documents: every output "Not available yet", naming what is missing (rule 7)',
+    path: PRINT,
+    displayObjects: displayObjectsFromApi(),
+    arrange: freshPrint('Render Print Empty'),
+  },
+  {
+    name: 'UD-06 an earlier version, new project generated twice: the notice that it is kept as generated, Open the latest version, the versions rail (R-110; G4-45)',
+    path: VERSION,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Earlier Version', 'steps/2');
+      const first = await generateOnce(page, id);
+      await generateOnce(page, id);
+      await openVersion(page, id, first);
+      await page.getByText('This is an earlier version of your preliminary proposal, kept as it was generated.', { exact: true }).waitFor();
+    },
+  },
+  {
+    name: 'UD-06 a version not in this project: "not in this project" inside the frame, Open the latest version (rule 13; never a dead end, rule 7)',
+    path: VERSION,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Version Missing', 'steps/2');
+      await page.goto(`/projects/${id}/proposals/${NO_VERSION}`);
+      await page.getByText('This version of the proposal is not in this project.', { exact: true }).waitFor({ timeout: 30_000 });
+      await screenReady(page);
+    },
+  },
+  {
+    name: 'UD-06 a stored version, new project: loading, its view held',
+    path: VERSION,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Version Loading', 'steps/2');
+      const snapshotId = await generateOnce(page, id);
+      await holdRequests(page, proposalVersion, { releaseAfterMs: LOADING_LONG_PAGE_MS });
+      await page.goto(`/projects/${id}/proposals/${snapshotId}`);
+      await loadingShown(page);
+    },
+  },
+  {
+    name: 'R-118 Download PDF failing, new project: the export\'s POST failing, the failure said beside the button, which stays enabled (rule 7)',
+    path: '/projects/:projectId/proposal',
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshGenerated('Render Download Failed')(page);
+      await failRequests(page, proposalExport);
+      await page.getByRole('button', { name: 'Download PDF', exact: true }).click();
+      await page.getByText('The PDF could not be prepared. Your proposal is unchanged. Try again.', { exact: true }).waitFor();
+      await screenReady(page);
+    },
+  },
+
+  // ---- Phase 5: Reports (DB-18; R-119) and Equipment's Export (R-066) ----------------------------------------------
+  {
+    name: 'R-118 print route, new project: while the print view loads, "Loading" and no figure',
+    path: PRINT,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Print Loading', 'steps/2');
+      const snapshotId = await storedSnapshot(page, id);
+      await holdRequests(page, printView, { releaseAfterMs: LOADING_LONG_PAGE_MS });
+      await page.goto(`/projects/${id}/print/proposals/${snapshotId}`);
+      await loadingShown(page);
+    },
+  },
+  {
+    name: 'DB-18 Reports, demo: the proposal the seed exported, by the demo account, its preview with the demo line on the cover (R-119; rule 10; 7.1.1-D6)',
+    path: REPORTS,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await demoWorkspace('reports')(page);
+      await page.locator('[data-report-preview]').waitFor();
+    },
+  },
+  {
+    name: 'DB-18 Reports, new project: nothing generated yet, the way to the Proposal page (R-119; never a dead end, rule 7)',
+    path: REPORTS,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshReports('Render Reports Empty', 0)(page);
+      await page.getByText('No document has been generated yet.', { exact: false }).waitFor();
+    },
+  },
+  {
+    name: 'DB-18 Reports, new project: two exported proposals, the second row previewed (R-119; R-118)',
+    path: REPORTS,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshReports('Render Reports Listed', 2)(page);
+      const previews = page.getByRole('button', { name: 'Show preview' });
+      await previews.nth(1).waitFor();
+      const rows = page.locator('[data-report-row]');
+      const second = await rows.nth(1).getAttribute('data-report-row');
+      await previews.nth(1).click();
+      await page.locator(`[data-report-preview="${second ?? ''}"]`).waitFor();
+      await screenReady(page);
+    },
+  },
+  {
+    name: 'R-118 print route, demo: the print view failing, "This document could not be prepared." with Try again, the refusal marker set',
+    path: PRINT,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await signIn(page);
+      const snapshotId = await storedSnapshot(page, demoProjectId());
+      await failRequests(page, printView);
+      await page.goto(`/projects/${demoProjectId()}/print/proposals/${snapshotId}`);
+      await page.locator('html[data-print-ready="failed"]').waitFor({ state: 'attached', timeout: 30_000 });
+      await loadFailedShown(page);
+    },
+  },
+  {
+    name: 'DB-18 Reports, new project: a search that matches no row, "No report matches" (R-119)',
+    path: REPORTS,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshReports('Render Reports No Match', 1)(page);
+      await page.getByRole('searchbox', { name: 'Search reports' }).fill('TEST nothing matches');
+      await page.getByText('No report matches the search or the category.', { exact: true }).waitFor({ timeout: 15_000 });
+      await screenReady(page);
+    },
+  },
+  {
+    name: 'DB-18 Reports, new project: loading, its view held',
+    path: REPORTS,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Reports Loading', 'steps/2');
+      await holdRequests(page, reportsList, { releaseAfterMs: LOADING_MS });
+      await page.goto(`/projects/${id}/reports`);
+      await loadingShown(page);
+    },
+  },
+  {
+    name: 'DB-18 Reports, new project: load failure, its view failing (the frame kept)',
+    path: REPORTS,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Reports Failed', 'steps/2');
+      await failRequests(page, reportsList);
+      await page.goto(`/projects/${id}/reports`);
+      await loadFailedShown(page);
+    },
+  },
+  {
+    name: 'DB-17 Equipment, new project: Export failing, the failure said beside it, the control still enabled (R-066; US-ASSETS-11 AC6; rule 7)',
+    path: WORKSPACE('equipment'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshWorkspace('Render Equipment Export Failed', 'equipment')(page);
+      await failRequests(page, equipmentExport);
+      await page.getByRole('button', { name: 'Export', exact: true }).click();
+      await page.getByText('The list could not be exported. Try again.', { exact: true }).waitFor();
       await screenReady(page);
     },
   },

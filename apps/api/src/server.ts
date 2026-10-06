@@ -97,6 +97,13 @@ export function buildServer(options: ServerOptions): FastifyInstance {
     void app.register(async (instance) => {
       await registerApiRoutes(instance, services);
     });
+    // The PDF printer's browser closes with the server (docs/adr/0050 decision 2).
+    const printer = services.printer;
+    if (printer !== undefined) {
+      app.addHook('onClose', async () => {
+        await printer.close();
+      });
+    }
   }
 
   return app;

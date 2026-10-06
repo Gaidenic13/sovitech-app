@@ -109,7 +109,7 @@ function fieldRef(context: ViewContext, fieldKey: string): FieldRef {
 const projectPath = (context: ViewContext, path: string): ValueId => projectValueId(context.state.projectId, path);
 
 /** "Still reading <n> files. Your estimate will update when they finish." while any document is read (rule 7), else null. */
-function stillReading(context: ViewContext): ValueId | null {
+export function stillReading(context: ViewContext): ValueId | null {
   const count = stillReadingCount(context.state);
   if (count === 0) return null;
   return context.displays.add(resolveLine(projectPath(context, 'documents.stillReading'), 'still_reading', { count }, FORMAT));
@@ -406,7 +406,8 @@ function siteSurveyNeeded(state: ProjectState): boolean {
   return !state.activeDocuments.some((document) => document.stage === 'site_survey');
 }
 
-function reviewLists(context: ViewContext): Pick<Extract<StepView, { step: 8 }>, 'forYou' | 'sovitechWillCheck'> {
+/** Step 8's "For you" and "SOVITECH will check" lists (rule 7), as the stored proposal shows them too (the project's now: ADR 0048 decision 7). */
+export function reviewLists(context: ViewContext): Pick<Extract<StepView, { step: 8 }>, 'forYou' | 'sovitechWillCheck'> {
   const { state, plan } = context;
   const lists = openItems({
     fields: intakeFields(state),

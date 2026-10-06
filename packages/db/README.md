@@ -90,6 +90,14 @@ works as is). The reaper image is pinned by digest too (`src/images.ts`).
   reason `document_erased` (`document_events_erased_by_erasure`, `SVE10`).
 - A document value commits only with an evidence entry whose check matched
   (`SVX01`), a document only with its first analysis event (`SVX12`).
+- A stored proposal's snapshot names the user making the request as its
+  writer, an owner of the project (or the demo seed on a demo project) or the
+  project's system service account (`SVX19`, migration 0016); every part of it
+  (its candidate ids, formulas, output rows, pending documents and drafted
+  paragraphs) is written only with it, by its writer, in its transaction, so a
+  stored proposal is never added to once it commits (`SVX17`, migrations 0015
+  and 0016). A generated output is started only by the owner making the
+  request, in their own name (`SVX18`).
 - After an erasure, no extracted text, evidence entry or excerpt is stored
   for the erased document or its content hash (`SVE11`); writers of text and
   evidence, and the erasure, run in READ COMMITTED (`SVE12`) and meet on the

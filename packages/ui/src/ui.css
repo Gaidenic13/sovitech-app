@@ -57,6 +57,13 @@
     height: 32px;
   }
 
+  /* The logo's plate (phase 5 DR-14): the white logo stays on the brand background where forced colours would paint
+     the header in the system's Canvas (white in a light contrast theme) and the logo would vanish. No CSS filter on
+     the logo: the real file shows as it is (app-alignment "Shape, type, motion and logo"). */
+  .sov-logo-plate {
+    display: inline-flex;
+  }
+
   .sov-date {
     color: var(--sov-text-muted);
     font-size: 13px;
@@ -493,6 +500,41 @@
     font-size: 20px;
     line-height: 28px;
     font-variant-numeric: tabular-nums;
+  }
+
+  /* The headline price (phase 5: the stored proposal's head, UD-01's content): the figure in the page-title role's
+     size and weight; a price that cannot be produced keeps its words at the body size, so a long "Not available yet"
+     line never reads as a figure. Layout only: the same content in every size (G2-7). */
+  .sov-price[data-size='headline'] {
+    gap: 8px;
+  }
+
+  .sov-price[data-size='headline'] .sov-value:not([data-shape='missing']) .sov-value__text {
+    font-size: var(--sov-title-size);
+    font-weight: var(--sov-title-weight);
+    line-height: 40px;
+  }
+
+  /* A price that cannot be produced shows words, not a figure: the body size in a list, the section heading's size and
+     weight at the head (still below the figure's size, so it never reads as one). */
+  .sov-price .sov-value[data-shape='missing'] .sov-value__text {
+    font-size: var(--sov-text-body-size);
+    line-height: var(--sov-text-body-leading);
+  }
+
+  .sov-price[data-size='headline'] .sov-value[data-shape='missing'] .sov-value__text {
+    font-size: var(--sov-heading-section-size);
+    font-weight: var(--sov-heading-section-weight);
+    line-height: var(--sov-heading-section-leading);
+  }
+
+  .sov-price[data-size='headline'] .sov-price__stage {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .sov-price > .sov-status-line {
+    color: var(--sov-text-primary);
   }
 
   /* ------------------------------------------------------------------ lines */
@@ -1696,6 +1738,11 @@
     gap: 16px 32px;
   }
 
+  /* The controls at the top of the title block (phase 5 DR-16): the title keeps one position in every state. */
+  .sov-page-header__row[data-actions-align='start'] {
+    align-items: flex-start;
+  }
+
   .sov-page-header__titles {
     display: grid;
     gap: 8px;
@@ -1903,6 +1950,11 @@
   /* Before the action column: its measured width, or by default an icon button's cell (12px, 32px, 12px). */
   .sov-register[data-row-action='true'] [data-pin='open'] {
     inset-inline-end: var(--sov-register-trail, 56px);
+  }
+
+  /* One visible heading over the control columns (phase 5 DR-7, DB-18's "Actions"): pinned to the end with them. */
+  .sov-register [data-pin='controls'] {
+    inset-inline-end: 0;
   }
 
   .sov-register__row:hover > [data-pin] {
@@ -2151,7 +2203,101 @@
     justify-content: center;
   }
 
+  /* ------------------------------------------------------------------ text roles (phase 5 kit pass, DR-11) */
+  /* Body, small and caption under the heading roles (tokens.css: roles proposed, pending the owner's OK; values Brand
+     type). One class per use, whatever the element. */
+  .sov-text-body {
+    margin: 0;
+    color: var(--sov-text-tertiary);
+    font-size: var(--sov-text-body-size);
+    font-weight: var(--sov-weight-regular);
+    line-height: var(--sov-text-body-leading);
+  }
+
+  .sov-text-small {
+    margin: 0;
+    color: var(--sov-text-tertiary);
+    font-size: var(--sov-text-small-size);
+    font-weight: var(--sov-weight-regular);
+    line-height: var(--sov-text-small-leading);
+  }
+
+  .sov-text-caption {
+    margin: 0;
+    color: var(--sov-text-muted);
+    font-size: var(--sov-text-caption-size);
+    font-weight: var(--sov-weight-medium);
+    line-height: var(--sov-text-caption-leading);
+  }
+
+  /* ------------------------------------------------------------------ search field (phase 5 kit pass, DR-5) */
+  /* The one search box of the registers: one width (320px, never wider than its column), the control boundary
+     (white 55%, 3:1) and the accent focus outline on the whole box; the input itself draws no outline of its own. */
+  .sov-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 320px;
+    max-width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--sov-control-border);
+    border-radius: var(--sov-radius-surface);
+    color: var(--sov-text-tertiary);
+    transition: border-color var(--sov-duration-surface) var(--sov-ease);
+  }
+
+  .sov-search:hover {
+    border-color: var(--sov-text-primary);
+  }
+
+  .sov-search:focus-within {
+    outline: var(--sov-focus-width) solid var(--sov-focus-ring);
+    outline-offset: var(--sov-focus-offset);
+  }
+
+  .sov-search__input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--sov-text-primary);
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .sov-search__input::placeholder {
+    color: var(--sov-text-muted);
+    opacity: 1;
+  }
+
+  /* Forced colours (Windows High Contrast; phase 5 DR-14): the system replaces the brand's colours, and fills and
+     transparent edges no longer tell one row from another. The open register row keeps a 2px CanvasText edge on its
+     first cell, every other row's edge drawn in Canvas, so "this one" is never told by a fill alone (App theme
+     "Sidebar selected row"). The logo keeps its plate in the brand background, out of the forced palette. */
+  @media (forced-colors: active) {
+    .sov-register__table thead th:first-child,
+    .sov-register__row > :first-child {
+      border-inline-start-color: Canvas;
+    }
+
+    .sov-register__row[aria-current='true'] > :first-child {
+      border-inline-start-color: CanvasText;
+    }
+
+    .sov-logo-plate {
+      margin: -4px -8px;
+      padding: 4px 8px;
+      background-color: var(--sov-bg);
+      forced-color-adjust: none;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    .sov-search,
     .sov-button,
     .sov-action-row,
     .sov-input-box,

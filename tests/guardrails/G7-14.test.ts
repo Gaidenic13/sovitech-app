@@ -10,7 +10,7 @@
  *
  * The level register is the workspace's one derivation (packages/view-model/src/workspace/levels.ts): the frame's
  * floors list and every page's floor filter (Equipment, Zones, Topology) read it. Beside the case: a known floor
- * structure lists its levels bottom up in the regim's notation (ADR 0045 decision 3; D-18 interim), the level types
+ * structure lists its levels bottom up in English labels (ADR 0045 decision 3; D-18, the owner's decision of 2026-10-05), the level types
  * no source states named once as Unknown, and a floor structure in conflict lists nothing.
  */
 import { expect, test } from 'vitest';
@@ -52,7 +52,7 @@ test('US-MODEL-02 · R-077 · G7-14: with no floor structure known, the floors l
   }
 });
 
-test('R-076 · ADR 0045 decision 3 · G7-14 (beside the case): a known floor structure lists its levels bottom up in the regim notation, and names the level types no source states as Unknown', () => {
+test('R-076 · ADR 0045 decision 3 · G7-14 (beside the case): a known floor structure lists its levels bottom up in English labels (D-18), and names the level types no source states as Unknown', () => {
   const below = documentReading({ id: uuid(20), subjectId: BUILDING, field: floors, document: memoriu, value: { quantity: { value: 2, unit: 'count', qualifier: 'below_ground' } }, minute: 1 });
   const ground = documentReading({ id: uuid(21), subjectId: BUILDING, field: floors, document: memoriu, value: { quantity: { value: 1, unit: 'count', qualifier: 'ground' } }, minute: 1 });
   const upper = documentReading({ id: uuid(22), subjectId: BUILDING, field: floors, document: memoriu, value: { quantity: { value: 3, unit: 'count', qualifier: 'upper' } }, minute: 1 });
@@ -62,7 +62,7 @@ test('R-076 · ADR 0045 decision 3 · G7-14 (beside the case): a known floor str
   expect(view.levels.state).toBe('known');
   if (view.levels.state !== 'known') return;
   expect(view.levels.levels.map((level) => level.key)).toEqual(['below_ground_2', 'below_ground_1', 'ground_1', 'upper_1', 'upper_2', 'upper_3', 'setback_or_technical_1']);
-  expect(view.levels.levels.map((level) => displayOf(displayObjects, level.label).text)).toEqual(['S2', 'S1', 'P', 'E1', 'E2', 'E3', 'Er']);
+  expect(view.levels.levels.map((level) => displayOf(displayObjects, level.label).text)).toEqual(['B2', 'B1', 'GF', 'Level 1', 'Level 2', 'Level 3', 'Setback or technical floor']);
   expect(view.levels.levels.every((level) => level.label === `building:${BUILDING}.levels.${level.key}`)).toBe(true);
   expect(view.levels.unstated).not.toBeNull();
   expect(displayOf(displayObjects, view.levels.unstated ?? '').text).toBe('Unknown: semi-basement, mezzanine, attic, roof plant');

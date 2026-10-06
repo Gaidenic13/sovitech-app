@@ -1,0 +1,50 @@
+# 0049. The proposal, Reports and export contract
+
+- **Status:** Accepted: default, reversible
+- **Date:** 2026-10-05
+
+## Context
+
+- **Guardrails** rule 2 ("UI code receives only resolved field objects"; the render test), 2.8 (badges, stage labels, "Prominence"), rules 1, 3, 7, 9, 10, 11, 12, 13. Prompt 3 sections 6 and 7 (the API returns display objects only; every number in a line bound to a value id), section 9 (UD-01, UD-06, UD-07, DB-18, UD-12, UD-19, UD-20, UD-38), phase 5.
+- **ADR 0036** fixed the contract's form (zod schemas in `packages/view-model/src/browser/contract/`, the `ROUTES` table, display objects, `servedDisplayOf`, the API's test that its routes equal `ROUTES`); **ADR 0044** extended it for the workspace.
+- **PRD** R-109 to R-113, R-115, R-116, R-118 to R-120, R-123, R-127, R-129, R-066 (Equipment's export), R-146 (the sidebar lists built pages only). D ids: D-02, D-14, D-06, D-54, D-60, D-67, D-20, D-16, D-09.
+
+## Decision
+
+1. **Where it lives.** `proposal.ts` beside the wizard's and the workspace's files, exported by `@sovitech/view-model/browser`; eight routes in `ROUTES` with `phase: 5` (the type now allows 5):
+   - `proposals.list` `GET …/proposals`: the stored versions, newest first, each with its generation date (display objects);
+   - `proposals.generate` `POST …/proposals` (CSRF; owner only): Generate; answers `{ snapshotId }` (201);
+   - `proposals.view` `GET …/proposals/:snapshotId`: the stored proposal (UD-06) with UD-01's content at its head (display objects);
+   - `proposals.print` `GET …/proposals/:snapshotId/print`: what the print route renders (display objects; no actions; cover; appendix);
+   - `proposals.export` `POST …/proposals/:snapshotId/exports` (CSRF; owner only): records a generated output; answers `{ outputId }` (201);
+   - `exports.file` `GET …/exports/:outputId/file`: the PDF (`application/pdf`, attachment, `no-store`); refusal `503 export_unavailable`;
+   - `reports.list` `GET …/reports?search=&category=&sort=&page=`: Reports' rows (display objects), previous and next only;
+   - `exports.equipment` `GET …/exports/equipment?system=&level=&zone=&badge=&search=`: the Equipment register as CSV. Not under `…/workspace/equipment/`, where the render test would read it as the asset route (`workspace.equipment/:assetId`) and expect display objects (found by the planner's contract test).
+   Phase 3's `proposal.preview` (`GET …/proposal`) stays, unchanged: the landing's state while no proposal is stored.
+2. **Value ids** added (each segment starts with a letter): `proposal:<snapshotId>.generatedOn`; `.outputs.<output>` (output keys as the registry writes them, `outputs.capex.preliminaryEstimate`) and `.outputs.<output>.stage`; `.indicators.<operating_cost|payback|npv|irr>`; `.inputs.<subject kind>.<field path>` (the snapshot's inputs as used: never the field's current id, G2-7); `.lifeSafety.<system>` and `.lifeSafety.interfacePoints`; `.drafted.<slot>`; `output:<outputId>.name|generatedAt|generatedBy`. The open items and "Still reading" keep phase 3's ids (the project's now, as step 8 shows them).
+3. **Prices.** `PriceSchema` carries the figure's value id, the stage label's value id (null while no figure exists), the stage id for layout, the quotation record id only at stage 3 (equal to the figure display's `quotationRecordId`, G10-9), and the "Superseded" line's value id where a record is stale. The Price component renders exactly these; it has no stage prop (rule 10: "Templates ... never accept it as a parameter").
+4. **Sections of the stored proposal** (`ProposalViewSchema`): headline (the investment output that carries the stage, the open items now, "Still reading"); investment (stage 1 and 2 outputs; exclusions); points (hardware I/O, integration, virtual, never one priced total; rule 11's interface points named with no figure); energy (annual energy, savings); indicators (operating cost, payback, NPV, IRR: "Not available yet"; ROI not listed, dashboards 7.1); measures; scope (each system's decision as used, life-safety flag, Fire Safety's sentence) and exclusions; life-safety sentences; basis (the inputs as used); "What we still need"; drafted paragraphs; versions.
+5. **Reports** (`reports.list`, DB-18): generated outputs only (the proposal PDFs the owner exported), with name, category, generation date and time and who started it (`record` displays, bound), and "Superseded" where a record went stale; no Status column, "⋯" menu, "View", "+ Generate Report", template tiles or "View All Templates →" (R-119, R-123 "Until decided"); no "Showing …" line, page numbers, Pages or File Size (G2-1; proposal 7.2.30); the generated proposal itself is not a row (R-119 leaves US-REPORTS-05 AC2 off, D-02); no Compliance Report (R-120).
+6. **The workspace sidebar adds Reports**, last, as the approved list draws it (`WORKSPACE_PAGES`; ADR 0043 amended). A stored version opens at `/projects/:projectId/proposals/:snapshotId` in the workspace frame; the print route `/projects/:projectId/print/proposals/:snapshotId` sits outside every frame.
+7. **What every response carries**: the envelope of `common.ts` (`asOf`, the project header with the demo line from the flag only, `displayObjects`) plus its view, validated by `answerWith` in the API and parsed by the web; the two file routes answer files.
+
+## Consequences
+
+- One schema per screen, compiled by both apps; the render test reads the stored proposal, its print route and Reports from the API with no change to its adapter.
+- The file routes never pass through the render test's display-object interception; the PDF is checked on its print route, the CSV by its case (G10-14).
+
+## How to reverse
+
+Each route is one entry in `ROUTES`, one schema in `proposal.ts`, one handler in `apps/api/src/proposal/routes.ts` and one builder in `packages/view-model/src/proposal/`.
+
+## Amended (the integrator, phase 5 part A, 2026-10-06)
+
+- **`ProposalOutputSchema.label`** (optional, additive): for an investment output with no figure, the value id of the 2.8 stage label that names it beside its "Not available yet: …" line (`proposal:<sid>.outputs.<output>.label`; "Indicative range" for the benchmark output, "Preliminary investment estimate" for the output from this project's data), as step 8's `OutputAvailability.label` names it (phase 3). G10-11's Expected ("The investment outputs are named only by 2.8's stage labels ... each with its 'Not available yet: …' line") applies to the proposal page, which the stored proposal now is; the builders' contract served no name for such an output (`price.stage` null, as a figure that does not exist has no stage) and the pages named it by what it measures ("Investment from this project's data"), or not at all on paper. `price.stage` stays null, and the head still names no stage ("The Proposal card names no stage while no investment figure can be produced"). Absent on an output with a figure (its Price shows the stage the engine read from stored records) and on every other output; never "Formal quotation". The stored proposal page and the print route name such an output by it; G10-11's case file proves it on `proposals.view`, and the web test "G10-11 (web half, the stored proposal)" on the page.
+
+## Amended (the integrator, phase 5 part B, 2026-10-07)
+
+No schema changed in part B; what the routes serve inside the schemas did:
+- **A new value id, `proposal:<sid>.headline.investment`** (V-1; rule 1 "Material exclusions"; G1-2): when the investment output the head carries is an incomplete total, the head's `price.figure` names this display, a `line` reading "Incomplete: excludes <item names>" (the names bound as parts) under the output's stage label, with "Out of date, recalculating" when its inputs changed, and no figure; `price.stage` and `stageId` are the output's, `quotationRecordId` and `superseded` null. The Investment section's output keeps its own figure display with its Incomplete line.
+- **Dates with their time** (DR-5): the `generatedOn` display and the versions rail read "D MMM YYYY, HH:MM"; Reports' row name reads "Preliminary proposal generated D MMM YYYY, HH:MM" (draft wording), from the snapshot's `createdAt`; both through the formatting module's one `formatDateAndTime`, the store's UTC until the owner answers the time-zone question (build log, phase 5, question 2).
+- **The file routes:** `exports.file` names the PDF `preliminary-proposal-YYYY-MM-DD-HHMM.pdf` and may answer `503 export_unavailable` at once when the print queue is full (ADR 0050 decision 2, amended); `exports.equipment`'s CSV starts with a UTF-8 byte order mark and quotes and guards cells holding `;` or a tab (ADR 0050 decision 4, amended).
+- **Reports' "Superseded"** is now read as the stored proposal reads it: from `priceStageOf` over the exported snapshot's stage 2 row, with the same records and standings (ADR 0048, amended in part B), so a row holds the line only where its proposal's figure does (R-119).

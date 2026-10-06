@@ -18,22 +18,36 @@
  *
  * G2-7's e2e half: HVAC's scope decision, one value id, renders the same text on System Scope's row and in Topology's
  * group (the render test checks each against its one served display object on every screen).
+ *
+ * Phase 5 (V-5's e2e half; G10-14's e2e half; R-066; rule 10 "Labelled everywhere"; 2.8 "Reserved terms"): Equipment's
+ * Export on the seeded demo saves a CSV whose first line is the demo line (an optional byte-order mark stripped), and
+ * no cell holds a reserved term outside 2.8's places, read by column (../support/csv.ts). Exporting writes nothing.
  */
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { displayObjectsFromApi } from '../render/api-display-objects';
 import { prepareRenderCheck } from '../render/render-check';
 import { readGuardrailEvents } from '../support/control';
+import { csvRecords, csvText, reservedTermsInCsv } from '../support/csv';
 import { demoProjectId, signIn } from '../support/wizard';
 import { followSidebar, generateIntoWorkspace, openSwitcher } from '../support/workspace';
+import { REPO_ROOT } from '../setup/paths';
 import { DEMO_LINE, checkScreen, type CheckedScreens } from './screen-checks';
 
-/** What no workspace page shows (R-054, R-073 to R-080 "Until decided"; R-139; D14; 7.2.10; rule 12). */
-const NEVER = /\b3D\b|\b2D\b|Hybrid|Floor Plan|Isolate|BMS LIVE|Last sync|Last Update|Alarms|Open in BMS|proposed design|Export|not found/iu;
+/** The names, as uploaded, of every document the demo may cite: its fixture files (a superset of the seed's uploads). */
+const FIXTURE_DOCUMENT_NAMES = ['pdf', 'xlsx', 'ifc'].flatMap((folder) => readdirSync(join(REPO_ROOT, 'fixtures', folder)).filter((name) => /\.[a-z0-9]+$/iu.test(name)));
+
+/**
+ * What no workspace page shows (R-054, R-073 to R-080 "Until decided"; R-139; D14; 7.2.10; rule 12). Phase 5: "Export"
+ * left the list, since Equipment's Export now exists (R-066; US-ASSETS-11 AC6; ADR 0050 decision 4).
+ */
+const NEVER = /\b3D\b|\b2D\b|Hybrid|Floor Plan|Isolate|BMS LIVE|Last sync|Last Update|Alarms|Open in BMS|proposed design|not found/iu;
 
 /** The frame as ADR 0043 draws it: the built pages in order, the current one marked; the demo line once, in the footer. */
 async function frameHolds(page: Page, current: string): Promise<void> {
   const nav = page.getByRole('navigation', { name: 'Project pages' });
-  await expect(nav.getByRole('link')).toHaveText(['Proposal', 'System Scope', 'Topology', 'Zones', 'Equipment', 'Documents']);
+  await expect(nav.getByRole('link')).toHaveText(['Proposal', 'System Scope', 'Topology', 'Zones', 'Equipment', 'Documents', 'Reports']);
   await expect(nav.locator('a[aria-current="page"]')).toHaveText(current);
   await expect(page.getByText(DEMO_LINE, { exact: true })).toHaveCount(1);
   await expect(page.locator('.sov-status-footer').getByText(DEMO_LINE, { exact: true })).toBeVisible();
@@ -43,7 +57,7 @@ async function frameHolds(page: Page, current: string): Promise<void> {
   await expect(page.locator('main')).not.toContainText(NEVER);
 }
 
-test('G2-7 (e2e half) · US-ADMIN-13 · US-ADMIN-06 · US-ADMIN-12 · US-REVIEW-14 · US-SCOPE-05 · US-TOPO-01 · US-TOPO-05 · US-ZONES-02 · US-ASSETS-05 · US-DOCS-13 · R-146 · R-145 · R-049 · R-139 · R-071 · R-072 · G1-26 · G1-27 · G12-10 · G13-9 · GS-1 · rules 5, 6, 7, 10, 11 and 12: the demo\'s workspace through the sidebar, the demo line once in the footer on every page (phase 4 flow (d))', async ({
+test('G2-7 (e2e half) · G10-14 (e2e half) · R-066 · US-ADMIN-13 · US-ADMIN-06 · US-ADMIN-12 · US-REVIEW-14 · US-SCOPE-05 · US-TOPO-01 · US-TOPO-05 · US-ZONES-02 · US-ASSETS-05 · US-DOCS-13 · R-146 · R-145 · R-049 · R-139 · R-071 · R-072 · G1-26 · G1-27 · G12-10 · G13-9 · GS-1 · rules 5, 6, 7, 10, 11 and 12: the demo\'s workspace through the sidebar, the demo line once in the footer on every page (phase 4 flow (d))', async ({
   page,
 }) => {
   test.setTimeout(8 * 60_000);
@@ -104,6 +118,14 @@ test('G2-7 (e2e half) · US-ADMIN-13 · US-ADMIN-06 · US-ADMIN-12 · US-REVIEW-
   await expect(page.getByText('No equipment has come from your documents yet.', { exact: true })).toBeVisible();
   await expect(page.getByText('Not available yet: SOVITECH asset taxonomy', { exact: true }).first()).toBeVisible();
   await checkScreen(page, { demo: true, label: 'd-DB-17-equipment' }, checked);
+  // V-5 (e2e half) · G10-14 · rule 10: the seeded demo's Equipment CSV starts with the demo line; no reserved term in it
+  // outside 2.8's places, by column (badge columns' labels, source columns' verbatim source text).
+  const [exported] = await Promise.all([page.waitForEvent('download', { timeout: 60_000 }), page.getByRole('button', { name: 'Export', exact: true }).click()]);
+  const csv = csvText(readFileSync(await exported.path()));
+  expect(csvRecords(csv)[0], 'the first line, as a spreadsheet reads it').toEqual([DEMO_LINE]);
+  expect(csv.split(/\r?\n/u)[0]).toBe(`"${DEMO_LINE}"`);
+  expect(reservedTermsInCsv(csv, { citedFileNames: FIXTURE_DOCUMENT_NAMES })).toEqual([]);
+  await expect(page.getByRole('alert')).toHaveCount(0);
 
   // Documents (DB-15): the demo's files, each Category Unknown (G1-26), no Size or Uploaded By (R-017, R-018).
   await followSidebar(page, 'Documents');
