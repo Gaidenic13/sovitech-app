@@ -143,7 +143,7 @@ describe('guardrail index: the repository file', () => {
     expect(counts.E).toBe(rowLines.filter((line) => splitTableRow(line)[1] === 'E').length);
   });
 
-  it('ADR 0003: holds the pinned count of ids for its version: 104 (84 T, 20 E) at 1.5, 143 (123 T, 20 E) at 1.6, 169 (149 T, 20 E) at 1.7, 188 (168 T, 20 E) at 1.8 (173 at phase 3 part A, 12 more from its part B, 3 more from its final verification), 212 (192 T, 20 E) at 1.9 (199 at phase 4 part A, 13 more from its part B), 231 (211 T, 20 E) at 1.10 (226 at phase 5 part A, 5 more from its part B), 237 (217 T, 20 E) at 1.11 (the viewer step\'s part 1)', () => {
+  it('ADR 0003: holds the pinned count of ids for its version: 104 (84 T, 20 E) at 1.5, 143 (123 T, 20 E) at 1.6, 169 (149 T, 20 E) at 1.7, 188 (168 T, 20 E) at 1.8 (173 at phase 3 part A, 12 more from its part B, 3 more from its final verification), 212 (192 T, 20 E) at 1.9 (199 at phase 4 part A, 13 more from its part B), 231 (211 T, 20 E) at 1.10 (226 at phase 5 part A, 5 more from its part B), 237 (217 T, 20 E) at 1.11 (the viewer step\'s part 1), 242 (222 T, 20 E) at 1.12 (241 at phase 6 part A, 1 more from its part B)', () => {
     // 1.5 is the version prompt 3 and the PRD (R-156) name; 1.6 adds phase 1's cases: prompt 3's
     // G4-20, G10-8 and G13-5, the 20 cases of the phase 1 review round (G1-14, G1-15,
     // G3-9 to G3-11, G4-21 to G4-29, G8-12 to G8-14, G10-9, G13-6, G13-7), and the 14 of its
@@ -161,7 +161,8 @@ describe('guardrail index: the repository file', () => {
     // (G2-15, G3-21, G3-22, G4-41 to G4-44, G7-16, G7-17, G8-24, G12-11, G12-12 and G13-10). 1.10 adds phase 5 part A's
     // fourteen (G1-28, G1-29, G3-23, G4-45, G7-18, G7-19, G9-10 to G9-12, G10-13, G10-14, G11-12, G13-11 and G13-12),
     // and the 5 of its part B fix round (G4-46, G4-47, G7-20, G7-21 and G14-4). 1.11 adds the six of the viewer step's
-    // part 1 (G1-30, G7-22, G7-23, G13-13, G13-14 and G14-5).
+    // part 1 (G1-30, G7-22, G7-23, G13-13, G13-14 and G14-5). 1.12 adds phase 6 part A's four (G1-31, G1-32, G10-15 and
+    // G10-16) and the one of its part B fix round (G7-24).
     // A later version adds its own pin here, so the count is never left unchecked.
     const pinned: Record<string, { total: number; T: number; E: number }> = {
       '1.5': { total: 104, T: 84, E: 20 },
@@ -171,6 +172,7 @@ describe('guardrail index: the repository file', () => {
       '1.9': { total: 212, T: 192, E: 20 },
       '1.10': { total: 231, T: 211, E: 20 },
       '1.11': { total: 237, T: 217, E: 20 },
+      '1.12': { total: 242, T: 222, E: 20 },
     };
     const version = index.version ?? '(no version)';
     expect(Object.keys(pinned)).toContain(version);

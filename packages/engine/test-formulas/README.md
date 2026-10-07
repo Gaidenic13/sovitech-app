@@ -28,8 +28,10 @@ TEST formulas for the formula signatures the production registry declares (`pack
 | `TEST-pointsByType` | points by I/O type, protocol and virtual (G9-3, G10-7) | refuse | estimated |
 | `TEST-roomControlPoints` | the room-control supply split (G10-6, G9-4) | range_over_options | estimated |
 | `TEST-fireInterfacePoints` | a fire-alarm input and a fire-mode status per AHU panel (G11-3, G10-7) | refuse | calculated |
+| `TEST-capexBySystem` | a line per system and their total, the TEST breakdown series `capex.TEST_bySystem` (phase 6: G1-5, G9-8, G10-7) | range_over_options | estimated |
+| `TEST-cashFlow` | a TEST payback and the cumulative cash flow of TEST years 0 to 10, the TEST sequence `cashFlow.TEST_cumulative` (phase 6: G9-9) | refuse | estimated |
 
-`testCatalogue()` holds the six mirrors; `testCatalogue({ extra: [...] })` adds extra formulas by id; `{ mirrored: false }` leaves the mirrors out. Every formula writes on a TEST output field of `fields.ts`. `testFormulaLookup(catalogue)` (or `testFormulaVersionDeclared`) is the `formulaDeclared` lookup of a derive context that reads its candidates.
+`testCatalogue()` holds the six mirrors; `testCatalogue({ extra: [...] })` adds extra formulas by id, and the TEST chart series of those it adds (`series.ts`; phase 6); `{ mirrored: false }` leaves the mirrors out. Every formula writes on a TEST output field of `fields.ts`, or, for the two series formulas, of `series.ts` (so no existing body's hash input changed when they were added); `inputs.ts` reads both. `testFormulaLookup(catalogue)` (or `testFormulaVersionDeclared`) is the `formulaDeclared` lookup of a derive context that reads its candidates.
 
 ## The TEST bodies and their manifest
 

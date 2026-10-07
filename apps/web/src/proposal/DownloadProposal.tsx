@@ -13,6 +13,8 @@
  * - **The title keeps its place** (DR-16): the "Preparing" and failure lines sit in a box under the button, taken out of
  *   the page header's flow, so the header is as tall as the button whatever they say (the page aligns its controls to
  *   the title's top).
+ * - **Reused** (phase 6): CAPEX Breakdown's "Download Proposal" is this control for the page's snapshot (R-118;
+ *   7.1.1-P10; docs/adr/0052 decision 7), under the approved screen's label and as its outline button.
  */
 import { Button, FieldError } from '@sovitech/ui';
 import { Download } from 'lucide-react';
@@ -23,7 +25,16 @@ import { useOnSignedOut } from '../session/SessionProvider';
 import { useInFlight } from '../wizard/use-in-flight';
 import { exportFilePath, saveFile } from './download';
 
-export function DownloadProposal({ projectId, snapshotId }: { readonly projectId: string; readonly snapshotId: string }) {
+export interface DownloadProposalProps {
+  readonly projectId: string;
+  readonly snapshotId: string;
+  /** The button's label (catalogue copy): "Download PDF" by default; CAPEX's approved "Download Proposal". */
+  readonly label?: string;
+  /** The stored proposal's one primary button by default; the secondary outline where the page has another primary. */
+  readonly variant?: 'primary' | 'secondary';
+}
+
+export function DownloadProposal({ projectId, snapshotId, label = copy.proposal.download, variant = 'primary' }: DownloadProposalProps) {
   const downloading = useInFlight();
   const onSignedOut = useOnSignedOut();
   const [failed, setFailed] = useState(false);
@@ -47,8 +58,8 @@ export function DownloadProposal({ projectId, snapshotId }: { readonly projectId
 
   return (
     <div className="relative flex flex-col items-end" data-download-proposal="">
-      <Button variant="primary" icon={Download} aria-busy={downloading.busy} aria-describedby={failed ? errorId : undefined} onClick={download}>
-        {copy.proposal.download}
+      <Button variant={variant} icon={Download} aria-busy={downloading.busy} aria-describedby={failed ? errorId : undefined} onClick={download}>
+        {label}
       </Button>
       <div className="absolute top-full right-0 z-10 mt-2 flex w-max max-w-[440px] flex-col items-end gap-1" data-download-messages="">
         <p role="status" aria-live="polite" className="sov-text-small">

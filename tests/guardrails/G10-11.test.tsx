@@ -180,10 +180,11 @@ describe('G10-11 (API half, over a TEST database)', () => {
       expect(line?.text.startsWith('Not available yet: '), output).toBe(true);
       expect(line?.lines?.some((entryLine) => entryLine.kind === 'stage_label') ?? false, output).toBe(false);
       // No stage is stated for a figure that does not exist.
-      expect(entry?.price).toMatchObject({ stage: null, stageId: null, quotationRecordId: null, superseded: null });
+      expect(entry?.price).toEqual({ figure: entry?.display, stageId: null, quotationRecordId: null });
     }
     // The head (the Proposal card's content): the stage-carrying output's "Not available yet" line, with no stage named.
-    expect(view.headline.investment.price.stage).toBeNull();
+    expect(view.headline.investment.price.stageId).toBeNull();
+    expect(byId(view.headline.investment.price.figure)?.lines?.some((line) => line.kind === 'stage_label') ?? false).toBe(false);
     expect(byId(view.headline.investment.price.figure)?.text.startsWith('Not available yet: ')).toBe(true);
     // Each stage label once, on its own output; nothing else names a stage, "Formal quotation" nowhere.
     expect(wordsOf(displayObjects).filter((text) => STAGE_WORDS.some((label) => text.includes(label))).sort()).toEqual(

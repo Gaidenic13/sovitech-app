@@ -88,14 +88,15 @@ describe('ADR 0047 decision 8 · ADR 0048: a TEST figure through Generate, the s
 
     const proposal = ProposalResponseSchema.parse((await api.app.inject({ method: 'GET', url: `/api/projects/${projectId}/proposals/${first}`, headers: { ...owner } })).json());
     const stage1 = proposal.view.investment.outputs.find((output) => output.output === 'capex.indicativeRange');
-    expect(stage1).toMatchObject({ availability: 'figure', outOfDate: false, price: { stageId: 'indicative_range', quotationRecordId: null, superseded: null } });
+    expect(stage1).toMatchObject({ availability: 'figure', outOfDate: false, price: { stageId: 'indicative_range', quotationRecordId: null } });
     const figure = proposal.displayObjects.find((display) => display.valueId === stage1?.display);
     expect(figure?.shape).toBe('range');
     expect(figure?.text).toMatch(/^about [\d,]+ EUR \([\d,]+ to [\d,]+ EUR\)$/u);
     expect(figure?.badge?.id).toBe('estimated');
     expect(figure?.sourceLine?.text).toBe('Method: TEST-capexIndicativeRange, version 1.0.0');
     expect(figure?.lines?.find((line) => line.kind === 'stage_label')?.text).toBe('Indicative range');
-    expect(proposal.displayObjects.find((display) => display.valueId === stage1?.price?.stage)?.text).toBe('Indicative range');
+    // Phase 6, V-11: no second copy of the stage label in a display of its own.
+    expect(proposal.displayObjects.some((display) => display.valueId === `${stage1?.display ?? ''}.stage`)).toBe(false);
     for (const display of proposal.displayObjects) {
       const served = servedDisplayOf(display);
       for (const text of [served.text, ...(served.lines ?? [])]) expect(findReservedTerms(text).map((match) => match.term), text).toEqual([]);

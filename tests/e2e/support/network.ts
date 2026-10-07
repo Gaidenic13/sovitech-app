@@ -42,6 +42,12 @@ export const proposalExport: RequestMatch = (method, path) => method === 'POST' 
 export const reportsList: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/reports$`, 'u').test(path);
 /** Phase 5: the Equipment register's CSV (`GET /api/projects/:projectId/exports/equipment`, `exports.equipment`). */
 export const equipmentExport: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/exports/equipment$`, 'u').test(path);
+/** Phase 6 (docs/adr/0052): a Metrics page's view (`GET /api/projects/:projectId/metrics/<page>`, `metrics.*`), not its print view. */
+export const metricsView: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/metrics/[a-z-]+$`, 'u').test(path);
+/** Phase 6: a Metrics page's print view (`GET …/metrics/<page>/print`, `metrics.payback.print`, `metrics.lifecycle.print`). */
+export const metricsPrintView: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/metrics/(?:payback|lifecycle)/print$`, 'u').test(path);
+/** Phase 6: Export Report (`GET /api/projects/:projectId/exports/metrics/<page>`, `exports.metrics`; R-121). */
+export const metricsExport: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/exports/metrics/[a-z]+$`, 'u').test(path);
 /** An upload's chunk (`PUT /api/projects/:projectId/uploads/:uploadId`). */
 export const uploadChunk: RequestMatch = (method, path) => method === 'PUT' && new RegExp(`^/api/projects/${UUID}/uploads/${UUID}$`, 'u').test(path);
 

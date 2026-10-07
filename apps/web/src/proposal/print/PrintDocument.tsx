@@ -138,11 +138,11 @@ function PriceRow({ displays, output, nameOf }: { readonly displays: Displays; r
   const price = output.price;
   const figure = displays.get(price?.figure ?? output.display);
   if (figure === undefined) return null;
-  const superseded = price?.superseded === null || price?.superseded === undefined ? undefined : displays.get(price.superseded);
   const name = nameOf(output.display);
+  // The stage label and any "Superseded" line are the figure's own lines, served once (phase 6, V-11).
   return (
     <Row {...(name === undefined ? {} : { name })}>
-      <Price display={figure} {...(superseded === undefined ? {} : { superseded })} />
+      <Price display={figure} />
     </Row>
   );
 }
@@ -288,7 +288,6 @@ export function PrintDocument({ response }: PrintDocumentProps) {
   const nameOf = valueNames(proposal, displays);
   const headline = proposal.headline;
   const headlineFigure = displays.get(headline.investment.price.figure);
-  const headlineSuperseded = headline.investment.price.superseded === null ? undefined : displays.get(headline.investment.price.superseded);
   const stillReading = headline.stillReading === null ? undefined : displays.get(headline.stillReading);
   const scopeIn = proposal.scope.systems.filter((system) => displays.has(system.decision));
   const exclusions = proposal.investment.exclusions.filter((id) => displays.has(id));
@@ -318,7 +317,7 @@ export function PrintDocument({ response }: PrintDocumentProps) {
           <ul className="sov-print__rows">
             {headlineFigure === undefined ? null : (
               <Row>
-                <Price display={headlineFigure} {...(headlineSuperseded === undefined ? {} : { superseded: headlineSuperseded })} />
+                <Price display={headlineFigure} />
               </Row>
             )}
             {stillReading === undefined ? null : (

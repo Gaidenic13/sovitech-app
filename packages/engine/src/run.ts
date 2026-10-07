@@ -33,6 +33,7 @@ import { isPoint, strictlyInside, toCandidateNumber, type Interval } from './int
 import { encodeNote, type MethodNote } from './notes';
 import { readInput, type InputRead } from './reading';
 import type { EngineCandidate, EngineRefusal, EngineRefusalReason, EngineRun, FormulaRef, Missing, OutputResult } from './results';
+import { checkSeries } from './series';
 import { inputsHashOf } from './snapshot';
 
 export interface RunOptions {
@@ -50,10 +51,17 @@ function inTestRunner(): boolean {
   return typeof process !== 'undefined' && process.env['VITEST'] !== undefined;
 }
 
-/** Refuses a catalogue the engine must never run (prompt 3 5.4; 2.1; G1-16; G9-4). */
+/**
+ * Refuses a catalogue the engine must never run (prompt 3 5.4; 2.1; G1-16; G9-4), and one whose chart series are
+ * faulted (phase 6, ./series.ts `checkSeries`: no chart is drawn from a catalogue that declares one wrongly).
+ */
 function assertCatalogue(catalogue: FormulaCatalogue): void {
   if (catalogue.kind === 'test' && !inTestRunner()) {
     throw new EngineInputError('a TEST catalogue runs only inside the test runner (prompt 3 5.4)');
+  }
+  const problems = checkSeries(catalogue);
+  if (problems.length > 0) {
+    throw new EngineInputError(`the catalogue declares series wrongly: ${problems.map((problem) => `${problem.code} (${problem.message})`).join('; ')}`);
   }
   const outputs = new Set<string>();
   for (const formula of catalogue.formulas) {

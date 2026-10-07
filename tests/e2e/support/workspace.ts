@@ -20,6 +20,12 @@ export const WORKSPACE_PAGES = {
   Equipment: 'equipment',
   Documents: 'documents',
   Reports: 'reports',
+  // Phase 6 (docs/adr/0052; ADR 0043 amended): the built Metrics pages, after Reports.
+  'Financial Overview': 'metrics/financial-overview',
+  'CAPEX Breakdown': 'metrics/capex',
+  'OPEX & Savings': 'metrics/opex',
+  'Payback Analysis': 'metrics/payback',
+  'Lifecycle Cost': 'metrics/lifecycle',
 } as const;
 export type WorkspacePageName = keyof typeof WORKSPACE_PAGES;
 

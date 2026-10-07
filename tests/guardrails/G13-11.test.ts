@@ -10,10 +10,14 @@
  * A's snapshot and output ids under B's own project read as not found, and an export of A's snapshot is refused; B's
  * versions list and Reports hold none of A's rows. At the store, a session scoped to B reads no row of A from any of the
  * phase 5 tables (row-level security). Every account and value is TEST data; the uploaded file is a fixture.
+ *
+ * Phase 6 (the Metrics pages, docs/adr/0052 decision 3; Expected unchanged): a Metrics page or print view of B naming
+ * A's snapshot by `?snapshot=` reads as not found, as A's Metrics routes do for B's owner; B's own pages read none of
+ * A's versions ("Not available yet: a generated preliminary proposal" while B has none).
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestAccount, insertTestQuotationRecord } from '@sovitech/db/testing';
-import { ExportResponseSchema, GenerateResponseSchema, ProposalVersionsResponseSchema, ReportsResponseSchema } from '@sovitech/view-model/browser';
+import { ExportResponseSchema, FinancialOverviewResponseSchema, GenerateResponseSchema, ProposalVersionsResponseSchema, ReportsResponseSchema } from '@sovitech/view-model/browser';
 import { fixtureBytes, signIn, startTestApi, upload, type Auth, type TestApi } from './_support/api';
 import { newOwnerProject } from './_support/workspace-store';
 
@@ -70,5 +74,25 @@ describe('G13-11 · rule 13: the stored proposal, its parts, generated outputs a
     }
     const ownA = await api.database.as('app', 'SELECT id FROM sovitech.generated_outputs', [], { userId: ownerAId ?? '', projectId: a.projectId });
     expect(ownA).toEqual([{ id: outputId }]);
+  });
+
+  it('G13-11 · rule 13 "Isolation" · phase 6: a Metrics page of project B naming A\'s snapshot reads as not found; B\'s pages read none of A\'s versions', async () => {
+    const a = await newOwnerProject(api, ownerA, 'G13-11 Metrics A');
+    const generated = await api.app.inject({ method: 'POST', url: `/api/projects/${a.projectId}/proposals`, headers: { ...ownerA }, payload: {} });
+    const { snapshotId } = GenerateResponseSchema.parse(generated.json());
+    const ownerBId = await createTestAccount(api.database, { label: 'G13-11 Metrics owner B', kind: 'person', roles: ['owner'] });
+    const ownerB = await signIn(api, ownerBId);
+    const b = await newOwnerProject(api, ownerB, 'G13-11 Metrics B');
+    const get = (path: string) => api.app.inject({ method: 'GET', url: path, headers: { ...ownerB } });
+    const named = ['financial-overview', 'capex', 'payback', 'lifecycle', 'payback/print', 'lifecycle/print'].map((page) => `metrics/${page}?snapshot=${snapshotId}`);
+    for (const path of named) {
+      expect((await get(`/api/projects/${b.projectId}/${path}`)).statusCode, path).toBe(404);
+      expect((await get(`/api/projects/${a.projectId}/${path}`)).statusCode, path).toBe(404);
+    }
+    expect((await get(`/api/projects/${a.projectId}/metrics/opex`)).statusCode).toBe(404);
+    const own = FinancialOverviewResponseSchema.parse((await get(`/api/projects/${b.projectId}/metrics/financial-overview`)).json());
+    expect(own.view.state).toBe('none_generated');
+    expect(JSON.stringify(own)).not.toContain(snapshotId);
+    expect(JSON.stringify(own)).not.toContain(a.projectId);
   });
 });

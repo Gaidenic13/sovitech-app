@@ -132,20 +132,21 @@ export interface FileAnswer {
 export type GenerationServices = Pick<ApiServices, 'store' | 'registry' | 'engine' | 'extractionAccountId' | 'drafting' | 'log'>;
 
 /** The owner's message when the PDF could not be prepared (rule 7: nothing is lost; the owner can try again). Draft wording. */
-const EXPORT_UNAVAILABLE = 'The PDF could not be prepared. Nothing was lost; you can try again.';
+/** The refusal's message when a PDF could not be printed (the proposal's and, from phase 6, a Metrics page's: R-121). */
+export const EXPORT_UNAVAILABLE = 'The PDF could not be prepared. Nothing was lost; you can try again.';
 
 // ---------------------------------------------------------------------------------------------
 // Shared reading
 // ---------------------------------------------------------------------------------------------
 
-/** The project as a phase 5 screen reads it: the wizard's state and plan, and one display per value id (G2-7). */
-async function viewContextOf(services: ApiServices, request: Request, gates: GateSource, scope: ProposalScope): Promise<ViewContext> {
+/** The project as a phase 5 screen reads it: the wizard's state and plan, and one display per value id (G2-7). Exported for the Metrics pages (phase 6, ../metrics/service.ts). */
+export async function viewContextOf(services: ApiServices, request: Request, gates: GateSource, scope: ProposalScope): Promise<ViewContext> {
   const state = await readProjectState(request, scope, registryOf(services));
   return { state, plan: planProject(state), displays: new Displays(), gates: closedGates(gates) };
 }
 
 /** The contract's envelope: `asOf`, the project header (the name bound; the demo line from the flag only) and every display. */
-function envelope<View>(context: ViewContext, built: Built<View>): { asOf: string; project: ProjectHeader; displayObjects: DisplayObject[]; view: View } {
+export function envelope<View>(context: ViewContext, built: Built<View>): { asOf: string; project: ProjectHeader; displayObjects: DisplayObject[]; view: View } {
   const project = projectHeader(context);
   for (const display of built.displayObjects) context.displays.add(display);
   return { asOf: context.state.asOf, project, displayObjects: context.displays.list(), view: built.view };
@@ -394,7 +395,7 @@ function storedReadingOf(stored: StoredProposal, current: CurrentInputs, catalog
 }
 
 /** The project's fields as the proposal's builders read them. */
-function proposalFieldsOf(state: ProjectState): ProposalField[] {
+export function proposalFieldsOf(state: ProjectState): ProposalField[] {
   return [...state.fields.values()].map((field) => ({
     field: field.field,
     subjectId: field.subjectId,
@@ -424,7 +425,7 @@ export function firstEstimateFallbackOf(rows: readonly SnapshotOutputRow[], regi
 }
 
 /** Everything the proposal's builders read for one stored version; 404 for a version the project does not hold (rule 13). */
-async function proposalInputOf(services: ApiServices, request: Request, context: ViewContext, snapshotId: string): Promise<ProposalBuildInput> {
+export async function proposalInputOf(services: ApiServices, request: Request, context: ViewContext, snapshotId: string): Promise<ProposalBuildInput> {
   const { state } = context;
   const engine = engineOf(services);
   const stored = await readProposalSnapshot(request, snapshotId);
@@ -542,13 +543,14 @@ const STORED_MINUTE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/u;
 /**
  * The download name of a proposal's PDF (DR-5): the stem of `EXPORT_FILE_NAMES.proposal` and the printed snapshot's
  * generation time, `preliminary-proposal-YYYY-MM-DD-HHMM.pdf`, so two versions never save under one name. The digits
- * are the stored time's own (UTC, as the store keeps it; no arithmetic); no document text (rule 13).
+ * are the stored time's own (UTC, as the store keeps it; no arithmetic); no document text (rule 13). A Metrics page's
+ * PDF (phase 6, R-121) names its own file the same way (`fileName`: `EXPORT_FILE_NAMES.payback` or `.lifecycle`).
  */
-export function exportFileNameOf(snapshotCreatedAt: string | undefined): string {
+export function exportFileNameOf(snapshotCreatedAt: string | undefined, fileName: string = EXPORT_FILE_NAMES.proposal): string {
   const match = snapshotCreatedAt === undefined ? null : STORED_MINUTE.exec(snapshotCreatedAt);
-  if (match === null) return EXPORT_FILE_NAMES.proposal;
+  if (match === null) return fileName;
   const [, year, month, day, hour, minute] = match;
-  return `${EXPORT_FILE_NAMES.proposal.replace(/\.pdf$/u, '')}-${year ?? ''}-${month ?? ''}-${day ?? ''}-${hour ?? ''}${minute ?? ''}.pdf`;
+  return `${fileName.replace(/\.pdf$/u, '')}-${year ?? ''}-${month ?? ''}-${day ?? ''}-${hour ?? ''}${minute ?? ''}.pdf`;
 }
 
 /**

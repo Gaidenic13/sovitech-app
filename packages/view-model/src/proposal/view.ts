@@ -12,7 +12,9 @@
  * - a figure whose inputs changed reads "Out of date, recalculating" and is never shown as current (2.4; G9-10);
  * - an investment figure's stage comes from the engine's reading of stored records only (rule 10; G10-1, G10-2,
  *   G10-9, G10-11): "Formal quotation" only from a current quotation record, which the display then names; "Superseded:
- *   inputs changed on <date>" beside stage 2's label when that record's inputs changed; no stage while no figure exists;
+ *   inputs changed on <date>" beside stage 2's label when that record's inputs changed; no stage while no figure exists.
+ *   The stage label and the Superseded line are served once each, among the figure's own lines (phase 6, V-11 of phase
+ *   5 part B): no display of their own repeats them;
  * - the head never shows an incomplete total's figure (rule 1, "Material exclusions": "no headline ... is computed from
  *   it"; G1-2): it serves its own display, the stage label with "Incomplete: excludes <item names>", and the Investment
  *   section keeps the figure with that line;
@@ -23,18 +25,14 @@
  */
 import { UNKNOWN_QUALIFIER, type Candidate } from '@sovitech/domain';
 import {
-  AUTOMATION_FIELDS,
-  FIELD,
-  GOAL_FIELDS,
   OUTPUT,
-  SCOPE_FIELDS,
   SYSTEMS,
   firstBadge,
   statusLineById,
   unitByCode,
   type BadgeId as RegistryBadgeId,
 } from '@sovitech/registry';
-import { methodNotesOf, type FormulaCatalogue, type PriceStageReading } from '@sovitech/engine';
+import { OUTPUT_STAGES, methodNotesOf, type FormulaCatalogue, type PriceStageReading } from '@sovitech/engine';
 import {
   VALUE_ID_PATTERN,
   type Action,
@@ -46,10 +44,24 @@ import {
   type ProposalPrintResponse,
   type ProposalResponse,
   type ProposalVersionsResponse,
+  type StepNumber,
   type ValueId,
 } from '../browser/contract';
-import { COUNT_UNIT_CODE, DEFAULT_FORMAT_OPTIONS, formatCalculated, formatCount, formatDate, formatDateAndTime, formatEstimate, type FormattedValue } from '../formatting';
+import {
+  COUNT_UNIT_CODE,
+  DEFAULT_FORMAT_OPTIONS,
+  calculatedAsShown,
+  estimateAsShown,
+  formatCalculated,
+  formatCount,
+  formatDate,
+  formatDateAndTime,
+  formatEstimate,
+  type FormattedValue,
+  type PlotInput,
+} from '../formatting';
 import { FIRST_ESTIMATE_SLOT_LABELS, OUTPUT_STAGE_LABELS } from '../intake/outputs';
+import { productionStepOfField } from '../intake/steps';
 import { badgeOf, candidateReading, lineOf, qualifierLabel, resolveCandidateEntry, resolveLine, resolveStageLabel, type ResolveFieldInput } from '../resolver';
 import { fillLine } from '../resolver/lines';
 import type { Built } from '../workspace/inputs';
@@ -75,8 +87,11 @@ const SECTIONS = {
   measures: [OUTPUT.measurePriority],
 } as const;
 
-/** The investment outputs that carry a rule 10 stage (2.8, stage labels). */
-const INVESTMENT_OUTPUTS: ReadonlySet<string> = new Set(SECTIONS.investment);
+/**
+ * The investment outputs that carry a rule 10 stage (2.8, stage labels): the engine's `OUTPUT_STAGES`, the one list, so a
+ * part of an investment the engine stages is priced here too (phase 6 part B, A-3).
+ */
+const INVESTMENT_OUTPUTS: ReadonlySet<string> = new Set(Object.keys(OUTPUT_STAGES));
 
 // ---------------------------------------------------------------------------------------------
 // Value ids and the response's displays
@@ -94,8 +109,11 @@ export function inputPath(subjectKind: string, fieldKey: string): string {
   return fieldKey.startsWith(`${subjectKind}.`) ? `inputs.${fieldKey}` : `inputs.${subjectKind}.${fieldKey}`;
 }
 
-/** One response's display objects, one per value id: a second, different display for one value id is a defect (G2-7). */
-class Displays {
+/**
+ * One response's display objects, one per value id: a second, different display for one value id is a defect (G2-7).
+ * Exported for the Metrics pages (phase 6, ../metrics), which build on the stored proposal's displays.
+ */
+export class Displays {
   private readonly byId = new Map<ValueId, DisplayObject>();
 
   add(display: DisplayObject): ValueId {
@@ -289,13 +307,33 @@ function figureReading(input: ProposalBuildInput, candidate: Candidate): Formatt
     return { ...formatEstimate(quantity.value, candidate.range, unit, FORMAT), shape: 'range' };
   }
   if (unit.code === COUNT_UNIT_CODE) return { ...formatCount(quantity.value, FORMAT), shape: 'value' };
-  // Rule 9: "Calculated values show no more significant figures than their least precise input."
+  return { ...formatCalculated(quantity.value, calculatedFiguresOf(input, candidate), unit, FORMAT), shape: 'value' };
+}
+
+/** Rule 9: "Calculated values show no more significant figures than their least precise input." */
+function calculatedFiguresOf(input: ProposalBuildInput, candidate: Candidate): number {
   const inputs = (candidate.method?.inputCandidateIds ?? []).flatMap((id) => {
     const used = input.snapshotCandidates.get(id)?.quantity?.value;
     return used === undefined ? [] : [significantFiguresOf(used)];
   });
   if (inputs.length === 0) throw new ProposalNotBuilt('a calculated quantity needs the significant figures its inputs allow (rule 9)');
-  return { ...formatCalculated(quantity.value, Math.min(...inputs), unit, FORMAT), shape: 'value' };
+  return Math.min(...inputs);
+}
+
+/**
+ * The numbers a produced candidate's figure shows (`figureReading`'s, rounded by the formatting module as the label is):
+ * for a chart that places the figure where its label says it is (G9-9; phase 6 part B, A-5: a mark plotted from the
+ * stored candidate would sit inside a narrower range than its label states). Layout only, never shown as text.
+ */
+export function figureAsShown(input: ProposalBuildInput, candidate: Candidate): Exclude<PlotInput, { readonly kind: 'gap' }> {
+  const quantity = candidate.quantity;
+  if (quantity === undefined) throw new ProposalNotBuilt(`the engine's candidate ${candidate.id} carries no figure to draw`);
+  if (candidate.source === 'estimated') {
+    if (candidate.range === undefined) throw new ProposalNotBuilt('an estimated figure without its range is not drawn (rule 9)');
+    return { kind: 'estimate', ...estimateAsShown(quantity.value, candidate.range) };
+  }
+  if (quantity.unit === COUNT_UNIT_CODE) return { kind: 'value', value: quantity.value };
+  return { kind: 'value', value: calculatedAsShown(quantity.value, calculatedFiguresOf(input, candidate)) };
 }
 
 /** A field's registered label, by its subject and key, as the proposal's input reads it. */
@@ -368,18 +406,27 @@ function provisionalLines(input: ProposalBuildInput, candidate: Candidate): { re
   return { lines, parts };
 }
 
-/** The "Superseded: inputs changed on <date>" line of a stale quotation record (2.8; rule 10; G10-2), its own display. */
-function supersededDisplay(valueId: ValueId, changedOn: string): DisplayObject {
-  const filled = fillLine('superseded_inputs_changed', { date: formatDate(changedOn).text }, FORMAT);
-  return { valueId, kind: 'line', text: filled.line.text, shape: 'value', lines: [filled.line], ...(filled.parts.length === 0 ? {} : { parts: [...filled.parts] }) };
+/**
+ * The "Superseded: inputs changed on <date>" line of a stale quotation record (2.8; rule 10; G10-2), with the parts its
+ * date binds: one of the figure's own lines, served nowhere else (phase 6, V-11).
+ */
+function supersededLine(changedOn: string): { readonly line: Line; readonly parts: readonly string[] } {
+  return fillLine('superseded_inputs_changed', { date: formatDate(changedOn).text }, FORMAT);
 }
 
-/** The stage label's own display (2.8 stage labels; "Formal quotation" only with the record it was derived from: G10-9). */
-function stageDisplay(valueId: ValueId, reading: Exclude<PriceStageReading, { stage: null }>): DisplayObject {
-  if (reading.stage !== 'formal_quotation') return resolveStageLabel(valueId, reading.stage, FORMAT);
+/**
+ * The stage label line a figure carries (2.8 stage labels; "Formal quotation" only with the record it was derived from,
+ * which the figure's display then names: G10-9): one of the figure's own lines, served nowhere else (phase 6, V-11).
+ */
+function stageLine(reading: Exclude<PriceStageReading, { stage: null }>): Line {
+  if (reading.stage !== 'formal_quotation') {
+    const filled = fillLine(reading.stage, {}, FORMAT);
+    if (filled.line.kind !== 'stage_label') throw new ProposalNotBuilt(`${reading.stage} is not a 2.8 stage label`);
+    return filled.line;
+  }
   if (reading.quotationRecordId === null) throw new ProposalNotBuilt('the stage 3 label names the stored record it was derived from (rule 10; G10-9)');
   const label = statusLineById('formal_quotation');
-  return { valueId, kind: 'line', text: label.text, shape: 'value', lines: [{ id: label.id, kind: 'stage_label', text: label.text }], quotationRecordId: reading.quotationRecordId };
+  return { id: label.id, kind: 'stage_label', text: label.text };
 }
 
 /** The parts a display renders apart, when there are any. */
@@ -390,7 +437,7 @@ function partsOf(parts: readonly string[]): { readonly parts?: string[] } {
 
 interface OutputBuilt {
   readonly output: ProposalOutput;
-  /** An investment figure's stage label line, read from stored records (undefined while no stage applies). */
+  /** An investment figure's stage label line, read from stored records (undefined while no stage applies); also among the figure's own lines. */
   readonly stageLine?: Line;
   /** An incomplete total's "Incomplete: excludes <item names>" (rule 1), with the parts its item names bind. */
   readonly incomplete?: { readonly line: Line; readonly parts: readonly string[] };
@@ -403,9 +450,10 @@ function outputDisplay(input: ProposalBuildInput, displays: Displays, row: Propo
   const investment = INVESTMENT_OUTPUTS.has(row.output);
   if (row.candidateId === null) {
     displays.add(notAvailableDisplay(input, valueId, row.output, [...row.missing, ...firstEstimateGaps(input, row.output, row.missing)]));
-    const price: Price | null = investment ? { figure: valueId, stage: null, stageId: null, quotationRecordId: null, superseded: null } : null;
+    const price: Price | null = investment ? { figure: valueId, stageId: null, quotationRecordId: null } : null;
     // G10-11: an investment output with no figure is named by its 2.8 stage label beside its "Not available yet" line,
-    // as step 8 names it; no stage is stated for a figure that does not exist (`price.stage` stays null).
+    // as step 8 names it; no stage is stated for a figure that does not exist (`price.stageId` stays null, and the
+    // figure's display carries no stage label).
     const stageLabel = investment ? OUTPUT_STAGE_LABELS[row.output] : undefined;
     const label = stageLabel === undefined ? undefined : displays.add(resolveStageLabel(proposalValueId(sid, `outputs.${row.output}.label`), stageLabel, FORMAT));
     return {
@@ -419,24 +467,24 @@ function outputDisplay(input: ProposalBuildInput, displays: Displays, row: Propo
   const badge = badgeOf(candidate.source === 'estimated' ? 'estimated' : 'calculated');
   const unit = candidate.quantity === undefined ? undefined : unitByCode(candidate.quantity.unit);
   const lines: Line[] = [];
+  const supersededParts: string[] = [];
   let quotationRecordId: string | undefined;
-  let stage: ValueId | null = null;
   let stageId: Price['stageId'] = null;
-  let superseded: ValueId | null = null;
-  let stageLine: Line | undefined;
+  let stageLabel: Line | undefined;
   if (investment) {
+    // Rule 10: the stage only from stored records (the engine's `priceStageOf`). Its label, and "Superseded: inputs
+    // changed on <date>" when a record of the snapshot went stale (G10-2), are the figure's own lines, served once
+    // (phase 6, V-11): the kit's Price reads them there by kind and id.
     const stageReading = input.stage(row.output);
     if (stageReading.stage !== null) {
-      const stageValue = stageDisplay(proposalValueId(sid, `outputs.${row.output}.stage`), stageReading);
-      stage = displays.add(stageValue);
+      stageLabel = stageLine(stageReading);
       stageId = stageReading.stage;
-      stageLine = (stageValue.lines ?? []).find((line) => line.kind === 'stage_label');
-      lines.push(...(stageValue.lines ?? []));
+      lines.push(stageLabel);
       if (stageReading.stage === 'formal_quotation' && stageReading.quotationRecordId !== null) quotationRecordId = stageReading.quotationRecordId;
       if (stageReading.superseded !== null) {
-        const line = supersededDisplay(proposalValueId(sid, `outputs.${row.output}.superseded`), stageReading.superseded.changedOn);
-        superseded = displays.add(line);
-        lines.push(...(line.lines ?? []));
+        const filled = supersededLine(stageReading.superseded.changedOn);
+        lines.push(filled.line);
+        supersededParts.push(...filled.parts);
       }
     }
   }
@@ -464,15 +512,15 @@ function outputDisplay(input: ProposalBuildInput, displays: Displays, row: Propo
     badge,
     measure: { label: OUTPUT_LABELS[row.output] ?? row.output, ...(unit === undefined || unit.code === COUNT_UNIT_CODE ? {} : { unit: { code: unit.code, symbol: unit.symbol } }) },
     ...(sourceLine === undefined ? {} : { sourceLine }),
-    ...partsOf([...(outOfDate ? [] : reading.parts), ...provisional.parts]),
+    ...partsOf([...(outOfDate ? [] : reading.parts), ...provisional.parts, ...supersededParts]),
     ...(lines.length === 0 ? {} : { lines }),
     ...(quotationRecordId === undefined ? {} : { quotationRecordId }),
   };
   displays.add(display);
-  const price: Price | null = investment ? { figure: valueId, stage, stageId, quotationRecordId: quotationRecordId ?? null, superseded } : null;
+  const price: Price | null = investment ? { figure: valueId, stageId, quotationRecordId: quotationRecordId ?? null } : null;
   return {
     output: { output: row.output, formula, display: valueId, availability: 'figure', incomplete: row.incomplete, outOfDate, price },
-    ...(stageLine === undefined ? {} : { stageLine }),
+    ...(stageLabel === undefined ? {} : { stageLine: stageLabel }),
     ...(incomplete === undefined ? {} : { incomplete }),
   };
 }
@@ -489,7 +537,7 @@ function incompleteHeadline(sid: string, displays: Displays, built: OutputBuilt)
   const price = built.output.price;
   const incomplete = built.incomplete;
   if (price === null || incomplete === undefined) throw new ProposalNotBuilt('the head\'s incomplete total is an investment output with its Incomplete line');
-  if (built.stageLine === undefined || price.stage === null || price.stageId === null) throw new ProposalNotBuilt('an incomplete investment total names its stage (rule 10)');
+  if (built.stageLine === undefined || price.stageId === null) throw new ProposalNotBuilt('an incomplete investment total names its stage (rule 10)');
   const lines: Line[] = [built.stageLine, ...(built.output.outOfDate ? [fillLine('out_of_date_recalculating', {}, FORMAT).line] : [])];
   const figure = displays.add({
     valueId: proposalValueId(sid, 'headline.investment'),
@@ -499,7 +547,7 @@ function incompleteHeadline(sid: string, displays: Displays, built: OutputBuilt)
     lines,
     ...partsOf(incomplete.parts),
   });
-  return { figure, stage: price.stage, stageId: price.stageId, quotationRecordId: null, superseded: null };
+  return { figure, stageId: price.stageId, quotationRecordId: null };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -581,18 +629,12 @@ function inputDisplay(input: ProposalBuildInput, field: ProposalField): DisplayO
 }
 
 /**
- * The intake step a field is asked or shown on, as the wizard places it (apps/api wizard/registry.ts
- * `productionStepOfField`): 1 the project, 3 the building's facts, 4 the systems in scope, 5 the operation (building
- * type, schedule, occupancy), 6 the goals, 7 the automation areas. A field no step shows sorts after them all.
+ * The intake step a field is asked or shown on, from the one step-of-field map the wizard reads too (../intake/steps.ts;
+ * DR-12): 1 the project, 3 the building's facts, 4 the systems in scope, 5 the operation (building type, schedule,
+ * occupancy), 6 the goals, 7 the automation areas. A field no step shows sorts after them all.
  */
 function intakeStepOf(fieldKey: string): number {
-  if (([FIELD.projectName, FIELD.projectType, FIELD.country, FIELD.city] as readonly string[]).includes(fieldKey)) return 1;
-  if (([FIELD.grossFloorArea, FIELD.floors, FIELD.rooms, FIELD.zones] as readonly string[]).includes(fieldKey)) return 3;
-  if (SCOPE_FIELDS.includes(fieldKey)) return 4;
-  if (([FIELD.buildingType, FIELD.operatingSchedule, FIELD.occupancy] as readonly string[]).includes(fieldKey)) return 5;
-  if (GOAL_FIELDS.includes(fieldKey)) return 6;
-  if (AUTOMATION_FIELDS.includes(fieldKey)) return 7;
-  return 9;
+  return productionStepOfField(fieldKey) ?? 9;
 }
 
 /**
@@ -607,6 +649,24 @@ function basisFields(input: ProposalBuildInput): ProposalField[] {
   const read = input.current.flatMap((field, index) => (keys.has(field.field.key) ? [{ field, index }] : []));
   const once = read.filter((entry, position) => read.findIndex((other) => other.field.field.key === entry.field.field.key) === position);
   return once.sort((a, b) => intakeStepOf(a.field.field.key) - intakeStepOf(b.field.field.key) || a.index - b.index).map((entry) => entry.field);
+}
+
+/**
+ * The basis in groups by intake step (phase 6, DR-12): consecutive inputs of one step form one group, in the basis's
+ * order (which `basisFields` sorts by step), so the page can name each group by its step's title. An input no step shows
+ * (none in production) goes in a group with no step.
+ */
+function basisGroupsOf(fields: readonly ProposalField[], valueIds: readonly string[]): ProposalResponse['view']['basisGroups'] {
+  const groups: { step: StepNumber | null; values: string[] }[] = [];
+  fields.forEach((field, index) => {
+    const step = productionStepOfField(field.field.key) ?? null;
+    const valueId = valueIds[index];
+    if (valueId === undefined) return;
+    const last = groups.at(-1);
+    if (last !== undefined && last.step === step) last.values.push(valueId);
+    else groups.push({ step, values: [valueId] });
+  });
+  return groups;
 }
 
 /** The choice a used decision holds (the scope decisions as the snapshot used them), or undefined. */
@@ -686,6 +746,7 @@ export function proposalView(input: ProposalBuildInput): Built<ProposalResponse[
   // The inputs as used, first: drafted paragraphs and scope decisions name them.
   const basisList = basisFields(input);
   const basis = basisList.map((field) => displays.add(inputDisplay(input, field)));
+  const basisGroups = basisGroupsOf(basisList, basis);
 
   const rows = new Map(input.snapshot.outputs.map((row) => [row.output, row]));
   const built = new Map<string, OutputBuilt>();
@@ -771,6 +832,7 @@ export function proposalView(input: ProposalBuildInput): Built<ProposalResponse[
     scope: { systems, exclusions },
     lifeSafety,
     basis,
+    basisGroups,
     whatWeStillNeed: input.openItems.view,
     drafted,
     versions,
@@ -804,6 +866,102 @@ export function proposalPrintView(input: ProposalBuildInput): Built<ProposalPrin
     view: { proposal, cover: { projectName: input.header.name }, appendix: { values: [...new Set(values)], openItems: proposal.whatWeStillNeed } },
     displayObjects: built.displayObjects.map(withoutActions),
   };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Phase 6: a stored version as the Metrics pages read it (../metrics; docs/adr/0052 decision 3)
+// ---------------------------------------------------------------------------------------------
+
+/** A stored version's row of an output, or undefined when the snapshot holds none. */
+function rowOf(input: ProposalBuildInput, output: string): ProposalBuildInput['snapshot']['outputs'][number] | undefined {
+  return input.snapshot.outputs.find((row) => row.output === output);
+}
+
+/**
+ * An engine output of a stored version as the stored proposal shows it (`proposal:<sid>.outputs.<output>`), built by
+ * the stored proposal's own builder (one value id, one display: G2-7): the figure with its badge, range, basis, method,
+ * stage and status lines, or "Not available yet", naming what it waited for, with the owner's Add actions. Its
+ * displays: the output's, and, for an investment output with no figure, its stage label's (G10-11). Refuses an output
+ * the snapshot holds no row for.
+ */
+export function snapshotOutput(input: ProposalBuildInput, output: string): { readonly output: ProposalOutput; readonly displayObjects: readonly DisplayObject[] } {
+  const row = rowOf(input, output);
+  if (row === undefined) throw new ProposalNotBuilt(`the snapshot holds no row for ${output}`);
+  const displays = new Displays();
+  const built = outputDisplay(input, displays, row);
+  return { output: built.output, displayObjects: displays.list() };
+}
+
+/**
+ * What an output of a stored version waited for at generation, named for the owner as its own "Not available yet" line
+ * names it (rule 7), with the owner's Add actions and 2.8's "Add the <field> to see this." lines: for a line that names
+ * the output's missing items among others (a Metrics chart's line: G1-31). Nothing when the snapshot holds a figure for
+ * it; refuses an output with no row.
+ */
+export function outputMissingOf(input: ProposalBuildInput, output: string): { readonly names: readonly string[]; readonly actions: readonly Action[]; readonly lines: readonly Line[] } {
+  const row = rowOf(input, output);
+  if (row === undefined) throw new ProposalNotBuilt(`the snapshot holds no row for ${output}`);
+  if (row.candidateId !== null) return { names: [], actions: [], lines: [] };
+  const named = missingNames(input, output, [...row.missing, ...firstEstimateGaps(input, output, row.missing)]);
+  const actions: Action[] = named.addable.map((field) => ({
+    kind: 'add',
+    field: { subjectId: field.subjectId, fieldKey: field.field.key },
+    label: lineOf('add_action', { field: fieldWords(field, field.field.key) }).text,
+    step: 8,
+  }));
+  const lines: Line[] = named.ownerInputsOnly ? named.addable.map((field) => lineOf('add_to_see_this', { field: fieldWords(field, field.field.key) })) : [];
+  return { names: named.names, actions, lines };
+}
+
+/**
+ * The systems the stored version left out of scope, by the decisions as the snapshot used them (rule 3: the owner's;
+ * G10-7): the same reading as the stored proposal's exclusions.
+ */
+export function usedExclusionsOf(input: ProposalBuildInput): ReadonlySet<string> {
+  return new Set(usedScopeOf(input).exclude);
+}
+
+/**
+ * The scope decisions as the snapshot used them, by system in the catalogue's order (the stored proposal's own reading):
+ * the systems included, those left out, and those whose decision was not recorded (Unknown: no used candidate, or a
+ * reading that is not one choice). CAPEX's "Selected systems" counts the first only while the last is empty (R-089;
+ * rule 1; phase 6 part B, V-3).
+ */
+export function usedScopeOf(input: ProposalBuildInput): { readonly include: readonly string[]; readonly exclude: readonly string[]; readonly unknown: readonly string[] } {
+  const include: string[] = [];
+  const exclude: string[] = [];
+  const unknown: string[] = [];
+  for (const system of SYSTEMS) {
+    const field = input.current.find((entry) => entry.field.key === `project.scope.${system.id}`);
+    const choice = usedChoice(input, field);
+    if (choice === 'include') include.push(system.id);
+    else if (choice === 'exclude') exclude.push(system.id);
+    else unknown.push(system.id);
+  }
+  return { include, exclude, unknown };
+}
+
+/**
+ * Inputs of a stored version that were not recorded, named for the owner as an output's own line names them (rule 7),
+ * with the owner's Add actions where the input is still missing now and 2.8's "Add the <field> to see this." lines:
+ * for a Metrics value that waits for them (CAPEX's "Selected systems": phase 6 part B, V-3). Each input by its field key
+ * on the project or building it belongs to; a multi-select's options are named once, by the multi-select.
+ */
+export function inputsMissingOf(input: ProposalBuildInput, fieldKeys: readonly string[]): { readonly names: readonly string[]; readonly actions: readonly Action[]; readonly lines: readonly Line[] } {
+  const codes = fieldKeys.map((fieldKey) => {
+    const field = input.current.find((entry) => entry.field.key === fieldKey);
+    if (field === undefined) throw new ProposalNotBuilt(`the project holds no field ${fieldKey}`);
+    return `input:${field.subjectId}:${fieldKey}:unknown`;
+  });
+  const named = missingNames(input, '', codes);
+  const actions: Action[] = named.addable.map((field) => ({
+    kind: 'add',
+    field: { subjectId: field.subjectId, fieldKey: field.field.key },
+    label: lineOf('add_action', { field: fieldWords(field, field.field.key) }).text,
+    step: 8,
+  }));
+  const lines: Line[] = named.ownerInputsOnly ? named.addable.map((field) => lineOf('add_to_see_this', { field: fieldWords(field, field.field.key) })) : [];
+  return { names: named.names, actions, lines };
 }
 
 /** A single reading of a candidate as text (for the drafting request's token labels: words only, no figure). */

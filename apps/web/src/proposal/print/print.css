@@ -122,6 +122,46 @@
   border-top: 1px solid var(--sov-border);
 }
 
+/* ------------------------------------------------------------------ a printed Metrics page's head (phase 6, R-121) */
+/* The title, the project and the version the figures come from, on the first page above the page's content (no cover
+   page: the report is the page as rendered). */
+.sov-print__head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 4mm;
+}
+
+.sov-print__head h1 {
+  font-size: var(--sov-title-size);
+  font-weight: var(--sov-title-weight);
+  letter-spacing: normal;
+  line-height: 1.2;
+}
+
+/* A chart on paper (the kit's SeriesChart, as the page draws it): each point's name and marks on one line, its value
+   under them across the page's width, so a figure and its badge print on one line (2.8 "Prominence"; G1-32), as the
+   proposal's rows print; a gap's wording beside the name; a point is never split across two pages. */
+.sov-print .sov-series__row {
+  grid-template-columns: minmax(96px, 1fr) minmax(120px, 3fr);
+  gap: 6px 16px;
+  break-inside: avoid;
+}
+
+.sov-print .sov-series__value {
+  grid-column: 1 / -1;
+}
+
+.sov-print .sov-series__gap {
+  grid-column: 2 / span 1;
+}
+
+.sov-print .sov-series__total {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  break-inside: avoid;
+}
+
 /* ------------------------------------------------------------------ sections and rows */
 .sov-print__section {
   display: flex;

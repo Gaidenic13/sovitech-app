@@ -12,11 +12,13 @@
  * - **The head** (UD-01's content, R-116 "Until decided": no separate Overview page; rule 10 stage 2): the investment
  *   output that carries the stage through the one Price component, its stage label read from stored records (never a
  *   parameter: R-127, G10-9), as a range or "Not available yet" naming what is missing with the owner's Add action
- *   (G7-2b); "Superseded: inputs changed on <date>" beside it where a stored quotation record went stale (G10-2);
+ *   (G7-2b); "Superseded: inputs changed on <date>" inside it where a stored quotation record went stale (G10-2; both
+ *   lines served once, among the figure's own lines: phase 6, V-11);
  *   the open items' count, "<n> things for you to check", with the way to them (rule 7: the items themselves appear
  *   once, in "What we still need"); "Still reading <n> files. Your estimate will update when they finish." while
  *   analysis that was running at Generate is still running (rule 7; G7-18), bound. No dialog anywhere.
- * - **The sections**, in the contract's order: Investment (each output named by its served stage label, its
+ * - **The sections**, in the contract's order: Investment (an output with no figure named by its served stage label, a
+ *   figure by what it measures with its stage label inside its Price; its
  *   exclusions: G10-7), Control points (by type, never one priced total: G9-3; rule 11's interface points named with
  *   no figure: G11-12), Energy, Operating cost and payback (operating cost, payback, NPV, IRR; no ROI), Measures,
  *   System scope (each system's decision as the snapshot used it, Fire Safety's monitoring-only sentence; the systems
@@ -40,9 +42,10 @@ import { useId, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import type { DisplayObject, ProposalOutput, ProposalResponse } from '@sovitech/view-model/browser';
 import { copy } from '../copy';
+import { stepTitle } from '../steps/step-titles';
 import { systemTitle } from '../workspace/pages/system-scope/systems';
 import type { Displays } from '../wizard/use-step-view';
-import { ProposalPrice, Shown, isNotAvailable, separateStage, type AddAction } from './values';
+import { ProposalPrice, Shown, isNotAvailable, type AddAction } from './values';
 
 type View = ProposalResponse['view'];
 type OpenItems = View['whatWeStillNeed'];
@@ -105,13 +108,12 @@ function OutputRow({ output, displays, onAdd }: { readonly output: ProposalOutpu
   const nameId = useId();
   const attributes = { 'data-output': output.output, 'data-availability': output.availability, ...(output.outOfDate ? { 'data-out-of-date': '' } : {}) };
   if (output.price !== null) {
-    // Named by its served stage label where the figure does not carry it; with no figure, by the 2.8 stage label the
-    // API serves to name it (`label`; G10-11: "named only by 2.8's stage labels ... each with its 'Not available yet'
-    // line"); else by what the served figure measures (its `measure` label, the API's words).
-    const stage = separateStage(output.price, displays, 'name');
+    // With no figure, named by the 2.8 stage label the API serves to name it (`label`; G10-11: "named only by 2.8's
+    // stage labels ... each with its 'Not available yet' line"); a figure carries its own stage label inside the Price
+    // (phase 6, V-11: served once, never repeated beside it), so its row is named by what it measures (the API's words).
     const label = output.label === undefined ? undefined : displays.get(output.label);
     const measured = displays.get(output.price.figure)?.measure?.label;
-    const name = stage !== undefined ? <StatusLine display={stage} /> : label !== undefined ? <StatusLine display={label} /> : measured;
+    const name = label !== undefined ? <StatusLine display={label} /> : measured;
     return (
       <Row attributes={attributes} nameId={nameId} {...(name === undefined ? {} : { name })}>
         <ProposalPrice price={output.price} displays={displays} onAdd={onAdd} {...(name === undefined ? {} : { describedBy: nameId })} />
@@ -234,7 +236,6 @@ function IndicatorRow({ indicator, displays, onAdd }: { readonly indicator: View
 /** The head (UD-01's content): where the proposal stands. */
 function Head({ view, displays, onAdd }: { readonly view: View; readonly displays: Displays; readonly onAdd: (action: AddAction) => void }) {
   const { headline } = view;
-  const stage = separateStage(headline.investment.price, displays, 'headline');
   const count = headline.openItems.count === null ? undefined : displays.get(headline.openItems.count);
   const stillReading = headline.stillReading === null ? undefined : displays.get(headline.stillReading);
   return (
@@ -243,7 +244,6 @@ function Head({ view, displays, onAdd }: { readonly view: View; readonly display
         <h2 id="proposal-head" className="sov-heading-group">
           {copy.proposal.sections.headline}
         </h2>
-        {stage === undefined ? null : <StatusLine display={stage} />}
         <ProposalPrice price={headline.investment.price} displays={displays} size="headline" onAdd={onAdd} describedBy="proposal-head" />
       </div>
       <div className="flex min-w-0 flex-col gap-3 border-l border-(--sov-border) pl-10">
@@ -415,15 +415,24 @@ export function StoredProposal({ projectId, view, displays, onAdd }: StoredPropo
             {view.basis.length === 0 ? (
               <p className="sov-text-body border-t border-(--sov-border) pt-4">{copy.proposal.basisNone}</p>
             ) : (
-              // One list in the order served (DR-12): each input's name on the left, its value with its badge right-aligned,
-              // so every row and its hairline line up. The row layout draws its own padding and hairline (step 3's list).
-              <ul className="flex list-none flex-col border-t border-(--sov-border)" data-proposal-basis="">
-                {view.basis.map((valueId) => (
-                  <li key={valueId} className="min-w-0">
-                    <Shown display={displays.get(valueId)} layout="row" onAdd={add} />
-                  </li>
+              // By intake step, as served (DR-12, phase 6): each group under its step's own title (the wizard's page
+              // names; no new copy), then one list in the order served: each input's name on the left, its value with its
+              // badge right-aligned, so every row and its hairline line up (the row layout draws its own padding and
+              // hairline, step 3's list). A group with no step has no heading.
+              <div className="flex flex-col gap-6" data-proposal-basis="">
+                {view.basisGroups.map((group, index) => (
+                  <div key={`${String(group.step)}:${String(index)}`} className="flex flex-col gap-2" data-basis-step={group.step === null ? 'none' : String(group.step)}>
+                    {group.step === null ? null : <h3 className="sov-heading-group">{stepTitle(group.step)}</h3>}
+                    <ul className="flex list-none flex-col border-t border-(--sov-border)">
+                      {group.values.map((valueId) => (
+                        <li key={valueId} className="min-w-0">
+                          <Shown display={displays.get(valueId)} layout="row" onAdd={add} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </Section>
           <Section heading={copy.proposal.sections.whatWeStillNeed} id={WHAT_WE_STILL_NEED_ID}>

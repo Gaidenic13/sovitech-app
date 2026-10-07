@@ -35,8 +35,8 @@ export const PRINT_PAGE_ATTRIBUTE = 'data-print-page';
 /** The attribute on the document element the API's printer waits for (apps/api/src/proposal/export.ts PRINT_READY_ATTRIBUTE). */
 export const PRINT_READY_ATTRIBUTE = 'data-print-ready';
 
-/** Switches the document to the print scope while the page is shown. */
-function usePrintPage(): void {
+/** Switches the document to the print scope while the page is shown (also the Metrics print route's: phase 6, R-121). */
+export function usePrintPage(): void {
   useLayoutEffect(() => {
     const root = document.documentElement;
     root.setAttribute(PRINT_PAGE_ATTRIBUTE, '');
@@ -48,7 +48,7 @@ function usePrintPage(): void {
 }
 
 /** Sets the printer's ready marker once what the page shows has rendered (`true`), when it failed (`failed`), or clears it. */
-function usePrintReady(state: 'loading' | 'ready' | 'failed'): void {
+export function usePrintReady(state: 'loading' | 'ready' | 'failed'): void {
   useLayoutEffect(() => {
     const root = document.documentElement;
     if (state === 'loading') root.removeAttribute(PRINT_READY_ATTRIBUTE);

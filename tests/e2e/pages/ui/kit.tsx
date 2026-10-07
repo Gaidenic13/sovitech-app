@@ -32,6 +32,8 @@ import {
   Inspector,
   InspectorLayout,
   MenuButton,
+  MetricPanel,
+  MetricTile,
   ModelArea,
   NotAvailableYet,
   Notice,
@@ -43,6 +45,8 @@ import {
   RegisterTable,
   SelectField,
   SelectionList,
+  SeriesChart,
+  SeriesViewSwitch,
   SideNav,
   SkipForNow,
   StatusFooter,
@@ -59,6 +63,7 @@ import {
   type ValueActionLabels,
 } from '@sovitech/ui/components';
 import { DisplayObjectSchema, servedDisplayOf, type DisplayObject, type Line } from '@sovitech/view-model/browser';
+import { CHART_BREAKDOWN, CHART_SEQUENCE, CHART_UNAVAILABLE, METRICS_DISPLAYS, METRICS_INDEX, TILE_MISSING, TILE_PRICE } from './kit-series';
 
 const {
   ArrowLeft,
@@ -640,6 +645,11 @@ const DOCUMENT_COLUMNS: readonly RegisterColumn<KitDocumentRow>[] = [
   { kind: 'content', id: 'added', header: 'Date Added', cell: () => <CalendarDate date={ADDED} />, sort: { direction: 'none', onSort: noop } },
   { kind: 'content', id: 'analysis', header: 'Analysis', cell: (row) => analysisOf(row, 'small'), sort: { direction: 'none', onSort: noop } },
 ];
+
+// ------------------------------------------------------------------------------------ the Metrics charts (phase 6)
+
+// The chart series and the tiles' values live in ./kit-series.ts (plain data, read by G9-9 too: phase 6 part B, A-7).
+const CHART_LABELS = { name: 'Investment by system', pointColumn: 'System', valueColumn: 'Investment', total: 'Total', showTable: 'Show as a table', showChart: 'Show as a chart' } as const;
 
 // ------------------------------------------------------------------------------------ pages
 
@@ -1330,6 +1340,46 @@ export const KIT_PAGES: readonly KitPage[] = [
             <ModelArea heading="Building model" state="model_stored" status={{ line: MODEL_STORED_LINE }} size="panel" />
           </div>
         </div>
+      </div>
+    ),
+  },
+  {
+    file: 'ui/metrics.html',
+    about:
+      'the phase 6 Metrics tiles, panels and chart (docs/adr/0052): a tile with a stage 2 price and a tile with "Not available yet"; a breakdown with two marks, a "Not available yet" gap and an Unknown gap (dashed, labelled), and its incomplete total; a sequence crossing zero with an exact value, its view switch in its panel header; the same breakdown in its table view; a series no formula declares as its one line with its Add',
+    title: 'UI kit: metrics',
+    displayObjects: METRICS_DISPLAYS,
+    body: () => (
+      <div className="kit-stack">
+        <div className="kit-row">
+          <div className="kit-half">
+            <MetricTile label="Total BMS investment" icon={Layers}>
+              <Price display={TILE_PRICE} />
+            </MetricTile>
+          </div>
+          <div className="kit-half">
+            <MetricTile label="Payback period" icon={CalendarClock}>
+              <NotAvailableYet display={TILE_MISSING} />
+            </MetricTile>
+          </div>
+        </div>
+        <MetricPanel heading="Investment by system" headingId="kit-chart-breakdown">
+          <SeriesChart series={CHART_BREAKDOWN} displays={METRICS_INDEX} labels={CHART_LABELS} onAdd={noop} describedBy="kit-chart-breakdown" />
+        </MetricPanel>
+        <MetricPanel heading="Cumulative cash flow" actions={<SeriesViewSwitch view="chart" onChange={noop} labels={CHART_LABELS} controls="kit-chart-sequence" />}>
+          <SeriesChart
+            series={CHART_SEQUENCE}
+            displays={METRICS_INDEX}
+            labels={{ ...CHART_LABELS, name: 'Cumulative cash flow', pointColumn: 'Year', valueColumn: 'Cumulative cash flow' }}
+            control={{ view: 'chart', bodyId: 'kit-chart-sequence' }}
+          />
+        </MetricPanel>
+        <MetricPanel heading="Investment by system, as a table">
+          <SeriesChart series={CHART_BREAKDOWN} displays={METRICS_INDEX} labels={{ ...CHART_LABELS, name: 'Investment by system, as a table' }} initialView="table" />
+        </MetricPanel>
+        <MetricPanel heading="Cost breakdown" headingId="kit-chart-unavailable">
+          <SeriesChart series={CHART_UNAVAILABLE} displays={METRICS_INDEX} labels={{ ...CHART_LABELS, name: 'Cost breakdown' }} onAdd={noop} describedBy="kit-chart-unavailable" />
+        </MetricPanel>
       </div>
     ),
   },

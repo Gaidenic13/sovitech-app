@@ -13,7 +13,9 @@
  *   (G1-2), reuse and replacement (G1-7), a total of levels that takes no range (G4-12), duty and standby pumps (G4-4),
  *   billing periods and meters (G8-7, G8-8), an operating estimate over the register, a climate reference value and the
  *   owner's schedule (G9-7), points by I/O type and protocol (G9-3), the room-control supply split (G10-6), the fire
- *   interface points (G11-3, G10-7).
+ *   interface points (G11-3, G10-7); and, from phase 6, the formulas of the TEST chart series (./series.ts): investment
+ *   by system with its total (G1-5, G9-8, G10-7) and a cumulative cash flow with its payback (G9-9), whose series the
+ *   catalogue declares when it includes them.
  * Each reads only TEST datasets (`TEST-…`, from fixtures/datasets/), computes with the engine's intervals (decimal.js),
  * and writes on TEST output fields (./fields.ts). Each body is its own file under ./bodies/, hashed in
  * ./test-manifest.json (G9-11).
@@ -32,8 +34,10 @@ import { body as annualConsumptionFromBills } from './bodies/TEST-annualConsumpt
 import { body as annualReturn } from './bodies/TEST-annualReturn@1.0.0';
 import { body as capexFieldDevices } from './bodies/TEST-capexFieldDevices@1.0.0';
 import { body as capexIndicativeRange } from './bodies/TEST-capexIndicativeRange@1.0.0';
+import { body as capexBySystem } from './bodies/TEST-capexBySystem@1.0.0';
 import { body as capexLineItems } from './bodies/TEST-capexLineItems@1.0.0';
 import { body as capexPreliminaryEstimate } from './bodies/TEST-capexPreliminaryEstimate@1.0.0';
+import { body as cashFlow } from './bodies/TEST-cashFlow@1.0.0';
 import { body as fireInterfacePoints } from './bodies/TEST-fireInterfacePoints@1.0.0';
 import { body as levelsTotal } from './bodies/TEST-levelsTotal@1.0.0';
 import { body as operatingEnergyEstimate } from './bodies/TEST-operatingEnergyEstimate@1.0.0';
@@ -46,6 +50,7 @@ import { body as savingsEstimate } from './bodies/TEST-savingsEstimate@1.0.0';
 import { body as siteConsumption } from './bodies/TEST-siteConsumption@1.0.0';
 import { TEST_DATASET_IDS } from './datasets';
 import { BILL_FIELDS, LINE_ITEM_FIELDS, MIRRORED_OUTPUT_FIELDS, POINT_TYPE_OUTPUTS, TEST_FIELDS } from './fields';
+import { SERIES_FORMULAS, SERIES_OUTPUT_FIELDS, TEST_SERIES_BY_FORMULA } from './series';
 
 /** The version of every TEST formula (the TEST lookups of tests/guardrails/_support declare TEST ids at this version). */
 export const TEST_FORMULA_VERSION = '1.0.0';
@@ -102,6 +107,17 @@ const extra = (
   outputFields: Record<string, string>,
   body: FormulaBody,
 ): EngineFormula => freeze({ signature: { id, version: TEST_FORMULA_VERSION, ...signature }, requires, outputFields, body });
+
+/** The TEST output field key of each output of a TEST series formula (./series.ts). */
+function seriesOutputFields(outputs: readonly string[]): Record<string, string> {
+  return Object.fromEntries(
+    outputs.map((output) => {
+      const field = Object.hasOwn(SERIES_OUTPUT_FIELDS, output) ? SERIES_OUTPUT_FIELDS[output] : undefined;
+      if (field === undefined) throw new Error(`no TEST output field for ${output}`);
+      return [output, field.key];
+    }),
+  );
+}
 
 /** The TEST formulas beyond the six, by id. */
 const EXTRA: Readonly<Record<string, () => EngineFormula>> = {
@@ -200,6 +216,24 @@ const EXTRA: Readonly<Record<string, () => EngineFormula>> = {
       { 'points.TEST_roomHardwareIo': TEST_FIELDS.roomHardwareIo.key, 'points.TEST_roomIntegration': TEST_FIELDS.roomIntegration.key },
       roomControlPoints,
     ),
+  // Phase 6: the formulas of the TEST chart series (./series.ts): a breakdown by system and a cumulative cash flow with
+  // its payback, each one formula whose outputs are every point and the figure beside the chart (G1-5, G9-8, G9-9).
+  'TEST-capexBySystem': () =>
+    extra(
+      'TEST-capexBySystem',
+      { ...SERIES_FORMULAS['TEST-capexBySystem'], inputs: [...SERIES_FORMULAS['TEST-capexBySystem'].inputs], outputs: [...SERIES_FORMULAS['TEST-capexBySystem'].outputs] },
+      [TABLES],
+      seriesOutputFields(SERIES_FORMULAS['TEST-capexBySystem'].outputs),
+      capexBySystem,
+    ),
+  'TEST-cashFlow': () =>
+    extra(
+      'TEST-cashFlow',
+      { ...SERIES_FORMULAS['TEST-cashFlow'], inputs: [...SERIES_FORMULAS['TEST-cashFlow'].inputs], outputs: [...SERIES_FORMULAS['TEST-cashFlow'].outputs] },
+      [TABLES],
+      seriesOutputFields(SERIES_FORMULAS['TEST-cashFlow'].outputs),
+      cashFlow,
+    ),
   'TEST-fireInterfacePoints': () =>
     extra(
       'TEST-fireInterfacePoints',
@@ -231,7 +265,9 @@ export function testCatalogue(options: TestCatalogueOptions = {}): FormulaCatalo
     if (make === undefined) throw new Error(`no TEST formula ${id}; the ids are ${TEST_EXTRA_FORMULAS.join(', ')}`);
     return make();
   });
-  return Object.freeze({ kind: 'test', formulas: Object.freeze([...(options.mirrored === false ? [] : mirrored()), ...extras]) });
+  // Phase 6: the TEST series of the formulas included (./series.ts), and no other.
+  const series = extras.flatMap((formula) => (Object.hasOwn(TEST_SERIES_BY_FORMULA, formula.signature.id) ? (TEST_SERIES_BY_FORMULA[formula.signature.id] ?? []) : []));
+  return Object.freeze({ kind: 'test', formulas: Object.freeze([...(options.mirrored === false ? [] : mirrored()), ...extras]), series: Object.freeze(series) });
 }
 
 /** `DeriveContext.formulaDeclared` for the candidates of a TEST catalogue: its formulas' ids at their versions, and nothing else. */

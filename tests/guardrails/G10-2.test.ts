@@ -24,6 +24,10 @@
  * - A-4: an input Unknown at issue (so the record could not list it) gets a value after issue: the record alone reads
  *   current, but the figure is out of date, so it shows "Superseded" on that date with the stage 2 label, never
  *   "Formal quotation" (engine and view halves).
+ *
+ * Extended in phase 6 (V-11 of phase 5 part B; a new test, Expected unchanged): the Superseded line and the stage label
+ * are served once each, inside the figure's own display (the contract's `PriceSchema` has no field for another copy);
+ * the view-model tests read them there.
  */
 import { describe, expect, test, it } from 'vitest';
 import { AUTOMATION_AREAS, FIELD, OUTPUT, SYSTEMS, automationFieldKey, scopeFieldKey } from '@sovitech/registry';
@@ -46,7 +50,7 @@ import { testCatalogue } from '../../packages/engine/test-formulas/engine';
 import { productionField } from '../../packages/engine/test-formulas/fields';
 import { testCurrentInputs, testEngineInput, type TestEntry } from '../../packages/engine/test-formulas/inputs';
 import { documentReading, ownerAnswer, testDocument, testTime } from './_support/builders';
-import { changesSince, displayById, GENERATED_AT, ownerAnswer as proposalOwnerAnswer, productionRows, SNAPSHOT_ID, standingOf, testEstimate, testProposalFields, testProposalInput } from './_support/proposal';
+import { changesSince, copiesOfFigureLines, displayById, GENERATED_AT, ownerAnswer as proposalOwnerAnswer, productionRows, SNAPSHOT_ID, stageTextOf, standingOf, supersededTextOf, testEstimate, testProposalFields, testProposalInput } from './_support/proposal';
 import { uuid } from './_support/view-model';
 import { testEvents } from './_support/builders';
 import { proposalView } from '@sovitech/view-model/server';
@@ -251,7 +255,7 @@ describe('G10-2 (the view-model half) · rule 10: a quotation record whose input
     const currentPrice = current.view.headline.investment.price;
     expect(currentPrice.stageId).toBe('formal_quotation');
     expect(currentPrice.quotationRecordId).toBe(record.id);
-    expect(displayById(current.displayObjects, currentPrice.stage ?? '').text).toBe('Formal quotation');
+    expect(stageTextOf(current.displayObjects, currentPrice)).toBe('Formal quotation');
     expect(displayById(current.displayObjects, currentPrice.figure).quotationRecordId).toBe(record.id);
 
     const corrected: Candidate = { ...area.candidate, id: uuid(232), quantity: { value: 1300, unit: 'm2', qualifier: 'gross_total' }, createdAt: '2026-10-02T10:00:00.000000Z' };
@@ -271,8 +275,8 @@ describe('G10-2 (the view-model half) · rule 10: a quotation record whose input
     const price = stale.view.headline.investment.price;
     expect(price.stageId).toBe('preliminary_investment_estimate');
     expect(price.quotationRecordId).toBeNull();
-    expect(displayById(stale.displayObjects, price.stage ?? '').text).toBe('Preliminary investment estimate');
-    expect(displayById(stale.displayObjects, price.superseded ?? '').text).toBe('Superseded: inputs changed on 2 Oct 2026');
+    expect(stageTextOf(stale.displayObjects, price)).toBe('Preliminary investment estimate');
+    expect(supersededTextOf(stale.displayObjects, price)).toBe('Superseded: inputs changed on 2 Oct 2026');
     const figureDisplay = displayById(stale.displayObjects, price.figure);
     expect(figureDisplay.quotationRecordId).toBeUndefined();
     expect((figureDisplay.lines ?? []).map((line) => line.text)).toEqual(expect.arrayContaining(['Preliminary investment estimate', 'Superseded: inputs changed on 2 Oct 2026']));
@@ -306,7 +310,22 @@ describe('G10-2 (the view-model half, phase 5 part B) · the issue day, and an i
     const built = proposalView(testProposalInput({ fields: before, rows, snapshotCandidates: [area.candidate, figure], records: [{ record: empty, standing }] }));
     const price = built.view.headline.investment.price;
     expect(price.stageId).toBe('preliminary_investment_estimate');
-    expect(displayById(built.displayObjects, price.superseded ?? '').text).toBe('Superseded: inputs changed on 1 Oct 2026');
+    expect(supersededTextOf(built.displayObjects, price)).toBe('Superseded: inputs changed on 1 Oct 2026');
+  });
+
+  it('G10-2 · V-11 (phase 6) · rule 10 · 2.8: "Superseded: inputs changed on <date>" and the stage 2 label are served once each, inside the figure\'s own display, its date bound among the figure\'s parts; no other display repeats either', () => {
+    const empty = { ...record, inputs: [] };
+    const built = proposalView(testProposalInput({ fields: before, rows, snapshotCandidates: [area.candidate, figure], records: [{ record: empty, standing: standingOf(empty, before) }] }));
+    for (const price of [built.view.headline.investment.price, built.view.investment.outputs.find((output) => output.output === 'capex.preliminaryEstimate')?.price]) {
+      if (price === undefined || price === null) throw new Error('the stage 2 output carries no price');
+      const shown = displayById(built.displayObjects, price.figure);
+      expect((shown.lines ?? []).filter((line) => line.kind === 'stage_label').map((line) => line.text)).toEqual(['Preliminary investment estimate']);
+      expect((shown.lines ?? []).filter((line) => line.id === 'superseded_inputs_changed').map((line) => line.text)).toEqual(['Superseded: inputs changed on 1 Oct 2026']);
+      expect(shown.parts ?? []).toContain('1 Oct 2026');
+      expect(copiesOfFigureLines(built.displayObjects, price)).toEqual([]);
+      expect(built.displayObjects.some((display) => display.valueId === `${price.figure}.stage` || display.valueId === `${price.figure}.superseded`)).toBe(false);
+    }
+    expect(texts(built.displayObjects).filter((text) => text === 'Superseded: inputs changed on 1 Oct 2026')).toHaveLength(1);
   });
 
   it('G10-2 · A-4: an input Unknown at issue answered after issue: the figure reads "Out of date, recalculating" beside the stage 2 label and "Superseded" on that date, never "Formal quotation"', () => {
@@ -335,8 +354,8 @@ describe('G10-2 (the view-model half, phase 5 part B) · the issue day, and an i
     const price = built.view.headline.investment.price;
     expect(price.stageId).toBe('preliminary_investment_estimate');
     expect(price.quotationRecordId).toBeNull();
-    expect(displayById(built.displayObjects, price.stage ?? '').text).toBe('Preliminary investment estimate');
-    expect(displayById(built.displayObjects, price.superseded ?? '').text).toBe('Superseded: inputs changed on 3 Oct 2026');
+    expect(stageTextOf(built.displayObjects, price)).toBe('Preliminary investment estimate');
+    expect(supersededTextOf(built.displayObjects, price)).toBe('Superseded: inputs changed on 3 Oct 2026');
     const shown = displayById(built.displayObjects, price.figure);
     expect(shown.text).toBe('Out of date, recalculating');
     expect(shown.quotationRecordId).toBeUndefined();

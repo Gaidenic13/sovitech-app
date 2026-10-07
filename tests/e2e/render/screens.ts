@@ -59,6 +59,13 @@
  * by its address on the demo, an earlier version, a
  * version not in the project, loading; Download PDF failing; Reports (DB-18) on the demo with the seed's export, empty,
  * two rows with the second previewed, no match, loading, failing; Equipment's Export failing.
+ * Phase 6 (2026-10-07; docs/adr/0052): the Metrics pages (DB-02, DB-13, DB-12, DB-21, DB-22) on the demo with its stored
+ * proposal, on a new project with none (the served "Not available yet: a generated preliminary proposal" and Open the
+ * Proposal page), on a new project generated with nothing answered (every figure "Not available yet" naming what is
+ * missing, every chart its one line: G1-31, G10-15), loading and failing; Financial Overview of an earlier version and
+ * of a version not in the project; Export Report failing on Payback and Lifecycle; and the print route of both pages
+ * (R-121) on the demo and on a new project, loading and failing. OPEX & Savings reads the project now: the demo (an
+ * existing building: the upload offered) and a new project (new construction: none).
  */
 import type { Page } from '@playwright/test';
 import { ruleLineById, statusLineById } from '@sovitech/registry';
@@ -69,6 +76,9 @@ import {
   equipmentExport,
   failRequests,
   holdRequests,
+  metricsExport,
+  metricsPrintView,
+  metricsView,
   projectList,
   proposalExport,
   proposalVersion,
@@ -438,6 +448,83 @@ const freshReports = (label: string, exports: number) => async (page: Page) => {
 
 /** A UUID that names no version of any project (the store's ids are UUIDv7; this one is v4 and never issued). */
 const NO_VERSION = '6f1c2b9e-3a4d-4e5f-8a7b-9c0d1e2f3a4b';
+
+// ---- Phase 6: the Metrics pages and their print route (docs/adr/0052; R-087 to R-108 "Until decided"; R-121) ---------
+
+/** A Metrics page's route (APP_PATHS), in the workspace frame. */
+const METRICS = (segment: string) => `/projects/:projectId/metrics/${segment}`;
+/** The print route of a Metrics page with Export Report (APP_PATHS), outside every frame. */
+const METRICS_PRINT = '/projects/:projectId/print/metrics/:page/:snapshotId';
+
+/** Waits for a snapshot-reading Metrics page showing a stored version: its version line (the bound date) and its tiles or panels. */
+async function metricsVersionShown(page: Page): Promise<void> {
+  await page.locator('[data-metrics-page] [data-metrics-version]').waitFor({ timeout: 30_000 });
+  await page.locator('[data-metrics-page] [data-metric-tile], [data-metrics-page] [data-metric-panel]').first().waitFor();
+  await screenReady(page);
+}
+
+/** Opens a Metrics page of a project (query included) and waits for its state: a stored version, none generated, or OPEX's tiles. */
+async function openMetrics(page: Page, projectId: string, segment: string, shown: 'version' | 'none-generated' | 'opex'): Promise<void> {
+  await openWorkspaceScreen(page, projectId, `metrics/${segment}`);
+  if (shown === 'version') await metricsVersionShown(page);
+  else if (shown === 'none-generated') await page.locator('[data-metrics-state="none-generated"]').waitFor({ timeout: 30_000 });
+  else await page.locator('[data-metrics-page="opex"] [data-metric-tile]').first().waitFor({ timeout: 30_000 });
+  await screenReady(page);
+}
+
+/** The demo's Metrics page, signed in as the development owner (the seed stored the demo's first proposal). */
+const demoMetrics = (segment: string, shown: 'version' | 'opex' = 'version') => async (page: Page) => {
+  await signIn(page);
+  await openMetrics(page, demoProjectId(), segment, shown);
+};
+
+/** A new TEST project with no documents and no stored proposal, at a Metrics page. */
+const freshMetrics = (label: string, segment: string, shown: 'none-generated' | 'opex' = 'none-generated') => async (page: Page) => {
+  const id = await newProjectAt(page, label, 'steps/2');
+  await openMetrics(page, id, segment, shown);
+};
+
+/** A new TEST project with no documents, generated with nothing answered, at a Metrics page; its id. */
+const freshMetricsGenerated = (label: string, segment: string) => async (page: Page) => {
+  const id = await newProjectAt(page, label, 'steps/2');
+  await generateOnce(page, id);
+  await openMetrics(page, id, segment, 'version');
+  return id;
+};
+
+/** A new TEST project's Metrics page opened afresh while its view is held: the title and one polite line, no figure. */
+const metricsLoading = (label: string, segment: string, generate: boolean) => async (page: Page) => {
+  const id = await newProjectAt(page, label, 'steps/2');
+  if (generate) await generateOnce(page, id);
+  await holdRequests(page, metricsView, { releaseAfterMs: LOADING_MS });
+  await page.goto(`/projects/${id}/metrics/${segment}`);
+  await loadingShown(page);
+};
+
+/** A new TEST project's Metrics page opened afresh with its view failing: what could not be loaded, and Try again. */
+const metricsFailed = (label: string, segment: string) => async (page: Page) => {
+  const id = await newProjectAt(page, label, 'steps/2');
+  await failRequests(page, metricsView);
+  await page.goto(`/projects/${id}/metrics/${segment}`);
+  await loadFailedShown(page);
+};
+
+/** Export Report pressed on a new TEST project's generated page, its download failing: the failure said beside it (rule 7). */
+const exportReportFailed = (label: string, segment: 'payback' | 'lifecycle') => async (page: Page) => {
+  await freshMetricsGenerated(label, segment)(page);
+  await failRequests(page, metricsExport);
+  await page.getByRole('button', { name: 'Export Report', exact: true }).click();
+  await page.getByText('The report could not be prepared. Nothing was lost. Try again.', { exact: true }).waitFor();
+  await screenReady(page);
+};
+
+/** Opens the print route of a Metrics page of the project's stored proposal and waits for the printer's marker and the render marker. */
+async function openMetricsPrint(page: Page, projectId: string, printed: 'payback' | 'lifecycle', marker: 'true' | 'failed' = 'true'): Promise<void> {
+  const snapshotId = await storedSnapshot(page, projectId);
+  await page.goto(`/projects/${projectId}/print/metrics/${printed}/${snapshotId}`);
+  await page.locator(`html[data-print-ready="${marker}"]`).waitFor({ state: 'attached', timeout: 30_000 });
+  await screenReady(page);
+}
 
 export const RENDER_SCREENS: readonly RenderScreen[] = [
   // ---- Session (UD-36) and the project list (UD-37) --------------------------------------------
@@ -1240,6 +1327,256 @@ export const RENDER_SCREENS: readonly RenderScreen[] = [
       await page.getByRole('button', { name: 'Export', exact: true }).click();
       await page.getByText('The list could not be exported. Try again.', { exact: true }).waitFor();
       await screenReady(page);
+    },
+  },
+
+  // ---- Phase 6: the Metrics pages (docs/adr/0052) and their print route (R-121) ------------------------------------
+  // The print route's screens sit among the pages' screens, not side by side (phase 5: long printed pages checked at once
+  // starved the machine).
+  {
+    name: 'DB-02 Financial Overview, demo: the stored proposal\'s investment and indicators, each "Not available yet" naming what is missing, every chart its one line, the excluded systems listed (R-088; G1-31; G10-15; G10-7)',
+    path: METRICS('financial-overview'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: demoMetrics('financial-overview'),
+  },
+  {
+    name: 'DB-02 Financial Overview, new project: no stored proposal, "Not available yet: a generated preliminary proposal" and Open the Proposal page (rule 7)',
+    path: METRICS('financial-overview'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: freshMetrics('Render Overview None', 'financial-overview'),
+  },
+  {
+    name: 'DB-02 Financial Overview, new project generated with nothing answered: the investment names the datasets and the owner\'s inputs with their Adds, no stage named (G10-15; R-090)',
+    path: METRICS('financial-overview'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshMetricsGenerated('Render Overview Generated', 'financial-overview')(page);
+    },
+  },
+  {
+    name: 'R-121 print route, demo: Payback Analysis on paper, the demo line in the running header, no button (G10-16; G1-32)',
+    path: METRICS_PRINT,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await signIn(page);
+      await openMetricsPrint(page, demoProjectId(), 'payback');
+    },
+  },
+  {
+    name: 'DB-02 Financial Overview, new project: an earlier version named by the address, the notice and Open the latest version (US-PROPOSAL-11 AC3; G9-8)',
+    path: METRICS('financial-overview'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Overview Earlier', 'steps/2');
+      const first = await generateOnce(page, id);
+      await generateOnce(page, id);
+      await openMetrics(page, id, `financial-overview?snapshot=${first}`, 'version');
+      await page.locator('[data-earlier-version]').waitFor();
+    },
+  },
+  {
+    name: 'DB-02 Financial Overview, new project: a version not in this project named by the address, "not in this project" and Open the latest version (rule 13; never a dead end, rule 7)',
+    path: METRICS('financial-overview'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Overview Missing', 'steps/2');
+      await openWorkspaceScreen(page, id, `metrics/financial-overview?snapshot=${NO_VERSION}`);
+      await page.locator('[data-metrics-state="not-found"]').waitFor({ timeout: 30_000 });
+      await screenReady(page);
+    },
+  },
+  {
+    name: 'DB-02 Financial Overview, new project generated: loading, its view held (no figure)',
+    path: METRICS('financial-overview'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: metricsLoading('Render Overview Loading', 'financial-overview', true),
+  },
+  {
+    name: 'DB-02 Financial Overview, new project: load failure, its view failing (the frame kept)',
+    path: METRICS('financial-overview'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: metricsFailed('Render Overview Failed', 'financial-overview'),
+  },
+  {
+    name: 'DB-13 CAPEX Breakdown, demo: Selected systems (the bound count of the include decisions), Total CAPEX, the systems as the stored proposal used them with Fire Safety\'s sentence, the investment by system its one line, Download Proposal (R-089; G1-31; rule 11)',
+    path: METRICS('capex'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: demoMetrics('capex'),
+  },
+  {
+    name: 'DB-13 CAPEX Breakdown, new project: no stored proposal, the served line and Open the Proposal page (rule 7)',
+    path: METRICS('capex'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: freshMetrics('Render Capex None', 'capex'),
+  },
+  {
+    name: 'DB-13 CAPEX Breakdown, new project generated with nothing answered: every figure "Not available yet" naming what is missing (G10-15; R-087)',
+    path: METRICS('capex'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshMetricsGenerated('Render Capex Generated', 'capex')(page);
+    },
+  },
+  {
+    name: 'DB-13 CAPEX Breakdown, new project: loading, its view held',
+    path: METRICS('capex'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: metricsLoading('Render Capex Loading', 'capex', false),
+  },
+  {
+    name: 'DB-13 CAPEX Breakdown, new project: load failure, its view failing',
+    path: METRICS('capex'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: metricsFailed('Render Capex Failed', 'capex'),
+  },
+  {
+    name: 'R-121 print route, new project with no documents: Lifecycle Analysis on paper, every figure and chart "Not available yet" naming what is missing, no demo line',
+    path: METRICS_PRINT,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Lifecycle Print', 'steps/2');
+      await openMetricsPrint(page, id, 'lifecycle');
+    },
+  },
+  {
+    name: 'DB-12 OPEX & Savings, demo (an existing building): the building\'s operating cost now, the energy cost waiting for bills with Upload a document, maintenance, staff and other Unknown, a row per included system (R-095; US-FIN-13 AC8; US-FIN-14 AC1; G10-7)',
+    path: METRICS('opex'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: demoMetrics('opex', 'opex'),
+  },
+  {
+    name: 'DB-12 OPEX & Savings, new project (new construction): the energy cost naming what an estimate lacks with its Adds, no upload, and "by system" reading "Not available yet: the systems in scope" with the way to choose them while none is included (US-FIN-13 AC9; G7-24)',
+    path: METRICS('opex'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: freshMetrics('Render Opex New', 'opex', 'opex'),
+  },
+  {
+    name: 'DB-12 OPEX & Savings, new project: loading, its view held',
+    path: METRICS('opex'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: metricsLoading('Render Opex Loading', 'opex', false),
+  },
+  {
+    name: 'DB-12 OPEX & Savings, new project: load failure, its view failing',
+    path: METRICS('opex'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: metricsFailed('Render Opex Failed', 'opex'),
+  },
+  {
+    name: 'DB-21 Payback Analysis, demo: the investment, savings and payback, both charts and the environmental figures "Not available yet" naming what is missing, Export Report (R-096; R-101 to R-103 "Until decided")',
+    path: METRICS('payback'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: demoMetrics('payback'),
+  },
+  {
+    name: 'DB-21 Payback Analysis, new project: no stored proposal, the served line and Open the Proposal page, no Export Report (rule 7)',
+    path: METRICS('payback'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: freshMetrics('Render Payback None', 'payback'),
+  },
+  {
+    name: 'DB-21 Payback Analysis, new project generated with nothing answered (G10-15; G1-31)',
+    path: METRICS('payback'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshMetricsGenerated('Render Payback Generated', 'payback')(page);
+    },
+  },
+  {
+    name: 'R-121 print route, new project: Payback Analysis while its print view loads, "Loading" and no figure',
+    path: METRICS_PRINT,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Payback Print Loading', 'steps/2');
+      const snapshotId = await storedSnapshot(page, id);
+      await holdRequests(page, metricsPrintView, { releaseAfterMs: LOADING_LONG_PAGE_MS });
+      await page.goto(`/projects/${id}/print/metrics/payback/${snapshotId}`);
+      await loadingShown(page);
+    },
+  },
+  {
+    name: 'DB-21 Payback Analysis, new project: loading, its view held',
+    path: METRICS('payback'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: metricsLoading('Render Payback Loading', 'payback', true),
+  },
+  {
+    name: 'DB-21 Payback Analysis, new project: load failure, its view failing',
+    path: METRICS('payback'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: metricsFailed('Render Payback Failed', 'payback'),
+  },
+  {
+    name: 'DB-21 Payback Analysis, new project: Export Report failing, the failure said beside it, the button still enabled (R-121; rule 7)',
+    path: METRICS('payback'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: exportReportFailed('Render Payback Export Failed', 'payback'),
+  },
+  {
+    name: 'DB-22 Lifecycle Analysis, demo: the analysis period, the lifecycle figures, the three charts, KEY INSIGHTS and EQUIPMENT LIFECYCLE "Not available yet" naming what is missing, Export Report (R-097; R-105 "Until decided")',
+    path: METRICS('lifecycle'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: demoMetrics('lifecycle'),
+  },
+  {
+    name: 'DB-22 Lifecycle Analysis, new project: no stored proposal, the served line and Open the Proposal page (rule 7)',
+    path: METRICS('lifecycle'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: freshMetrics('Render Lifecycle None', 'lifecycle'),
+  },
+  {
+    name: 'R-121 print route, demo: Lifecycle Analysis on paper, the demo line in the running header, no button (G10-16; G1-32)',
+    path: METRICS_PRINT,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await signIn(page);
+      await openMetricsPrint(page, demoProjectId(), 'lifecycle');
+    },
+  },
+  {
+    name: 'DB-22 Lifecycle Analysis, new project generated with nothing answered (G1-31)',
+    path: METRICS('lifecycle'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await freshMetricsGenerated('Render Lifecycle Generated', 'lifecycle')(page);
+    },
+  },
+  {
+    name: 'DB-22 Lifecycle Analysis, new project: loading, its view held',
+    path: METRICS('lifecycle'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: metricsLoading('Render Lifecycle Loading', 'lifecycle', true),
+  },
+  {
+    name: 'DB-22 Lifecycle Analysis, new project: load failure, its view failing',
+    path: METRICS('lifecycle'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: metricsFailed('Render Lifecycle Failed', 'lifecycle'),
+  },
+  {
+    name: 'DB-22 Lifecycle Analysis, new project: Export Report failing, the failure said beside it, the button still enabled (R-121; rule 7)',
+    path: METRICS('lifecycle'),
+    displayObjects: displayObjectsFromApi(),
+    arrange: exportReportFailed('Render Lifecycle Export Failed', 'lifecycle'),
+  },
+  {
+    name: 'R-121 print route, new project: Payback Analysis on paper, no demo line',
+    path: METRICS_PRINT,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      const id = await newProjectAt(page, 'Render Payback Print', 'steps/2');
+      await openMetricsPrint(page, id, 'payback');
+    },
+  },
+  {
+    name: 'R-121 print route, demo: the print view failing, "This document could not be prepared." with Try again, the refusal marker set',
+    path: METRICS_PRINT,
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await signIn(page);
+      await failRequests(page, metricsPrintView);
+      await openMetricsPrint(page, demoProjectId(), 'lifecycle', 'failed');
+      await loadFailedShown(page);
     },
   },
 ];

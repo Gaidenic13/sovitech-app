@@ -1,5 +1,26 @@
 import { describe, expect, it } from 'vitest';
-import { DisplayObjectSchema, LevelRegisterSchema, PriceSchema, ProposalOutputSchema, ROUTES, VALUE_ID_PATTERN, ZoneDetailSchema, isDisplayObjectRequest, pathOf, routeById, servedDisplayOf, type DisplayObject } from './index';
+import {
+  DisplayObjectSchema,
+  FinancialOverviewViewSchema,
+  LevelRegisterSchema,
+  METRICS_PAGES,
+  OpexResponseSchema,
+  OpexViewSchema,
+  PriceSchema,
+  ProposalOutputSchema,
+  ROUTES,
+  SERIES_KEY_PATTERN,
+  SeriesPointSchema,
+  SeriesSchema,
+  VALUE_ID_PATTERN,
+  WORKSPACE_PAGES,
+  ZoneDetailSchema,
+  isDisplayObjectRequest,
+  pathOf,
+  routeById,
+  servedDisplayOf,
+  type DisplayObject,
+} from './index';
 
 const PROJECT = '0192f0e4-7c1a-7d2b-9e3f-4a5b6c7d8e9f';
 
@@ -132,11 +153,135 @@ describe('ADR 0049 · F-RENDER-06 · F-PRICE-01: the phase 5 contract (the propo
 
   it('ADR 0049 · rule 10 · G10-9 · G10-11: a price names a quotation record only beside a stage, and an output with no figure carries no stage of its own', () => {
     const figure = `proposal:${SNAPSHOT}.outputs.capex.preliminaryEstimate`;
-    expect(PriceSchema.safeParse({ figure, stage: null, stageId: null, quotationRecordId: null, superseded: null }).success).toBe(true);
-    expect(PriceSchema.safeParse({ figure, stage: `${figure}.stage`, stageId: 'formal_quotation', quotationRecordId: SNAPSHOT, superseded: null }).success).toBe(true);
-    expect(PriceSchema.safeParse({ figure, stage: `${figure}.stage`, stageId: 'final_price', quotationRecordId: null, superseded: null }).success).toBe(false);
+    expect(PriceSchema.safeParse({ figure, stageId: null, quotationRecordId: null }).success).toBe(true);
+    expect(PriceSchema.safeParse({ figure, stageId: 'formal_quotation', quotationRecordId: SNAPSHOT }).success).toBe(true);
+    expect(PriceSchema.safeParse({ figure, stageId: 'final_price', quotationRecordId: null }).success).toBe(false);
     const output = { output: 'capex.preliminaryEstimate', formula: { id: 'capexPreliminaryEstimate', version: '1' }, display: figure, availability: 'not_available_yet', incomplete: false, outOfDate: false, price: null };
     expect(ProposalOutputSchema.safeParse(output).success).toBe(true);
     expect(ProposalOutputSchema.safeParse({ ...output, availability: 'zero' }).success).toBe(false);
+  });
+
+  it('V-11 (phase 5 part B, fixed in phase 6) · rule 10 · G10-2: a price serves its stage label and its Superseded line once, inside its figure\'s display: the contract has no field for a second copy', () => {
+    const figure = `proposal:${SNAPSHOT}.outputs.capex.preliminaryEstimate`;
+    expect(PriceSchema.safeParse({ figure, stage: `${figure}.stage`, stageId: 'preliminary_investment_estimate', quotationRecordId: null }).success).toBe(false);
+    expect(PriceSchema.safeParse({ figure, stageId: 'preliminary_investment_estimate', quotationRecordId: null, superseded: `${figure}.superseded` }).success).toBe(false);
+  });
+});
+
+describe('ADR 0052 · F-RENDER-06 · F-RENDER-07: the phase 6 contract (the Metrics pages and their chart series)', () => {
+  const SNAPSHOT = '0192f0e4-7c1a-7d2b-9e3f-4a5b6c7d8e90';
+  const series = (extra: Record<string, unknown>) => ({
+    series: 'capex.bySystem',
+    kind: 'breakdown',
+    state: 'not_available_yet',
+    source: null,
+    notAvailable: `proposal:${SNAPSHOT}.series.capex.bySystem.notAvailable`,
+    total: null,
+    points: [],
+    zero: null,
+    ...extra,
+  });
+  const point = (key: string, plot: unknown, price: unknown = null) => ({
+    key,
+    name: `proposal:${SNAPSHOT}.series.capex.bySystem.points.${key}.name`,
+    value: `proposal:${SNAPSHOT}.outputs.capex.bySystem.${key}`,
+    price,
+    plot,
+  });
+
+  it('ADR 0052 · R-093 · R-121: every Metrics read and print view serves display objects, the export answers a file, every route is a session GET', () => {
+    for (const route of ROUTES.filter((candidate) => candidate.phase === 6)) {
+      expect(route.method, route.id).toBe('GET');
+      expect(route.session, route.id).toBe(true);
+      expect(route.servesDisplayObjects, route.id).toBe(route.id !== 'exports.metrics');
+    }
+    for (const page of ['financial-overview', 'capex', 'opex', 'payback', 'lifecycle', 'payback/print', 'lifecycle/print']) {
+      expect(isDisplayObjectRequest('GET', `/api/projects/${PROJECT}/metrics/${page}`), page).toBe(true);
+    }
+    expect(isDisplayObjectRequest('GET', `/api/projects/${PROJECT}/exports/metrics/payback`)).toBe(false);
+    expect(pathOf('exports.metrics', { projectId: PROJECT, page: 'lifecycle' })).toBe(`/api/projects/${PROJECT}/exports/metrics/lifecycle`);
+    expect(WORKSPACE_PAGES.slice(-METRICS_PAGES.length)).toEqual([...METRICS_PAGES]);
+  });
+
+  it('ADR 0052 · rule 1 · rule 7 · G1-31: a series that is not available names what is missing and draws no point, total or zero; one with figures names its snapshot and formula version and has a point', () => {
+    expect(SeriesSchema.safeParse(series({})).success).toBe(true);
+    expect(SeriesSchema.safeParse(series({ notAvailable: null })).success).toBe(false);
+    expect(SeriesSchema.safeParse(series({ points: [point('hvac', null)] })).success).toBe(false);
+    expect(SeriesSchema.safeParse(series({ zero: 0 })).success).toBe(false);
+    const source = { snapshotId: SNAPSHOT, formula: { id: 'TEST-capexBySystem', version: '1.0.0' } };
+    const figures = { state: 'figures', notAvailable: null, source, points: [point('hvac', { low: 100, high: 400, mark: 250 })] };
+    expect(SeriesSchema.safeParse(series(figures)).success).toBe(true);
+    expect(SeriesSchema.safeParse(series({ ...figures, source: null })).success).toBe(false);
+    expect(SeriesSchema.safeParse(series({ ...figures, points: [] })).success).toBe(false);
+    expect(SeriesSchema.safeParse(series({ ...figures, kind: 'sequence', total: { kind: 'value', output: 'TEST', display: `proposal:${SNAPSHOT}.outputs.TEST_total` } })).success).toBe(false);
+  });
+
+  it('ADR 0052 · rule 1 "A chart shows an unknown as a labelled gap" · G1-5 · G9-9: a gap has no plot; a plotted range runs low to high with its mark inside; positions are thousandths of the plot', () => {
+    expect(SeriesPointSchema.safeParse(point('fire_safety', null)).success).toBe(true);
+    expect(SeriesPointSchema.safeParse(point('hvac', { low: 400, high: 100, mark: null })).success).toBe(false);
+    expect(SeriesPointSchema.safeParse(point('hvac', { low: 100, high: 400, mark: 500 })).success).toBe(false);
+    expect(SeriesPointSchema.safeParse(point('hvac', { low: 0, high: 1001, mark: null })).success).toBe(false);
+    expect(SeriesPointSchema.safeParse(point('hvac', { low: 0.5, high: 10, mark: null })).success).toBe(false);
+    expect(SERIES_KEY_PATTERN.test('capex.TEST_bySystem')).toBe(true);
+    expect(SERIES_KEY_PATTERN.test('TEST-capexBySystem')).toBe(false);
+    expect(VALUE_ID_PATTERN.test(`proposal:${SNAPSHOT}.series.capex.TEST_bySystem.points.hvac.name`)).toBe(true);
+  });
+
+  it('A-3 (phase 6 part B) · rule 10: a part of a priced breakdown is served as a price whose figure is its value; a breakdown whose total is a price has no part without one', () => {
+    const source = { snapshotId: SNAPSHOT, formula: { id: 'TEST-capexBySystem', version: '1.0.0' } };
+    const stage = (key: string) => ({ figure: `proposal:${SNAPSHOT}.outputs.capex.bySystem.${key}`, stageId: 'preliminary_investment_estimate', quotationRecordId: null });
+    expect(SeriesPointSchema.safeParse(point('hvac', { low: 100, high: 400, mark: 250 }, stage('hvac'))).success).toBe(true);
+    expect(SeriesPointSchema.safeParse(point('hvac', { low: 100, high: 400, mark: 250 }, stage('cctv'))).success).toBe(false);
+    const total = { kind: 'price', output: 'capex.preliminaryEstimate', price: { figure: `proposal:${SNAPSHOT}.outputs.capex.preliminaryEstimate`, stageId: 'preliminary_investment_estimate', quotationRecordId: null } };
+    const priced = { state: 'figures', notAvailable: null, source, total };
+    expect(SeriesSchema.safeParse(series({ ...priced, points: [point('hvac', { low: 100, high: 400, mark: 250 }, stage('hvac')), point('cctv', null, stage('cctv'))] })).success).toBe(true);
+    expect(SeriesSchema.safeParse(series({ ...priced, points: [point('hvac', { low: 100, high: 400, mark: 250 })] })).success).toBe(false);
+  });
+
+  it('A-8 (phase 6 part B) · rule 7 · rule 12: a Metrics response that names a value id it does not serve is refused (the API answers 500, the page reads that it could not be loaded), never an empty tile or a missing printed row', () => {
+    const BUILDING = '0192f0e4-7c1a-7d2b-9e3f-4a5b6c7d8e70';
+    const b = (path: string) => `building:${BUILDING}.operatingCost.${path}`;
+    const line = (valueId: string): DisplayObject => ({ valueId, kind: 'line', text: 'Not available yet: TEST item', shape: 'missing', missing: 'not_available_yet' });
+    const view = {
+      total: b('total'),
+      energy: { display: b('energy'), actions: [] },
+      maintenance: b('maintenance'),
+      staff: b('staff'),
+      other: b('other'),
+      intensity: b('intensity'),
+      breakdown: b('breakdown'),
+      systems: [],
+      noSystems: { line: b('systems'), actions: ['choose_systems'] },
+    };
+    const name: DisplayObject = { valueId: `project:${PROJECT}.name`, kind: 'field', text: 'TEST project', shape: 'value' };
+    const header = { projectId: PROJECT, name: name.valueId, isDemo: false, demoLine: null };
+    const all = [name, ...['total', 'energy', 'maintenance', 'staff', 'other', 'intensity', 'breakdown', 'systems'].map((path) => line(b(path)))];
+    const response = (displayObjects: readonly DisplayObject[]) => ({ asOf: '2026-10-07T09:00:00.000Z', project: header, displayObjects, view });
+    expect(OpexResponseSchema.safeParse(response(all)).success).toBe(true);
+    expect(OpexResponseSchema.safeParse(response(all.filter((display) => display.valueId !== b('staff')))).success).toBe(false);
+    expect(OpexResponseSchema.safeParse(response(all.filter((display) => display.valueId !== name.valueId))).success).toBe(false);
+  });
+
+  it('G7-24 (contract) · V-1 (phase 6 part B) · rule 7: OPEX & Savings serves its "by system" line exactly when it serves no row, never an empty table', () => {
+    const b = (path: string) => `building:0192f0e4-7c1a-7d2b-9e3f-4a5b6c7d8e70.operatingCost.${path}`;
+    const base = { total: b('total'), energy: { display: b('energy'), actions: [] }, maintenance: b('maintenance'), staff: b('staff'), other: b('other'), intensity: b('intensity'), breakdown: b('breakdown') };
+    const row = { systemId: 'hvac', decision: `project:${PROJECT}.scope.hvac`, current: b('systems.hvac') };
+    const line = { line: b('systems'), actions: ['choose_systems'] };
+    expect(OpexViewSchema.safeParse({ ...base, systems: [], noSystems: line }).success).toBe(true);
+    expect(OpexViewSchema.safeParse({ ...base, systems: [row], noSystems: null }).success).toBe(true);
+    expect(OpexViewSchema.safeParse({ ...base, systems: [], noSystems: null }).success).toBe(false);
+    expect(OpexViewSchema.safeParse({ ...base, systems: [row], noSystems: line }).success).toBe(false);
+  });
+
+  it('ADR 0052 · rule 7 · R-093 AC4: a page with no stored proposal names what is missing with the one action that opens the Proposal page', () => {
+    const line = `project:${PROJECT}.metrics.source`;
+    expect(FinancialOverviewViewSchema.safeParse({ state: 'none_generated', line, actions: ['open_proposal'] }).success).toBe(true);
+    expect(FinancialOverviewViewSchema.safeParse({ state: 'none_generated', line, actions: [] }).success).toBe(false);
+  });
+});
+
+describe('V-11 (phase 5 part B, fixed in phase 6): the price contract after the fix', () => {
+  it('V-11 · rule 10: the price has three fields: its figure, its stage id and its quotation record (the lines live in the figure\'s display)', () => {
+    expect(Object.keys(PriceSchema.shape).sort()).toEqual(['figure', 'quotationRecordId', 'stageId']);
   });
 });

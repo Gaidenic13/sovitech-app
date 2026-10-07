@@ -243,3 +243,29 @@ export function displayById(displays: readonly DisplayObject[], valueId: string)
   if (found === undefined) throw new Error(`no display ${valueId}`);
   return found;
 }
+
+/**
+ * The stage label a price's figure display carries among its own lines (kind `stage_label`), or undefined: the one
+ * place it is served (phase 6, V-11; the contract's `PriceSchema`).
+ */
+export function stageTextOf(displays: readonly DisplayObject[], price: { readonly figure: string }): string | undefined {
+  return displayById(displays, price.figure).lines?.find((line) => line.kind === 'stage_label')?.text;
+}
+
+/**
+ * "Superseded: inputs changed on <date>" as a price's figure display carries it among its own lines (status line
+ * `superseded_inputs_changed`), or undefined: the one place it is served (phase 6, V-11).
+ */
+export function supersededTextOf(displays: readonly DisplayObject[], price: { readonly figure: string }): string | undefined {
+  return displayById(displays, price.figure).lines?.find((line) => line.id === 'superseded_inputs_changed')?.text;
+}
+
+/**
+ * The displays of a response that hold a line (a stage label or the Superseded line) also served inside a price's
+ * figure, other than that figure itself: none, since phase 6 (V-11: each line once).
+ */
+export function copiesOfFigureLines(displays: readonly DisplayObject[], price: { readonly figure: string }): DisplayObject[] {
+  const figure = displayById(displays, price.figure);
+  const served = new Set((figure.lines ?? []).filter((line) => line.kind === 'stage_label' || line.id === 'superseded_inputs_changed').map((line) => `${line.kind}:${line.id}`));
+  return displays.filter((display) => display.valueId !== figure.valueId && (display.lines ?? []).some((line) => served.has(`${line.kind}:${line.id}`)) && display.valueId.startsWith(figure.valueId));
+}

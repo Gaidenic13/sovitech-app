@@ -117,7 +117,7 @@ describe('DB-15 · R-016: Documents on an uploaded fixture', LONG, () => {
     expect(byId.get(listed.view.stillReading ?? '')?.text).toBe('Still reading 1 file. Your estimate will update when it finishes.');
     const frame = WorkspaceFrameResponseSchema.parse((await get(projectId, 'workspace')).json());
     expect(frame.view.footer.stillReading).toBe(listed.view.stillReading);
-    expect(frame.view.pages).toEqual(['proposal', 'system_scope', 'topology', 'zones', 'equipment', 'documents', 'reports']);
+    expect(frame.view.pages).toEqual(['proposal', 'system_scope', 'topology', 'zones', 'equipment', 'documents', 'reports', 'financial_overview', 'capex', 'opex', 'payback', 'lifecycle']);
     expect(frame.project.demoLine).toBeNull();
   });
 });

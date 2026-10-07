@@ -6,8 +6,9 @@
  * view offers beside a "Not available yet" line (the contract's `WorkspaceAction`: each opens a built
  * page, PRD R-012 "Until decided").
  *
- * No path here leads to a page that is not built (R-146 "Until decided"): Overview, Property, Alarms
- * and Metrics have none. Reports (DB-18) is built in phase 5 (docs/adr/0049).
+ * No path here leads to a page that is not built (R-146 "Until decided"): Overview, Property, Alarms,
+ * Phasing, Scenarios and a Metrics landing have none. Reports (DB-18) is built in phase 5 (docs/adr/0049); the
+ * Metrics pages the PRD builds in phase 6 live under `/projects/<id>/metrics/<page>` (docs/adr/0052; R-093).
  */
 import { useCallback } from 'react';
 import { useSearchParams } from 'react-router';
@@ -22,6 +23,11 @@ export const PAGE_SEGMENTS: Readonly<Record<WorkspacePage, string>> = {
   equipment: 'equipment',
   documents: 'documents',
   reports: 'reports',
+  financial_overview: 'metrics/financial-overview',
+  capex: 'metrics/capex',
+  opex: 'metrics/opex',
+  payback: 'metrics/payback',
+  lifecycle: 'metrics/lifecycle',
 };
 
 /** The search parameter that holds the shared floor selection (a `LevelOption.key`). */
@@ -43,13 +49,19 @@ export function pagePath(projectId: string, page: WorkspacePage, level?: string)
  */
 const SEGMENT_PAGES: Readonly<Record<string, WorkspacePage>> = { proposals: 'proposal' };
 
-/** The built page a project path shows (`/projects/<id>/equipment/<asset>` is Equipment's, `/proposals/<snapshot>` the Proposal's), or undefined. */
+/**
+ * The built page a project path shows (`/projects/<id>/equipment/<asset>` is Equipment's, `/proposals/<snapshot>` the
+ * Proposal's, `/metrics/<page>` a Metrics page's), or undefined.
+ */
 export function pageOfPath(pathname: string): WorkspacePage | undefined {
-  const segment = /^\/projects\/[^/]+\/([^/?#]+)/u.exec(pathname)?.[1];
+  const match = /^\/projects\/[^/]+\/([^/?#]+)(?:\/([^/?#]+))?/u.exec(pathname);
+  const segment = match?.[1];
   if (segment === undefined) return undefined;
   const page = SEGMENT_PAGES[segment];
   if (page !== undefined) return page;
-  const found = (Object.entries(PAGE_SEGMENTS) as Array<[WorkspacePage, string]>).find(([, value]) => value === segment);
+  // A Metrics page's path has two segments (`metrics/<page>`); no Metrics landing exists (R-093).
+  const full = segment === 'metrics' && match?.[2] !== undefined ? `${segment}/${match[2]}` : segment;
+  const found = (Object.entries(PAGE_SEGMENTS) as Array<[WorkspacePage, string]>).find(([, value]) => value === full);
   return found?.[0];
 }
 
@@ -96,7 +108,8 @@ export const UPLOAD_OPEN = 'open';
 /**
  * Where an owner action beside a "Not available yet" line or an empty register leads (the contract's
  * `WORKSPACE_ACTIONS`): `upload_document` opens Documents with its upload surface open; `enter_floors`
- * opens step 3, where the floors row has Edit (R-077); `choose_systems` opens System Scope (R-071).
+ * opens step 3, where the floors row has Edit (R-077); `choose_systems` opens System Scope (R-071); `open_proposal`
+ * opens the Proposal page (phase 6: a Metrics page with no stored proposal).
  */
 export function workspaceActionPath(projectId: string, action: WorkspaceAction): string {
   switch (action) {
@@ -106,5 +119,7 @@ export function workspaceActionPath(projectId: string, action: WorkspaceAction):
       return `/projects/${projectId}/steps/3`;
     case 'choose_systems':
       return pagePath(projectId, 'system_scope');
+    case 'open_proposal':
+      return pagePath(projectId, 'proposal');
   }
 }

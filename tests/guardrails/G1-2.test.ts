@@ -153,7 +153,7 @@ describe('G1-2 (the view-model half) · the stored proposal\'s head never shows 
     const head = built.view.headline.investment;
     expect(head.output).toBe(OUTPUT.preliminaryEstimate);
     expect(head.price.figure).toBe(`proposal:${built.view.snapshotId}.headline.investment`);
-    expect(head.price).toMatchObject({ stageId: 'preliminary_investment_estimate', quotationRecordId: null, superseded: null });
+    expect(head.price).toEqual({ figure: head.price.figure, stageId: 'preliminary_investment_estimate', quotationRecordId: null });
     const shown = displayById(built.displayObjects, head.price.figure);
     expect(shown.kind).toBe('line');
     expect(shown.text).toBe(`Incomplete: excludes ${NAMES.join(', ')}`);

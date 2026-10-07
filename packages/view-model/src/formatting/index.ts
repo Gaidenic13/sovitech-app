@@ -140,9 +140,21 @@ export function formatOwnerQuantity(value: number, unit: UnitDefinition, options
  * from the inputs' own display precision.
  */
 export function formatCalculated(value: number, significantFigures: number, unit: UnitDefinition, options: FormatOptions): FormattedValue {
+  return withUnit(formatDecimal(calculatedShown(value, significantFigures), options), unit);
+}
+
+/** A calculated value as its display shows it: rounded half up to `significantFigures` (rule 9, "Calculated values"). */
+function calculatedShown(value: number, significantFigures: number): Exact {
   requireSignificantFigures(significantFigures);
-  const rounded = exact(value, 'the calculated value').toSignificantDigits(significantFigures, Decimal.ROUND_HALF_UP);
-  return withUnit(formatDecimal(rounded, options), unit);
+  return exact(value, 'the calculated value').toSignificantDigits(significantFigures, Decimal.ROUND_HALF_UP);
+}
+
+/**
+ * The number a calculated value's display shows (`formatCalculated`'s figure, as a number): for a chart that places the
+ * value where its label says it is (G9-9; phase 6 part B, A-5). Layout only, never shown as text.
+ */
+export function calculatedAsShown(value: number, significantFigures: number): number {
+  return calculatedShown(value, significantFigures).toNumber();
 }
 
 /** A whole count (rule 8, "Counts state what they count": the caller adds the qualifier label). Never "-0". */
@@ -210,19 +222,38 @@ function outward(range: StoredRange, significantFigures: number): { readonly low
  * symbol follows the value and the high bound: "about 5,800 m² (5,200 to 6,400 m²)".
  */
 export function formatEstimate(value: number, range: StoredRange, unit: UnitDefinition | undefined, options: FormatOptions): FormattedValue {
+  const numbers = estimateShown(value, range);
+  const shown = formatDecimal(numbers.value, options);
+  const low = formatDecimal(numbers.low, options);
+  const high = formatDecimal(numbers.high, options);
+  const symbol = shownSymbol(unit);
+  if (symbol === undefined) return { text: `about ${shown} (${low} to ${high})`, parts: distinct([shown, low, high]) };
+  return { text: `about ${shown} ${symbol} (${low} to ${high} ${symbol})`, parts: distinct([shown, low, high, symbol]) };
+}
+
+/**
+ * The numbers an estimate's display shows (`formatEstimate`'s): the value to rule 9's significant figures, rounded half
+ * up, and the bounds rounded outward to the same figures. Refuses a range that does not satisfy low < value < high.
+ */
+function estimateShown(value: number, range: StoredRange): { readonly value: Exact; readonly low: Exact; readonly high: Exact } {
   const figure = exact(value, 'the estimate');
   const bounds = requireRange(range);
   if (!(bounds.low.lessThan(figure) && figure.lessThan(bounds.high))) {
     throw new RangeError('formatting: an estimate needs low < value < high (rule 9, "Ranges come from the method")');
   }
   const significantFigures = rangeSignificantFigures(range);
-  const shown = formatDecimal(figure.toSignificantDigits(significantFigures, Decimal.ROUND_HALF_UP), options);
   const rounded = outward(range, significantFigures);
-  const low = formatDecimal(rounded.low, options);
-  const high = formatDecimal(rounded.high, options);
-  const symbol = shownSymbol(unit);
-  if (symbol === undefined) return { text: `about ${shown} (${low} to ${high})`, parts: distinct([shown, low, high]) };
-  return { text: `about ${shown} ${symbol} (${low} to ${high} ${symbol})`, parts: distinct([shown, low, high, symbol]) };
+  return { value: figure.toSignificantDigits(significantFigures, Decimal.ROUND_HALF_UP), low: rounded.low, high: rounded.high };
+}
+
+/**
+ * The numbers an estimate's display shows, as numbers (`formatEstimate`'s central value and outward-rounded bounds): for
+ * a chart that places the estimate where its label says it is, so a labelled bound never falls off the axis (G9-9;
+ * phase 6 part B, A-5). The rounded central value may sit on a rounded bound. Layout only, never shown as text.
+ */
+export function estimateAsShown(value: number, range: StoredRange): { readonly value: number; readonly low: number; readonly high: number } {
+  const shown = estimateShown(value, range);
+  return { value: shown.value.toNumber(), low: shown.low.toNumber(), high: shown.high.toNumber() };
 }
 
 /**
@@ -291,3 +322,6 @@ export function formatDateAndTime(isoTimestamp: string): { readonly datetime: st
   }
   return { datetime: isoTimestamp, text: `${date.text}, ${hours}:${minutes}` };
 }
+
+/** Chart positions (phase 6; ./plot.ts; docs/adr/0052 decision 4): layout only, from the same values as the displays (G9-9). */
+export { plotPositions, type PlotInput, type PlotPosition, type PlotPositions } from './plot';

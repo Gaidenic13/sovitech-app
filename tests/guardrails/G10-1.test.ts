@@ -35,8 +35,8 @@ describe('G10-1 · rule 10: a proposal generated with no quotation record', () =
     expect(built.view.headline.investment.output).toBe('capex.preliminaryEstimate');
     expect(price.stageId).toBe('preliminary_investment_estimate');
     expect(price.quotationRecordId).toBeNull();
-    expect(price.superseded).toBeNull();
-    expect(displayById(built.displayObjects, price.stage ?? '').text).toBe('Preliminary investment estimate');
+    // Phase 6, V-11: the stage label is served once, among the figure's own lines (below); no Superseded line.
+    expect(displayById(built.displayObjects, price.figure).lines?.some((line) => line.id === 'superseded_inputs_changed') ?? false).toBe(false);
     const figureDisplay = displayById(built.displayObjects, price.figure);
     expect(figureDisplay.shape).toBe('range');
     expect(figureDisplay.text).toBe('about 92,000 EUR (81,000 to 110,000 EUR)');
@@ -49,7 +49,7 @@ describe('G10-1 · rule 10: a proposal generated with no quotation record', () =
   it('G10-1 · G10-11 · rule 7: with every dataset gate closed, no figure and no stage: the investment reads "Not available yet", and no reserved term appears', () => {
     const built = proposalView(testProposalInput());
     const price = built.view.headline.investment.price;
-    expect(price).toMatchObject({ stage: null, stageId: null, quotationRecordId: null, superseded: null });
+    expect(price).toEqual({ figure: price.figure, stageId: null, quotationRecordId: null });
     const display = displayById(built.displayObjects, price.figure);
     expect(display.text.startsWith('Not available yet: SOVITECH point templates; SOVITECH cost ranges and benchmarks')).toBe(true);
     expect(display.missing).toBe('not_available_yet');

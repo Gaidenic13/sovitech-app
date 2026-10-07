@@ -26,4 +26,5 @@ export const UI_KIT_PAGES: readonly KitHarnessPage[] = [
   page('ui/workspace-documents.html', 'UI kit: the phase 4 Documents register in the frame with its inspector open (pinned name and controls, small analysis lines, a two-word stage with its badge)'),
   page('ui/workspace-controls.html', 'UI kit: the phase 4 controls (switches, tabs, an open menu, the inline confirmation, chips, the pager, a list of levels, an empty register, the footer with no demo line)'),
   page('ui/model-area.html', 'UI kit: the model area with no viewer: not available yet with its action, and a stored model by its 2.8 line'),
+  page('ui/metrics.html', 'UI kit: the phase 6 Metrics tiles, panels and chart: marks, labelled gaps, an incomplete total, a sequence crossing zero, the table view, and a series that is not available'),
 ];

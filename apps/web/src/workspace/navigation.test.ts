@@ -32,8 +32,16 @@ describe('ADR 0043 · R-146 · R-012: the workspace paths', () => {
     expect(levelOfSearch(new URLSearchParams(''))).toBeUndefined();
   });
 
-  it('rule 7 · R-012 "Until decided": each owner action beside a "Not available yet" line opens a built page', () => {
+  it('rule 7 · R-012 "Until decided": each owner action beside a "Not available yet" line opens a built page (phase 6: `open_proposal` opens the Proposal page)', () => {
     const targets = WORKSPACE_ACTIONS.map((action) => workspaceActionPath(PROJECT, action));
-    expect(targets).toEqual([`/projects/${PROJECT}/documents?upload=open`, `/projects/${PROJECT}/steps/3`, `/projects/${PROJECT}/system-scope`]);
+    expect(targets).toEqual([`/projects/${PROJECT}/documents?upload=open`, `/projects/${PROJECT}/steps/3`, `/projects/${PROJECT}/system-scope`, `/projects/${PROJECT}/proposal`]);
+  });
+
+  it('ADR 0052 · R-093: each Metrics page lives under `metrics/` and reads as its own page; no Metrics landing exists', () => {
+    expect(pagePath(PROJECT, 'payback')).toBe(`/projects/${PROJECT}/metrics/payback`);
+    expect(pageOfPath(`/projects/${PROJECT}/metrics/financial-overview`)).toBe('financial_overview');
+    expect(pageOfPath(`/projects/${PROJECT}/metrics/lifecycle?snapshot=x`)).toBe('lifecycle');
+    expect(pageOfPath(`/projects/${PROJECT}/metrics`)).toBeUndefined();
+    expect(pageOfPath(`/projects/${PROJECT}/metrics/scenarios`)).toBeUndefined();
   });
 });

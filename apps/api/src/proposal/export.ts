@@ -16,7 +16,9 @@
  * - refuses every request, and every WebSocket, that does not go to the web origin (the print page and its `/api`
  *   calls through the web origin's proxy): no font, script or image from a third party, no network beyond the app;
  *   service workers and downloads are refused, dialogs dismissed;
- * - opens `/projects/<projectId>/print/proposals/<snapshotId>`, waits for the page's ready marker
+ * - opens the print route the request names (`/projects/<projectId>/print/proposals/<snapshotId>`, or, for a Metrics page
+ *   with "Export Report", `/projects/<projectId>/print/metrics/<page>/<snapshotId>`: phase 6, R-121, docs/adr/0052
+ *   decision 7; any other page is refused), waits for the page's ready marker
  *   (`data-print-ready="true"` on the document element, set once the view is loaded and rendered, or
  *   `data-print-ready="failed"`, which refuses the export; a page that leaves the print route, to sign-in, refuses it
  *   at once), waits for its fonts, and prints A4 with backgrounds (the page's own `@page` rule sets the size and the
@@ -33,7 +35,7 @@
  * Nothing is written to disk: the bytes go to the response (rule 13: no stored copy of an export, ADR 0050 decision 3).
  */
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright-core';
-import { UUID_PATTERN } from '@sovitech/view-model/browser';
+import { METRICS_EXPORT_PAGES, UUID_PATTERN, type MetricsExportPage } from '@sovitech/view-model/browser';
 import { SESSION_COOKIE } from '../auth/sessions';
 
 export interface PrintRequest {
@@ -42,7 +44,14 @@ export interface PrintRequest {
   /** The requester's Cookie header, from which only the session cookie is carried into the print context. */
   readonly cookieHeader: string;
   readonly projectId: string;
+  /** The stored version the print route prints. */
   readonly snapshotId: string;
+  /**
+   * Which page of it the print route prints: absent for the stored proposal (R-118), or a Metrics page with "Export
+   * Report" (`payback`, `lifecycle`: R-121; docs/adr/0052 decision 7; ADR 0050 amended in phase 6). Any other page is
+   * refused (`request_invalid`) before a page opens.
+   */
+  readonly metricsPage?: MetricsExportPage;
   /** Aborted when the requester went away: a waiting print never opens a page, a running one closes its context. */
   readonly signal?: AbortSignal;
 }
@@ -54,7 +63,8 @@ export interface PdfPrinter {
 
 /**
  * Why a print could not be produced, as a code (rule 13: never document text):
- * - `request_invalid`: the web origin is not an http(s) origin, or an id is not a UUID;
+ * - `request_invalid`: the web origin is not an http(s) origin, an id is not a UUID, or the Metrics page named has no
+ *   "Export Report";
  * - `not_signed_in`: the request carried no session cookie, or the print page left for sign-in;
  * - `page_failed`: the print page reported that its view could not be loaded (`data-print-ready="failed"`);
  * - `timeout`: the print did not finish within its time;
@@ -93,9 +103,17 @@ export interface PdfPrinterOptions {
 /** The attribute the print page sets on the document element (apps/web/src/proposal/ProposalPrintPage.tsx). */
 export const PRINT_READY_ATTRIBUTE = 'data-print-ready';
 
-/** The print route of a stored proposal (apps/web/src/routes.tsx APP_PATHS). */
-export function printPathOf(projectId: string, snapshotId: string): string {
-  return `/projects/${projectId}/print/proposals/${snapshotId}`;
+/**
+ * The print route of a stored proposal, or of a Metrics page of it with "Export Report" (apps/web/src/routes.tsx
+ * APP_PATHS: `/projects/:projectId/print/proposals/:snapshotId`, `/projects/:projectId/print/metrics/:page/:snapshotId`).
+ */
+export function printPathOf(projectId: string, snapshotId: string, metricsPage?: MetricsExportPage): string {
+  return metricsPage === undefined ? `/projects/${projectId}/print/proposals/${snapshotId}` : `/projects/${projectId}/print/metrics/${metricsPage}/${snapshotId}`;
+}
+
+/** Whether a request's Metrics page is one with "Export Report" (or none: the stored proposal). */
+function knownPage(metricsPage: string | undefined): metricsPage is MetricsExportPage | undefined {
+  return metricsPage === undefined || (METRICS_EXPORT_PAGES as readonly string[]).includes(metricsPage);
 }
 
 const DEFAULT_IDLE_CLOSE_MS = 2 * 60 * 1000;
@@ -317,7 +335,10 @@ export function createPdfPrinter(options: PdfPrinterOptions): PdfPrinter {
       if (current?.isConnected() === true) return current;
       browser = undefined;
     }
-    const launching = chromium.launch({ headless: true, args: BROWSER_ARGS, timeout: deadline.remaining() });
+    // The process's signals stay its own (phase 6 part B, I-10): by default Playwright installs SIGTERM, SIGINT and SIGHUP
+    // handlers while its browser is open, which close the browser and leave the process running, so an API stopped within
+    // the idle time after an export kept its port. Its exit handler still closes the browser when the process exits.
+    const launching = chromium.launch({ headless: true, args: BROWSER_ARGS, timeout: deadline.remaining(), handleSIGTERM: false, handleSIGINT: false, handleSIGHUP: false });
     browser = launching;
     try {
       return await launching;
@@ -334,11 +355,14 @@ export function createPdfPrinter(options: PdfPrinterOptions): PdfPrinter {
     if (idleTimer !== undefined) clearTimeout(idleTimer);
     try {
       const origin = webOriginOf(request.webOrigin);
-      if (origin === undefined || !UUID_PATTERN.test(request.projectId) || !UUID_PATTERN.test(request.snapshotId)) throw new ExportUnavailable('request_invalid');
+      if (origin === undefined || !UUID_PATTERN.test(request.projectId) || !UUID_PATTERN.test(request.snapshotId) || !knownPage(request.metricsPage)) {
+        throw new ExportUnavailable('request_invalid');
+      }
       const session = sessionCookieOf(request.cookieHeader);
       if (session === undefined) throw new ExportUnavailable('not_signed_in');
       const open = await deadline.race(browserOf(deadline), () => undefined, request.signal);
-      return await printOnce(open, { origin, session, path: printPathOf(request.projectId, request.snapshotId), ...(request.signal === undefined ? {} : { signal: request.signal }) }, deadline);
+      const path = printPathOf(request.projectId, request.snapshotId, request.metricsPage);
+      return await printOnce(open, { origin, session, path, ...(request.signal === undefined ? {} : { signal: request.signal }) }, deadline);
     } finally {
       if (!closed) {
         idleTimer = setTimeout(() => void closeBrowser(), idleCloseMs);

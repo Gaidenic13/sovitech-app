@@ -16,6 +16,7 @@ import { stateOf, testDocument, testId } from '../test-builders';
 import type { WorkspaceProject } from '../workspace';
 import { CSV_BYTE_ORDER_MARK, csvCell, equipmentCsv, reportsView } from './exports';
 import type { GeneratedOutput, ProposalBuildInput, ProposalField } from './inputs';
+import { productionStepOfField } from '../intake/steps';
 import { proposalView, versionsView } from './view';
 
 /** A line's cells as a spreadsheet splits it on `separator`, honouring a quoted field only where a cell starts (RFC 4180). */
@@ -265,5 +266,21 @@ describe('DR-12 · the basis lists the inputs by intake step, then in registry o
     const last = scope.at(-1);
     if (first === undefined || last === undefined) throw new Error('the basis lists no system in scope');
     expect(last - first).toBe(scope.length - 1);
+  });
+
+  it('DR-12 (phase 6) · the basis is also served in groups by intake step, in the basis\'s order: each input in one group, each group one step, the steps in order', () => {
+    const built = proposalView(emptyProposal(VERSIONS));
+    const groups = built.view.basisGroups;
+    expect(groups.flatMap((group) => group.values)).toEqual(built.view.basis);
+    const steps = groups.map((group) => group.step);
+    expect(new Set(steps).size).toBe(steps.length);
+    expect(steps.length).toBeGreaterThanOrEqual(4);
+    const numbered = steps.filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+    expect(numbered).toEqual([...numbered].sort((a, b) => a - b));
+    const prefix = `proposal:${SNAPSHOT}.inputs.`;
+    for (const group of groups) {
+      expect(group.values.length).toBeGreaterThan(0);
+      for (const valueId of group.values) expect(productionStepOfField(valueId.slice(prefix.length)) ?? null, valueId).toBe(group.step);
+    }
   });
 });

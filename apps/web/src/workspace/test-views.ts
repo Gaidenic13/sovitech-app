@@ -4,7 +4,7 @@
  * the route's schema, as it parses the API's. Not a test itself, and never imported by the app. Every
  * name and value is TEST data in a digit pattern; none is a figure of the mockups or of a real building.
  */
-import type { DisplayObject, DocumentRow, Line } from '@sovitech/view-model/browser';
+import { WORKSPACE_PAGES, type DisplayObject, type DocumentRow, type Line } from '@sovitech/view-model/browser';
 
 /** As ../test/harness.ts serves them (kept here so this file needs no test runner). */
 const DEMO_LINE: Line = { id: 'demo_project', kind: 'demo_line', text: 'TEST demo line' };
@@ -75,7 +75,7 @@ export function frameResponse(projectId: string, options: FrameOptions = {}) {
   return {
     ...envelopeOf(projectId, displays, options),
     view: {
-      pages: options.pages ?? ['proposal', 'system_scope', 'topology', 'zones', 'equipment', 'documents', 'reports'],
+      pages: options.pages ?? [...WORKSPACE_PAGES],
       projectCard: { projectType: projectType.valueId, buildingType: `building:${BUILDING}.type`, grossFloorArea: area.valueId, rooms: [], floors: [] },
       footer: { stillReading: options.stillReading === true ? `project:${projectId}.stillReading` : null },
       levels: { state: 'unknown', line: `project:${projectId}.floors.missing`, actions: ['upload_document', 'enter_floors'] },

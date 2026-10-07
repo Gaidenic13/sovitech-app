@@ -169,16 +169,31 @@ export function resolveOutputLine(input: {
 }): DisplayObject {
   const { plan } = input;
   if (plan.availability === 'range') throw new Error('intake: an output that will be a range is stated with its stage label by the engine (phase 5)');
+  const items = outputMissingItems(plan, input.fields);
+  if (items.names.length === 0) throw new Error('intake: an output that is not available names what it misses');
+  return resolveLine(projectValueId(input.projectId, `outputs.${plan.output}`), 'not_available_yet_named', { missing: items.names.join('; ') }, input.format, {
+    missing: 'not_available_yet',
+    lines: items.lines,
+    actions: items.actions,
+  });
+}
+
+/**
+ * What an output's plan names as missing, in its line's order and words: each missing SOVITECH dataset, then each
+ * missing first-estimate input (its slot's words), with the owner's `add` action per input, and 2.8's "Add the <field>
+ * to see this." lines when only owner inputs are missing. Shared by step 8's output line and OPEX & Savings' estimate of
+ * a new building's energy cost (US-FIN-13 AC9: "naming what an estimate lacks"; phase 6 part B, V-4), so both name the
+ * same items, with the same Adds, in the same order.
+ */
+export function outputMissingItems(plan: OutputAvailabilityPlan, fields: readonly IntakeField[]): { readonly names: readonly string[]; readonly actions: readonly Action[]; readonly lines: readonly Line[] } {
   const missingFields = plan.missingFields.flatMap((key) => {
-    const field = input.fields.find((entry) => entry.field.key === key);
+    const field = fields.find((entry) => entry.field.key === key);
     return field === undefined ? [] : [field];
   });
   const labelOf = (field: IntakeField): string => {
     const slot = field.field.firstEstimateSlot;
     return (slot === undefined ? undefined : FIRST_ESTIMATE_SLOT_LABELS[slot]) ?? field.field.label.toLowerCase();
   };
-  const missing = [...plan.missingDatasets, ...missingFields.map(labelOf)];
-  if (missing.length === 0) throw new Error('intake: an output that is not available names what it misses');
   const actions: Action[] = missingFields.map((field) => ({
     kind: 'add',
     field: { subjectId: field.subjectId, fieldKey: field.field.key },
@@ -186,9 +201,5 @@ export function resolveOutputLine(input: {
     step: 8,
   }));
   const lines: Line[] = plan.missingDatasets.length === 0 ? missingFields.map((field) => lineOf('add_to_see_this', { field: labelOf(field) })) : [];
-  return resolveLine(projectValueId(input.projectId, `outputs.${plan.output}`), 'not_available_yet_named', { missing: missing.join('; ') }, input.format, {
-    missing: 'not_available_yet',
-    lines,
-    actions,
-  });
+  return { names: [...plan.missingDatasets, ...missingFields.map(labelOf)], actions, lines };
 }

@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { RouterProvider, createMemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ProposalResponseSchema } from '@sovitech/view-model/browser';
+import { copy } from '../copy';
 import { routes } from '../routes';
 import { AS_OF, PROJECT, heldHandler, installFakeApi, json, pressTwice, projectList, renderAt, sentTo, settle, type Handler } from '../test/harness';
 import { frameResponse } from '../workspace/test-views';
@@ -303,16 +304,19 @@ describe('UD-06 · R-110 to R-113 · R-127 · rules 7, 10, 11: the stored propos
     expect(within(price).getByText(STAGE_2).getAttribute('data-copy-kind')).toBe('status-line');
     expect(within(price).getByText('Estimated')).toBeTruthy();
     expect(within(price).getByText('Provisional: depends on TEST 3 equipment items not yet checked')).toBeTruthy();
-    // One stage label per figure: the served stage display is not shown again beside a figure that carries it.
+    // One stage label per figure, inside it (phase 6, V-11: served once, among the figure's own lines).
     expect(within(head).getAllByText(STAGE_2)).toHaveLength(1);
+    expect(price.contains(within(head).getByText(STAGE_2))).toBe(true);
     expect(document.body.textContent ?? '').not.toMatch(RESERVED_PRICING);
   });
 
-  it('G10-2 (rendered) · rule 10 "A quotation goes stale": a TEST figure whose stored quotation record went stale shows "Superseded: inputs changed on <date>" beside it, bound, with stage 2\'s label and never "Formal quotation"', async () => {
+  it('G10-2 (rendered) · V-11 (phase 6) · rule 10 "A quotation goes stale": a TEST figure whose stored quotation record went stale shows "Superseded: inputs changed on <date>" once per figure, inside the figure\'s own bound element, with stage 2\'s label and never "Formal quotation"', async () => {
     api({}, { proposal: { figure: 'superseded' } });
     renderAt(`/projects/${PROJECT}/proposal`);
     const lines = await screen.findAllByText(SUPERSEDED_TEXT);
-    expect(lines[0]?.closest('[data-value-id]')?.getAttribute('data-value-id')).toBe(`proposal:${SNAPSHOT}.outputs.capex.preliminaryEstimate.superseded`);
+    // The head and the investment section show the one figure (one value id): the line once in each, inside it.
+    expect(lines).toHaveLength(2);
+    for (const shown of lines) expect(shown.closest('[data-value-id]')?.getAttribute('data-value-id')).toBe(`proposal:${SNAPSHOT}.outputs.capex.preliminaryEstimate`);
     expect(document.body.textContent).not.toContain('Formal quotation');
     expect(screen.getAllByText(STAGE_2).length).toBeGreaterThan(0);
   });
@@ -360,7 +364,8 @@ describe('UD-06 · R-110 to R-113 · R-127 · rules 7, 10, 11: the stored propos
     renderAt(`/projects/${PROJECT}/proposal`);
     await headShown();
     const indicators = screen.getByRole('region', { name: 'Operating cost and payback' });
-    for (const name of ['Operating cost', 'Payback', 'Net present value (NPV)', 'Internal rate of return (IRR)']) expect(within(indicators).getByText(name)).toBeTruthy();
+    // 7.1.1-S8 · rule 8 (phase 6): the BMS's own running cost is labelled "BMS operating cost", never an operating cost of no one.
+    for (const name of ['BMS operating cost', 'Payback', 'Net present value (NPV)', 'Internal rate of return (IRR)']) expect(within(indicators).getByText(name)).toBeTruthy();
     expect(within(indicators).queryByText(/ROI/u)).toBeNull();
     const scope = screen.getByRole('region', { name: 'System scope' });
     expect(within(scope).getByText('TEST monitoring only sentence')).toBeTruthy();
@@ -519,18 +524,20 @@ describe('phase 5 part B · the design review and the verifier on the stored pro
     expect(within(exclusions).getAllByText('CCTV')).toHaveLength(1);
   });
 
-  it('DR-12: "What the estimate is based on" is one list in the order served, one input per row, never a two-column grid', async () => {
+  it('DR-12 (phase 6): "What the estimate is based on" lists the inputs by intake step, each group under its step\'s own title, each one list in the order served, one input per row, never a two-column grid', async () => {
     api({}, { proposal: { basisMore: true } });
     renderAt(`/projects/${PROJECT}/proposal`);
     await headShown();
     const basis = screen.getByRole('region', { name: 'What the estimate is based on' });
-    const list = basis.querySelector('[data-proposal-basis]') as HTMLElement;
-    expect(list.tagName).toBe('UL');
-    expect(list.className).not.toMatch(/grid-cols/u);
-    expect([...list.children].map((item) => item.querySelector('[data-value-id]')?.getAttribute('data-value-id'))).toEqual([
+    const groups = [...basis.querySelectorAll<HTMLElement>('[data-proposal-basis] [data-basis-step]')];
+    expect(groups.map((group) => group.getAttribute('data-basis-step'))).toEqual(['3', '5']);
+    expect(groups.map((group) => group.querySelector('h3')?.textContent)).toEqual([copy.step3.title, copy.step5.title]);
+    const lists = groups.map((group) => group.querySelector('ul') as HTMLElement);
+    for (const list of lists) expect(list.className).not.toMatch(/grid-cols/u);
+    expect(lists.flatMap((list) => [...list.children].map((item) => item.querySelector('[data-value-id]')?.getAttribute('data-value-id')))).toEqual([
       `proposal:${SNAPSHOT}.inputs.building.grossFloorArea`,
-      `proposal:${SNAPSHOT}.inputs.building.type`,
       `proposal:${SNAPSHOT}.inputs.building.rooms`,
+      `proposal:${SNAPSHOT}.inputs.building.type`,
     ]);
   });
 

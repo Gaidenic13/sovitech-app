@@ -84,8 +84,13 @@ export const CSV_COLUMNS = {
   total: 'Equipment count',
 } as const;
 
-/** The file name of an export (no document text: rule 13). */
+/**
+ * The file name of an export (no document text: rule 13). Phase 6 (R-121; docs/adr/0052 decision 7): the Metrics pages
+ * with "Export Report", named by the page (the API adds the version's generation time, as for the proposal: DR-5).
+ */
 export const EXPORT_FILE_NAMES = {
   proposal: 'preliminary-proposal.pdf',
   equipment: 'equipment-register.csv',
+  payback: 'payback-analysis.pdf',
+  lifecycle: 'lifecycle-analysis.pdf',
 } as const;

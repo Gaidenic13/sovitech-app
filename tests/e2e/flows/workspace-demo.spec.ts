@@ -47,7 +47,8 @@ const NEVER = /\b3D\b|\b2D\b|Hybrid|Floor Plan|Isolate|BMS LIVE|Last sync|Last U
 /** The frame as ADR 0043 draws it: the built pages in order, the current one marked; the demo line once, in the footer. */
 async function frameHolds(page: Page, current: string): Promise<void> {
   const nav = page.getByRole('navigation', { name: 'Project pages' });
-  await expect(nav.getByRole('link')).toHaveText(['Proposal', 'System Scope', 'Topology', 'Zones', 'Equipment', 'Documents', 'Reports']);
+  // Phase 6 (R-093; ADR 0043 amended): the built Metrics pages follow Reports, in the approved Metrics list's order.
+  await expect(nav.getByRole('link')).toHaveText(['Proposal', 'System Scope', 'Topology', 'Zones', 'Equipment', 'Documents', 'Reports', 'Financial Overview', 'CAPEX Breakdown', 'OPEX & Savings', 'Payback Analysis', 'Lifecycle Cost']);
   await expect(nav.locator('a[aria-current="page"]')).toHaveText(current);
   await expect(page.getByText(DEMO_LINE, { exact: true })).toHaveCount(1);
   await expect(page.locator('.sov-status-footer').getByText(DEMO_LINE, { exact: true })).toBeVisible();

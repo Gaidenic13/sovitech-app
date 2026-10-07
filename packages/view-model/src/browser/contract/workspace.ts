@@ -65,10 +65,30 @@ import { VisibleSuggestionSchema } from './actions';
  * - `reports` (DB-18, phase 5: the generated outputs, R-119; last, as the approved list draws it).
  * Phase 5: `proposal` is the stored proposal's landing (proposal.ts; docs/adr/0048), or phase 3's
  * preview while no proposal is stored.
+ * Phase 6 (metrics.ts; docs/adr/0052-metrics-pages-and-series.md; ADR 0043 amended): the Metrics pages the PRD
+ * builds, after Reports, in the approved Metrics list's order and under its names (PRD R-093 "Until decided": "The
+ * navigation lists only the Metrics pages that are built, with Financial Overview first, as on the approved Metrics
+ * list"): `financial_overview` (DB-02, R-088), `capex` (DB-13, "CAPEX Breakdown", R-089), `opex` (DB-12, "OPEX &
+ * Savings", R-095), `payback` (DB-21, R-096), `lifecycle` (DB-22, "Lifecycle Cost", R-097). Flat, with no group heading
+ * and no "Metrics" item: no Metrics landing is built (R-093, UD-03) and the grouped sidebar waits for D-02 (R-146).
  * Not in the list, with the reason: Overview and Property (R-050, R-116, PRD 10.2: not built while D-02
- * and D-14 are open), Alarms (operations; the `operations` gate), Metrics (phase 6).
+ * and D-14 are open), Alarms (operations; the `operations` gate), Phasing and Scenarios (US-FIN-30, US-FIN-28:
+ * "Waiting on approval"; R-093 lists neither).
  */
-export const WORKSPACE_PAGES = ['proposal', 'system_scope', 'topology', 'zones', 'equipment', 'documents', 'reports'] as const;
+export const WORKSPACE_PAGES = [
+  'proposal',
+  'system_scope',
+  'topology',
+  'zones',
+  'equipment',
+  'documents',
+  'reports',
+  'financial_overview',
+  'capex',
+  'opex',
+  'payback',
+  'lifecycle',
+] as const;
 export const WorkspacePageSchema = z.enum(WORKSPACE_PAGES);
 export type WorkspacePage = z.infer<typeof WorkspacePageSchema>;
 
@@ -80,9 +100,12 @@ export type WorkspacePage = z.infer<typeof WorkspacePageSchema>;
  * - `upload_document`: opens Documents with its upload surface open (UD-21);
  * - `enter_floors`: opens step 3, where the floors row has Edit (R-077: "with actions to upload a
  *   document or enter the floors");
- * - `choose_systems`: opens System Scope (R-071: "with the action to choose them").
+ * - `choose_systems`: opens System Scope (R-071: "with the action to choose them");
+ * - `open_proposal` (phase 6): opens the Proposal page, the landing (the latest stored proposal, or phase 3's preview
+ *   with the way to Generate while none is stored), beside a Metrics page's "Not available yet: a generated
+ *   preliminary proposal" (metrics.ts; rule 7).
  */
-export const WORKSPACE_ACTIONS = ['upload_document', 'enter_floors', 'choose_systems'] as const;
+export const WORKSPACE_ACTIONS = ['upload_document', 'enter_floors', 'choose_systems', 'open_proposal'] as const;
 export const WorkspaceActionSchema = z.enum(WORKSPACE_ACTIONS);
 export type WorkspaceAction = z.infer<typeof WorkspaceActionSchema>;
 

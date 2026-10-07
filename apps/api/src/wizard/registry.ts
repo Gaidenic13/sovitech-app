@@ -14,7 +14,6 @@
 import { declaredFormulaLookup, derive, type Candidate, type DeriveEvents, type DocumentRecord, type FieldState } from '@sovitech/domain';
 import {
   AUTOMATION_FIELDS,
-  FIELD,
   GOAL_FIELDS,
   SCOPE_FIELDS,
   SYSTEMS,
@@ -25,7 +24,7 @@ import {
 import { GATE_IDS, readGate, type GateId, type GateSource } from '@sovitech/registry/gates';
 import type { QuestionDefinition, RegistryBundle, RegistryFieldDefinition } from '@sovitech/registry/validation';
 import type { StepNumber } from '@sovitech/view-model/browser';
-import { PRODUCTION_SUGGESTION_RULES, type SuggestionRule } from '@sovitech/view-model/server';
+import { PRODUCTION_SUGGESTION_RULES, STEP_1_FIELDS, STEP_3_FACTS, STEP_5_FIELDS, productionStepOfField, type SuggestionRule } from '@sovitech/view-model/server';
 
 /** The registry the API reads: the bundle, its lookups, the step of each field, and the suggestion rules. */
 export interface ApiRegistry {
@@ -39,27 +38,13 @@ export interface ApiRegistry {
   readonly suggestionRules: readonly SuggestionRule[];
 }
 
-/** Step 3's building facts: the gross floor area and the counts rule 8 qualifies (R-045). Its registry question is step 8's inline ask. */
-export const STEP_3_FACTS: readonly string[] = [FIELD.grossFloorArea, FIELD.floors, FIELD.rooms, FIELD.zones];
-export const STEP_1_FIELDS: readonly string[] = [FIELD.projectName, FIELD.projectType, FIELD.country, FIELD.city];
-export const STEP_5_FIELDS: readonly string[] = [FIELD.buildingType, FIELD.operatingSchedule, FIELD.occupancy];
-export { AUTOMATION_FIELDS, GOAL_FIELDS, SCOPE_FIELDS, SYSTEMS };
-
 /**
- * The step of a production field: step 1's four answers; step 3's building facts (the gross floor area's question is
- * step 8's inline ask, but its findings belong to step 3, where it is shown); step 4's systems; step 5's building type,
- * schedule and occupancy; step 6's goals; step 7's automation areas. Steps 2 and 8 hold no field of their own (the
- * build log's late-findings map for the API).
+ * The fields of each step and the step of a production field: the view-model's one step-of-field map
+ * (packages/view-model/src/intake/steps.ts; DR-12, phase 6), which the stored proposal's basis reads too. Step 3's
+ * registry question is step 8's inline ask; steps 2 and 8 hold no field of their own (the build log's late-findings map
+ * for the API).
  */
-export function productionStepOfField(fieldKey: string): StepNumber | undefined {
-  if (STEP_1_FIELDS.includes(fieldKey)) return 1;
-  if (STEP_3_FACTS.includes(fieldKey)) return 3;
-  if (SCOPE_FIELDS.includes(fieldKey)) return 4;
-  if (STEP_5_FIELDS.includes(fieldKey)) return 5;
-  if (GOAL_FIELDS.includes(fieldKey)) return 6;
-  if (AUTOMATION_FIELDS.includes(fieldKey)) return 7;
-  return undefined;
-}
+export { AUTOMATION_FIELDS, GOAL_FIELDS, SCOPE_FIELDS, STEP_1_FIELDS, STEP_3_FACTS, STEP_5_FIELDS, SYSTEMS, productionStepOfField };
 
 /**
  * An `ApiRegistry` over a bundle: the production steps, plus the steps a TEST registry names for its own TEST fields,

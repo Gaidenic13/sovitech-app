@@ -64,6 +64,15 @@ import {
   ReportsQuerySchema,
   ReportsResponseSchema,
 } from './proposal';
+import {
+  CapexResponseSchema,
+  FinancialOverviewResponseSchema,
+  LifecycleResponseSchema,
+  MetricsPrintQuerySchema,
+  MetricsQuerySchema,
+  OpexResponseSchema,
+  PaybackResponseSchema,
+} from './metrics';
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
@@ -85,10 +94,11 @@ export interface RouteSpec {
   /** Story, function, requirement and case ids, and screens. */
   readonly serves: readonly string[];
   /**
-   * Built in phase 2 (kept as they are), phase 3 (the wizard), phase 4 (the workspace: workspace.ts; docs/adr/0044) or
-   * phase 5 (the proposal, Reports and exports: proposal.ts; docs/adr/0049).
+   * Built in phase 2 (kept as they are), phase 3 (the wizard), phase 4 (the workspace: workspace.ts; docs/adr/0044),
+   * phase 5 (the proposal, Reports and exports: proposal.ts; docs/adr/0049) or phase 6 (the Metrics pages: metrics.ts;
+   * docs/adr/0052).
    */
-  readonly phase: 2 | 3 | 4 | 5;
+  readonly phase: 2 | 3 | 4 | 5 | 6;
 }
 
 const P = '/api/projects/:projectId';
@@ -220,6 +230,70 @@ export const ROUTES = [
   { id: 'exports.file', method: 'GET', path: `${P}/exports/:outputId/file`, session: true, csrf: false, refusals: ['503 export_unavailable'], servesDisplayObjects: false, serves: ['R-118', 'R-119', 'US-REPORTS-02', 'US-REPORTS-05 AC6', 'F-EXPORT-01', 'F-EXPORT-02', 'G10-5', 'G10-13', 'G13-12', 'docs/adr/0050'], phase: 5 },
   { id: 'reports.list', method: 'GET', path: `${P}/reports`, session: true, csrf: false, query: ReportsQuerySchema, response: ReportsResponseSchema, refusals: [], servesDisplayObjects: true, serves: ['DB-18', 'R-119', 'R-120', 'R-123', 'US-REPORTS-05', 'US-REPORTS-14 AC1', 'US-REPORTS-06 AC1', 'US-REPORTS-07 AC1', 'US-REPORTS-11 AC1', 'F-EXPORT-05', '7.1.1-D6', '7.1.1-D8', 'G2-1'], phase: 5 },
   { id: 'exports.equipment', method: 'GET', path: `${P}/exports/equipment`, session: true, csrf: false, query: EquipmentExportQuerySchema, refusals: [], servesDisplayObjects: false, serves: ['DB-17', 'UD-26', 'R-066', 'US-ASSETS-11 AC6', 'F-EXPORT-01', 'F-EXPORT-04', '7.1-r25', 'G10-14'], phase: 5 },
+
+  // ---- Phase 6: the Metrics pages (metrics.ts; docs/adr/0052; ADR 0043 amended) ------------------------------
+  // Reads only, each in the requester's own request on a project the requester may see (rule 13). Financial Overview,
+  // CAPEX, Payback and Lifecycle read one stored proposal snapshot (the latest, or `?snapshot=` naming one of the
+  // project's: 404 otherwise), and answer "Not available yet: a generated preliminary proposal" while none is stored;
+  // OPEX & Savings reads the project's documents and decisions now. The two print routes serve the page's view with no
+  // action on any display (a printed page has no button: ADR 0050 decision 1), for the PDF that "Export Report" prints
+  // (`exports.metrics`, a direct download of the named snapshot's page: no generated output is recorded, D-06).
+  {
+    id: 'metrics.financialOverview',
+    method: 'GET',
+    path: `${P}/metrics/financial-overview`,
+    session: true,
+    csrf: false,
+    query: MetricsQuerySchema,
+    response: FinancialOverviewResponseSchema,
+    refusals: [],
+    servesDisplayObjects: true,
+    serves: ['DB-02', 'R-087', 'R-088', 'R-090', 'R-091', 'R-092', 'R-094', 'R-099', 'R-100', 'R-102', 'R-103', 'US-FIN-01', 'US-FIN-03', 'US-FIN-04', 'US-FIN-05', 'US-FIN-06', 'US-FIN-08', 'US-FIN-09', 'G1-5', 'G1-31', 'G2-7', 'G9-8', 'G10-7', 'G10-15'],
+    phase: 6,
+  },
+  {
+    id: 'metrics.capex',
+    method: 'GET',
+    path: `${P}/metrics/capex`,
+    session: true,
+    csrf: false,
+    query: MetricsQuerySchema,
+    response: CapexResponseSchema,
+    refusals: [],
+    servesDisplayObjects: true,
+    serves: ['DB-13', 'R-087', 'R-089', 'R-090', 'R-091', 'R-092', 'US-FIN-03', 'US-FIN-05', 'US-FIN-08', 'US-FIN-21', 'G1-5', 'G1-31', 'G2-7', 'G9-8', 'G10-7', 'G10-15', 'G11-1'],
+    phase: 6,
+  },
+  { id: 'metrics.opex', method: 'GET', path: `${P}/metrics/opex`, session: true, csrf: false, response: OpexResponseSchema, refusals: [], servesDisplayObjects: true, serves: ['DB-12', 'R-087', 'R-092', 'R-095', 'US-FIN-12', 'US-FIN-13', 'US-FIN-14', 'G10-7', 'G12-4'], phase: 6 },
+  {
+    id: 'metrics.payback',
+    method: 'GET',
+    path: `${P}/metrics/payback`,
+    session: true,
+    csrf: false,
+    query: MetricsQuerySchema,
+    response: PaybackResponseSchema,
+    refusals: [],
+    servesDisplayObjects: true,
+    serves: ['DB-21', 'R-087', 'R-090', 'R-092', 'R-096', 'R-099', 'R-100', 'R-101', 'R-102', 'R-103', 'US-FIN-24', 'G1-31', 'G2-7', 'G9-9', 'G10-15'],
+    phase: 6,
+  },
+  {
+    id: 'metrics.lifecycle',
+    method: 'GET',
+    path: `${P}/metrics/lifecycle`,
+    session: true,
+    csrf: false,
+    query: MetricsQuerySchema,
+    response: LifecycleResponseSchema,
+    refusals: [],
+    servesDisplayObjects: true,
+    serves: ['DB-22', 'R-087', 'R-090', 'R-092', 'R-097', 'R-105', 'US-FIN-04 AC5', 'US-FIN-26', 'G1-31', 'G10-7'],
+    phase: 6,
+  },
+  { id: 'metrics.payback.print', method: 'GET', path: `${P}/metrics/payback/print`, session: true, csrf: false, query: MetricsPrintQuerySchema, response: PaybackResponseSchema, refusals: [], servesDisplayObjects: true, serves: ['R-121', 'US-REPORTS-13', 'F-EXPORT-01', 'G1-32', 'G10-16'], phase: 6 },
+  { id: 'metrics.lifecycle.print', method: 'GET', path: `${P}/metrics/lifecycle/print`, session: true, csrf: false, query: MetricsPrintQuerySchema, response: LifecycleResponseSchema, refusals: [], servesDisplayObjects: true, serves: ['R-121', 'US-REPORTS-13', 'F-EXPORT-01', 'G1-32', 'G10-16'], phase: 6 },
+  { id: 'exports.metrics', method: 'GET', path: `${P}/exports/metrics/:page`, session: true, csrf: false, query: MetricsPrintQuerySchema, refusals: ['503 export_unavailable'], servesDisplayObjects: false, serves: ['DB-21', 'DB-22', 'R-121', 'US-REPORTS-13', 'F-EXPORT-01', '7.1-r25', 'G1-32', 'G10-16', 'docs/adr/0050', 'docs/adr/0052'], phase: 6 },
 
   // ---- Uploads (phase 2, ADR 0019; step 2) ---------------------------------------------------
   { id: 'uploads.create', method: 'POST', path: `${P}/uploads`, session: true, csrf: true, request: CreateUploadRequestSchema, response: UploadStateSchema, refusals: ['415 format_not_accepted', '413 file_too_large', '400 file_name_invalid', '400 size_invalid', '403 owner_only'], servesDisplayObjects: false, serves: ['OB-2', 'UD-33', 'US-DOCS-01', 'R-013', 'F-INGEST-01'], phase: 2 },

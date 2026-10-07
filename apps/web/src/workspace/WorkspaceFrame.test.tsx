@@ -47,15 +47,41 @@ function sidebarNav() {
 }
 
 describe('ADR 0043 · R-146 · R-049 · R-139 · R-145 · UD-32: the workspace frame', () => {
-  it('R-146 · US-ADMIN-13 AC1 · R-050 · US-REVIEW-15 AC1 · R-119: the sidebar lists the built pages in the approved order, Reports last (phase 5), each a link to its built page; no Overview, Property, Alarms or Metrics item; the page on screen is the current one', async () => {
+  it('R-146 · US-ADMIN-13 AC1 · R-050 · US-REVIEW-15 AC1 · R-119 · R-093 (phase 6): the sidebar lists the built pages in the approved order, Reports, then the built Metrics pages in the approved Metrics list\'s order, each a link to its built page; no Overview, Property, Alarms, Metrics, Phasing or Scenarios item; the page on screen is the current one', async () => {
     api();
     await openDocuments();
     const links = within(sidebarNav()).getAllByRole('link');
-    expect(links.map((link) => link.textContent)).toEqual(['Proposal', 'System Scope', 'Topology', 'Zones', 'Equipment', 'Documents', 'Reports']);
+    expect(links.map((link) => link.textContent)).toEqual([
+      'Proposal',
+      'System Scope',
+      'Topology',
+      'Zones',
+      'Equipment',
+      'Documents',
+      'Reports',
+      'Financial Overview',
+      'CAPEX Breakdown',
+      'OPEX & Savings',
+      'Payback Analysis',
+      'Lifecycle Cost',
+    ]);
     expect(links.map((link) => link.getAttribute('href'))).toEqual(
-      ['proposal', 'system-scope', 'topology', 'zones', 'equipment', 'documents', 'reports'].map((segment) => `/projects/${PROJECT}/${segment}`),
+      [
+        'proposal',
+        'system-scope',
+        'topology',
+        'zones',
+        'equipment',
+        'documents',
+        'reports',
+        'metrics/financial-overview',
+        'metrics/capex',
+        'metrics/opex',
+        'metrics/payback',
+        'metrics/lifecycle',
+      ].map((segment) => `/projects/${PROJECT}/${segment}`),
     );
-    for (const absent of ['Overview', 'Property', 'Alarms', 'Metrics']) expect(within(sidebarNav()).queryByText(absent)).toBeNull();
+    for (const absent of ['Overview', 'Property', 'Alarms', 'Metrics', 'Phasing', 'Scenarios']) expect(within(sidebarNav()).queryByText(absent)).toBeNull();
     expect(within(sidebarNav()).getByRole('link', { name: 'Documents' }).getAttribute('aria-current')).toBe('page');
     expect(within(sidebarNav()).getByRole('link', { name: 'Zones' }).getAttribute('aria-current')).toBeNull();
     // No tab set in the header (R-146 "Until decided").

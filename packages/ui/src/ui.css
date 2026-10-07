@@ -1592,12 +1592,14 @@
     list-style: none;
   }
 
+  /* Phase 6: twelve pages, the longest names at 600 when current ("Financial Overview", "CAPEX Breakdown") keep one
+     line in the 208px sidebar: a 10px gap after the icon and a 6px end padding (DR-4's fit, the planner's risk). */
   .sov-side-nav__link {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     min-height: var(--sov-sidebar-row);
-    padding: 4px 12px 4px 10px;
+    padding: 4px 6px 4px 10px;
     border-inline-start: 2px solid transparent;
     border-radius: var(--sov-radius-control);
     color: var(--sov-text-tertiary);
@@ -2279,6 +2281,235 @@
 
   .sov-model-area[data-size='panel'] .sov-model-area__view {
     min-height: 240px;
+  }
+
+  /* ------------------------------------------------------------------ metrics: tiles and panels (phase 6) */
+  /* The Metrics pages' tiles and panels (docs/adr/0052; approved screens 02, 12, 13, 21, 22): a hairline on the page,
+     the brand's 2px radius, no fill and no shadow. A tile's label and a panel's heading take the caption role (DR-11),
+     in capitals as the approved screens set them; the words in the markup stay sentence case for assistive technology.
+     No new type size: a tile's figure is the Value or Price component's own. */
+  .sov-metric-tile {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid var(--sov-border);
+    border-radius: var(--sov-radius-surface);
+  }
+
+  .sov-metric-tile__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .sov-metric-tile__icon {
+    flex: none;
+    color: var(--sov-text-tertiary);
+    line-height: 0;
+  }
+
+  .sov-metric-tile__body {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .sov-metric-tile__label,
+  .sov-metric-panel__heading {
+    margin: 0;
+    font-size: var(--sov-text-caption-size);
+    font-weight: var(--sov-weight-medium);
+    line-height: var(--sov-text-caption-leading);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .sov-metric-tile__label {
+    color: var(--sov-text-tertiary);
+  }
+
+  .sov-metric-panel {
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    min-width: 0;
+    padding: 20px 24px 24px;
+    border: 1px solid var(--sov-border);
+    border-radius: var(--sov-radius-surface);
+  }
+
+  .sov-metric-panel__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    min-height: 24px;
+  }
+
+  .sov-metric-panel__heading {
+    color: var(--sov-text-primary);
+  }
+
+  /* ------------------------------------------------------------------ series chart (phase 6) */
+  /* A chart drawn with page elements (docs/adr/0052 decision 5): rows of a name, a track and the value as served. The
+     track is the value axis (its start a hairline), with the zero line in the hairline on hover's value; a mark spans
+     its served range in the accent: its outline and a mint 8% fill for an estimate's range, the stem and an exact
+     value filled. Every mark keeps a border, so forced colours still draw it. A gap is a dashed hairline holding its
+     2.8 wording (rule 1; G1-5). No tick, no axis label, no generated content, no animation (G2-8). */
+  .sov-series {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .sov-series__switch {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .sov-series__rows {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sov-series__row {
+    display: grid;
+    grid-template-columns: minmax(96px, 1fr) minmax(120px, 2fr) minmax(0, 2fr);
+    align-items: start;
+    gap: 16px;
+    padding: 12px 0;
+    border-top: 1px solid var(--sov-border);
+  }
+
+  .sov-series__name {
+    min-width: 0;
+    padding-top: 2px;
+    color: var(--sov-text-primary);
+    font-size: var(--sov-text-small-size);
+    line-height: var(--sov-text-small-leading);
+  }
+
+  .sov-series__name .sov-status-line {
+    color: var(--sov-text-primary);
+  }
+
+  /* The track draws no line at its start (V-8, phase 6 part B): with no tick, a line there could be read as zero. The
+     served zero is the chart's only axis line, 2px in the muted text token, 3:1 on dark and the ink on paper (A-9). */
+  .sov-series__track {
+    position: relative;
+    height: 24px;
+  }
+
+  .sov-series__zero {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    margin-inline-start: -1px;
+    border-inline-start: 2px solid var(--sov-text-muted);
+  }
+
+  .sov-series__stem,
+  .sov-series__mark {
+    position: absolute;
+    top: 6px;
+    height: 12px;
+    border: 1px solid var(--sov-accent);
+  }
+
+  .sov-series__stem {
+    background-color: var(--sov-accent);
+  }
+
+  .sov-series__mark {
+    min-width: 2px;
+    background-color: var(--sov-surface-selected);
+  }
+
+  .sov-series__mark[data-exact='true'] {
+    top: 3px;
+    height: 18px;
+    margin-inline-start: -1px;
+    background-color: var(--sov-accent);
+  }
+
+  .sov-series__central {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 0;
+    margin-inline-start: -1px;
+    border-inline-start: 2px solid var(--sov-accent);
+  }
+
+  .sov-series__value {
+    min-width: 0;
+  }
+
+  .sov-series__gap {
+    grid-column: 2 / span 2;
+    min-width: 0;
+    padding: 8px 12px;
+    border: 1px dashed var(--sov-border-hover);
+    border-radius: var(--sov-radius-surface);
+  }
+
+  .sov-series__total {
+    display: grid;
+    grid-template-columns: minmax(96px, 1fr) minmax(0, 4fr);
+    align-items: start;
+    gap: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--sov-border);
+  }
+
+  .sov-series__total-label {
+    padding-top: 2px;
+    color: var(--sov-text-primary);
+    font-size: var(--sov-text-small-size);
+    font-weight: var(--sov-weight-semibold);
+    line-height: var(--sov-text-small-leading);
+  }
+
+  .sov-series__table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .sov-series__table th,
+  .sov-series__table td {
+    padding: 12px 16px 12px 0;
+    border-top: 1px solid var(--sov-border);
+    color: var(--sov-text-primary);
+    font-size: var(--sov-text-small-size);
+    font-weight: var(--sov-weight-regular);
+    line-height: var(--sov-text-small-leading);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  .sov-series__table thead th {
+    padding-top: 0;
+    border-top: 0;
+    color: var(--sov-text-muted);
+    font-size: var(--sov-text-caption-size);
+    font-weight: var(--sov-weight-medium);
+    line-height: var(--sov-text-caption-leading);
+  }
+
+  .sov-series__table tfoot th {
+    font-weight: var(--sov-weight-semibold);
+  }
+
+  .sov-series__table .sov-status-line {
+    color: var(--sov-text-primary);
   }
 
   /* ------------------------------------------------------------------ text roles (phase 5 kit pass, DR-11) */

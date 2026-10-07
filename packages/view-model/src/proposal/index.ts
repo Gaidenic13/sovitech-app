@@ -23,4 +23,4 @@
 export { BASED_ON, CSV_COLUMNS, EXPORT_FILE_NAMES, FIRE_SAFETY_MONITORING_ONLY, INDICATOR_MISSING, INTERFACE_POINTS, OUTPUT_LABELS } from './copy';
 export { CSV_BYTE_ORDER_MARK, REPORTS_PAGE_SIZE, csvCell, equipmentCsv, reportsView } from './exports';
 export { ProposalNotBuilt, type GeneratedOutput, type OpenItems, type OpenItemsNow, type ProposalBuildInput, type ProposalField, type StoredVersion } from './inputs';
-export { inputPath, proposalPrintView, proposalValueId, proposalView, usedReading, versionsView } from './view';
+export { inputPath, outputMissingOf, proposalPrintView, proposalValueId, proposalView, snapshotOutput, usedExclusionsOf, usedReading, versionsView } from './view';

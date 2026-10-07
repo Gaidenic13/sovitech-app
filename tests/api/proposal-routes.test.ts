@@ -172,7 +172,7 @@ describe('ADR 0049 · ADR 0050: the phase 5 routes with the production registry 
       expect(displays.get(`proposal:${snapshotId}.outputs.savings.annualEnergy`)?.text).toContain('SOVITECH savings factors');
       expect(displays.get(`proposal:${snapshotId}.outputs.measures.priorityOrder`)?.text).toContain('SOVITECH function set');
       expect(view.headline.investment.output).toBe('capex.preliminaryEstimate');
-      expect(view.headline.investment.price).toMatchObject({ stage: null, stageId: null, quotationRecordId: null, superseded: null });
+      expect(view.headline.investment.price).toEqual({ figure: view.headline.investment.price.figure, stageId: null, quotationRecordId: null });
       // No stage is stated for a figure that does not exist; the only stage labels name the investment outputs (G10-11).
       const labelIds = new Set(view.investment.outputs.flatMap((output) => (output.label === undefined ? [] : [output.label])));
       expect([...labelIds].map((id) => proposal.displayObjects.find((display) => display.valueId === id)?.text)).toEqual(['Indicative range', 'Preliminary investment estimate']);
@@ -334,8 +334,13 @@ describe('ADR 0049 · ADR 0050: the phase 5 routes with the production registry 
       const reviewerId = await createTestAccount(api.database, { label: 'record commercial reviewer', kind: 'person', roles: [] });
       await insertTestQuotationRecord(api.database, { projectId, scopeUserId: ownerId ?? '', snapshotId, reviewingEngineerId: engineerId, commercialReviewerId: reviewerId, issuedOn: '2026-10-01', validUntil: '2026-12-31', inputs: [] });
       const proposal = ProposalResponseSchema.parse((await get(projectId, `proposals/${snapshotId}`)).json());
-      expect(proposal.view.headline.investment.price).toMatchObject({ stage: null, stageId: null, quotationRecordId: null, superseded: null });
-      for (const output of proposal.view.investment.outputs) expect(output.price).toMatchObject({ stage: null, quotationRecordId: null, superseded: null });
+      expect(proposal.view.headline.investment.price).toEqual({ figure: proposal.view.headline.investment.price.figure, stageId: null, quotationRecordId: null });
+      // Phase 6, V-11: no stage label and no Superseded line, in the figure's own lines (their one place) or anywhere.
+      for (const output of proposal.view.investment.outputs) {
+        expect(output.price).toMatchObject({ stageId: null, quotationRecordId: null });
+        const figure = proposal.displayObjects.find((display) => display.valueId === output.price?.figure);
+        expect(figure?.lines?.some((line) => line.kind === 'stage_label' || line.id === 'superseded_inputs_changed') ?? false).toBe(false);
+      }
       expect(proposal.displayObjects.some((display) => display.quotationRecordId !== undefined || display.text.includes('Formal quotation') || display.text.startsWith('Superseded'))).toBe(false);
     });
   });
@@ -450,9 +455,10 @@ async function stage2Of(projectId: string, snapshotId: string): Promise<{ readon
   const price = output?.price;
   return {
     stageId: price?.stageId ?? null,
-    stage: price?.stage === null || price?.stage === undefined ? undefined : displays.get(price.stage)?.text,
+    // Phase 6, V-11: the stage label and the Superseded line are served once, among the figure's own lines.
+    stage: price === undefined || price === null ? undefined : displays.get(price.figure)?.lines?.find((line) => line.kind === 'stage_label')?.text,
     quotationRecordId: price?.quotationRecordId ?? null,
-    superseded: price?.superseded === null || price?.superseded === undefined ? undefined : displays.get(price.superseded)?.text,
+    superseded: price === undefined || price === null ? undefined : displays.get(price.figure)?.lines?.find((line) => line.id === 'superseded_inputs_changed')?.text,
   };
 }
 

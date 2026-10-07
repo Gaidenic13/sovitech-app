@@ -393,3 +393,20 @@ describe('phase 5 part B · the design review\'s kit findings', () => {
     expect(declared('.sov-register [data-pin]', 'position')).toBe('sticky');
   });
 });
+
+describe('phase 6 part B · the review\'s chart findings', () => {
+  test('V-8 · A-9 (phase 6 part B) · WCAG 1.4.11: the chart\'s zero line is its only axis line, in a token that keeps 3:1 on dark and on paper; the track draws no line at its start that could be read as zero', () => {
+    for (const property of ['border', 'border-left', 'border-inline-start', 'border-inline']) expect(declared('.sov-series__track', property), property).toBeUndefined();
+    expect(declared('.sov-series__zero', 'border-inline-start')).toBe('2px solid var(--sov-text-muted)');
+    // text-muted: white 55% on dark (3:1 and more on the page and panel surfaces), the brand ink on paper (tokens.css).
+    expect(TOKENS_CSS).toMatch(/--sov-text-muted: rgb\(255 255 255 \/ 55%\)/u);
+    expect(TOKENS_CSS).toMatch(/--sov-text-muted: #0d2e2b/u);
+  });
+
+  test('V-9 (phase 6 part B) · DR-11: the chart\'s names, total and table text use the kit\'s small text role, never a size of their own', () => {
+    for (const selector of ['.sov-series__name', '.sov-series__total-label', '.sov-series__table th', '.sov-series__table td']) {
+      expect(declared(selector, 'font-size'), selector).toBe('var(--sov-text-small-size)');
+      expect(declared(selector, 'line-height'), selector).toBe('var(--sov-text-small-leading)');
+    }
+  });
+});

@@ -1,7 +1,8 @@
 /**
  * Prints a stored proposal's print view to PDF, for the guardrail cases about exports (G10-5, G10-13, and G13-12's
- * PDF half): the print document as the app renders it (apps/web/src/proposal/print/PrintDocument.tsx, rendered to
- * markup with React's server renderer), with the app's own stylesheets (the tokens with their print scope, the kit's,
+ * PDF half), and, from phase 6, a Metrics page's print view (G1-32, G10-16; R-121): the print document as the app
+ * renders it (apps/web/src/proposal/print/PrintDocument.tsx, or apps/web/src/workspace/pages/metrics/print/
+ * MetricsPrintDocument.tsx, rendered to markup with React's server renderer), with the app's own stylesheets (the tokens with their print scope, the kit's,
  * the print route's), served on a TEST web origin on 127.0.0.1 at the print route's path, printed by the API's own
  * printer (apps/api/src/proposal/export.ts: the headless Chromium of the installed build, A4, the session cookie only,
  * nothing beyond the origin), and read back page by page with pypdfium2 from the extractor's environment, through the
@@ -24,9 +25,10 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { findReservedTerms, REGISTERED_ALLOWANCE_ENTRIES, type ReservedTermMatch } from '@sovitech/registry/reserved-terms';
-import type { ProposalPrintResponse } from '@sovitech/view-model/browser';
+import type { MetricsExportPage, ProposalPrintResponse } from '@sovitech/view-model/browser';
 import { createPdfPrinter } from '../../../apps/api/src/proposal/export';
 import { PrintDocument } from '../../../apps/web/src/proposal/print/PrintDocument';
+import { MetricsPrintDocument, type MetricsPrintResponse } from '../../../apps/web/src/workspace/pages/metrics/print/MetricsPrintDocument';
 import { readPdfs } from '../../../tools/checks/mockup-figures/document-text';
 
 const REPOSITORY_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
@@ -89,11 +91,31 @@ export function printPageHtml(response: ProposalPrintResponse): { readonly html:
   return { html, markup };
 }
 
+/**
+ * A Metrics page's print route as the app renders it once its view has loaded (phase 6, R-121: Payback or Lifecycle
+ * Analysis, apps/web/src/workspace/pages/metrics/print/MetricsPrintDocument.tsx), with the same stylesheets, print scope
+ * and ready marker.
+ */
+export function metricsPrintPageHtml(print: MetricsPrintResponse): { readonly html: string; readonly markup: string } {
+  const markup = renderToStaticMarkup(<MetricsPrintDocument print={print} />);
+  const styles = STYLESHEETS.map((file) => readFileSync(join(REPOSITORY_ROOT, file), 'utf8')).join('\n');
+  const html = `<!doctype html><html lang="en" data-print-page="" data-print-ready="true"><head><meta charset="utf-8"><title>TEST Metrics report</title><style>${styles}</style></head><body>${markup}</body></html>`;
+  return { html, markup };
+}
+
 /** The print route's page when its view could not be loaded: the refusal marker the printer reads (apps/web ProposalPrintPage). */
 const FAILED_PAGE = '<!doctype html><html lang="en" data-print-page="" data-print-ready="failed"><head><meta charset="utf-8"><title>TEST</title></head><body><main>TEST</main></body></html>';
 
 /** Where a TEST web origin gets the print view of a project's snapshot, as the print route would read it with the request's cookies. */
 export type PrintViewSource = (request: { readonly projectId: string; readonly snapshotId: string; readonly cookieHeader: string }) => Promise<ProposalPrintResponse | undefined>;
+
+/** The same for a Metrics page's print view (phase 6, R-121: `metrics.payback.print`, `metrics.lifecycle.print`). */
+export type MetricsPrintViewSource = (request: {
+  readonly projectId: string;
+  readonly page: MetricsExportPage;
+  readonly snapshotId: string;
+  readonly cookieHeader: string;
+}) => Promise<MetricsPrintResponse | undefined>;
 
 export interface PrintOrigin {
   /** The origin (`http://127.0.0.1:<port>`). */
@@ -109,15 +131,31 @@ export interface PrintOrigin {
  * A TEST web origin on 127.0.0.1 that serves the print route as the app does: for `/projects/<id>/print/proposals/<id>`
  * it reads the print view from `source` with the request's own cookies (the app's print route reads `proposals.print`
  * through the web origin's `/api` proxy with them) and serves the print document, or the refusal marker when there is
- * no view; any other path is not found.
+ * no view; with `metrics`, for `/projects/<id>/print/metrics/<page>/<id>` it does the same with a Metrics page's print
+ * view (phase 6, R-121); any other path is not found.
  */
-export async function startPrintOrigin(source: PrintViewSource): Promise<PrintOrigin> {
+export async function startPrintOrigin(source: PrintViewSource, metrics?: MetricsPrintViewSource): Promise<PrintOrigin> {
   const cookies: string[] = [];
   const markups: string[] = [];
   const server = createServer((request, reply) => {
     const cookieHeader = request.headers.cookie ?? '';
     cookies.push(cookieHeader);
-    const match = /^\/projects\/([0-9a-f-]{36})\/print\/proposals\/([0-9a-f-]{36})$/u.exec(new URL(request.url ?? '/', 'http://127.0.0.1').pathname);
+    const pathname = new URL(request.url ?? '/', 'http://127.0.0.1').pathname;
+    const metricsMatch = /^\/projects\/([0-9a-f-]{36})\/print\/metrics\/(payback|lifecycle)\/([0-9a-f-]{36})$/u.exec(pathname);
+    if (metricsMatch !== null && metrics !== undefined) {
+      const page = metricsMatch[2] === 'payback' ? 'payback' : 'lifecycle';
+      void metrics({ projectId: metricsMatch[1] ?? '', page, snapshotId: metricsMatch[3] ?? '', cookieHeader }).then((print) => {
+        if (print === undefined) {
+          reply.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(FAILED_PAGE);
+          return;
+        }
+        const printed = metricsPrintPageHtml(print);
+        markups.push(printed.markup);
+        reply.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(printed.html);
+      });
+      return;
+    }
+    const match = /^\/projects\/([0-9a-f-]{36})\/print\/proposals\/([0-9a-f-]{36})$/u.exec(pathname);
     if (match === null) {
       reply.writeHead(404, { 'content-type': 'text/plain' }).end('TEST not found');
       return;
@@ -146,6 +184,27 @@ export async function printProposal(response: ProposalPrintResponse, options: { 
       cookieHeader: options.cookieHeader ?? TEST_PRINT_COOKIE,
       projectId: response.project.projectId,
       snapshotId: response.view.proposal.snapshotId,
+    });
+    return { pages: pdfPages(bytes), markup: web.markups[0] ?? '', cookies: web.cookies };
+  } finally {
+    await printer.close();
+    await web.stop();
+  }
+}
+
+/** Prints a Metrics page's print view as the app's print route shows it, with the API's printer, and reads the PDF back. */
+export async function printMetricsPage(print: MetricsPrintResponse, options: { readonly cookieHeader?: string } = {}): Promise<PrintedProposal> {
+  const web = await startPrintOrigin(() => Promise.resolve(undefined), () => Promise.resolve(print));
+  const printer = createPdfPrinter({ timeoutMs: 60_000 });
+  const view = print.response.view;
+  if (view.state !== 'generated') throw new Error('a Metrics print view names its stored version');
+  try {
+    const bytes = await printer.print({
+      webOrigin: web.origin,
+      cookieHeader: options.cookieHeader ?? TEST_PRINT_COOKIE,
+      projectId: print.response.project.projectId,
+      snapshotId: view.snapshotId,
+      metricsPage: print.page,
     });
     return { pages: pdfPages(bytes), markup: web.markups[0] ?? '', cookies: web.cookies };
   } finally {

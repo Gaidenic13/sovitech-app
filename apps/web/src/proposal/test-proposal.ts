@@ -77,7 +77,7 @@ export interface ProposalOptions {
   readonly figure?: 'none' | 'range' | 'superseded' | 'formal' | 'formal_unrecorded' | 'incomplete';
   /** The stage 3 label's words (2.8), passed by the test that needs them: the copy registries hold them, and no app file writes them again. */
   readonly stage3Text?: string;
-  /** Serve each investment output's stage label (`Price.stage`) also while it has no figure (to name it). */
+  /** Serve each investment output's 2.8 stage label (`ProposalOutput.label`) while it has no figure (to name it; G10-11). */
   readonly stageNames?: boolean;
   readonly stillReading?: boolean;
   readonly latest?: boolean;
@@ -106,7 +106,6 @@ export function proposalResponse(options: ProposalOptions = {}): ProposalRespons
 
   // Investment (rule 10): stage 2 carries the headline; stage 1 beside it.
   const stage2Id = sid(s, 'outputs.capex.preliminaryEstimate');
-  const stage2StageId = sid(s, 'outputs.capex.preliminaryEstimate.stage');
   // With no figure, the API names an investment output by its 2.8 stage label (`label`, G10-11), never as its stage.
   const stage2LabelId = sid(s, 'outputs.capex.preliminaryEstimate.label');
   const stage1Id = sid(s, 'outputs.capex.indicativeRange');
@@ -117,7 +116,8 @@ export function proposalResponse(options: ProposalOptions = {}): ProposalRespons
   if (figure === 'incomplete') {
     // V-1, as the API serves it (packages/view-model/src/proposal/view.ts `incompleteHeadline`): the Investment section
     // keeps the figure with its Incomplete line; the head gets its own display, `headline.investment`, reading rule 1's
-    // line under the stage label, with no figure (rule 1, "no headline ... is computed from it").
+    // line as its text under the stage label, with no figure (rule 1, "no headline ... is computed from it"). Each line
+    // once in each display (phase 6, V-11): the head's text is the Incomplete line, which its lines do not repeat.
     const label = stageLine('preliminary_investment_estimate', STAGE_2);
     add({
       valueId: stage2Id,
@@ -128,14 +128,13 @@ export function proposalResponse(options: ProposalOptions = {}): ProposalRespons
       sourceLine: { id: 'based_on', kind: 'source_line', text: 'Based on TEST cost ranges v0 and TEST 3 equipment items' },
       lines: [label, { id: 'incomplete_exclusions', kind: 'status_line', text: INCOMPLETE_TEXT }],
     });
-    add(line(stage2StageId, STAGE_2, { lines: [label] }));
-    stage2Price = { figure: stage2Id, stage: stage2StageId, stageId: 'preliminary_investment_estimate', quotationRecordId: null, superseded: null };
+    stage2Price = { figure: stage2Id, stageId: 'preliminary_investment_estimate', quotationRecordId: null };
     const head = add(line(sid(s, 'headline.investment'), INCOMPLETE_TEXT, { lines: [label] }));
-    headPrice = { figure: head, stage: stage2StageId, stageId: 'preliminary_investment_estimate', quotationRecordId: null, superseded: null };
+    headPrice = { figure: head, stageId: 'preliminary_investment_estimate', quotationRecordId: null };
   } else if (figure === 'none') {
     add(notAvailable(stage2Id, STAGE_2_MISSING, ADD_AREA));
     if (options.stageNames === true) add(line(stage2LabelId, STAGE_2, { lines: [stageLine('preliminary_investment_estimate', STAGE_2)] }));
-    stage2Price = { figure: stage2Id, stage: null, stageId: null, quotationRecordId: null, superseded: null };
+    stage2Price = { figure: stage2Id, stageId: null, quotationRecordId: null };
   } else {
     const formal = figure === 'formal' || figure === 'formal_unrecorded';
     const label = formal ? stageLine('formal_quotation', options.stage3Text ?? 'TEST stage 3 label') : stageLine('preliminary_investment_estimate', STAGE_2);
@@ -146,23 +145,26 @@ export function proposalResponse(options: ProposalOptions = {}): ProposalRespons
       shape: 'range',
       badge: { id: 'estimated', label: 'Estimated' },
       sourceLine: { id: 'based_on', kind: 'source_line', text: 'Based on TEST cost ranges v0 and TEST 3 equipment items' },
-      lines: [label, { id: 'provisional', kind: 'status_line', text: 'Provisional: depends on TEST 3 equipment items not yet checked' }, ...(options.outOfDate === true ? [{ id: 'out_of_date', kind: 'status_line' as const, text: OUT_OF_DATE }] : [])],
+      // Phase 6, V-11: the stage label and, on a stale record, the Superseded line are the figure's own lines, served
+      // once; no display of their own repeats them.
+      lines: [
+        label,
+        ...(figure === 'superseded' ? [{ id: 'superseded_inputs_changed', kind: 'status_line' as const, text: SUPERSEDED_TEXT }] : []),
+        { id: 'provisional', kind: 'status_line', text: 'Provisional: depends on TEST 3 equipment items not yet checked' },
+        ...(options.outOfDate === true ? [{ id: 'out_of_date', kind: 'status_line' as const, text: OUT_OF_DATE }] : []),
+      ],
       ...(figure === 'formal' ? { quotationRecordId: RECORD } : {}),
     });
-    add(line(stage2StageId, label.text, { lines: [label] }));
-    const superseded = figure === 'superseded' ? add(line(sid(s, 'outputs.capex.preliminaryEstimate.superseded'), SUPERSEDED_TEXT, { lines: [{ id: 'superseded', kind: 'status_line', text: SUPERSEDED_TEXT }] })) : null;
     stage2Price = {
       figure: stage2Id,
-      stage: stage2StageId,
       stageId: formal ? 'formal_quotation' : 'preliminary_investment_estimate',
       quotationRecordId: formal ? RECORD : null,
-      superseded,
     };
   }
   if (options.missingInputs === true) add(notAvailable(stage1Id, STAGE_1_MISSING_INPUTS, ADD_AREA, ADD_TYPE, ADD_SYSTEMS));
   else add(notAvailable(stage1Id, STAGE_1_MISSING));
   if (options.stageNames === true) add(line(stage1LabelId, STAGE_1, { lines: [stageLine('indicative_range', STAGE_1)] }));
-  const stage1Price: Price = { figure: stage1Id, stage: null, stageId: null, quotationRecordId: null, superseded: null };
+  const stage1Price: Price = { figure: stage1Id, stageId: null, quotationRecordId: null };
 
   const output = (key: string, text: string, price: Price | null = null, formula = 'TEST-formula') => ({
     output: key,
@@ -172,7 +174,7 @@ export function proposalResponse(options: ProposalOptions = {}): ProposalRespons
     incomplete: figure === 'incomplete' && key === 'capex.preliminaryEstimate',
     outOfDate: options.outOfDate === true && key === 'capex.preliminaryEstimate',
     price,
-    ...(options.stageNames === true && price !== null && price.stage === null && (key === 'capex.preliminaryEstimate' || key === 'capex.indicativeRange')
+    ...(options.stageNames === true && price !== null && price.stageId === null && (key === 'capex.preliminaryEstimate' || key === 'capex.indicativeRange')
       ? { label: key === 'capex.preliminaryEstimate' ? stage2LabelId : stage1LabelId }
       : {}),
   });
@@ -203,13 +205,19 @@ export function proposalResponse(options: ProposalOptions = {}): ProposalRespons
     measure: { label: 'TEST gross floor area', unit: { code: 'm2', symbol: 'm²' } },
     sourceLine: { id: 'found_in', kind: 'source_line', text: 'Found in TEST-1.pdf, page 1' },
   });
-  const moreBasis =
+  // The basis by intake step, as the server serves it (DR-12): step 3's building facts, then step 5's building type.
+  const rooms =
     options.basisMore === true
-      ? [
-          add({ valueId: sid(s, 'inputs.building.type'), kind: 'field', text: 'TEST hotel', shape: 'value', badge: { id: 'provided_by_you', label: 'Provided by you' }, measure: { label: 'TEST building type' } }),
-          add({ valueId: sid(s, 'inputs.building.rooms'), kind: 'field', text: 'Unknown', shape: 'missing', missing: 'unknown', badge: { id: 'unknown', label: 'Unknown' }, measure: { label: 'TEST rooms' } }),
-        ]
-      : [];
+      ? add({ valueId: sid(s, 'inputs.building.rooms'), kind: 'field', text: 'Unknown', shape: 'missing', missing: 'unknown', badge: { id: 'unknown', label: 'Unknown' }, measure: { label: 'TEST rooms' } })
+      : undefined;
+  const buildingType =
+    options.basisMore === true
+      ? add({ valueId: sid(s, 'inputs.building.type'), kind: 'field', text: 'TEST hotel', shape: 'value', badge: { id: 'provided_by_you', label: 'Provided by you' }, measure: { label: 'TEST building type' } })
+      : undefined;
+  const basisGroups = [
+    { step: 3 as const, values: rooms === undefined ? [basis] : [basis, rooms] },
+    ...(buildingType === undefined ? [] : [{ step: 5 as const, values: [buildingType] }]),
+  ];
 
   // The open items, the project's now (phase 3's ids; the same displays as step 8).
   const ownerCount = add(line(`project:${PROJECT}.openItems.owner`, OWNER_COUNT_TEXT));
@@ -251,7 +259,8 @@ export function proposalResponse(options: ProposalOptions = {}): ProposalRespons
       measures: { outputs: measures },
       scope: { systems, exclusions: ['cctv'] },
       lifeSafety: [fireSentence, interfacePoints],
-      basis: [basis, ...moreBasis],
+      basis: basisGroups.flatMap((group) => group.values),
+      basisGroups,
       whatWeStillNeed: openItems,
       drafted,
       versions,

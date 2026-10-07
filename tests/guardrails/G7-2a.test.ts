@@ -48,14 +48,15 @@ describe('G7-2a · rule 7 · rule 10: the area skipped twice, the registry allow
     const headline = built.view.headline.investment;
     expect(headline.output).toBe('capex.indicativeRange');
     expect(headline.price.stageId).toBe('indicative_range');
-    expect(displayById(built.displayObjects, headline.price.stage ?? '').text).toBe('Indicative range');
+    // Phase 6, V-11: the stage label is served once, among the figure's own lines.
+    expect(displayById(built.displayObjects, headline.price.figure).lines?.find((line) => line.kind === 'stage_label')?.text).toBe('Indicative range');
     const shown = displayById(built.displayObjects, headline.price.figure);
     expect(shown.shape).toBe('range');
     expect(shown.text).toBe('about 61,000 EUR (48,000 to 79,000 EUR)');
     expect(shown.badge?.id).toBe('estimated');
 
     const stage2 = built.view.investment.outputs.find((output) => output.output === 'capex.preliminaryEstimate');
-    expect(stage2?.price?.stage).toBeNull();
+    expect(stage2?.price?.stageId).toBeNull();
     const line = displayById(built.displayObjects, stage2?.display ?? '');
     expect(line.text).toContain('gross floor area');
     expect(line.actions).toContainEqual({ kind: 'add', field: { subjectId: BUILDING_ID, fieldKey: AREA }, label: 'Add gross floor area', step: 8 });

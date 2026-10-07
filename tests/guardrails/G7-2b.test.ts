@@ -61,7 +61,7 @@ describe('G7-2b · rule 7: the area skipped twice, no Indicative range allowed',
     const proposal = ProposalResponseSchema.parse(read.json());
     const headline = proposal.view.headline.investment;
     expect(headline.output).toBe('capex.preliminaryEstimate');
-    expect(headline.price).toMatchObject({ stage: null, stageId: null, quotationRecordId: null, superseded: null });
+    expect(headline.price).toEqual({ figure: headline.price.figure, stageId: null, quotationRecordId: null });
     const line = proposal.displayObjects.find((display) => display.valueId === headline.price.figure);
     expect(line?.missing).toBe('not_available_yet');
     expect(line?.text.startsWith('Not available yet: SOVITECH point templates; SOVITECH cost ranges and benchmarks;')).toBe(true);

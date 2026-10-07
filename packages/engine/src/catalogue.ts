@@ -30,6 +30,7 @@ import type { FormulaSignature } from '@sovitech/registry/validation';
 import type { EngineField, InputReading } from './inputs';
 import type { Interval } from './interval';
 import type { FormulaRef, Missing } from './results';
+import type { SeriesDeclaration } from './series';
 
 /**
  * What a formula waits for besides its inputs. A dataset's `role` says what it is to the formula (2.1):
@@ -106,10 +107,15 @@ export interface EngineFormula {
   readonly body?: FormulaBody;
 }
 
-/** A catalogue: production (bodies only from `src/bodies/`, checked against the manifest) or TEST (test runner only). */
+/**
+ * A catalogue: production (bodies only from `src/bodies/`, checked against the manifest) or TEST (test runner only).
+ * `series` (phase 6; ./series.ts): the chart series it declares, each a set of one formula's outputs; none in
+ * production (no production formula outputs lines by system, level, stream or year).
+ */
 export interface FormulaCatalogue {
   readonly kind: 'production' | 'test';
   readonly formulas: readonly EngineFormula[];
+  readonly series?: readonly SeriesDeclaration[];
 }
 
 const COST_RANGES: Requirement = { kind: 'dataset', datasetId: 'sovitech-cost-ranges', name: 'SOVITECH cost ranges and benchmarks', gate: 'dataset-cost-ranges' };
@@ -130,9 +136,14 @@ const REQUIREMENTS: Readonly<Record<string, readonly Requirement[]>> = Object.fr
   measurePriority: [FUNCTION_SET],
 });
 
-/** The production catalogue: the registry's six signatures, their requirements, no output field, no body. */
+/**
+ * The production catalogue: the registry's six signatures, their requirements, no output field, no body, and no series
+ * (phase 6: no production formula outputs lines by system, level, stream or year; every Metrics chart reads "Not
+ * available yet", naming what it waits for: ./series.ts).
+ */
 export const PRODUCTION_CATALOGUE: FormulaCatalogue = Object.freeze({
   kind: 'production',
+  series: Object.freeze([]),
   formulas: Object.freeze(
     productionRegistry.formulas.map((signature) =>
       Object.freeze({

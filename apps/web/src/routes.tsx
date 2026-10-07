@@ -32,6 +32,13 @@ import { ReportsPage } from './workspace/pages/reports/ReportsPage';
 import { ProposalPage } from './proposal/ProposalPage';
 import { StoredProposalPage } from './proposal/StoredProposalPage';
 import { ProposalPrintPage } from './proposal/ProposalPrintPage';
+import { CapexPage } from './workspace/pages/metrics/CapexPage';
+import { FinancialOverviewPage } from './workspace/pages/metrics/FinancialOverviewPage';
+import { LifecyclePage } from './workspace/pages/metrics/LifecyclePage';
+import { OpexPage } from './workspace/pages/metrics/OpexPage';
+import { PaybackPage } from './workspace/pages/metrics/PaybackPage';
+import { MetricsPrintPage } from './workspace/pages/metrics/print/MetricsPrintPage';
+import { STEP_PAGE_NAMES } from './steps/step-titles';
 
 /**
  * The app's routes (react-router 7, docs/adr/0035-phase-3-frontend-dependencies.md). `APP_PATHS` is
@@ -59,7 +66,12 @@ import { ProposalPrintPage } from './proposal/ProposalPrintPage';
  *   `/projects/:projectId/proposal` shows the latest stored version, the generating state (UD-07) and the failed
  *   state (UD-47), or phase 3's preview while none is stored. The group has its own error element
  *   (A-1): a page that throws while it renders shows its failure state inside the kept frame, so the
- *   sidebar and the footer with the demo line stay (./workspace/WorkspaceLayout.tsx `WorkspacePageFailed`).
+ *   sidebar and the footer with the demo line stay (./workspace/WorkspaceLayout.tsx `WorkspacePageFailed`);
+ * - phase 6 (docs/adr/0052; ADR 0043 amended): the Metrics pages the PRD builds, in the workspace frame,
+ *   `/projects/:projectId/metrics/financial-overview` (DB-02), `/metrics/capex` (DB-13), `/metrics/opex` (DB-12),
+ *   `/metrics/payback` (DB-21) and `/metrics/lifecycle` (DB-22) (no Metrics landing, Phasing or Scenarios: R-093), and
+ *   the print route of a page with "Export Report", `/projects/:projectId/print/metrics/:page/:snapshotId` (R-121),
+ *   outside every frame.
  * Every route but sign-in needs a session (rule 13); a screen of a project sits in its layout
  * (../wizard/ProjectLayout.tsx: the header's name, the demo line, the quiet notice, the uploads).
  *
@@ -85,6 +97,12 @@ export const APP_PATHS = [
   '/projects/:projectId/proposals/:snapshotId',
   '/projects/:projectId/reports',
   '/projects/:projectId/print/proposals/:snapshotId',
+  '/projects/:projectId/metrics/financial-overview',
+  '/projects/:projectId/metrics/capex',
+  '/projects/:projectId/metrics/opex',
+  '/projects/:projectId/metrics/payback',
+  '/projects/:projectId/metrics/lifecycle',
+  '/projects/:projectId/print/metrics/:page/:snapshotId',
 ] as const;
 
 /** A page's name in the document title: "<page> – SOVITECH". */
@@ -92,17 +110,6 @@ export function pageTitle(page: string): string {
   return copy.titles.page.replace('{page}', page);
 }
 
-/** Each step's page name: its own title (step 1, which draws none, reads "Your project"). */
-const STEP_PAGE_NAMES: Readonly<Record<StepNumber, string>> = {
-  1: copy.titles.project,
-  2: copy.step2.title,
-  3: copy.step3.title,
-  4: copy.step4.title,
-  5: copy.step5.title,
-  6: copy.step6.title,
-  7: copy.step7.title,
-  8: copy.step8.title,
-};
 
 /** What a route puts in the document title, from its parameters. */
 export interface RouteHandle {
@@ -231,6 +238,12 @@ export const routes: RouteObject[] = [
                   // Phase 5 (docs/adr/0048, 0049): a stored version of the proposal, and Reports (DB-18).
                   { path: 'proposals/:snapshotId', element: <StoredProposalPage />, handle: projectPage(() => copy.titles.proposalVersion) },
                   { path: 'reports', element: <ReportsPage />, handle: projectPage(() => copy.titles.reports) },
+                  // Phase 6 (docs/adr/0052): the Metrics pages the PRD builds (R-093: no landing, no Phasing or Scenarios).
+                  { path: 'metrics/financial-overview', element: <FinancialOverviewPage />, handle: projectPage(() => copy.titles.financialOverview) },
+                  { path: 'metrics/capex', element: <CapexPage />, handle: projectPage(() => copy.titles.capex) },
+                  { path: 'metrics/opex', element: <OpexPage />, handle: projectPage(() => copy.titles.opex) },
+                  { path: 'metrics/payback', element: <PaybackPage />, handle: projectPage(() => copy.titles.payback) },
+                  { path: 'metrics/lifecycle', element: <LifecyclePage />, handle: projectPage(() => copy.titles.lifecycle) },
                 ],
               },
             ],
@@ -241,6 +254,12 @@ export const routes: RouteObject[] = [
             path: '/projects/:projectId/print/proposals/:snapshotId',
             element: <ProposalPrintPage />,
             handle: projectPage(() => copy.titles.proposalPrint),
+          },
+          // Phase 6 (R-121; docs/adr/0050, extended; docs/adr/0052): the print route of Payback or Lifecycle Analysis.
+          {
+            path: '/projects/:projectId/print/metrics/:page/:snapshotId',
+            element: <MetricsPrintPage />,
+            handle: projectPage((params) => (params.page === 'payback' ? copy.titles.payback : params.page === 'lifecycle' ? copy.titles.lifecycle : undefined)),
           },
         ],
       },

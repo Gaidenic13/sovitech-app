@@ -3,10 +3,12 @@ import type { Action, DisplayObject, Line } from '@sovitech/view-model/browser';
 import { Badge } from './Badge';
 import { copyKindOfLine } from './copy-kind';
 import { AddActions, addActionsOf } from './NotAvailableYet';
-import { StatusLine } from './StatusLine';
 
 /** The registry id of rule 10's stage 3 label (packages/registry/src/copy/status-lines.ts), the one stage label bound to a stored record. */
 const FORMAL_QUOTATION = 'formal_quotation';
+
+/** The registry id of 2.8's "Superseded: inputs changed on <date>" (packages/registry/src/copy/status-lines.ts). */
+const SUPERSEDED = 'superseded_inputs_changed';
 
 type AddAction = Extract<Action, { kind: 'add' }>;
 
@@ -14,17 +16,12 @@ export interface PriceProps {
   /**
    * The price's display object, as the API served it: its range or "Not available yet" in `text`,
    * its stage label among its `lines` (kind `stage_label`, read by the server from stored records),
-   * and, at stage 3 only, `quotationRecordId`.
+   * "Superseded: inputs changed on <date>" among its `lines` when a stored quotation record of its
+   * snapshot went stale (G10-2; the figure then at stage 2's label), and, at stage 3 only,
+   * `quotationRecordId`. Each line is served once, in this display only (phase 6, V-11): the
+   * component takes no stage and no Superseded line from anywhere else.
    */
   readonly display: DisplayObject;
-  /**
-   * "Superseded: inputs changed on <date>" (2.8; rule 10, "A quotation goes stale when its inputs
-   * change"), served as its own line display object (the contract's `Price.superseded`) when a stored
-   * quotation record of this figure's snapshot rests on inputs that changed after issue; the figure is
-   * then served back at stage 2's label (G10-2). Rendered under the figure, bound to its own value id, unless the
-   * figure's own display already carries the same line among its `lines` (shown once, inside the figure's element).
-   */
-  readonly superseded?: DisplayObject;
   /** What the price is ("Investment"), from the catalogue, shown outside the bound element. */
   readonly label?: string;
   /** `headline`: the figure set large, for the head of the stored proposal (layout only; the content is the same, G2-7). */
@@ -46,6 +43,10 @@ function stageLabelOf(display: DisplayObject): Line | undefined {
   return (display.lines ?? []).find((line) => line.kind === 'stage_label');
 }
 
+function supersededOf(display: DisplayObject): Line | undefined {
+  return (display.lines ?? []).find((line) => line.id === SUPERSEDED);
+}
+
 /**
  * The one price component (guardrails rule 10; F-RENDER-02; prompt 3 section 7: prices through
  * "the Price component, which reads the stage from stored records"; PRD R-127; docs/adr/0049
@@ -63,9 +64,10 @@ function stageLabelOf(display: DisplayObject): Line | undefined {
  * what is missing and the owner's Add actions where there are some (rule 7), never a zero. It names no
  * stage unless the server served one (G10-11: the web derives no stage of its own). A price served as a
  * line (rule 1's "Incomplete: excludes <item names>" in place of its figure, with its stage label) shows
- * that line once: a served line whose text is the display's own text is not repeated under it.
+ * its text once: the server serves that line as the display's text, not again among its lines.
+ * Every served line shows once, as served: nothing is matched or dropped by its words (phase 6, V-11).
  */
-export function Price({ display, superseded, label, size = 'default', onAdd, describedBy }: PriceProps) {
+export function Price({ display, label, size = 'default', onAdd, describedBy }: PriceProps) {
   const labelId = useId();
   const stage = stageLabelOf(display);
   if (stage !== undefined && stage.id === FORMAL_QUOTATION && display.quotationRecordId === undefined) {
@@ -74,15 +76,14 @@ export function Price({ display, superseded, label, size = 'default', onAdd, des
   if (display.shape !== 'missing' && stage === undefined) {
     throw new Error(`Price ${display.valueId}: an investment figure with no stage label (rule 10).`);
   }
-  if (superseded !== undefined && stage?.id === FORMAL_QUOTATION) {
+  if (supersededOf(display) !== undefined && stage?.id === FORMAL_QUOTATION) {
     throw new Error(`Price ${display.valueId}: a superseded record's figures return to stage 2's label, never the stage 3 label (rule 10; G10-2).`);
   }
   const badge = display.badge;
   const textIsBadge = display.shape === 'missing' && badge !== undefined && badge.label === display.text;
-  const otherLines = (display.lines ?? []).filter((line) => line !== stage && line.text !== display.text);
+  const otherLines = (display.lines ?? []).filter((line) => line !== stage);
   const adds = display.shape === 'missing' ? addActionsOf(display) : [];
   const described = describedBy ?? (label === undefined ? undefined : labelId);
-  const supersededApart = superseded !== undefined && !(display.lines ?? []).some((line) => line.text === superseded.text);
   return (
     <div className="sov-price" data-size={size === 'headline' ? 'headline' : undefined}>
       {label === undefined ? null : (
@@ -118,7 +119,6 @@ export function Price({ display, superseded, label, size = 'default', onAdd, des
         ))}
         {onAdd === undefined ? null : <AddActions actions={adds} onAdd={onAdd} {...(described === undefined ? {} : { describedBy: described })} />}
       </div>
-      {supersededApart && superseded !== undefined ? <StatusLine display={superseded} /> : null}
     </div>
   );
 }

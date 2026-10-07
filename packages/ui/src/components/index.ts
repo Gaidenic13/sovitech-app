@@ -28,6 +28,9 @@ export * as KitIcons from './icons';
 export { NotAvailableYet, type NotAvailableYetProps } from './NotAvailableYet';
 export { Notice, NoticeRegion, type NoticeProps, type NoticeRegionProps } from './Notice';
 export { Price, type PriceProps } from './Price';
+// Phase 6 (the web builder): the Metrics pages' tile, panel and chart (docs/adr/0052).
+export { MetricPanel, MetricTile, type MetricPanelProps, type MetricTileProps } from './metrics';
+export { SeriesChart, SeriesViewSwitch, type SeriesChartLabels, type SeriesChartProps, type SeriesView, type SeriesViewSwitchProps } from './SeriesChart';
 // Phase 5 (the print builder): the printed document's frame and values (docs/adr/0050).
 export { PrintFrame, PrintValue, isNotAvailableYet, type PrintFrameProps, type PrintValueProps } from './print';
 export { Progress, type ProgressProps } from './Progress';

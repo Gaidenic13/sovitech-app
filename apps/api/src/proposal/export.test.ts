@@ -11,7 +11,8 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { chromium } from 'playwright-core';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { readPdfs } from '../../../../tools/checks/mockup-figures/document-text';
 import { ExportUnavailable, createPdfPrinter, printPathOf, sessionCookieOf, webOriginOf, type PdfPrinter } from './export';
 
@@ -48,7 +49,7 @@ function pdfPages(bytes: Uint8Array): string[] {
 }
 
 /** What the TEST origins saw. */
-const seen = { pageCookies: [] as string[], apiCookies: [] as string[], offOrigin: [] as string[], slowServedAt: [] as number[], served: [] as string[] };
+const seen = { pageCookies: [] as string[], apiCookies: [] as string[], offOrigin: [] as string[], slowServedAt: [] as number[], served: [] as string[], metricsServed: [] as string[] };
 
 /** A TEST page: TEST text long enough for several A4 pages, with a running header row the print repeats on each page. */
 function testPage(script: string): string {
@@ -111,6 +112,14 @@ beforeAll(async () => {
       response.writeHead(200, { 'content-type': 'application/json' }).end('{}');
       return;
     }
+    // Phase 6 (R-121; docs/adr/0052 decision 7): a Metrics page's print route, a TEST page naming the page it is.
+    const metrics = /^\/projects\/([0-9a-f-]+)\/print\/metrics\/([a-z]+)\/([0-9a-f-]+)$/u.exec(path);
+    if (metrics !== null) {
+      seen.pageCookies.push(request.headers.cookie ?? '');
+      seen.metricsServed.push(`${metrics[2] ?? ''}:${metrics[3] ?? ''}`);
+      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(testPage(`document.documentElement.setAttribute('data-print-ready', 'true');`).replace('TEST running header', `TEST running header of the ${metrics[2] ?? ''} page`));
+      return;
+    }
     const match = /^\/projects\/([0-9a-f-]+)\/print\/proposals\/([0-9a-f-]+)$/u.exec(path);
     const html = match === null ? undefined : pageFor(match[2] ?? '');
     if (html === undefined) {
@@ -162,6 +171,22 @@ describe('ADR 0050 decision 2 · R-118 · F-EXPORT-01: the PDF printer', () => {
 
   it('ADR 0050 decision 2: every request off the web origin is refused (no stylesheet, image or fetch reached the other origin)', () => {
     expect(seen.offOrigin).toEqual([]);
+  });
+
+  it('ADR 0050 (amended in phase 6) · ADR 0052 decision 7 · R-121: a request naming a Metrics page prints that page\'s print route of the snapshot, not the proposal\'s', async () => {
+    for (const metricsPage of ['payback', 'lifecycle'] as const) {
+      const pages = pdfPages(await printer.print({ ...request(READY), metricsPage }));
+      expect(pages.length).toBeGreaterThan(1);
+      for (const [index, text] of pages.entries()) expect(text, `${metricsPage}, page ${String(index + 1)}`).toContain(`TEST running header of the ${metricsPage} page`);
+      expect(seen.metricsServed).toContain(`${metricsPage}:${READY}`);
+    }
+  }, 60_000);
+
+  it('ADR 0050 (amended in phase 6) · R-121: a Metrics page with no Export Report is refused before any page opens (request_invalid)', async () => {
+    const served = seen.metricsServed.length;
+    const refusal = await refusalOf(printer.print({ ...request(READY), metricsPage: 'opex' as never }));
+    expect(refusal?.reason).toBe('request_invalid');
+    expect(seen.metricsServed).toHaveLength(served);
   });
 
   it('ADR 0050 · rule 7: a page that reports failure answers export_unavailable (page_failed), never a PDF', async () => {
@@ -335,6 +360,20 @@ describe('ADR 0050 decision 2 · rule 7 · A-7: the queue is bounded, its wait i
   }, 60_000);
 });
 
+describe('I-10 (phase 6 part B) · ADR 0050: the printer leaves the API\'s signals alone', () => {
+  it('I-10 (phase 6 part B) · ADR 0050: the printer launches its browser without taking SIGTERM, SIGINT or SIGHUP from the API, so a stopped API never keeps running with its port held', async () => {
+    const launch = vi.spyOn(chromium, 'launch').mockRejectedValue(new Error('TEST no browser'));
+    const own = createPdfPrinter({ timeoutMs: 5_000 });
+    try {
+      expect((await refusalOf(own.print(request(READY))))?.reason).toBe('browser_unavailable');
+      expect(launch).toHaveBeenCalledWith(expect.objectContaining({ handleSIGTERM: false, handleSIGINT: false, handleSIGHUP: false }));
+    } finally {
+      launch.mockRestore();
+      await own.close();
+    }
+  });
+});
+
 describe('ADR 0050: the printer\'s request parsing', () => {
   it('reads the session cookie alone from a Cookie header, as sent', () => {
     expect(sessionCookieOf(COOKIE_HEADER)).toBe(SESSION);
@@ -354,5 +393,10 @@ describe('ADR 0050: the printer\'s request parsing', () => {
 
   it('opens the print route of apps/web/src/routes.tsx', () => {
     expect(printPathOf(PROJECT, READY)).toBe(`/projects/${PROJECT}/print/proposals/${READY}`);
+  });
+
+  it('ADR 0052 decision 7 · R-121: opens the print route of a Metrics page with Export Report (apps/web/src/routes.tsx)', () => {
+    expect(printPathOf(PROJECT, READY, 'payback')).toBe(`/projects/${PROJECT}/print/metrics/payback/${READY}`);
+    expect(printPathOf(PROJECT, READY, 'lifecycle')).toBe(`/projects/${PROJECT}/print/metrics/lifecycle/${READY}`);
   });
 });

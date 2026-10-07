@@ -15,6 +15,8 @@
  * - snapshot.ts: the snapshot record, the inputs hash and the candidate hash;
  * - staleness.ts: what changed since a snapshot or a quotation record;
  * - stage.ts: the stage of an investment figure from stored records;
+ * - series.ts (phase 6): chart series, each a declared set of one formula's outputs read from one snapshot (none in
+ *   production);
  * - manifest.ts, manifest.json, bodies/: the hash manifest of production bodies, each hashed with everything it loads
  *   (empty: no body in phase 5). Not exported here: its check parses source with the TypeScript compiler, so it has its
  *   own entry, `@sovitech/engine/manifest`, read by tests, and the engine's run never loads the compiler.
@@ -76,3 +78,14 @@ export {
   type StoredSnapshot,
 } from './staleness';
 export { headlineOutputOf, priceStageOf, type PriceStageId, type PriceStageReading } from './stage';
+export {
+  checkSeries,
+  seriesOf,
+  seriesRowsOf,
+  type SeriesDeclaration,
+  type SeriesPointDeclaration,
+  type SeriesPointName,
+  type SeriesProblem,
+  type SeriesProblemCode,
+  type SeriesRows,
+} from './series';

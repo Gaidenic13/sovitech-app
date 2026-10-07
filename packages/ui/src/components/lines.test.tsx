@@ -156,23 +156,27 @@ describe('F-RENDER-02 · G10-9 · rule 10: the price component reads its stage f
     expect(screen.getByText('Formal quotation')).toBeTruthy();
   });
 
-  test('G10-2 · rule 10 "A quotation goes stale": the Superseded line renders under the figure, bound to its own value id; beside the stage 3 label it is refused', () => {
-    const superseded = { valueId: `project:${TEST_SUBJECT}.outputs.capex.superseded`, kind: 'line' as const, text: 'Superseded: inputs changed on TEST 6 Oct 2026', shape: 'value' as const };
-    const { container } = render(<Price display={PRICE_STAGE_2} superseded={superseded} />);
-    const line = screen.getByText(superseded.text);
-    expect(line.closest('[data-value-id]')?.getAttribute('data-value-id')).toBe(superseded.valueId);
-    // Its own element, outside the figure's: one value id per element (prompt 3 section 7).
-    expect(container.querySelector(`[data-value-id="${PRICE_STAGE_2.valueId}"]`)?.contains(line)).toBe(false);
-    // A figure whose own lines carry the same line shows it once, inside the figure's element.
-    cleanup();
-    const carried = { ...PRICE_STAGE_2, lines: [...(PRICE_STAGE_2.lines ?? []), { id: 'superseded_inputs_changed', kind: 'status_line' as const, text: superseded.text }] };
-    const once = render(<Price display={carried} superseded={superseded} />);
-    expect(screen.getAllByText(superseded.text)).toHaveLength(1);
-    expect(once.container.querySelector(`[data-value-id="${PRICE_STAGE_2.valueId}"]`)?.contains(screen.getByText(superseded.text))).toBe(true);
-    const formal = { ...PRICE_STAGE_2, quotationRecordId: TEST_SUBJECT, lines: [{ id: 'formal_quotation', kind: 'stage_label' as const, text: 'Formal quotation' }] };
+  test('G10-2 · V-11 (phase 6) · rule 10 "A quotation goes stale": the Superseded line the figure\'s display carries renders once, inside the figure\'s bound element; beside the stage 3 label it is refused', () => {
+    const text = 'Superseded: inputs changed on TEST 6 Oct 2026';
+    const stale = { ...PRICE_STAGE_2, lines: [...(PRICE_STAGE_2.lines ?? []), { id: 'superseded_inputs_changed', kind: 'status_line' as const, text }] };
+    const { container } = render(<Price display={stale} />);
+    expect(screen.getAllByText(text)).toHaveLength(1);
+    expect(screen.getByText(text).closest('[data-value-id]')?.getAttribute('data-value-id')).toBe(PRICE_STAGE_2.valueId);
+    expect(container.querySelector(`[data-value-id="${PRICE_STAGE_2.valueId}"]`)?.contains(screen.getByText('Preliminary investment estimate'))).toBe(true);
+    const formal = { ...stale, quotationRecordId: TEST_SUBJECT, lines: [{ id: 'formal_quotation', kind: 'stage_label' as const, text: 'Formal quotation' }, { id: 'superseded_inputs_changed', kind: 'status_line' as const, text }] };
     quietly(() => {
-      expect(() => render(<Price display={formal} superseded={superseded} />)).toThrow(/stage 2/u);
+      expect(() => render(<Price display={formal} />)).toThrow(/stage 2/u);
     });
+  });
+
+  test('V-11 (phase 6) · 2.8: the price shows every served line as served, once, and matches no line by its words', () => {
+    // A served line whose words equal the figure's text is still a served line (the server never sends one: each line
+    // is served once); the component shows what it is given and drops nothing by comparing words.
+    const echoed = { ...PRICE_STAGE_2, lines: [...(PRICE_STAGE_2.lines ?? []), { id: 'TEST_echo', kind: 'status_line' as const, text: PRICE_STAGE_2.text }] };
+    const { container } = render(<Price display={echoed} />);
+    const bound = container.querySelector(`[data-value-id="${PRICE_STAGE_2.valueId}"]`) as HTMLElement;
+    expect(within(bound).getAllByText(PRICE_STAGE_2.text)).toHaveLength(2);
+    expect(within(bound).getAllByText('Preliminary investment estimate')).toHaveLength(1);
   });
 
   test('rule 7 · G7-2b: a price that cannot be produced for a missing owner input offers its served Add action inside its bound element; without a handler none shows', () => {
@@ -207,16 +211,15 @@ describe('F-RENDER-02 · G10-9 · rule 10: the price component reads its stage f
     for (const button of screen.getAllByRole('button')) expect(button.getAttribute('aria-describedby')).toBe('TEST-row-name');
   });
 
-  test('V-1 (kit half) · rule 1 "Material exclusions": a price served as its "Incomplete: excludes …" line with its stage label shows the line once, with the stage, and no other text', () => {
+  test('V-1 (kit half) · V-11 (phase 6) · rule 1 "Material exclusions": a price served as its "Incomplete: excludes …" line (its text) with its stage label shows the line once, with the stage, and no other text', () => {
+    // As the API serves the head over an incomplete total (view.ts `incompleteHeadline`): the Incomplete line is the
+    // display's text, and its lines carry the stage label only (each line once: V-11).
     const incomplete = {
       valueId: `project:${TEST_SUBJECT}.outputs.capex`,
       kind: 'line' as const,
       text: 'Incomplete: excludes TEST item A, TEST item B',
       shape: 'value' as const,
-      lines: [
-        { id: 'preliminary_investment_estimate', kind: 'stage_label' as const, text: 'Preliminary investment estimate' },
-        { id: 'incomplete_exclusions', kind: 'status_line' as const, text: 'Incomplete: excludes TEST item A, TEST item B' },
-      ],
+      lines: [{ id: 'preliminary_investment_estimate', kind: 'stage_label' as const, text: 'Preliminary investment estimate' }],
     };
     const { container } = render(<Price display={incomplete} size="headline" />);
     const bound = container.querySelector(`[data-value-id="${incomplete.valueId}"]`) as HTMLElement;

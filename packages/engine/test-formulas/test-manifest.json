@@ -1,10 +1,12 @@
 {
   "TEST-annualConsumptionFromBills@1.0.0": "sha256:8512224b228caa10c2e08f9ac231df28d914480334650d983a179405765e9983",
   "TEST-annualReturn@1.0.0": "sha256:2690f340b0a1e6efe7a7b32844bd0564e50391944eefae89df56e0a67ba70b96",
+  "TEST-capexBySystem@1.0.0": "sha256:b4119c97de6eefcd8578b32cb322258b4a0a33555bdda96da580b6ab5f4b15c4",
   "TEST-capexFieldDevices@1.0.0": "sha256:02221f460852d675dff8568b5e9f8bda5541af75195c6828acf72f8d6c80fa19",
   "TEST-capexIndicativeRange@1.0.0": "sha256:b3876bc325c0c23233dd5f652fd3edf9d7ac7f9417364d7b04ce543820568e4b",
   "TEST-capexLineItems@1.0.0": "sha256:4f6e2dcd9ec760966e9c2f7b27f8353b49a5221e7bad2e1f147cdd7c01ffb2aa",
   "TEST-capexPreliminaryEstimate@1.0.0": "sha256:02e61cfa0f412c7458b1afdb1f351ce20c7796aef2656e036a71ef7ec2ee33a9",
+  "TEST-cashFlow@1.0.0": "sha256:3518261834e12526cdba7f310b501585d7aa4f22b48ca918f2d48f57baebb9e5",
   "TEST-fireInterfacePoints@1.0.0": "sha256:803af0100cd8f12033220d0a9224e27ad469fc32a828450283a970ef246f8008",
   "TEST-levelsTotal@1.0.0": "sha256:5812d2b5d4998d579ccf8684a28d6a5fd6e83a3b786033ba691f8288b675f182",
   "TEST-operatingEnergyEstimate@1.0.0": "sha256:3ffe5f6b06f814ff5f3832a69f370a158edb415827a3def65205bf46235b04dd",

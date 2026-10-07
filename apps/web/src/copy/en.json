@@ -27,7 +27,12 @@
     "documents": "Documents",
     "reports": "Reports",
     "proposalVersion": "Preliminary proposal",
-    "proposalPrint": "Preliminary proposal"
+    "proposalPrint": "Preliminary proposal",
+    "financialOverview": "Financial Overview",
+    "capex": "CAPEX Breakdown",
+    "opex": "OPEX & Savings",
+    "payback": "Payback Analysis",
+    "lifecycle": "Lifecycle Analysis"
   },
   "header": {
     "menu": "Menu",
@@ -343,7 +348,7 @@
       "drafted": "About this proposal"
     },
     "indicators": {
-      "operating_cost": "Operating cost",
+      "operating_cost": "BMS operating cost",
       "payback": "Payback",
       "npv": "Net present value (NPV)",
       "irr": "Internal rate of return (IRR)"
@@ -382,6 +387,125 @@
     "appendixIntro": "Each value with its source, who has checked it and, for calculated and estimated values, its method.",
     "openItemsHeading": "What we still need",
     "loadFailed": "This document could not be prepared."
+  },
+  "metrics": {
+    "about": "Phase 6's fixed interface copy for the Metrics pages (docs/build-log.md, phase 6 plan, 'Where copy lives'). Titles, panel headings and labels follow the approved screens 02, 12, 13, 21 and 22, changed where the guardrails or the render test require it (no digit or number word outside a bound value: 'square metre' for m², 'carbon dioxide' for CO₂ in labels; 'OPEX' never alone as a value's label); subtitles are draft copy that states no result as certain. Every value, line and 'Not available yet' comes from the API.",
+    "eyebrow": "METRICS",
+    "loading": "Loading the figures",
+    "loadFailed": "This page could not be loaded. Nothing you entered is lost. Try again.",
+    "generatedFrom": "From the preliminary proposal generated on",
+    "earlierVersion": "These figures come from an earlier version of your preliminary proposal.",
+    "showTable": "Show as a table",
+    "showChart": "Show as a chart",
+    "exportReport": "Export Report",
+    "exporting": "Preparing the report",
+    "exportFailed": "The report could not be prepared. Nothing was lost. Try again.",
+    "downloadProposal": "Download Proposal",
+    "versionNotFound": "This version of the proposal is not in this project.",
+    "openLatest": "Open the latest version",
+    "costPerAreaCaption": "Cost per square metre",
+    "chart": {
+      "about": "The chart's fixed words (docs/adr/0052 decision 5): the total's name and the table view's column headings, per series. Draft copy, no number.",
+      "total": "Total",
+      "columns": {
+        "system": "System",
+        "level": "Level",
+        "stream": "Savings stream",
+        "year": "Year",
+        "costItem": "Cost item",
+        "investment": "Investment",
+        "cashFlow": "Cash flow",
+        "cumulativeCashFlow": "Cumulative cash flow",
+        "savings": "Savings",
+        "lifecycleCost": "Lifecycle cost"
+      }
+    },
+    "financialOverview": {
+      "title": "BMS investment overview",
+      "subtitle": "The investment and the return figures of your stored preliminary proposal, each with what it still needs.",
+      "totalInvestment": "Total BMS investment",
+      "costPerArea": "Cost per square metre",
+      "annualSavings": "Estimated annual savings",
+      "payback": "Payback period",
+      "npv": "Net present value (NPV)",
+      "costBreakdown": "Cost breakdown",
+      "bySystem": "By System",
+      "byBuildingArea": "By Building Area",
+      "exclusions": "Not in scope",
+      "annualCashFlow": "Annual cash flow",
+      "costPerAreaPanel": "Cost per square metre",
+      "keyIndicators": "Key financial indicators",
+      "rows": {
+        "capex": "CAPEX",
+        "bmsOperatingCost": "BMS operating cost",
+        "energySavings": "Estimated energy savings",
+        "operationalSavings": "Estimated operational savings",
+        "totalSavings": "Total annual savings",
+        "payback": "Payback period",
+        "npv": "Net present value (NPV)",
+        "irr": "Internal rate of return (IRR)"
+      }
+    },
+    "capex": {
+      "title": "CAPEX breakdown",
+      "subtitle": "The investment of your stored preliminary proposal by system, with the systems left out of scope.",
+      "investmentSummary": "Investment summary",
+      "selectedSystems": "Selected systems",
+      "totalCapex": "Total CAPEX",
+      "costPerArea": "Cost per square metre",
+      "bySystem": "Investment by system",
+      "selectSystems": "Systems",
+      "editScope": "Edit in System Scope",
+      "exclusions": "Not in scope",
+      "kpis": {
+        "savings": "Estimated annual savings",
+        "payback": "Payback period",
+        "carbon": "Carbon dioxide reduction"
+      }
+    },
+    "opex": {
+      "title": "OPEX & Savings",
+      "subtitle": "What your building costs to run before any BMS, as your documents state it.",
+      "total": "Building operating cost",
+      "energy": "Energy cost",
+      "maintenance": "Maintenance cost",
+      "staff": "Operations (staff)",
+      "other": "Other costs",
+      "intensity": "Building operating cost intensity",
+      "breakdown": "Building operating cost breakdown",
+      "systems": "Building operating cost by system",
+      "systemColumn": "System",
+      "scopeColumn": "Scope",
+      "currentColumn": "Current cost",
+      "systemFilter": "System",
+      "allSystems": "All Systems"
+    },
+    "payback": {
+      "title": "Payback Analysis",
+      "subtitle": "Whether the investment could pay back, once the figures it needs are available.",
+      "totalInvestment": "Total investment (CAPEX)",
+      "savings": "Estimated annual savings",
+      "payback": "Payback period",
+      "savingsBreakdown": "Savings breakdown (annual)",
+      "cumulativeCashFlow": "Cumulative cash flow",
+      "environmental": "Environmental impact (annual)",
+      "carbon": "Carbon dioxide reduction",
+      "trees": "Equivalent trees",
+      "cars": "Cars off the road"
+    },
+    "lifecycle": {
+      "title": "Lifecycle Analysis",
+      "subtitle": "The equipment the BMS covers and the lifecycle figures it still needs.",
+      "analysisPeriod": "Analysis period",
+      "totalCost": "Total lifecycle cost",
+      "netSavings": "Net savings",
+      "averageLife": "Average equipment life",
+      "keyInsights": "Key insights",
+      "costComparison": "Lifecycle cost comparison",
+      "costBreakdown": "Cost breakdown (lifecycle)",
+      "bySystem": "Lifecycle by system",
+      "equipment": "Equipment lifecycle"
+    }
   },
   "outputs": {
     "points.hardwareIo": "Control points: hardware inputs and outputs",
@@ -424,7 +548,12 @@
       "zones": "Zones",
       "equipment": "Equipment",
       "documents": "Documents",
-      "reports": "Reports"
+      "reports": "Reports",
+      "financial_overview": "Financial Overview",
+      "capex": "CAPEX Breakdown",
+      "opex": "OPEX & Savings",
+      "payback": "Payback Analysis",
+      "lifecycle": "Lifecycle Cost"
     },
     "levels": {
       "label": "Floor",
@@ -433,7 +562,8 @@
     "actions": {
       "upload_document": "Upload a document",
       "enter_floors": "Enter the floors",
-      "choose_systems": "Choose the systems in scope"
+      "choose_systems": "Choose the systems in scope",
+      "open_proposal": "Open the Proposal page"
     },
     "back": {
       "systemScope": "Back to System Scope",

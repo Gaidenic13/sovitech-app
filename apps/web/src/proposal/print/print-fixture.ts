@@ -35,7 +35,6 @@ export const PRINT_IDS = {
   earlierGeneratedOn: `proposal:${PRINT_EARLIER_SNAPSHOT}.generatedOn`,
   capexIndicative: `${P}.outputs.capex.indicativeRange`,
   capexPreliminary: `${P}.outputs.capex.preliminaryEstimate`,
-  capexStage: `${P}.outputs.capex.preliminaryEstimate.stage`,
   headlineIncomplete: `${P}.headline.investment`,
   /** The decision of the system not in scope (Water), the investment's one exclusion. */
   exclusion: `${P}.inputs.project.scope.water`,
@@ -150,7 +149,6 @@ export function printResponse(options: PrintFixtureOptions = {}): ProposalPrintR
         line('method', 'rule_line', PRINT_TEXT.capexMethod),
       ],
     },
-    lineDisplay(PRINT_IDS.capexStage, PRINT_TEXT.stageLabel, 'stage_label', 'preliminary_investment_estimate'),
     {
       valueId: PRINT_IDS.pointsHardware,
       kind: 'field',
@@ -236,14 +234,13 @@ export function printResponse(options: PrintFixtureOptions = {}): ProposalPrintR
     displays.push({ valueId: PRINT_IDS.headlineIncomplete, kind: 'line', text: PRINT_TEXT.incompleteLine, shape: 'value', lines: [line('preliminary_investment_estimate', 'stage_label', PRINT_TEXT.stageLabel)] });
   }
 
+  // Phase 6, V-11: the stage label is the figure's own line, served once (no `.stage` display of its own).
   const capexPrice = {
     figure: PRINT_IDS.capexPreliminary,
-    stage: PRINT_IDS.capexStage,
     stageId: 'preliminary_investment_estimate' as const,
     quotationRecordId: null,
-    superseded: null,
   };
-  const indicativePrice = { figure: PRINT_IDS.capexIndicative, stage: null, stageId: null, quotationRecordId: null, superseded: null };
+  const indicativePrice = { figure: PRINT_IDS.capexIndicative, stageId: null, quotationRecordId: null };
   const headlinePrice = incomplete ? { ...capexPrice, figure: PRINT_IDS.headlineIncomplete } : capexPrice;
   const openItems = {
     count: PRINT_IDS.ownerCount,
@@ -309,6 +306,13 @@ export function printResponse(options: PrintFixtureOptions = {}): ProposalPrintR
         },
         lifeSafety: [PRINT_IDS.fireSentence, PRINT_IDS.interfacePoints],
         basis: [PRINT_IDS.area, PRINT_IDS.scopeHvac, PRINT_IDS.scopeFire, PRINT_IDS.scopeWater, PRINT_IDS.floors],
+        // The same inputs by intake step, as the server serves them beside the flat list (phase 6, DR-12); the print
+        // document prints the flat list as its compact table (TEST order, as above).
+        basisGroups: [
+          { step: 3, values: [PRINT_IDS.area] },
+          { step: 4, values: [PRINT_IDS.scopeHvac, PRINT_IDS.scopeFire, PRINT_IDS.scopeWater] },
+          { step: 3, values: [PRINT_IDS.floors] },
+        ],
         whatWeStillNeed: openItems,
         drafted: options.drafted === true ? [{ slot: 'summary', segments: [{ kind: 'prose', text: PRINT_TEXT.draftedProse }, { kind: 'value', valueId: PRINT_IDS.area }] }] : [],
         versions,

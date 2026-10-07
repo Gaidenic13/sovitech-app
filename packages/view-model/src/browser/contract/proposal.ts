@@ -37,10 +37,10 @@
  *   incomplete total: rule 1's "Incomplete: excludes <item names>" under the output's stage label, with no figure, as
  *   the head's `price.figure`; rule 1 "Material exclusions": "no headline ... is computed from it"; G1-2; phase 5 part
  *   B, V-1);
- * - `proposal:<snapshotId>.outputs.<output>` (the output's figure, or its "Not available yet" line naming what was
- *   missing at generation), `proposal:<snapshotId>.outputs.<output>.stage` (the stage label, a `line` display of kind
- *   `stage_label`; investment outputs with a figure only), `proposal:<snapshotId>.outputs.<output>.label` (the 2.8 stage
- *   label naming an investment output that has no figure; G10-11);
+ * - `proposal:<snapshotId>.outputs.<output>` (the output's figure, with its stage label and any "Superseded" line among
+ *   its own lines, or its "Not available yet" line naming what was missing at generation; phase 6, V-11: the
+ *   `.stage` and `.superseded` displays of phase 5 are gone), `proposal:<snapshotId>.outputs.<output>.label` (the 2.8
+ *   stage label naming an investment output that has no figure; G10-11);
  * - `proposal:<snapshotId>.indicators.<indicator>` (operating cost, payback, NPV, IRR: "Not available yet", naming
  *   what is missing; `financial-indicators`, `units-7.2.22`);
  * - `proposal:<snapshotId>.inputs.<subject kind>.<field path>` (an input as the snapshot used it, e.g.
@@ -57,7 +57,7 @@
  *   the project's now, as step 8 shows them (G2-7).
  */
 import { z } from 'zod';
-import { screenEnvelope } from './common';
+import { StepNumberSchema, screenEnvelope } from './common';
 import { UuidSchema, ValueIdSchema } from './display';
 import { ForYouItemSchema } from './steps';
 import { EquipmentQuerySchema } from './workspace';
@@ -75,25 +75,25 @@ export type PriceStage = z.infer<typeof PriceStageSchema>;
  * An investment figure as the Price component renders it (one component, reading the stage from stored records; the
  * component never takes a stage of its own: rule 10, "Templates read the stage from the record. They never accept it
  * as a parameter"):
- * - `figure`: the figure's display (`proposal:<sid>.outputs.<output>`): a range with its Estimated badge, basis,
- *   method and status lines, or "Not available yet" naming what is missing, with its Add action where the owner has
- *   one (rule 7);
- * - `stage`: the value id of the stage label's `line` display, derived by the engine's stage reading from stored
- *   records, for a layout that shows the label as a heading (the headline); null while no figure can be produced
- *   (G10-11: no stage is named for a figure that does not exist). The figure's own display carries the same label among
- *   its `lines` (kind `stage_label`), where the kit's Price component reads it (packages/ui Price.tsx, phase 3);
- * - `stageId`: which stage that label names (for layout only; the words come from the display);
+ * - `figure`: the figure's display (`proposal:<sid>.outputs.<output>`, or the head's `proposal:<sid>.headline.investment`
+ *   over an incomplete total): a range with its Estimated badge, basis, method and status lines, or "Not available
+ *   yet" naming what is missing, with its Add action where the owner has one (rule 7). **Each line is served once, in
+ *   this display only** (phase 6, V-11 of phase 5 part B): the stage label the engine read from stored records (kind
+ *   `stage_label`; none while no figure can be produced, G10-11) and, when a stored quotation record of the snapshot
+ *   went stale, "Superseded: inputs changed on <date>" (status line `superseded_inputs_changed`, its date bound among the
+ *   display's `parts`; the figure then at stage 2's label, G10-2). The kit's Price component reads both from these
+ *   lines by kind and id, never by matching words, and no other display of the response holds either line;
+ * - `stageId`: which stage the figure's label names (for layout and tests only; the words come from the display), or
+ *   null while no figure can be produced;
  * - `quotationRecordId`: the stored quotation record the stage 3 label was derived from, only at stage 3 (equal to the
- *   figure display's `quotationRecordId`; G10-9), else null;
- * - `superseded`: the value id of "Superseded: inputs changed on <date>" (a `line` display) when a record exists for
- *   the snapshot and its inputs changed after issue (G10-2), the figure then back at stage 2's label; else null.
+ *   figure display's `quotationRecordId`; G10-9), else null.
+ * Until phase 6 the stage label and the Superseded line were also served as displays of their own (`stage`,
+ * `superseded`), and the web deduplicated them by their words; both fields are gone (ADR 0049, amended in phase 6).
  */
 export const PriceSchema = z.strictObject({
   figure: ValueIdSchema,
-  stage: ValueIdSchema.nullable(),
   stageId: PriceStageSchema.nullable(),
   quotationRecordId: UuidSchema.nullable(),
-  superseded: ValueIdSchema.nullable(),
 });
 export type Price = z.infer<typeof PriceSchema>;
 
@@ -117,8 +117,8 @@ export type Price = z.infer<typeof PriceSchema>;
  *   value id of the 2.8 stage label that names it beside its "Not available yet: …" line (`proposal:<sid>.outputs.
  *   <output>.label`, a `line` display: "Indicative range" for the benchmark output, "Preliminary investment estimate"
  *   for the output from this project's data; 2.8: "They are also the only ones used"), as step 8 names it (phase 3's
- *   `OutputAvailability.label`). It names the output and states no stage of a figure: `price.stage` stays null, and the
- *   head shows none (G10-11: "The Proposal card names no stage while no investment figure can be produced"). Absent on
+ *   `OutputAvailability.label`). It names the output and states no stage of a figure: `price.stageId` stays null, the
+ *   figure's display carries no stage label, and the head shows none (G10-11: "The Proposal card names no stage while no investment figure can be produced"). Absent on
  *   an output with a figure (its Price shows the stage the engine read from stored records) and on every other output;
  *   never "Formal quotation".
  */
@@ -201,6 +201,9 @@ export const OpenItemsSchema = z.strictObject({
  * - `measures`: the measures' priority order (the SOVITECH function set; rule 9);
  * - `scope`: the systems in scope and the exclusions, as the snapshot holds the decisions;
  * - `basis`: the inputs the outputs read, as the snapshot used them;
+ * - `basisGroups` (phase 6, DR-12): the same inputs in `basis`'s order, in groups by intake step (`step`, which the page
+ *   names by that step's own title; null for an input no intake step shows, none in production): together the groups
+ *   hold every basis value once, in order;
  * - `whatWeStillNeed`: the open items once (rule 7, "In the proposal document. Open items appear once");
  * - `drafted`: AI-drafted paragraphs (none in the live app: no key);
  * - `versions`: every stored version, newest first (US-PROPOSAL-11 AC3), and whether this is the latest.
@@ -222,6 +225,7 @@ export const ProposalViewSchema = z.strictObject({
   scope: z.strictObject({ systems: z.array(ProposalScopeSystemSchema), exclusions: z.array(z.string().regex(/^[a-z][a-z_]*$/u)) }),
   lifeSafety: z.array(ValueIdSchema),
   basis: z.array(ValueIdSchema),
+  basisGroups: z.array(z.strictObject({ step: StepNumberSchema.nullable(), values: z.array(ValueIdSchema).min(1) })),
   whatWeStillNeed: OpenItemsSchema,
   drafted: z.array(DraftedParagraphSchema),
   versions: z.array(z.strictObject({ snapshotId: UuidSchema, generatedOn: ValueIdSchema })),

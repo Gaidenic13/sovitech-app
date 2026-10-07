@@ -21,7 +21,7 @@ import { fieldKeyOf, type DatasetAccess, type EngineField, type EngineInput } fr
 import type { CurrentInputs } from '../src/staleness';
 import { testDatasetAccess } from './datasets';
 import { TEST_FORMULA_VERSION } from './engine';
-import { testFieldDefinition } from './fields';
+import { testSeriesFieldDefinition } from './series';
 
 /** One TEST field of a run: its registry entry, its subject, its candidates and the events that concern them. */
 export interface TestEntry {
@@ -47,7 +47,7 @@ export interface TestEngineInputOptions {
   readonly formulaDeclared?: (formulaId: string, formulaVersion: string) => boolean;
   /** Default: no dataset approved. A case that reads a TEST reference value as approved says so here (test runner only). */
   readonly datasetApproved?: (reference: CandidateReference, field: FieldDefinition) => boolean;
-  /** Default: the TEST fields, then the production registry's. */
+  /** Default: the TEST fields (the TEST series' output fields of ./series.ts first), then the production registry's. */
   readonly fieldDefinition?: (fieldKey: string) => FieldDefinition | undefined;
 }
 
@@ -83,7 +83,7 @@ export function deriveEntries(options: Omit<TestEngineInputOptions, 'projectId' 
 /** The `EngineInput` of a TEST run. */
 export function testEngineInput(options: TestEngineInputOptions): EngineInput {
   const fields = deriveEntries(options);
-  const fieldDefinition = options.fieldDefinition ?? testFieldDefinition;
+  const fieldDefinition = options.fieldDefinition ?? testSeriesFieldDefinition;
   const subjectByKey = new Map(fields.map((field) => [field.definition.key, field.subjectId]));
   return {
     projectId: options.projectId,

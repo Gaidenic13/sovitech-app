@@ -15,6 +15,10 @@
  * The view-model half (B2's), folded in by the integrator (phase 5 part A; one file per case id): the stored proposal
  * as `@sovitech/view-model/server` builds it over a TEST project (tests/guardrails/_support/proposal.ts), at the end of
  * this file.
+ *
+ * Phase 6 part B (A-1; Expected unchanged): a Metrics chart whose formula's inputs changed after generation. Staleness
+ * is per formula, so every point of a series goes out of date at once: each point and the total read "Out of date,
+ * recalculating" (a labelled gap: no mark, no axis, no zero), never a figure, and the page is never refused.
  */
 import { describe, expect, test, it } from 'vitest';
 import { inputsOfOutput, runEngine, snapshotChanges, snapshotRecordOf, storedSnapshotOf, type StoredSnapshot } from '@sovitech/engine';
@@ -25,7 +29,10 @@ import { documentReading, engineerEntry, testDocument, testTime } from './_suppo
 import { changesSince, displayById, ownerAnswer as proposalOwnerAnswer, productionRows, SNAPSHOT_ID, testEstimate, testProposalFields, testProposalInput } from './_support/proposal';
 import { uuid } from './_support/view-model';
 import { testEvents } from './_support/builders';
-import { proposalView } from '@sovitech/view-model/server';
+import { METRICS_SERIES, paybackView, proposalView, seriesView, type SeriesRequest } from '@sovitech/view-model/server';
+import { FIELD } from '@sovitech/registry';
+import { metricsCatalogue, metricsProposalInput } from './_support/metrics';
+import { PROJECT_ID } from './_support/proposal';
 import { readsOf as catalogueReadsOf } from '../../apps/api/src/proposal/engine';
 import { PRODUCTION_CATALOGUE } from '@sovitech/engine';
 import type { Candidate } from '@sovitech/domain';
@@ -125,5 +132,37 @@ describe('G9-10 (the view-model half) · 2.4 "Recalculation": an input of a stor
     expect(display.parts).toBeUndefined();
     // The basis keeps the value as used, never the newer one (US-PROPOSAL-03 AC3).
     expect(displayById(stale.displayObjects, `proposal:${SNAPSHOT_ID}.inputs.building.grossFloorArea`).text).toContain('1,500');
+  });
+});
+
+describe('G9-10 (phase 6 part B) · A-1 · 2.4 "Recalculation": a Metrics chart whose formula\'s inputs changed after generation', () => {
+  it('G9-10 · A-1: every point and the total read "Out of date, recalculating", nothing is drawn, and the page is not refused', () => {
+    const { input } = metricsProposalInput({ buildingType: 'hotel', scope: { hvac: 'include', lighting: 'include', energy: 'include', water: 'include', cctv: 'include' } });
+    // The building type changed after generation: every output whose formula reads it is out of date (per formula: 2.4).
+    const reads = catalogueReadsOf(metricsCatalogue());
+    const outOfDateOutputs = new Set(input.snapshot.outputs.filter((row) => reads(row.output).includes(FIELD.buildingType)).map((row) => row.output));
+    expect(outOfDateOutputs.has('cashFlow.TEST_cumulative.y00')).toBe(true);
+    expect(outOfDateOutputs.has('capex.TEST_bySystem.total')).toBe(true);
+    const stale = { ...input, changes: { changedFields: [{ subjectId: input.current.find((field) => field.field.key === FIELD.buildingType)?.subjectId ?? '', fieldKey: FIELD.buildingType }], outOfDateOutputs, outOfDateOn: new Map(), changedOn: null } };
+    const requests: readonly SeriesRequest[] = [
+      { key: 'cashFlow.TEST_cumulative', kind: 'sequence', totalOutput: null, label: 'TEST cumulative cash flow', beside: { payback: 'payback.TEST_periods' } },
+      { key: 'capex.TEST_bySystem', kind: 'breakdown', totalOutput: 'capex.TEST_bySystem.total', label: 'TEST cost by system', beside: {} },
+    ];
+    for (const request of requests) {
+      const built = seriesView(stale, request);
+      expect(built.series.state, request.key).toBe('figures');
+      expect(built.series.zero, request.key).toBeNull();
+      expect(built.series.points.length, request.key).toBeGreaterThan(0);
+      for (const entry of built.series.points) {
+        expect(entry.plot, entry.key).toBeNull();
+        expect(displayById(built.displayObjects, entry.value).text, entry.key).toBe('Out of date, recalculating');
+      }
+      const total = built.series.total;
+      if (total !== null) expect(displayById(built.displayObjects, total.kind === 'value' ? total.display : total.price.figure).text).toBe('Out of date, recalculating');
+    }
+    // The page beside it: the payback of the same formula reads the same line, and the page is built.
+    const page = paybackView({ projectId: PROJECT_ID, header: stale.header, proposal: stale }, { ...METRICS_SERIES, cumulativeCashFlow: { key: 'cashFlow.TEST_cumulative', kind: 'sequence', totalOutput: null, label: 'TEST cumulative cash flow', beside: { payback: 'payback.TEST_periods' } } });
+    if (page.view.state !== 'generated') throw new Error('a stored version is read');
+    expect(displayById(page.displayObjects, page.view.payback).text).toBe('Out of date, recalculating');
   });
 });

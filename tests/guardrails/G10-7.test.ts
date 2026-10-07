@@ -16,6 +16,13 @@
  * The view-model half (B2's), folded in by the integrator (phase 5 part A; one file per case id): the stored proposal
  * as `@sovitech/view-model/server` builds it over a TEST project (tests/guardrails/_support/proposal.ts), at the end of
  * this file.
+ *
+ * Phase 6 (the Metrics pages; R-091: "A system whose recorded scope decision is exclude contributes no cost, savings,
+ * operating-cost or lifecycle line on any Metrics page and is listed among the estimate's exclusions"; Expected
+ * unchanged): an excluded system is no point of a breakdown (the TEST series `capex.TEST_bySystem`, test runner only),
+ * Financial Overview and CAPEX list it among the exclusions through its decision as used, and OPEX & Savings has no row
+ * for it. Phase 6 part B (A-6; Expected unchanged): a breakdown whose formula gave a line for a system the version left
+ * out of scope is refused, never hidden while its total still counts it (rule 12, "Say what could not be done").
  */
 import { describe, expect, test, it } from 'vitest';
 import { AUTOMATION_AREAS, FIELD, OUTPUT, SYSTEMS, automationFieldKey, scopeFieldKey } from '@sovitech/registry';
@@ -26,7 +33,11 @@ import { testEngineInput, type TestEntry } from '../../packages/engine/test-form
 import { documentReading, ownerAnswer, testDocument } from './_support/builders';
 import { displayById, ownerAnswer as proposalOwnerAnswer, SNAPSHOT_ID, testProposalFields, testProposalInput } from './_support/proposal';
 import { testEvents } from './_support/builders';
-import { proposalView, INTERFACE_POINTS } from '@sovitech/view-model/server';
+import { MetricsNotBuilt, capexView, financialOverviewView, opexView, proposalView, seriesView, INTERFACE_POINTS } from '@sovitech/view-model/server';
+import { metricsProposalInput } from './_support/metrics';
+import { PROJECT_ID, BUILDING_ID } from './_support/proposal';
+import { testWorkspace } from './_support/workspace';
+import { productionField as workspaceField } from './_support/view-model';
 
 const PROJECT = 'test-project-g10-7';
 const BUILDING = 'test-building-g10-7';
@@ -122,5 +133,57 @@ describe('G10-7 (the view-model half) · rule 10 · rule 11: excluded systems on
     expect(built.view.scope.systems.find((system) => system.systemId === 'fire_safety')?.sentence).toBeNull();
     for (const display of built.displayObjects.filter((entry) => entry.valueId.includes('.outputs.'))) expect(display.text, display.valueId).not.toMatch(/CCTV|Fire Safety/u);
     expect(displayById(built.displayObjects, built.view.points.interfacePoints).text).toBe(INTERFACE_POINTS);
+  });
+});
+
+describe('G10-7 (phase 6) · R-091 · US-FIN-12 AC10: an excluded system on the Metrics pages', () => {
+  it('G10-7 · R-091: CCTV excluded is no point of a breakdown; Financial Overview and CAPEX list it among the exclusions; OPEX & Savings has no row for it', () => {
+    // A TEST breakdown (test runner only): the points are the systems in scope, never CCTV.
+    const { input } = metricsProposalInput({ buildingType: 'hotel', scope: { hvac: 'include', lighting: 'include', cctv: 'exclude' } });
+    const series = seriesView(input, { key: 'capex.TEST_bySystem', kind: 'breakdown', totalOutput: 'capex.TEST_bySystem.total', label: 'TEST cost by system', beside: {} });
+    expect(series.series.points.map((entry) => entry.key)).toEqual(['hvac', 'lighting']);
+    for (const display of series.displayObjects) expect(display.text, display.valueId).not.toMatch(/CCTV/u);
+
+    // The pages over the stored proposal: CCTV and Fire Safety listed among the exclusions through their decisions as used.
+    const cctv = proposalOwnerAnswer(250, 'project.scope.cctv', { choice: 'exclude' });
+    const fire = proposalOwnerAnswer(251, 'project.scope.fire_safety', { choice: 'exclude' });
+    const hvac = proposalOwnerAnswer(252, 'project.scope.hvac', { choice: 'include' });
+    const answers = [cctv, fire, hvac];
+    const fields = testProposalFields({ candidates: answers.map((answer) => answer.candidate), events: testEvents({ candidate: answers.map((answer) => answer.event) }) });
+    const stored = testProposalInput({ fields });
+    const page = { projectId: PROJECT_ID, header: stored.header, proposal: stored };
+    const expected = proposalView(stored).view.investment.exclusions;
+    expect(expected).toHaveLength(2);
+    const overview = financialOverviewView(page);
+    const capex = capexView(page);
+    if (overview.view.state !== 'generated' || capex.view.state !== 'generated') throw new Error('a stored version is read');
+    expect(overview.view.costBreakdown.exclusions).toEqual(expected);
+    expect(capex.view.exclusions).toEqual(expected);
+    expect(displayById(capex.displayObjects, expected[1] ?? '').valueId).toBe(`proposal:${SNAPSHOT_ID}.inputs.project.scope.cctv`);
+
+    // OPEX & Savings: a row per system whose recorded decision is include, none for CCTV or Fire Safety.
+    const decision = (systemId: string, choice: string, n: number) => {
+      const field = workspaceField(scopeFieldKey(systemId));
+      const candidate = ownerAnswer({ id: `0192f0e4-7e57-7000-8000-0000000003${String(n).padStart(2, '0')}`, subjectId: PROJECT_ID, field, value: { choice }, minute: n });
+      return { field, subjectId: PROJECT_ID, subjectKind: 'project' as const, candidates: [candidate], candidateEvents: [{ candidateId: candidate.id, type: 'user_confirmed' as const, by: 'test-owner', role: 'owner' as const, at: candidate.createdAt }] };
+    };
+    const project = testWorkspace({ projectId: PROJECT_ID, buildingId: BUILDING_ID, fields: [decision('hvac', 'include', 1), decision('cctv', 'exclude', 2), decision('fire_safety', 'exclude', 3)] });
+    const opex = opexView({ header: stored.header, project, newBuildEstimate: { names: [], actions: [] } });
+    expect(opex.view.systems.map((row) => row.systemId)).toEqual(['hvac']);
+  });
+});
+
+describe('G10-7 (phase 6 part B) · A-6 · rule 12: an excluded system\'s line is never hidden from its total', () => {
+  it('G10-7 · A-6: a breakdown whose formula gave a line for a system the version left out of scope is refused, never drawn without it while its total counts it', () => {
+    // The TEST formula priced CCTV (included at generation); the decision as used is then read as "exclude", as a formula
+    // reading a decision differently from the version's exclusions would leave it.
+    const { input } = metricsProposalInput({ buildingType: 'hotel', scope: { hvac: 'include', cctv: 'include' } });
+    expect(input.snapshot.outputs.find((row) => row.output === 'capex.TEST_bySystem.cctv')?.candidateId).not.toBeNull();
+    const snapshotCandidates = new Map([...input.snapshotCandidates].map(([id, candidate]) => [id, candidate.fieldKey === scopeFieldKey('cctv') ? { ...candidate, choice: 'exclude' } : candidate]));
+    const request = { key: 'capex.TEST_bySystem', kind: 'breakdown', totalOutput: 'capex.TEST_bySystem.total', label: 'TEST cost by system', beside: {} } as const;
+    expect(() => seriesView({ ...input, snapshotCandidates }, request)).toThrow(MetricsNotBuilt);
+    expect(() => seriesView({ ...input, snapshotCandidates }, request)).toThrow(/G10-7/u);
+    // As generated (CCTV included), it is a point like any other.
+    expect(seriesView(input, request).series.points.map((entry) => entry.key)).toEqual(['hvac', 'cctv']);
   });
 });
