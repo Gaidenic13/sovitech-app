@@ -1,5 +1,5 @@
 /**
- * Runs one conversion of the viewer spike in its sandbox image (services/viewer-spike/Dockerfile;
+ * Runs one conversion of the viewer spike in the conversion sandbox image (services/model-converter/Dockerfile, until the viewer step services/viewer-spike/;
  * docs/adr/0046-viewer-spike.md decision 2), with the IFC reader's confinement
  * (apps/api/src/jobs/sandbox.ts): --network none, --read-only, --cap-drop ALL,
  * --security-opt no-new-privileges, the image's own account, --pids-limit, --memory equal to
@@ -17,7 +17,8 @@ import { randomUUID } from 'node:crypto';
 import { lstat, mkdir, readFile, rm } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
-export const SPIKE_IMAGE = 'sovitech-viewer-spike:dev';
+/** The conversion sandbox image (services/model-converter/build.sh), the live conversion job's too since the viewer step. */
+export const SPIKE_IMAGE = 'sovitech-model-converter:dev';
 const SANDBOX_USER = '10001:10001';
 
 export interface SandboxLimits {

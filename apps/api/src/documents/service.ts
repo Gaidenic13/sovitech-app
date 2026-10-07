@@ -12,7 +12,9 @@ import {
   addProjectMember,
   appendDocumentEvent,
   cancelQueuedAnalysis,
+  cancelQueuedModelViews,
   deleteUploadSession,
+  endRunningModelViews,
   enqueueAnalysis,
   eraseDocument,
   fileNamePart,
@@ -44,6 +46,7 @@ import type { ApiServices } from '../services';
 import { formatCoverage, statusLineOf, type DocumentStatusLine } from './coverage';
 import { routingOf } from './formats';
 import { readsModels, type ModelReadingServices } from './model-reading';
+import { queueConversion, recordViewErased } from './model-view';
 
 /** Runs `work` in the user's own request on a project that user may see; any other project reads as not found. */
 export async function inProject<T>(services: Pick<ApiServices, 'store'>, scope: Required<RequestScope>, work: (request: Request) => Promise<T>): Promise<T> {
@@ -85,6 +88,10 @@ export async function projectDocuments(request: Request): Promise<{ readonly doc
  *   (G12-5).
  * - An IFC model queues no reader job: until the owner decides D-01, no model is read
  *   (PRD R-023, R-024 "Until decided"; ./model-reading.ts). Only a test's switch queues it.
+ * - The viewer step (the owner's decision of 2026-10-05 on D-03, for display only): an IFC
+ *   model queues its conversion for viewing, with its `queued` record, unless the project
+ *   already holds or is preparing a view of the same bytes (./model-view.ts). The model stays
+ *   "Not analysed" (R-022, R-025), and the extraction account becomes a member, as for analysis.
  */
 export async function registerUpload(
   services: Pick<ApiServices, 'extractionAccountId'> & ModelReadingServices,
@@ -106,15 +113,20 @@ export async function registerUpload(
   });
   await recordDocumentFile(request, { documentId: document.id, contentHash, format: session.format, byteSize: input.byteSize, createdBy: session.userId });
   await storeDocumentTexts(request, { contentHash, parts: [{ part: fileNamePart(document.id), text: session.fileName }], createdBy: session.userId });
-  if (routing.kind === 'analyse' || (routing.engineerRecord && readsModels(services))) {
+  const analysed = routing.kind === 'analyse' || (routing.engineerRecord && readsModels(services));
+  // The viewer step (the owner's decision of 2026-10-05 on D-03, for display only; R-025): every stored IFC model is
+  // converted for viewing in the sandbox, by the same service account, read nowhere else (./model-view.ts).
+  const viewed = session.format === 'ifc';
+  if (analysed || viewed) {
     // Uploads completing together in a new project add the extraction account one at a time.
     await lockProjectMembership(request);
     const members = await readVisibleAccounts(request);
     if (!members.some((account) => account.id === services.extractionAccountId)) {
       await addProjectMember(request, { projectId: session.projectId, userId: services.extractionAccountId });
     }
-    await enqueueAnalysis(request, { projectId: session.projectId, documentId: document.id, contentHash });
   }
+  if (analysed) await enqueueAnalysis(request, { projectId: session.projectId, documentId: document.id, contentHash });
+  if (viewed) await queueConversion(request, { documentId: document.id, contentHash, createdBy: request.userId });
   await deleteUploadSession(request.trx, { id: session.id, projectId: session.projectId, userId: session.userId });
   return document;
 }
@@ -262,16 +274,23 @@ export async function deleteDocument(
     const twin = documents.some(
       (other) => other.id !== documentId && other.contentHash === document.contentHash && statuses.status(other.id) !== 'erased',
     );
-    return { documentId, contentHash: document.contentHash, filesKeptForAnotherDocument: twin };
+    const model = (await readDocumentFiles(request)).some((file) => file.documentId === documentId && file.format === 'ifc');
+    return { documentId, contentHash: document.contentHash, filesKeptForAnotherDocument: twin, model };
   });
   if (report.filesKeptForAnotherDocument) {
     services.log({ event: 'document_erased', projectId: scope.projectId, documentId });
-    return report;
+    return { documentId, contentHash: report.contentHash, filesKeptForAnotherDocument: true };
   }
   const kept = await inProject(services, scope, async (request) => {
     await lockProjectWrites(request);
     if (await bytesHeld(request, report.contentHash)) return true;
     await services.files.removeHash(scope.projectId, report.contentHash);
+    // The viewer step: a model's view files went with it (`derived/`, removed above). Its queued conversion is dropped,
+    // and a running one ended, so it keeps and records nothing and the bytes uploaded again get a conversion of their
+    // own (the review of part 1, V-3 and A-1); its record says so.
+    await cancelQueuedModelViews(request.trx, { projectId: scope.projectId, contentHash: report.contentHash });
+    await endRunningModelViews(request.trx, { projectId: scope.projectId, contentHash: report.contentHash });
+    if (report.model) await recordViewErased(request, { documentId, contentHash: report.contentHash, createdBy: scope.userId });
     return false;
   });
   if (!kept) {
@@ -282,7 +301,7 @@ export async function deleteDocument(
     }
   }
   services.log({ event: 'document_erased', projectId: scope.projectId, documentId });
-  return { ...report, filesKeptForAnotherDocument: kept };
+  return { documentId, contentHash: report.contentHash, filesKeptForAnotherDocument: kept };
 }
 
 /** Whether a document of the project that is not erased holds these bytes (read in the caller's request, under its lock). */

@@ -5,7 +5,8 @@
  * Every stored file and every file derived from it lives under
  * `<root>/<projectId>/<contentHash>/`:
  *   original             the bytes as uploaded
- *   derived/<name>        converted models, plan images, thumbnails, page images
+ *   derived/<name>        converted models (the viewer step: viewer.frag and its storey index,
+ *                         storeys.json), plan images, thumbnails, page images
  *   work/<jobId>/         an analysis job's output folder, removed once ingested
  * and bytes still in flight under `<root>/<projectId>/staging/<uploadId>`, so a
  * project's erasure reaches them too. Two projects that upload byte-identical
@@ -281,5 +282,49 @@ export class FileStore {
   /** The stored original of a document, for Download and the extractor's read-only mount. */
   openOriginal(projectId: string, contentHash: string): ReadStream {
     return createReadStream(this.originalPath(projectId, contentHash));
+  }
+
+  /**
+   * Moves a file a job made in its own folder (under the same content hash) into the hash's `derived/` folder, owner-only,
+   * replacing an earlier file of that name in one rename (the viewer step's conversion: `viewer.frag`, `storeys.json`).
+   * It never makes the hash's folder: when the hash's folder or the job's file is not there (ENOENT), the move fails as
+   * `missing` and nothing is left keyed to an erased hash (rule 13; ifc-input 6.2.16). Any other error of the host (a
+   * full disk, a permission, a file where a folder goes) is thrown as it is, never read as `missing` (the review of
+   * part 1, V-2 and A-6). The caller holds the project's write lock and has checked, under it, that a document of the
+   * project not erased holds the bytes.
+   */
+  async moveIntoDerived(projectId: string, contentHash: string, name: string, from: string): Promise<void> {
+    const target = this.derivedPath(projectId, contentHash, name);
+    const missing = (error: unknown): Error => (error instanceof Error && (error as { code?: unknown }).code !== 'ENOENT' ? error : new FileStoreError('missing'));
+    try {
+      await mkdir(this.derivedDirectory(projectId, contentHash), { mode: 0o700 });
+    } catch (error) {
+      if ((error as { code?: unknown }).code !== 'EEXIST') throw missing(error);
+    }
+    try {
+      await rename(from, target);
+    } catch (error) {
+      throw missing(error);
+    }
+  }
+
+  /**
+   * A derived file of a content hash, opened for reading without following a symbolic link at its last step; undefined
+   * when there is none (the viewer step's serving route reads `viewer.frag` through it).
+   */
+  async openDerived(projectId: string, contentHash: string, name: string): Promise<{ readonly stream: ReadStream; readonly bytes: number } | undefined> {
+    const path = this.derivedPath(projectId, contentHash, name);
+    let handle;
+    try {
+      handle = await open(path, READ_NO_FOLLOW);
+    } catch {
+      return undefined;
+    }
+    const status = await handle.stat().catch(() => undefined);
+    if (status === undefined || !status.isFile()) {
+      await handle.close();
+      return undefined;
+    }
+    return { stream: handle.createReadStream(), bytes: status.size };
   }
 }

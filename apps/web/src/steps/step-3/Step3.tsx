@@ -14,9 +14,12 @@
  *   component in its `row` layout with its badge and source line and no action, and the HVAC assets
  *   line, "Not available yet" naming the missing SOVITECH asset taxonomy (§5-3b; the
  *   `dataset-asset-taxonomy` gate). No Systems row: no detection exists (§5-3e; AC10).
- * - Centre: the building model's area. No viewer, view toggle, floor selector or illustrative
- *   building (AC14; 5.2 "No IFC uploaded"): with no model stored, "Not available yet" naming the
- *   missing model with the action to upload one on step 2; with a model stored, its G12-1 line.
+ * - Centre: the building model's area, the kit's ModelArea (DR-15; moved onto the kit in the viewer
+ *   step with no visible change). No viewer, view toggle, floor selector or illustrative building
+ *   (AC14; 5.2 "No IFC uploaded"): with no model stored, "Not available yet" naming the missing
+ *   model with the action to upload one on step 2; with a model stored, its G12-1 line. The view
+ *   itself is mounted here in part 2 of the viewer step, on the approver's decision of
+ *   P-V-CANVAS-UNREADABLE (docs/build-log.md, the viewer step, item 6).
  * - Right: "Extracted details", every fact and each of its parts (floors by level type, what rooms and
  *   zones count, a conflict's values) through the Value component with the actions the API served
  *   (./FactRows.tsx): Edit on every row (guardrails section 5, step 3: "Keep the rows, and add Edit to
@@ -43,10 +46,10 @@
  * conflict is put to the owner, "Choose this value". Editing and edited: the inline editor under the
  * row; after Save the row shows what the server serves (Provided by you).
  */
-import { CircleAlert, Cuboid, Eye, Fan, FileWarning, Upload } from 'lucide-react';
+import { CircleAlert, Eye, Fan, FileWarning, Upload } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { ActionRow, Button, Icon, NotAvailableYet, Progress, StatusLine, Value } from '@sovitech/ui';
+import { ActionRow, Icon, ModelArea, NotAvailableYet, Progress, StatusLine, Value } from '@sovitech/ui';
 import type { StepView } from '@sovitech/view-model/browser';
 import { isSignedOut } from '../../api/client';
 import { copy } from '../../copy';
@@ -125,32 +128,6 @@ function FilesNotFullyRead({ files, displays }: { readonly files: readonly strin
   );
 }
 
-/** Step 3's view area (5.2 "No IFC uploaded"; US-REVIEW-04 AC14): what is missing and the way to add it, or the stored model's G12-1 line. */
-function ModelArea({ viewer, onUpload }: { readonly viewer: Step3View['viewer']; readonly onUpload: () => void }) {
-  return (
-    <section
-      aria-labelledby="step3-model"
-      className="flex min-h-[560px] flex-col items-center justify-center gap-5 rounded-(--sov-radius-surface) border border-(--sov-border) px-10 py-12 text-center"
-      data-model-state={viewer.state}
-    >
-      <span className="text-(--sov-text-muted)">
-        <Icon icon={Cuboid} size="large" />
-      </span>
-      <h2 id="step3-model" className="sov-heading-group">
-        {copy.step3.viewerHeading}
-      </h2>
-      <div className="max-w-[360px]">
-        <StatusLine line={viewer.line} />
-      </div>
-      {viewer.addModelOnStep === null ? null : (
-        <Button variant="accent" icon={Upload} onClick={onUpload}>
-          {copy.step3.addModel}
-        </Button>
-      )}
-    </section>
-  );
-}
-
 function Building({
   projectId,
   view,
@@ -209,7 +186,12 @@ function Building({
         </section>
       </div>
 
-      <ModelArea viewer={view.viewer} onUpload={() => goToStep(2, { step: 3, asOf })} />
+      <ModelArea
+        heading={copy.step3.viewerHeading}
+        state={view.viewer.state}
+        status={{ line: view.viewer.line }}
+        {...(view.viewer.addModelOnStep === null ? {} : { action: { label: copy.step3.addModel, icon: Upload, onPress: () => goToStep(2, { step: 3, asOf }) } })}
+      />
 
       <div className="flex flex-col gap-5 border-l border-(--sov-border) pl-10">
         <section aria-labelledby="step3-details" className="flex flex-col gap-5 rounded-(--sov-radius-surface) border border-(--sov-border) p-5">

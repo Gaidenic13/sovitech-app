@@ -5,7 +5,7 @@ Phase 4 (the owner's answer of 2026-10-02, "Trial now, decide later"; `docs/adr/
 | File | What it does |
 |---|---|
 | `run.ts` | The runner: converts each model in the sandbox, opens it on the bench page in Chromium, measures, erases, and writes `results/results.json` and `results/results.md` |
-| `sandbox.ts` | One conversion in `sovitech-viewer-spike:dev` with the IFC reader's confinement (`--network none`, read-only, 4 GB, 2 CPUs, a wall clock), the files copied out through the Docker daemon |
+| `sandbox.ts` | One conversion in `sovitech-model-converter:dev` (the conversion image the live job runs too, since the viewer step; `sovitech-viewer-spike:dev` until then) with the IFC reader's confinement (`--network none`, read-only, 4 GB, 2 CPUs, a wall clock), the files copied out through the Docker daemon |
 | `server.ts` | The bench's static server on 127.0.0.1: a fixed map of paths, every request recorded |
 | `processes.ts` | Chromium's processes' resident memory, sampled every 250 ms |
 | `stats.ts` | Frame statistics of the keyboard orbit |
@@ -16,7 +16,7 @@ Phase 4 (the owner's answer of 2026-10-02, "Trial now, decide later"; `docs/adr/
 Heavy: run it only under the e2e lock (build log, phase 4, "Resources"), and stop nothing else's stack.
 
 ```sh
-docker build -f services/viewer-spike/Dockerfile -t sovitech-viewer-spike:dev .
+services/model-converter/build.sh   # since the viewer step; until then: docker build -f services/viewer-spike/Dockerfile -t sovitech-viewer-spike:dev .
 pnpm tsx tools/viewer-spike/run.ts --work <scratch folder> --gl default   # SwiftShader (software WebGL)
 pnpm tsx tools/viewer-spike/run.ts --work <scratch folder> --gl gpu       # the machine's GPU through ANGLE (Metal on macOS)
 ```

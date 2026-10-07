@@ -6,9 +6,12 @@
  * 2. the extraction service account (TEST) and the development owner (ADR 0038, `ensureDevOwner`);
  * 3. the demo seed with the extractor in its sandbox (both locally built images), its data folder
  *    under the home folder (Colima shares only that), then the development owner made a member of
- *    the demo (PRD R-136 interim, `addToDemoProject`);
+ *    the demo (PRD R-136 interim, `addToDemoProject`); since the viewer step the seed's two IFC models
+ *    queue their conversions for viewing, which the worker runs (step 4);
  * 4. the API on 127.0.0.1:4174 and the analysis worker, each a child process with the TEST database's
- *    app login, a random session secret, the extraction account, the data folder, the images and
+ *    app login, a random session secret, the extraction account, the data folder, the images (since the
+ *    viewer step also the model conversion image, `sovitech-model-converter:dev`, which the worker checks
+ *    against the repository's converter sources: `stale_image` otherwise) and
  *    SOVITECH_DEV_ACCOUNTS, and (phase 5) SOVITECH_WEB_ORIGIN, `vite preview`'s origin, which the API's PDF printer
  *    opens the print route on (ADR 0050); no ANTHROPIC_API_KEY is passed on, so no AI runs (the owner's answers
  *    in force: no key is set);
@@ -41,11 +44,17 @@ import { FileStore } from '../../../apps/api/src/storage/file-store';
 import { fixtureUploadGuard } from '../../../apps/api/src/uploads/fixture-guard';
 import { API_ORIGIN, API_PORT, E2E_OUTPUT, REPO_ROOT, STATE_FILE, WEB_ORIGIN, type StackState } from './paths';
 
-/** The two sandbox images (ADR 0018, ADR 0031), built locally. */
+/** The two analysis sandbox images (ADR 0018, ADR 0031), built locally. */
 const IMAGES = { extractor: 'sovitech-extractor:dev', ifcReader: 'sovitech-ifc-reader:dev' } as const;
+/**
+ * The model conversion sandbox image (the viewer step; ADR 0046 as amended, ADR 0051), built locally by its script, which
+ * labels it with the hash of the converter's sources. The worker converts the demo's two IFC models with it.
+ */
+const CONVERTER_IMAGE = 'sovitech-model-converter:dev';
 const BUILD_COMMANDS = [
   'docker build --target extractor -t sovitech-extractor:dev services/extractor',
   'docker build -f services/ifc-reader/Dockerfile -t sovitech-ifc-reader:dev .',
+  'services/model-converter/build.sh',
 ];
 
 function log(event: string, detail: Record<string, unknown> = {}): void {
@@ -54,7 +63,7 @@ function log(event: string, detail: Record<string, unknown> = {}): void {
 
 function imagesPresent(): boolean {
   try {
-    execFileSync('docker', ['image', 'inspect', IMAGES.extractor, IMAGES.ifcReader], { stdio: 'ignore' });
+    execFileSync('docker', ['image', 'inspect', IMAGES.extractor, IMAGES.ifcReader, CONVERTER_IMAGE], { stdio: 'ignore' });
     return true;
   } catch {
     return false;
@@ -166,7 +175,7 @@ async function main(): Promise<void> {
     throw new Error(`${API_ORIGIN} already answers: stop the API or the e2e stack that holds port ${String(API_PORT)} (the stack never reuses one).`);
   }
   if (!imagesPresent()) {
-    throw new Error(`The e2e stack needs both sandbox images, built locally from the repository root:\n  ${BUILD_COMMANDS.join('\n  ')}`);
+    throw new Error(`The e2e stack needs its three sandbox images, built locally from the repository root:\n  ${BUILD_COMMANDS.join('\n  ')}`);
   }
   const children: ChildProcess[] = [];
   let database: TestDatabase | undefined;
@@ -221,6 +230,8 @@ async function main(): Promise<void> {
       SOVITECH_DATA_DIR: dataDirectory,
       SOVITECH_EXTRACTOR_IMAGE: IMAGES.extractor,
       SOVITECH_IFC_READER_IMAGE: IMAGES.ifcReader,
+      // The viewer step: the image the worker converts stored IFC models with, for viewing only.
+      SOVITECH_CONVERTER_IMAGE: CONVERTER_IMAGE,
       SOVITECH_DEV_ACCOUNTS: devOwnerId,
       // Phase 5: the origin the API prints the proposal's print route from (ADR 0050 decision 2); the worker ignores it.
       SOVITECH_WEB_ORIGIN: WEB_ORIGIN,

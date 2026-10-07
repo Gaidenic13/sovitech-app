@@ -1,0 +1,35 @@
+/* The harness page's styles: the brand tokens, the kit and the viewer, as the app will load them in part 2. */
+@import '@sovitech/ui/tokens.css';
+@import '@sovitech/ui/ui.css';
+@import '@sovitech/viewer/viewer.css';
+
+html,
+body {
+  margin: 0;
+  background-color: var(--sov-bg);
+  color: var(--sov-text-primary);
+  font-family: var(--sov-font-sans);
+}
+
+.harness {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 24px;
+  max-width: 1200px;
+  padding: 24px;
+}
+
+.harness--view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 640px;
+  max-width: 900px;
+  padding: 24px;
+}
+
+.harness h1 {
+  margin: 0;
+  font-size: var(--sov-heading-section-size);
+  font-weight: var(--sov-heading-section-weight);
+}

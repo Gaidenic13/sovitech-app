@@ -11,6 +11,9 @@
  * `maxBytes`, and copy exactly that many bytes into a new host file it creates itself
  * (O_EXCL, never through a link). Only the file's bytes are the container's; they are read by
  * the contract's strict parser afterwards, like any output.
+ *
+ * The viewer step's conversion job (./model-view/sandbox.ts) copies its three files the same way,
+ * each by its own name (`viewer.frag`, `storeys.json`, `summary.json`) and bound.
  */
 import { constants, type WriteStream } from 'node:fs';
 import { open, rm } from 'node:fs/promises';
@@ -20,7 +23,9 @@ import type { Readable } from 'node:stream';
 export type CopyOutcome = 'copied' | 'missing' | 'refused';
 
 const BLOCK = 512;
+/** The extraction job's one output file; another job names its own files (the name is a file name, never a path). */
 const OUTPUT_NAME = 'output.json';
+const ENTRY_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 /** Creates the host copy: a new file, never an existing one or a link. */
 const CREATE_NEW = constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW;
 
@@ -41,14 +46,15 @@ function octal(header: Buffer, start: number, length: number): number | undefine
 }
 
 /**
- * The size of the tar stream's one entry when it is a regular file named `output.json` in a
- * USTAR header, within `maxBytes`; undefined for anything else: a link, a FIFO, a device, a
- * folder, an extended (pax) header, another name, or a size past the limit.
+ * The size of the tar stream's one entry when it is a regular file named `name` (`output.json`
+ * by default) in a USTAR header, within `maxBytes`; undefined for anything else: a link, a FIFO,
+ * a device, a folder, an extended (pax) header, another name, or a size past the limit.
  */
-export function regularOutputSize(header: Buffer, maxBytes: number): number | undefined {
+export function regularOutputSize(header: Buffer, maxBytes: number, name: string = OUTPUT_NAME): number | undefined {
+  if (!ENTRY_NAME.test(name)) throw new Error('an output entry is named by a file name');
   if (header.length < BLOCK) return undefined;
   if (field(header, 257, 6) !== 'ustar' && field(header, 257, 6) !== 'ustar ') return undefined;
-  if (field(header, 0, 100) !== OUTPUT_NAME || field(header, 345, 155) !== '') return undefined;
+  if (field(header, 0, 100) !== name || field(header, 345, 155) !== '') return undefined;
   const type = header[156];
   if (type !== 0x30 && type !== 0x00) return undefined;
   const size = octal(header, 124, 12);
@@ -66,10 +72,11 @@ function drained(stream: WriteStream): Promise<void> {
 
 /**
  * Reads a tar stream of one entry and copies its bytes to `target` when the entry is one
- * regular `output.json` of at most `maxBytes`. An empty stream is `missing`. The stream is
- * read no further than the header and the entry's bytes; the caller ends its source after.
+ * regular file named `name` (`output.json` by default) of at most `maxBytes`. An empty stream is
+ * `missing`. The stream is read no further than the header and the entry's bytes; the caller
+ * ends its source after.
  */
-export async function copyOutputEntry(stream: Readable, target: string, maxBytes: number): Promise<CopyOutcome> {
+export async function copyOutputEntry(stream: Readable, target: string, maxBytes: number, name: string = OUTPUT_NAME): Promise<CopyOutcome> {
   let pending = Buffer.alloc(0);
   let size: number | undefined;
   let written = 0;
@@ -90,7 +97,7 @@ export async function copyOutputEntry(stream: Readable, target: string, maxBytes
     if (size === undefined) {
       pending = Buffer.concat([pending, data]);
       if (pending.length < BLOCK) continue;
-      size = regularOutputSize(pending.subarray(0, BLOCK), maxBytes);
+      size = regularOutputSize(pending.subarray(0, BLOCK), maxBytes, name);
       if (size === undefined) return finish('refused');
       const created = await open(target, CREATE_NEW, 0o600).catch(() => undefined);
       if (created === undefined) return finish('refused');

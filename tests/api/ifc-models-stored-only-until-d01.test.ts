@@ -12,7 +12,7 @@
  * nothing read: no finding, no engineer's record, no new analysis event.
  */
 import { afterAll, beforeAll, expect, it } from 'vitest';
-import { addProjectMember, enqueueAnalysis, readAnalysisJobs, readProjectDocuments, withRequest } from '@sovitech/db';
+import { enqueueAnalysis, readAnalysisJobs, readProjectDocuments, readVisibleAccounts, withRequest } from '@sovitech/db';
 import { ScriptedRunner, documentList, fixtureBytes, ownerWithProject, signIn, startTestApi, testWorker, upload, type Auth, type TestApi } from '../guardrails/_support/api';
 import { idsReference, ifcOutput } from '../guardrails/_support/outputs';
 
@@ -50,9 +50,10 @@ it('US-IFC-01 · US-IFC-03 · F-INGEST-03 · R-022 · R-023 · R-024 · G12-5: a
 
 it('R-023 · R-024 · rule 14: a model\'s job that reaches the worker anyway ends by code, reading nothing: no finding, no engineer\'s record, the line unchanged', async () => {
   const contentHash = (await withRequest(api.database.app, { userId: ownerId, projectId }, (request) => readProjectDocuments(request))).documents.find((document) => document.id === modelId)?.contentHash ?? '';
-  // A job queued by some other path (a database from before the ruling, say), with the extraction account a member, as an upload makes it.
+  // A job queued by some other path (a database from before the ruling, say), with the extraction account a member, as
+  // the upload made it (since the viewer step a model's upload queues its conversion for viewing, by that account).
   await withRequest(api.database.app, { userId: ownerId, projectId }, async (request) => {
-    await addProjectMember(request, { projectId, userId: api.extractionAccountId });
+    expect((await readVisibleAccounts(request)).map((account) => account.id)).toContain(api.extractionAccountId);
     await enqueueAnalysis(request, { projectId, documentId: modelId, contentHash });
   });
   const runner = new ScriptedRunner((_job, job) => ifcOutput(job, 'fixtures/ifc/ground-truth/demo-hotel-mep-rev-a.json', 'fixtures/ids/expected/demo-hotel-mep-rev-a.json'));

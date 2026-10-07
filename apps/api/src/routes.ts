@@ -20,7 +20,7 @@
 import { createHmac } from 'node:crypto';
 import cookie from '@fastify/cookie';
 import csrf from '@fastify/csrf-protection';
-import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { Readable } from 'node:stream';
 import { StoreRefusal } from '@sovitech/db';
 import { registerAuthRoutes } from './auth/dev-login';
@@ -34,6 +34,7 @@ import {
   inProject,
   ownerDocumentList,
 } from './documents/service';
+import { VIEW_FILES, viewableModel } from './documents/model-view';
 import { ApiRefusal, notFound } from './errors';
 import { ResponseInvalid } from './http';
 import { IntakeRefusal } from '@sovitech/view-model/server';
@@ -253,6 +254,30 @@ export async function registerApiRoutes(app: FastifyInstance, services: ApiServi
   app.get<{ Params: DocumentParams }>('/api/projects/:projectId/documents/:documentId/engineer-record', { schema: { params: DOCUMENT_PARAMS } }, async (request) =>
     inProject(services, { userId: userOf(request), projectId: request.params.projectId }, (store) => engineerDocumentRecord(store, request.params.documentId)),
   );
+
+  // The viewer step (owner decision D-03, 2026-10-05, display only; PRD R-025): a current IFC model's converted view
+  // file, after the session and membership check, read under row-level security (./documents/model-view.ts). Anything
+  // but a current IFC model of this project with a `converted` record answers 404, saying nothing of another project
+  // (rule 13). No copy is kept by the browser's HTTP cache (ifc-input 6.2.16, the stricter choice: an erasure is not
+  // outlived in the browser): every answer of the route, its refusals included, says `no-store`.
+  const noStore = {
+    onSend: async (_request: FastifyRequest, reply: FastifyReply, payload: unknown): Promise<unknown> => {
+      void reply.header('cache-control', 'no-store');
+      return payload;
+    },
+  };
+  app.get<{ Params: DocumentParams }>('/api/projects/:projectId/documents/:documentId/model-view', { schema: { params: DOCUMENT_PARAMS }, ...noStore }, async (request, reply) => {
+    const projectId = request.params.projectId;
+    const found = await inProject(services, { userId: userOf(request), projectId }, (store) => viewableModel(store, request.params.documentId));
+    const opened = await services.files.openDerived(projectId, found.contentHash, VIEW_FILES.fragments);
+    if (opened === undefined) throw notFound();
+    return reply
+      .header('content-type', 'application/octet-stream')
+      .header('content-length', String(opened.bytes))
+      .header('cache-control', 'no-store')
+      .header('x-content-type-options', 'nosniff')
+      .send(opened.stream);
+  });
 
   app.get<{ Params: DocumentParams }>('/api/projects/:projectId/documents/:documentId/file', { schema: { params: DOCUMENT_PARAMS } }, async (request, reply) => {
     const projectId = request.params.projectId;

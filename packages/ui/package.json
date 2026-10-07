@@ -16,5 +16,8 @@
     "@sovitech/view-model": "workspace:*",
     "lucide-react": "1.48.0",
     "react": "19.3.0"
+  },
+  "devDependencies": {
+    "axe-core": "4.13.0"
   }
 }

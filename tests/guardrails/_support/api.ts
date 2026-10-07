@@ -75,10 +75,12 @@ export async function startTestApi(
     /** Phase 5: a TEST engine catalogue (the engine refuses it outside the test runner) and a TEST drafting service. */
     readonly engine?: ApiServices['engine'];
     readonly drafting?: ApiServices['drafting'];
+    /** The viewer step: where the TEST data folder is made (the system's temp folder by default; under the home folder for a real sandbox run in Colima). */
+    readonly dataRoot?: string;
   } = {},
 ): Promise<TestApi> {
   const database = await startTestDatabase();
-  const dataDirectory = mkdtempSync(join(tmpdir(), 'sovitech-test-data-'));
+  const dataDirectory = mkdtempSync(join(options.dataRoot ?? tmpdir(), 'sovitech-test-data-'));
   const files = new FileStore(dataDirectory);
   const log: ApiLogRecord[] = [];
   const extractionAccountId = await createTestAccount(database, { label: 'extraction service', kind: 'service', roles: [] });

@@ -23,7 +23,8 @@ import * as WebIFC from 'web-ifc';
 
 /**
  * The one attribute the view profile keeps: the GlobalId, which the importer stores in its own
- * table (an identifier, not model text; logs may carry it, rule 13).
+ * table. It is kept as written: an identifier, but its author chose it, so it can carry text. It
+ * is never shown or logged while `ifc-values` is closed (rule 13; the review of part 1, A-9).
  */
 export const VIEW_KEPT_ATTRIBUTES: ReadonlySet<string> = new Set(['GlobalId']);
 
@@ -58,6 +59,14 @@ export const VIEW_RELATIONS: ReadonlyMap<number, { forRelating: string; forRelat
  */
 export const VIEW_EXTRA_ELEMENT_CLASSES: readonly number[] = [WebIFC.IFCELECTRICALELEMENT, WebIFC.IFCEQUIPMENTELEMENT];
 
+/**
+ * Element classes of the importer's own list that the view profile leaves out: IfcAnnotation, which
+ * is drawing content (text, dimensions, symbols, lettering modelled as a solid) and not a shape of
+ * the building (PRD R-080, "no signage ... text is drawn on any building"; ifc-input 6.2.15; the
+ * review of part 1, A-3). Signage modelled as a building element's own shape is not caught here.
+ */
+export const VIEW_LEFT_OUT_ELEMENT_CLASSES: readonly number[] = [WebIFC.IFCANNOTATION];
+
 /** Which settings a conversion uses: the view profile, or the library's own defaults (measured for comparison only). */
 export type ConversionProfile = 'view' | 'library-defaults';
 
@@ -76,6 +85,7 @@ export function viewerImporter(wasmDirectory: string, profile: ConversionProfile
   importer.webIfcSettings = { COORDINATE_TO_ORIGIN: true };
   if (profile === 'view') {
     for (const elementClass of VIEW_EXTRA_ELEMENT_CLASSES) importer.classes.elements.add(elementClass);
+    for (const elementClass of VIEW_LEFT_OUT_ELEMENT_CLASSES) importer.classes.elements.delete(elementClass);
     importer.classes.abstract = new DataSet<number>();
     importer.attributesToExclude = new EveryAttributeExcept(VIEW_KEPT_ATTRIBUTES);
     importer.relations = new Map(VIEW_RELATIONS);

@@ -166,8 +166,11 @@ function outputMount(jobId: string): string {
   return `type=volume,source=${sandboxNames(jobId).volume},target=${SANDBOX_OUTPUT},volume-nocopy`;
 }
 
-/** The flags every container of a job runs with (ADR 0018), before its image. */
-function confinement(limits: Pick<SandboxLimits, 'pids' | 'memory' | 'cpus'>): string[] {
+/**
+ * The flags every container of a job runs with (ADR 0018), before its image. The viewer step's conversion job
+ * (./model-view/sandbox.ts) runs with these same flags.
+ */
+export function confinement(limits: Pick<SandboxLimits, 'pids' | 'memory' | 'cpus'>): string[] {
   return [
     '--network',
     'none',

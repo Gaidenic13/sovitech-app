@@ -1,9 +1,11 @@
 # The build context of images built from the repository root: the IFC reader's
 # sandbox image (services/ifc-reader/Dockerfile; ADR 0031) and, since phase 4,
-# the viewer spike's conversion sandbox (services/viewer-spike/Dockerfile;
-# ADR 0046), which bundles only its converter and plan cutter. An
+# the model conversion sandbox (services/model-converter/Dockerfile, until the
+# viewer step services/viewer-spike/; ADR 0046), which bundles only the
+# converter and the plan cutter of packages/viewer-spike. An
 # allow list: everything is left out, then the lockfile, the workspace manifests
-# and the sources the image bundles are let back in. company/, fixtures, owner
+# and the sources the image bundles are let back in (and the conversion image's
+# Dockerfile, which its source hash covers). company/, fixtures, owner
 # documents, node_modules, .env and the other packages never reach a build.
 # The Python extractor's image builds from services/extractor with its own
 # .dockerignore.
@@ -22,6 +24,7 @@
 !packages/viewer-spike/package.json
 !packages/viewer-spike/src/convert/
 !packages/viewer-spike/src/plan/
+!services/model-converter/Dockerfile
 **/*.test.ts
 **/*.test.tsx
 **/node_modules

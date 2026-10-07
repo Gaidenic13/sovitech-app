@@ -50,7 +50,17 @@ export {
   type StatusFooterProps,
   type WorkspaceFrameProps,
 } from './frame';
-export { ModelArea, type ModelAreaProps, type ModelAreaStatus } from './ModelArea';
+export {
+  ModelArea,
+  type ModelAreaChooser,
+  type ModelAreaDocument,
+  type ModelAreaProps,
+  type ModelAreaState,
+  type ModelAreaStatus,
+  type ModelAreaView,
+  type ModelAreaViewSlot,
+  type ModelViewUnavailable,
+} from './ModelArea';
 export {
   RegisterTable,
   type ContentColumn,

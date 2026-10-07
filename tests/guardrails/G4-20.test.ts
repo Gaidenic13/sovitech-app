@@ -10,6 +10,10 @@
  * request scoped to that project, so row-level security shows it the rows it
  * tries to change. Every table's rows are read before and after by the database
  * administrator, who sees them all.
+ *
+ * Extended in the viewer step (part 1; migration 0017): the conversion record of a stored IFC model
+ * (`model_view_events`, append-only like every event table) holds a `queued` row written as the
+ * owner's upload writes it, and the app role can no more update, delete or truncate it.
  */
 import { afterAll, beforeAll, expect, test } from 'vitest';
 import {
@@ -20,6 +24,8 @@ import {
   appendFieldEvent,
   appendGuardrailEvent,
   openReviewItem,
+  queueModelView,
+  recordDocumentFile,
   recordAssetAppearance,
   registerDocument,
   withRequest,
@@ -49,6 +55,8 @@ const TABLES: readonly { readonly table: string; readonly change: string }[] = [
   { table: 'review_item_opens', change: 'opened_at = opened_at' },
   { table: 'audit_events', change: `reason = 'test-changed'` },
   { table: 'app_role_events', change: `reason = 'test-changed'` },
+  // The viewer step (migration 0017): a stored IFC model's conversion record.
+  { table: 'model_view_events', change: `type = 'converted'` },
 ];
 
 const INSUFFICIENT_PRIVILEGE = '42501';
@@ -101,6 +109,17 @@ beforeAll(async () => {
       role: 'owner',
     });
     await appendGuardrailEvent(request, { type: 'skipped', subjectId: value.subjectId, fieldKey: TEST_AREA_FIELD, actor: ownerId });
+    // A stored IFC model and its queued conversion, as the owner's upload records them (the viewer step).
+    const modelHash = testContentHash('G4-20 model');
+    const model = await registerDocument(request, {
+      contentHash: modelHash,
+      kind: 'other',
+      stage: 'unknown',
+      analysis: { status: 'stored_only', coverage: 'stored: IFC model' },
+      createdBy: ownerId,
+    });
+    await recordDocumentFile(request, { documentId: model.id, contentHash: modelHash, format: 'ifc', byteSize: 1024, createdBy: ownerId });
+    await queueModelView(request, { documentId: model.id, contentHash: modelHash, createdBy: ownerId });
   });
   await withRequest(database.app, { userId: value.serviceId, projectId }, (request) =>
     recordAssetAppearance(request, {

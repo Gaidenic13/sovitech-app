@@ -235,6 +235,10 @@ export const ROUTES = [
   { id: 'documents.revisionOf', method: 'POST', path: `${P}/documents/:documentId/revision-of`, session: true, csrf: true, refusals: ['422 revision_of_itself'], servesDisplayObjects: false, serves: ['US-DOCS-20', 'UD-43 (Documents: Replace and "Revision of…")', 'F-INGEST-06', 'G4-13', 'G4-14'], phase: 2 },
   { id: 'documents.engineerRecord', method: 'GET', path: `${P}/documents/:documentId/engineer-record`, session: true, csrf: false, refusals: [], servesDisplayObjects: false, serves: ['US-IFC-03', 'R-023 (engineer only)'], phase: 2 },
   { id: 'documents.file', method: 'GET', path: `${P}/documents/:documentId/file`, session: true, csrf: false, refusals: [], servesDisplayObjects: false, serves: ['US-DOCS-14', 'F-INGEST-08'], phase: 2 },
+  // The viewer step, part 1 (owner decision D-03, 2026-10-05, display only; docs/build-log.md "The viewer step" item 3): a
+  // current IFC model's converted view file, `application/octet-stream`, `Cache-Control: no-store`; 404 for anything else.
+  // No live page calls it until part 2 (the model area's display objects come from the step 3 and System Scope views).
+  { id: 'documents.modelView', method: 'GET', path: `${P}/documents/:documentId/model-view`, session: true, csrf: false, refusals: [], servesDisplayObjects: false, serves: ['US-MODEL-04', 'US-IFC-08', 'R-025', 'R-078', 'G13-4', 'ifc-input 6.2.16'], phase: 5 },
 ] as const satisfies readonly RouteSpec[];
 
 export type RouteId = (typeof ROUTES)[number]['id'];

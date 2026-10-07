@@ -2163,14 +2163,16 @@
 
   /* ------------------------------------------------------------------ model area */
   /* What a page shows where a model would be: no model, plan, outline or picture of a building (R-080; the
-     owner's answer of 2026-10-02). A hairline area, a 32px decorative icon, the words and the action. */
+     owner's answer of 2026-10-02). A hairline area, a 32px decorative icon, the words and the action. The page size
+     is step 3's approved area as phase 3 drew it (560px tall, 20px apart, the line at most 360px wide), so step 3
+     moved onto the kit with no visible change (DR-15; the viewer step). */
   .sov-model-area {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 16px;
-    min-height: 480px;
+    gap: 20px;
+    min-height: 560px;
     padding: 48px 40px;
     border: 1px solid var(--sov-border);
     border-radius: var(--sov-radius-surface);
@@ -2179,6 +2181,7 @@
   }
 
   .sov-model-area[data-size='panel'] {
+    gap: 16px;
     min-height: 280px;
     padding: 32px 24px;
   }
@@ -2191,7 +2194,7 @@
   .sov-model-area__status {
     display: grid;
     justify-items: center;
-    max-width: 380px;
+    max-width: 360px;
   }
 
   .sov-model-area .sov-not-available {
@@ -2201,6 +2204,81 @@
   .sov-model-area .sov-value__line {
     flex-wrap: wrap;
     justify-content: center;
+  }
+
+  /* The model's document line (the viewer step; G2-7): its name, then Stage and Revision with their values, then its
+     2.8 line. Centred in the text states, set from the start beside a view. */
+  .sov-model-area__document {
+    display: grid;
+    gap: 4px;
+    justify-items: center;
+    max-width: 100%;
+  }
+
+  .sov-model-area__name {
+    max-width: 100%;
+    margin: 0;
+    color: var(--sov-text-primary);
+    font-size: var(--sov-text-body-size);
+    font-weight: var(--sov-weight-medium);
+    line-height: var(--sov-text-body-leading);
+    overflow-wrap: anywhere;
+  }
+
+  .sov-model-area__facts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 16px;
+    margin: 0;
+    font-size: var(--sov-text-small-size);
+    line-height: var(--sov-text-small-leading);
+  }
+
+  .sov-model-area__fact {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .sov-model-area__fact > dt {
+    color: var(--sov-text-tertiary);
+  }
+
+  .sov-model-area__fact > dd {
+    margin: 0;
+  }
+
+  /* Several current models: their names as a list, one shown at a time (prompt 3 5.2 "Several models"). */
+  .sov-model-area__chooser {
+    width: 100%;
+    max-width: 360px;
+    text-align: start;
+  }
+
+  /* With a view: the heading, the chooser and the document line from the start, then the view filling the rest. */
+  .sov-model-area[data-layout='view'] {
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 24px;
+    text-align: start;
+  }
+
+  .sov-model-area[data-layout='view'] .sov-model-area__document,
+  .sov-model-area[data-layout='view'] .sov-model-area__facts {
+    justify-items: start;
+    justify-content: flex-start;
+  }
+
+  .sov-model-area__view {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 360px;
+  }
+
+  .sov-model-area[data-size='panel'] .sov-model-area__view {
+    min-height: 240px;
   }
 
   /* ------------------------------------------------------------------ text roles (phase 5 kit pass, DR-11) */

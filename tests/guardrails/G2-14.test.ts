@@ -20,6 +20,11 @@
  * Phase 4 extends it to the workspace (docs/adr/0044 decision 2; NP-4): Documents' rows and the delete confirmation, a
  * declared revision's "Revision of" and an asset's evidence (UD-08) name the file without the controls, through the
  * same `servedFileName`; the stored name is kept.
+ *
+ * The viewer step (part 1) adds a component half, not repeated here: the kit's model area shows a model's served file
+ * name in its document line exactly as served, isolated in its value element, and names the view by aria-labelledby,
+ * never by an aria-label holding the name (packages/ui/src/components/ModelArea.test.tsx, titles "G2-14 ·"). The model
+ * area's served document line (the view-model half) and the page half are part 2's.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { fileNamePart, insertCandidate, newId, recordAssetAppearance, registerDocument, storeDocumentTexts, withRequest } from '@sovitech/db';

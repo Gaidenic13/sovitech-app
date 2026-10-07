@@ -18,6 +18,7 @@ functions, and the data-access layer the API uses. Decisions: `docs/adr/0012` to
 | `src/guarded.ts` | Calls to the guarded functions: `verifyCandidate` (the one writer of `engineer_verified`), `eraseDocument` (the one audited erasure), and the audited account, role and project functions. |
 | `src/reads.ts` | Reads that return the domain's types for `derive` and `deriveAssetRegister`; `readProjectFieldInputs` (every field of given subjects at once, for the wizard's step views) and `readGuardrailEvents` (phase 3). |
 | `src/projects.ts` | The project list (`readUserProjects`, through `sovitech.request_user_projects()`, migration 0014) and a project's subjects (`readProjectSubjects`) (phase 3). |
+| `src/model-views.ts` | The viewer step (migration 0017): the append-only conversion record of a stored IFC model shown as a document (`model_view_events`: `queued`, `started`, `converted`, `failed` with a code, `erased`; codes, ids, sizes and times only, never a value), its derived state (`modelViewStateOf`), and the conversion queue (`sovitech_work.model_view_jobs`, one open job per project and content hash). |
 | `src/errors.ts` | The store's refusals (`StoreRefusal`, by SQLSTATE) and `StoreError` for any other database error: neither keeps the database's DETAIL, context, statement or input text (rule 13). |
 | `src/testing/` | `@sovitech/db/testing`: a throwaway TEST database with Testcontainers, and TEST accounts, projects and values. Tests only: dependency-cruiser's `db-testing-only-from-tests` lets only `tests/` and the store's own `*.test.ts` files reach it. |
 
@@ -53,7 +54,7 @@ the database too.
 ## Tests
 
 `pnpm test` runs the store's tests (`src/*.test.ts`) and the guardrail cases that
-drive it (`tests/guardrails/G1-14`, `G2-9`, `G3-16`, `G4-20` to `G4-24`, `G4-31`, `G8-4`, `G10-3`, `G10-8`, `G13-5` to `G13-8`) against a Postgres
+drive it (`tests/guardrails/G1-14`, `G2-9`, `G3-16`, `G4-20` to `G4-24`, `G4-31`, `G8-4`, `G10-3`, `G10-8`, `G13-5` to `G13-8`, `G13-14`) against a Postgres
 started by Testcontainers per test file. Docker must be running. When
 `DOCKER_HOST` is unset, the helper uses the docker CLI's current context (Colima
 works as is). The reaper image is pinned by digest too (`src/images.ts`).

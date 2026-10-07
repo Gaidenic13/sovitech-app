@@ -8,13 +8,17 @@
  * (SOVITECH_EXTRACTION_ACCOUNT_ID; `pnpm --filter @sovitech/api extraction-account`) and,
  * unless `--no-analysis` is given, Docker with the extractor image (ADR 0018) and the IFC
  * reader's image (ADR 0031), whose runs it drives as the worker does, with both images named
- * as worker-main.ts names them. The data folder must lie under the home folder when Docker
+ * as worker-main.ts names them, and, since the viewer step, the model conversion image
+ * (services/model-converter/build.sh), whose conversions of the two demo models it runs as the
+ * worker does. The data folder must lie under the home folder when Docker
  * runs in Colima. It prints ids, answer keys, fixture paths and 2.8 status lines: never
  * document text (rule 13).
  */
 import { openStore } from '@sovitech/db';
 import { assertGatesStartupSafe } from '@sovitech/registry/gates';
-import { REPOSITORY_ROOT, extractorImage, ifcReaderImage, databaseUrl, readSettings } from '../config';
+import { REPOSITORY_ROOT, extractorImage, ifcReaderImage, databaseUrl, modelConverterImage, readSettings } from '../config';
+import { converterSourceHash, inspectConverterImage } from '../jobs/model-view/image';
+import { DockerModelConverter } from '../jobs/model-view/sandbox';
 import { DockerExtractorRunner } from '../jobs/sandbox';
 import { stderrApiLog } from '../services';
 import { dataDirectoryFromEnvironment } from '../storage/data-dir';
@@ -46,6 +50,16 @@ try {
     extractionAccountId,
     repositoryRoot: REPOSITORY_ROOT,
     ...(analyse ? { runner: new DockerExtractorRunner({ extractor: extractorImage(settings), ifcReader: ifcReaderImage(settings) }) } : {}),
+    ...(analyse
+      ? {
+          converter: {
+            runner: new DockerModelConverter(),
+            image: modelConverterImage(settings),
+            sourceHash: await converterSourceHash(REPOSITORY_ROOT),
+            inspect: (image: string) => inspectConverterImage(image),
+          },
+        }
+      : {}),
     log: stderrApiLog,
   });
   const lines = [
@@ -56,6 +70,7 @@ try {
     `Documents: ${report.documents.length}`,
     ...report.documents.map((document) => `  ${document.path ?? document.documentId}: ${JSON.stringify(document.statusLine)}`),
     analyse ? `Analysis steps run: ${report.analysis.length}` : 'Analysis: left queued for the worker (--no-analysis)',
+    analyse ? `Model conversions run: ${report.conversions.map((step) => step.kind).join(', ') || 'none'}` : 'Model conversions: left queued for the worker (--no-analysis)',
     `AI: ${report.ai.reason}`,
   ];
   process.stdout.write(`${lines.join('\n')}\n`);

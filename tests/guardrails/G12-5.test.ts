@@ -13,12 +13,18 @@
  * The model's row reads "Not analysed: IFC model stored, not analysed" before and after
  * that reading, its analysis events hold nothing but that, and the coverage a "not found"
  * statement may cite holds the PDF's pages and never the model.
+ *
+ * Extended in the viewer step (part 1; R-025: "no model reads as analysed because it is
+ * shown"): the model is also converted for viewing (the TEST sandbox, scripted), and its line
+ * and the coverage stay as they were: a converted model counts nowhere as analysed (R-029).
+ * The step 3 half (the line beside the view) is the page's, in part 2.
  */
 import { afterAll, beforeAll, expect, test } from 'vitest';
 import { readProjectDocuments, withRequest } from '@sovitech/db';
 import { readAiSearches, readCoverage, searchedCoverage } from '../../apps/api/src/documents/coverage';
 import { projectDocuments } from '../../apps/api/src/documents/service';
 import { ScriptedRunner, documentList, fixtureBytes, ownerWithProject, signIn, startTestApi, testWorker, upload, type Auth, type TestApi } from './_support/api';
+import { ScriptedConverter, testConverterWorker } from './_support/model-view';
 import { idsReference, ifcOutput, pdfOutput } from './_support/outputs';
 
 let api: TestApi;
@@ -86,4 +92,21 @@ test('F-INGEST-03 · F-INGEST-05 · R-022 · R-029 · G12-5: an IFC model reads 
   // The model's record read the model completely; it still counts nowhere as analysed coverage.
   const documents = await withRequest(api.database.app, { userId: ownerId, projectId }, (request) => readProjectDocuments(request));
   expect(documents.documents.find((document) => document.id === modelId)?.analysis.status).toBe('stored_only');
+});
+
+test('R-025 · R-029 · G12-5 (extended, the viewer step): a model converted for viewing keeps the G12-1 line, and no "not found" statement counts it as analysed', async () => {
+  const steps = await testConverterWorker(api, new ScriptedConverter()).drain();
+  expect(steps.map((step) => step.kind)).toEqual(['converted']);
+  expect(await modelRow()).toMatchObject({ statusLine: { kind: 'status_line', statusLineId: 'not_analysed', text: G12_1_IFC, slots: { fileType: 'IFC model' } } });
+  const analyses = await api.database.asAdministrator<{ status: string; coverage: string }>(
+    'SELECT status, coverage FROM sovitech.document_analysis_events WHERE document_id = $1 ORDER BY at',
+    [modelId],
+  );
+  expect(analyses).toEqual([{ status: 'stored_only', coverage: 'stored: IFC model' }]);
+  const searched = await withRequest(api.database.app, { userId: ownerId, projectId }, async (request) => {
+    const { documents, statuses } = await projectDocuments(request);
+    const search = await readAiSearches(request, documents);
+    return [...readCoverage(documents, statuses.status), ...searchedCoverage(documents, statuses.status, { fieldKey: 'building.grossFloorArea', ...search })];
+  });
+  expect(searched.some((entry) => entry.documentId === modelId)).toBe(false);
 });

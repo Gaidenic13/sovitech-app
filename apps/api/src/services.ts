@@ -39,7 +39,9 @@ export interface ApiServices {
   /**
    * The extraction job's service account (kind `service`). The owner's upload adds it to
    * the project, in the owner's own request, when a file is queued for analysis, so the
-   * job can write the document's text and values as the system (2.1; ADR 0013).
+   * job can write the document's text and values as the system (2.1; ADR 0013), and, since
+   * the viewer step, when an IFC model is queued for conversion, so the conversion job can
+   * record its steps as the system (migration 0017).
    */
   readonly extractionAccountId: string;
   readonly sessions: SessionStore;

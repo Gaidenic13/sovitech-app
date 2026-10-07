@@ -6,6 +6,12 @@
  * an API key configured, runs the AI's extraction of PDF and XLSX documents through the
  * one ingestion path. It also removes abandoned uploads. Every log line is codes and ids.
  *
+ * The viewer step (owner decision D-03, 2026-10-05, display only): the same loop runs the
+ * conversions of stored IFC models for viewing (./jobs/model-view/worker.ts), one step of
+ * each queue in turn, so no two 4 GB sandboxes run at once. At start it queues the
+ * conversions current models still need (./jobs/model-view/backfill.ts), and reads the hash
+ * of the converter's sources the image's label must match (`stale_image` otherwise).
+ *
  * Like the API, it refuses to start while any gate fails the loosening check (prompt 3 5.4).
  */
 import { existsSync } from 'node:fs';
@@ -23,9 +29,13 @@ import { openStore } from '@sovitech/db';
 import { assertGatesStartupSafe } from '@sovitech/registry/gates';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { REPOSITORY_ROOT, extractorImage, ifcReaderImage, databaseUrl, readSettings } from './config';
+import { REPOSITORY_ROOT, extractorImage, ifcReaderImage, databaseUrl, modelConverterImage, readSettings } from './config';
 import { extractWithAi } from './ingestion/ai-extraction';
 import { AnalysisWorker } from './jobs/worker';
+import { queueMissingConversions } from './jobs/model-view/backfill';
+import { converterSourceHash, inspectConverterImage } from './jobs/model-view/image';
+import { CONVERSION_LIMITS, DockerModelConverter } from './jobs/model-view/sandbox';
+import { ModelViewWorker } from './jobs/model-view/worker';
 import { regenerateAfterAnalysis } from './proposal/service';
 import { PRODUCTION_API_REGISTRY } from './wizard/registry';
 import { DockerExtractorRunner } from './jobs/sandbox';
@@ -92,6 +102,29 @@ const worker = new AnalysisWorker({ store, files, log: stderrApiLog }, runner, {
 });
 
 /**
+ * The conversions of stored IFC models for viewing (the viewer step): the model conversion image, checked against this
+ * repository's converter sources before each conversion; a running conversion is claimed again only once its lock is
+ * older than the sandbox's wall clock and the docker steps around it.
+ */
+const converterImage = modelConverterImage(settings);
+const converter = new ModelViewWorker({ store, files, log: stderrApiLog }, new DockerModelConverter(), {
+  workerId: `converter-${process.pid}`,
+  serviceId,
+  image: converterImage,
+  sourceHash: await converterSourceHash(REPOSITORY_ROOT),
+  inspect: (image) => inspectConverterImage(image),
+  maxAttempts: 3,
+  retryAfterSeconds: 60,
+  staleAfterSeconds: CONVERSION_LIMITS.wallClockSeconds + 600,
+});
+try {
+  const backfill = await queueMissingConversions({ store, log: stderrApiLog }, serviceId);
+  stderrApiLog({ event: 'model_view_backfill', code: 'done', codes: [`projects:${String(backfill.projects)}`, `queued:${String(backfill.queued.length)}`, `failed:${String(backfill.failed.length)}`] });
+} catch {
+  stderrApiLog({ event: 'model_view_backfill', code: 'backfill_failed' });
+}
+
+/**
  * Abandoned uploads (no append or completion for ABANDONED_UPLOAD_SECONDS, and no lease held) go
  * with their staged bytes, sealed copy and file name: the same sweep the API process runs when an
  * upload is opened (ADR 0019, ADR 0028). A failure is logged as a code and never ends the loop.
@@ -115,10 +148,15 @@ process.on('SIGTERM', () => {
 let lastSweep = 0;
 while (!stopping) {
   const step = await worker.runOnce();
+  // One conversion between analysis steps: one sandbox at a time, and neither queue waits on the other's backlog.
+  const conversion = stopping ? { kind: 'idle' as const } : await converter.runOnce().catch(() => {
+    stderrApiLog({ event: 'model_view_job_ended', code: 'worker_error' });
+    return { kind: 'idle' as const };
+  });
   if (Date.now() - lastSweep > 10 * 60 * 1000) {
     await sweepUploads();
     lastSweep = Date.now();
   }
-  if (step.kind === 'idle') await new Promise((resolve) => setTimeout(resolve, 2000));
+  if (step.kind === 'idle' && conversion.kind === 'idle') await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 await store.close();

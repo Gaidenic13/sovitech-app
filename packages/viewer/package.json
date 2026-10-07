@@ -3,14 +3,27 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "description": "The model viewer (prompt 3 sections 6 and 8; docs/build-log.md, the viewer step): the graphics probe and the lazily loaded view of a stored IFC model's converted Fragments file, shown as a document with nothing read from it. Mounted on no live page until the approver decides P-V-CANVAS-UNREADABLE (part 2).",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./testing": "./src/testing.ts",
+    "./viewer.css": "./src/viewer.css"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@sovitech/ui": "workspace:*",
     "@sovitech/view-model": "workspace:*",
-    "react": "19.3.0"
+    "@thatopen/fragments": "3.4.7",
+    "camera-controls": "3.1.2",
+    "lucide-react": "1.48.0",
+    "react": "19.3.0",
+    "three": "0.186.1",
+    "web-ifc": "0.0.78"
+  },
+  "devDependencies": {
+    "@types/three": "0.186.0",
+    "axe-core": "4.13.0"
   }
 }

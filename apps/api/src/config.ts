@@ -10,6 +10,7 @@ import { parseEnv } from 'node:util';
 import { parseNumber } from '@sovitech/registry';
 import { DEFAULT_SESSION_LIFETIMES, type SessionLifetimes } from './auth/sessions';
 import { DEFAULT_IFC_READER_IMAGE } from './jobs/sandbox';
+import { DEFAULT_MODEL_CONVERTER_IMAGE } from './jobs/model-view/image';
 
 /** The repository root: the folder holding fixtures/manifest.json, prompts/ and .env. */
 export const REPOSITORY_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
@@ -24,6 +25,8 @@ export const SETTING_NAMES = [
   'SOVITECH_EXTRACTION_ACCOUNT_ID',
   'SOVITECH_EXTRACTOR_IMAGE',
   'SOVITECH_IFC_READER_IMAGE',
+  // The viewer step (docs/build-log.md, "The viewer step"; owner decision D-03, 2026-10-05): the model conversion sandbox image.
+  'SOVITECH_CONVERTER_IMAGE',
   // Phase 3 (docs/adr/0037-e2e-setup.md): whole connection strings, which win over the port, name
   // and passwords above when set (the e2e setup's TEST database gives them).
   'SOVITECH_DB_APP_URL',
@@ -140,6 +143,11 @@ export function extractorImage(settings: Settings): string {
 /** The IFC reader image (services/ifc-reader/Dockerfile; ADR 0031), built locally. */
 export function ifcReaderImage(settings: Settings): string {
   return settings.SOVITECH_IFC_READER_IMAGE ?? DEFAULT_IFC_READER_IMAGE;
+}
+
+/** The model conversion sandbox image (services/model-converter/build.sh; the viewer step), built locally. */
+export function modelConverterImage(settings: Settings): string {
+  return settings.SOVITECH_CONVERTER_IMAGE ?? DEFAULT_MODEL_CONVERTER_IMAGE;
 }
 
 /**

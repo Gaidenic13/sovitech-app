@@ -58,3 +58,8 @@
 ## How to reverse
 
 Replace the global setup with a fixed local stack (docker-compose's Postgres, the seed CLI, `pnpm dev:api`), keeping the proxy; or run the API in-process inside the global setup with `buildServer` (as `tests/guardrails/_support/api.ts` does) instead of spawning it.
+
+## Amended in the viewer step (2026-10-07, part 1; ADR 0051)
+
+The stack needs a third locally built image, the model conversion sandbox `sovitech-model-converter:dev` (`services/model-converter/build.sh`), beside the two analysis images: `tests/e2e/setup/stack.ts` checks for it, names its build command when it is missing, and passes it to the API and the worker as `SOVITECH_CONVERTER_IMAGE`. The demo seed queues the conversions of its two IFC models, and the worker runs them (one sandbox at a time, about a second each); nothing visible changes in part 1, since no page mounts the view. Without the image, the stack refuses to start rather than letting the conversions retry and record `sandbox_unavailable`.
+
