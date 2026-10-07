@@ -207,13 +207,19 @@ export async function engineerDocumentRecord(request: Request, documentId: strin
 // ---------------------------------------------------------------------------
 
 /**
- * Declares one document a revision of another, by the owner or an engineer in their own
- * name (2.3: "Revisions are declared, never guessed"). The superseded status and the
- * supersession of the older values are derived (derive; G4-13, G4-14).
+ * Declares one document a revision of another, by the project's owner in their own name (2.3:
+ * "Revisions are declared, never guessed"). The superseded status and the supersession of the
+ * older values are derived (derive; G4-13, G4-14).
+ *
+ * 2.3 lets an engineer declare one too, and the store would take it (a person holding
+ * `sovitech_engineer` acts on every project by role: ADR 0013 decision 5). While PRD D-16 is open
+ * no engineer acts in the app (R-128 "Until decided"), and phase 7 made a development engineer who
+ * can sign in, so the API takes a declaration from the owner only: anyone else is refused 403
+ * `owner_only` with nothing stored, a demo project included (phase 7 part B, the adversarial
+ * review's finding A-3; ADR 0053, amended). The engineer's declaration comes back with Track E.
  */
 export async function declareRevision(request: Request, input: { readonly userId: string; readonly documentId: string; readonly revisionOf: string }): Promise<void> {
-  const role = (await requestActsAs(request, 'owner')) ? 'owner' : (await requestActsAs(request, 'sovitech_engineer')) ? 'sovitech_engineer' : undefined;
-  if (role === undefined) throw forbidden('owner_or_engineer_only');
+  await requireOwner(request);
   // Phase 4 (docs/adr/0044 decision 6): a declaration sent with another write of the project (two tabs, a double press
   // on Documents' "Revision of…") decides on the other's result: the project's write lock before the state is read.
   await lockProjectWrites(request);
@@ -223,7 +229,7 @@ export async function declareRevision(request: Request, input: { readonly userId
     if (status === undefined || status === 'withdrawn' || status === 'erased') throw notFound();
   }
   if (input.documentId === input.revisionOf) throw new ApiRefusal(422, 'revision_of_itself');
-  await appendDocumentEvent(request, { documentId: input.documentId, type: 'declared_revision_of', revisionOf: input.revisionOf, by: input.userId, role });
+  await appendDocumentEvent(request, { documentId: input.documentId, type: 'declared_revision_of', revisionOf: input.revisionOf, by: input.userId, role: 'owner' });
 }
 
 // ---------------------------------------------------------------------------

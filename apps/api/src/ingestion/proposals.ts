@@ -20,7 +20,9 @@
  *    dimension against the field, 2.7, and the evidence's project and revision again),
  *    and a proposal from the AI records the model id the API returned with it
  *    (build-readiness 3 item 6);
- * 4. a rejection stores nothing but its guardrail events, with codes, never text.
+ * 4. a rejection stores nothing but its guardrail events, with codes, never text;
+ * 5. the fields that gained a value are derived again in the same request, and a conflict a stored value opens is
+ *    logged as section 8's `conflict_raised`, once (../wizard/conflicts.ts; G4-48).
  */
 import {
   appendGuardrailEvent,
@@ -44,6 +46,7 @@ import {
 } from '@sovitech/domain';
 import { parseEvidenceLocator } from '@sovitech/extraction-contract';
 import type { UnitCheckedField } from '@sovitech/registry';
+import { logConflictsOfTouchedFields } from '../wizard/conflicts';
 import { readQuantities } from './quantities';
 
 /** A proposal as it reaches the ingestion path, its subject resolved by code. */
@@ -136,6 +139,7 @@ export async function ingestProposals(
   };
 
   const outcomes: ProposalOutcome[] = [];
+  const touched: { subjectId: string; field: FieldDefinition }[] = [];
   for (const incoming of input.proposals) {
     const proposal = incoming.proposal;
     const field = input.field(proposal.fieldKey);
@@ -175,6 +179,7 @@ export async function ingestProposals(
     const written = await insertCandidate(request, candidate, field);
     if (written.outcome === 'stored') {
       if (incoming.modelId !== undefined) await recordCandidateAiOrigin(request, { candidateId: candidate.id, modelId: incoming.modelId, createdBy: input.serviceId });
+      touched.push({ subjectId: candidate.subjectId, field });
       outcomes.push({ fieldKey: proposal.fieldKey, outcome: 'stored', candidateId: candidate.id, source: candidate.source === 'document' ? 'document' : 'ai_inference' });
     } else if (written.outcome === 'rejected') {
       outcomes.push({ fieldKey: proposal.fieldKey, outcome: 'rejected', code: written.refusal });
@@ -183,5 +188,7 @@ export async function ingestProposals(
       outcomes.push({ fieldKey: proposal.fieldKey, outcome: 'rejected', code: `unit_${written.refusal}` });
     }
   }
+  // Section 8: a conflict the stored values open is logged when it is stored (G4-48), never served differently.
+  await logConflictsOfTouchedFields(request, touched, input.serviceId);
   return outcomes;
 }

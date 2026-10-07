@@ -11,7 +11,7 @@
  * registries in tests/ (never through the gate-opening test utilities, which stay `tests/proposed/`'s), so the served
  * views can be proven over TEST fields while production behaviour is unchanged.
  */
-import { declaredFormulaLookup, derive, type Candidate, type DeriveEvents, type DocumentRecord, type FieldState } from '@sovitech/domain';
+import { declaredFormulaLookup, derive, type Candidate, type DeriveEvents, type DocumentRecord, type FieldDefinition, type FieldState } from '@sovitech/domain';
 import {
   AUTOMATION_FIELDS,
   GOAL_FIELDS,
@@ -94,7 +94,7 @@ export function questionsOfStep(registry: ApiRegistry, step: StepNumber): Questi
 /** The one derive, with the registry's lookups: no dataset is approved, no calculated input is derived before phase 5. */
 export function deriveField(
   registry: ApiRegistry,
-  field: RegistryFieldDefinition,
+  field: FieldDefinition,
   subjectId: string,
   candidates: readonly Candidate[],
   events: DeriveEvents,

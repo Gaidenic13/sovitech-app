@@ -48,6 +48,11 @@ export const metricsView: RequestMatch = (method, path) => method === 'GET' && n
 export const metricsPrintView: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/metrics/(?:payback|lifecycle)/print$`, 'u').test(path);
 /** Phase 6: Export Report (`GET /api/projects/:projectId/exports/metrics/<page>`, `exports.metrics`; R-121). */
 export const metricsExport: RequestMatch = (method, path) => method === 'GET' && new RegExp(`^/api/projects/${UUID}/exports/metrics/[a-z]+$`, 'u').test(path);
+/**
+ * Phase 7 (docs/adr/0053): an admin page's view (`GET /api/admin/accounts`, `/datasets`, `/guardrail-events`;
+ * `admin.accounts`, `admin.datasets`, `admin.guardrailEvents`).
+ */
+export const adminView: RequestMatch = (method, path) => method === 'GET' && /^\/api\/admin\/(?:accounts|datasets|guardrail-events)$/u.test(path);
 /** An upload's chunk (`PUT /api/projects/:projectId/uploads/:uploadId`). */
 export const uploadChunk: RequestMatch = (method, path) => method === 'PUT' && new RegExp(`^/api/projects/${UUID}/uploads/${UUID}$`, 'u').test(path);
 

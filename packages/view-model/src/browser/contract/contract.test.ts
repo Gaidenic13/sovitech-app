@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ADMIN_PAGES,
+  AccountsViewSchema,
+  AdminAccountsResponseSchema,
   DisplayObjectSchema,
   FinancialOverviewViewSchema,
   LevelRegisterSchema,
@@ -10,6 +13,7 @@ import {
   ProposalOutputSchema,
   ROUTES,
   SERIES_KEY_PATTERN,
+  SPEED_TRUTH_PAIRS,
   SeriesPointSchema,
   SeriesSchema,
   VALUE_ID_PATTERN,
@@ -283,5 +287,73 @@ describe('ADR 0052 · F-RENDER-06 · F-RENDER-07: the phase 6 contract (the Metr
 describe('V-11 (phase 5 part B, fixed in phase 6): the price contract after the fix', () => {
   it('V-11 · rule 10: the price has three fields: its figure, its stage id and its quotation record (the lines live in the figure\'s display)', () => {
     expect(Object.keys(PriceSchema.shape).sort()).toEqual(['figure', 'quotationRecordId', 'stageId']);
+  });
+});
+
+describe('ADR 0053 (phase 7 planner): the development-only admin contract', () => {
+  const ADMIN_ROUTES = ['admin.accounts', 'admin.datasets', 'admin.guardrailEvents'] as const;
+  const USER = '0192f0e4-7c1a-7d2b-9e3f-4a5b6c7d8e71';
+  const EVENT = '0192f0e4-7c1a-7d2b-9e3f-4a5b6c7d8e72';
+  const record = (valueId: string, text: string): DisplayObject => ({ valueId, kind: 'record', text, shape: 'value' });
+
+  it('ADR 0053 · R-154 "Until decided" · prompt 3 5.4: the admin routes are session reads of phase 7, none of them writes, and each serves display objects', () => {
+    for (const id of ADMIN_ROUTES) {
+      const route = routeById(id);
+      expect(route.method, id).toBe('GET');
+      expect(route.csrf, id).toBe(false);
+      expect(route.session, id).toBe(true);
+      expect(route.servesDisplayObjects, id).toBe(true);
+      expect(route.phase, id).toBe(7);
+      expect(route.refusals, id).toEqual(['404 admin_off', '403 admin_only']);
+      expect(isDisplayObjectRequest('GET', route.path), id).toBe(true);
+    }
+    expect(ROUTES.filter((route) => route.path.startsWith('/api/admin')).map((route) => route.id).sort()).toEqual([...ADMIN_ROUTES].sort());
+  });
+
+  it('ADR 0053 · G2-1: the admin value ids follow the render contract', () => {
+    for (const valueId of [
+      `account:${USER}.displayName`,
+      `account:${USER}.roles.sovitech_admin.since`,
+      `role_event:${EVENT}.reason`,
+      `admin_project:${PROJECT}.id`,
+      'dataset:sovitech-cost-ranges.approval',
+      `guardrail_count:${PROJECT}.question_for_known_field`,
+      'guardrail_count:all.byRelease',
+      `metric:${PROJECT}.questions_per_project.target`,
+      'calibration:all.threshold',
+      'calibration:high.items.building.type.corrections',
+      `erasure:${EVENT}.removed`,
+    ]) {
+      expect(VALUE_ID_PATTERN.test(valueId), valueId).toBe(true);
+    }
+  });
+
+  it('ADR 0053 · rule 7: an admin response serves every value id its view names', () => {
+    const name = `account:${USER}.displayName`;
+    const since = `account:${USER}.roles.sovitech_admin.since`;
+    const view = {
+      accounts: [{ userId: USER, name, kind: 'person', roles: [{ role: 'sovitech_admin', since }], development: true }],
+      roleEvents: [],
+      projects: [],
+      processors: { state: 'none_chosen' },
+    };
+    const response = (displayObjects: readonly DisplayObject[]) => ({ asOf: '2026-10-07T09:00:00.000Z', displayObjects, view });
+    const all = [record(name, 'Development admin'), { valueId: since, kind: 'line' as const, text: '7 Oct 2026', shape: 'value' as const }];
+    expect(AdminAccountsResponseSchema.safeParse(response(all)).success).toBe(true);
+    expect(AdminAccountsResponseSchema.safeParse(response(all.filter((display) => display.valueId !== since))).success).toBe(false);
+  });
+
+  it('ADR 0053 · R-143 "Until decided": the processors read none chosen, and nothing else', () => {
+    expect(AccountsViewSchema.shape.processors.safeParse({ state: 'none_chosen' }).success).toBe(true);
+    expect(AccountsViewSchema.shape.processors.safeParse({ state: 'chosen', names: ['any'] }).success).toBe(false);
+  });
+
+  it('ADR 0053 · guardrails section 4 "Measure it": each speed metric sits next to its truth metric, three pairs in the table\'s order', () => {
+    expect(SPEED_TRUTH_PAIRS.map((pair) => [pair.speed, pair.truth])).toEqual([
+      ['questions_per_project', 'owner_correction_rate'],
+      ['confirmations_per_project', 'engineer_corrections_of_accepted_items'],
+      ['time_to_first_estimate', 'estimated_share_of_first_estimate'],
+    ]);
+    expect(ADMIN_PAGES).toEqual(['accounts', 'datasets', 'guardrail_events']);
   });
 });

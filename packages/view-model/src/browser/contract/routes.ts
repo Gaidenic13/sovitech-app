@@ -73,6 +73,7 @@ import {
   OpexResponseSchema,
   PaybackResponseSchema,
 } from './metrics';
+import { AdminAccountsResponseSchema, AdminDatasetsResponseSchema, AdminGuardrailEventsResponseSchema } from './admin';
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
@@ -95,10 +96,10 @@ export interface RouteSpec {
   readonly serves: readonly string[];
   /**
    * Built in phase 2 (kept as they are), phase 3 (the wizard), phase 4 (the workspace: workspace.ts; docs/adr/0044),
-   * phase 5 (the proposal, Reports and exports: proposal.ts; docs/adr/0049) or phase 6 (the Metrics pages: metrics.ts;
-   * docs/adr/0052).
+   * phase 5 (the proposal, Reports and exports: proposal.ts; docs/adr/0049), phase 6 (the Metrics pages: metrics.ts;
+   * docs/adr/0052) or phase 7 (the development-only admin area: admin.ts; docs/adr/0053).
    */
-  readonly phase: 2 | 3 | 4 | 5 | 6;
+  readonly phase: 2 | 3 | 4 | 5 | 6 | 7;
 }
 
 const P = '/api/projects/:projectId';
@@ -295,6 +296,13 @@ export const ROUTES = [
   { id: 'metrics.lifecycle.print', method: 'GET', path: `${P}/metrics/lifecycle/print`, session: true, csrf: false, query: MetricsPrintQuerySchema, response: LifecycleResponseSchema, refusals: [], servesDisplayObjects: true, serves: ['R-121', 'US-REPORTS-13', 'F-EXPORT-01', 'G1-32', 'G10-16'], phase: 6 },
   { id: 'exports.metrics', method: 'GET', path: `${P}/exports/metrics/:page`, session: true, csrf: false, query: MetricsPrintQuerySchema, refusals: ['503 export_unavailable'], servesDisplayObjects: false, serves: ['DB-21', 'DB-22', 'R-121', 'US-REPORTS-13', 'F-EXPORT-01', '7.1-r25', 'G1-32', 'G10-16', 'docs/adr/0050', 'docs/adr/0052'], phase: 6 },
 
+  // ---- Phase 7: the development-only admin area (admin.ts; docs/adr/0053) -------------------------------------------
+  // UD-39 to UD-41, read-only: a person holding sovitech_admin, while the development login is on (404 `admin_off`
+  // otherwise; 403 `admin_only` without the role). No route here writes anything (prompt 3 5.4; guardrails section 10).
+  { id: 'admin.accounts', method: 'GET', path: '/api/admin/accounts', session: true, csrf: false, response: AdminAccountsResponseSchema, refusals: ['404 admin_off', '403 admin_only'], servesDisplayObjects: true, serves: ['UD-39', 'R-134', 'R-143', 'R-154', 'US-ADMIN-03', 'US-ADMIN-16 AC1', 'US-ADMIN-17 AC1', 'US-ADMIN-17 AC2', 'F-AUTH-02', 'F-AUTH-06', 'F-AUDIT-03', 'G10-3', 'G13-16'], phase: 7 },
+  { id: 'admin.datasets', method: 'GET', path: '/api/admin/datasets', session: true, csrf: false, response: AdminDatasetsResponseSchema, refusals: ['404 admin_off', '403 admin_only'], servesDisplayObjects: true, serves: ['UD-40', 'R-141', 'R-150', 'R-132', 'US-ADMIN-19 AC1', 'US-ADMIN-19 AC2', 'US-ADMIN-19 AC4', 'US-ENGINEER-12 AC1', 'F-REGISTRY-05', 'F-REGISTRY-06', 'G1-12', 'G1-33'], phase: 7 },
+  { id: 'admin.guardrailEvents', method: 'GET', path: '/api/admin/guardrail-events', session: true, csrf: false, response: AdminGuardrailEventsResponseSchema, refusals: ['404 admin_off', '403 admin_only'], servesDisplayObjects: true, serves: ['UD-41', 'R-142', 'R-151', 'R-152', 'R-155', 'US-ADMIN-20', 'US-ADMIN-21', 'US-ADMIN-22 AC1', 'US-ADMIN-22 AC4', 'US-ADMIN-23', 'US-ADMIN-24 AC1', 'F-AUDIT-01', 'F-AUDIT-02', 'F-AUDIT-04', 'F-AUDIT-05', 'G3-24', 'G3-26', 'G13-15', 'G13-16', 'GS-2'], phase: 7 },
+
   // ---- Uploads (phase 2, ADR 0019; step 2) ---------------------------------------------------
   { id: 'uploads.create', method: 'POST', path: `${P}/uploads`, session: true, csrf: true, request: CreateUploadRequestSchema, response: UploadStateSchema, refusals: ['415 format_not_accepted', '413 file_too_large', '400 file_name_invalid', '400 size_invalid', '403 owner_only'], servesDisplayObjects: false, serves: ['OB-2', 'UD-33', 'US-DOCS-01', 'R-013', 'F-INGEST-01'], phase: 2 },
   { id: 'uploads.status', method: 'GET', path: `${P}/uploads/:uploadId`, session: true, csrf: false, response: UploadStateSchema, refusals: [], servesDisplayObjects: false, serves: ['US-DOCS-01', 'F-INGEST-01'], phase: 2 },
@@ -306,7 +314,7 @@ export const ROUTES = [
   { id: 'health', method: 'GET', path: '/health', session: false, csrf: false, refusals: [], servesDisplayObjects: false, serves: ['ADR 0002'], phase: 2 },
   { id: 'documents.list', method: 'GET', path: `${P}/documents`, session: true, csrf: false, refusals: [], servesDisplayObjects: false, serves: ['F-INGEST-08 (raw rows for tests and the demo seed; the Documents page reads workspace.documents, phase 4)'], phase: 2 },
   { id: 'documents.delete', method: 'DELETE', path: `${P}/documents/:documentId`, session: true, csrf: true, refusals: ['409 erasure_files_left', '403 owner_only'], servesDisplayObjects: false, serves: ['US-DOCS-21', 'UD-42 (Documents, after workspace.documents.deleteEffect)', 'F-INGEST-07', 'G13-3 (no step 2 delete: US-DOCS-03 AC11)'], phase: 2 },
-  { id: 'documents.revisionOf', method: 'POST', path: `${P}/documents/:documentId/revision-of`, session: true, csrf: true, refusals: ['422 revision_of_itself'], servesDisplayObjects: false, serves: ['US-DOCS-20', 'UD-43 (Documents: Replace and "Revision of…")', 'F-INGEST-06', 'G4-13', 'G4-14'], phase: 2 },
+  { id: 'documents.revisionOf', method: 'POST', path: `${P}/documents/:documentId/revision-of`, session: true, csrf: true, refusals: ['403 owner_only', '422 revision_of_itself'], servesDisplayObjects: false, serves: ['US-DOCS-20', 'UD-43 (Documents: Replace and "Revision of…")', 'F-INGEST-06', 'G4-13', 'G4-14'], phase: 2 },
   { id: 'documents.engineerRecord', method: 'GET', path: `${P}/documents/:documentId/engineer-record`, session: true, csrf: false, refusals: [], servesDisplayObjects: false, serves: ['US-IFC-03', 'R-023 (engineer only)'], phase: 2 },
   { id: 'documents.file', method: 'GET', path: `${P}/documents/:documentId/file`, session: true, csrf: false, refusals: [], servesDisplayObjects: false, serves: ['US-DOCS-14', 'F-INGEST-08'], phase: 2 },
   // The viewer step, part 1 (owner decision D-03, 2026-10-05, display only; docs/build-log.md "The viewer step" item 3): a

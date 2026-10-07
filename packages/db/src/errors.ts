@@ -1,6 +1,6 @@
 /**
  * The store's refusals and errors. The database raises each refusal with its own
- * SQLSTATE (migrations 0006, 0008, 0009, and the guards of 0010 to 0017); the
+ * SQLSTATE (migrations 0006, 0008, 0009, the guards of 0010 to 0017, and 0018's admin reads); the
  * data-access layer turns it into a StoreRefusal naming why, so callers never
  * parse a message.
  *
@@ -35,6 +35,8 @@ export const STORE_REFUSALS = {
   SVR03: 'self_administration',
   SVR04: 'role_granted_on_the_operator_login_only',
   SVR05: 'demo_flag_follows_the_account',
+  // Phase 7 (migration 0018; ADR 0053 decision 6): the admin area's reads, for a person holding sovitech_admin only.
+  SVR06: 'admin_read_needs_the_admin_role',
   SVR10: 'written_only_by_its_guarded_function',
   SVX01: 'candidate_without_evidence',
   SVX02: 'evidence_without_excerpt',

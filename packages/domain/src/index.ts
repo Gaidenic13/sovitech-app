@@ -20,5 +20,6 @@ export * from './revision-notice';
 export * from './assets';
 export * from './evidence';
 export * from './confidence';
+export * from './calibration';
 export * from './ifc-evidence';
 export * from './not-implemented';

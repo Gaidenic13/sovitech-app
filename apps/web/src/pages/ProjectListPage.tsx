@@ -17,33 +17,46 @@
  * - A name is isolated (`<bdi>`), so a direction control the owner typed reorders nothing around it.
  * - "New project" opens step 1 with no project: nothing is stored until Next sends all four required
  *   fields (G7-6; US-ADMIN-05 AC3).
+ * - By role (phase 7; docs/adr/0053 decision 4; ../admin/landing.ts): "New project" shows only to a user holding
+ *   `owner` (the store refuses anyone else's owner answers, ADR 0013, so the button would lead nowhere: a product doc
+ *   issue against R-136). A user without `owner` reads, under the title, one line for each SOVITECH role they hold,
+ *   saying what it does in this build (the engineer queue waits for D-16, PRD R-128 "Until decided"; the commercial
+ *   review waits for D-20 and D-16, R-129; the admin area is open to the admin), and an empty list says only that
+ *   there is no project. A user holding `sovitech_admin` sees "Open the admin area", owner or not (R-144 "Until
+ *   decided" keeps the header menu as it is, so the area is reached from here and by the landing). Draft copy, for
+ *   the owner's OK.
  *
  * Undesigned (UD-37): drawn in the wizard's language, per the frontend-design skill within the
  * brand: a left-aligned column at the form steps' width, the page title and "New project" on one
  * line, and the projects as one ruled list (hairlines between rows, not cards), each row a single
  * link with the building icon, the name, the demo line under the demo project's name, and a chevron.
+ * The role lines (undesigned, phase 7) sit under the title's intro, in the title's column, each line with the info
+ * glyph, the way a quiet notice reads: words only, no badge, rule or colour of their own, so the list keeps its one
+ * hairline above it.
  */
-import { Building2, ChevronRight, Plus } from 'lucide-react';
+import { ArrowRight, Building2, ChevronRight, Info, Plus } from 'lucide-react';
 import { Link } from 'react-router';
-import { DemoLine } from '@sovitech/ui';
+import { DemoLine, Icon } from '@sovitech/ui';
 import type { ProjectListResponse } from '@sovitech/view-model/browser';
+import { ADMIN_LANDING, mayCreateProjects, mayReadAdminArea, roleLinesOf, type RoleLineRole } from '../admin/landing';
 import { request } from '../api/client';
 import { useEffect } from 'react';
 import { useLoad } from '../api/use-load';
 import { copy } from '../copy';
-import { useSession } from '../session/SessionProvider';
+import { useSession, useSessionUser } from '../session/SessionProvider';
 import { AppShell } from '../shell/AppShell';
 import { useRenderReady } from '../shell/render-ready';
 import { indexDisplays } from '../wizard/use-step-view';
 import { LoadFailed, Loading } from './PageState';
 
-function ProjectRows({ list }: { readonly list: ProjectListResponse }) {
+function ProjectRows({ list, owner }: { readonly list: ProjectListResponse; readonly owner: boolean }) {
   const displays = indexDisplays(list.displayObjects);
   if (list.projects.length === 0) {
     return (
       <div className="flex flex-col gap-2 border-y border-(--sov-border) py-8">
         <p className="text-[17px] font-semibold">{copy.projects.empty}</p>
-        <p className="text-[15px] text-(--sov-text-tertiary)">{copy.projects.emptyDetail}</p>
+        {/* How a project starts is said only to whoever may start one (ADR 0053 decision 4). */}
+        {owner ? <p className="text-[15px] text-(--sov-text-tertiary)">{copy.projects.emptyDetail}</p> : null}
       </div>
     );
   }
@@ -95,7 +108,39 @@ function ProjectRows({ list }: { readonly list: ProjectListResponse }) {
   );
 }
 
+/** What a user without `owner` may do here, one line per SOVITECH role held (draft copy: `projects.roleLines`). */
+function RoleLines({ roles, admin }: { readonly roles: readonly RoleLineRole[]; readonly admin: boolean }) {
+  if (roles.length === 0) return null;
+  return (
+    <section aria-label={copy.projects.roleLinesLabel} className="flex flex-col gap-3 pt-3" data-role-lines="">
+      {roles.map((role) => (
+        <p key={role} className="flex items-start gap-3 text-[15px] text-(--sov-text-primary)" data-role-line={role}>
+          <span className="mt-0.5 shrink-0 text-(--sov-text-tertiary)">
+            <Icon icon={Info} size="small" />
+          </span>
+          <span>{copy.projects.roleLines[role]}</span>
+        </p>
+      ))}
+      {admin ? <AdminLink /> : null}
+    </section>
+  );
+}
+
+/** "Open the admin area": a link, as the area is reached by role and never by a menu entry (R-144 "Until decided"). */
+function AdminLink() {
+  return (
+    <Link to={ADMIN_LANDING} className="sov-button self-start" data-variant="link" data-size="default" data-icon="true" data-copy-kind="action-label" data-open-admin="">
+      <span>{copy.projects.openAdmin}</span>
+      <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" focusable="false" />
+    </Link>
+  );
+}
+
 export function ProjectListPage() {
+  const user = useSessionUser();
+  const owner = mayCreateProjects(user);
+  const admin = mayReadAdminArea(user);
+  const roleLines = roleLinesOf(user);
   const loaded = useLoad((signal) => request('projects.list', { signal }), []);
   const { state } = loaded;
   const { rememberProject } = useSession();
@@ -115,16 +160,22 @@ export function ProjectListPage() {
             <h1 id="projects-title" className="text-(length:--sov-title-size) leading-tight font-light tracking-(--sov-title-tracking)">
               {copy.projects.title}
             </h1>
-            <p className="text-[17px] font-light text-(--sov-text-tertiary)">{copy.projects.intro}</p>
+            <p className="text-[17px] font-light text-(--sov-text-tertiary)">{owner ? copy.projects.intro : copy.projects.introWithoutOwner}</p>
+            <RoleLines roles={roleLines} admin={admin} />
           </div>
-          <Link
-            to="/projects/new"
-            data-copy-kind="action-label"
-            className="flex h-(--sov-button-height) shrink-0 items-center gap-3 rounded-(--sov-radius-control) bg-(--sov-primary-fill) px-6 text-[15px] font-medium text-(--sov-primary-label) transition-colors duration-300 hover:bg-(--sov-primary-fill-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--sov-focus-ring)"
-          >
-            <Plus size={20} strokeWidth={1.5} aria-hidden="true" focusable="false" />
-            {copy.projects.newProject}
-          </Link>
+          {owner ? (
+            <div className="flex shrink-0 items-center gap-6">
+              {admin ? <AdminLink /> : null}
+              <Link
+                to="/projects/new"
+                data-copy-kind="action-label"
+                className="flex h-(--sov-button-height) shrink-0 items-center gap-3 rounded-(--sov-radius-control) bg-(--sov-primary-fill) px-6 text-[15px] font-medium text-(--sov-primary-label) transition-colors duration-300 hover:bg-(--sov-primary-fill-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--sov-focus-ring)"
+              >
+                <Plus size={20} strokeWidth={1.5} aria-hidden="true" focusable="false" />
+                {copy.projects.newProject}
+              </Link>
+            </div>
+          ) : null}
         </header>
         {state.status === 'loading' ? (
           <div className="flex min-h-[240px] flex-col gap-4 border-t border-(--sov-border) pt-5">
@@ -132,7 +183,7 @@ export function ProjectListPage() {
           </div>
         ) : null}
         {state.status === 'failed' ? <LoadFailed onRetry={() => void loaded.reload()} /> : null}
-        {state.status === 'ready' ? <ProjectRows list={state.data} /> : null}
+        {state.status === 'ready' ? <ProjectRows list={state.data} owner={owner} /> : null}
       </section>
     </AppShell>
   );

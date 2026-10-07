@@ -23,7 +23,7 @@ import { createTestService, testContentHash, type TestDatabase } from '@sovitech
 import { normaliseTag } from '@sovitech/domain';
 
 /** The TEST states the control route writes, by name. */
-export const TEST_STATES = ['document-being-read', 'owner-conflicts', 'building-type-inference', 'floors-conflict', 'assets-listed', 'assets-numbered'] as const;
+export const TEST_STATES = ['document-being-read', 'owner-conflicts', 'building-type-inference', 'building-type-engineer-review', 'floors-conflict', 'assets-listed', 'assets-numbered'] as const;
 export type TestStateName = (typeof TEST_STATES)[number];
 
 export function isTestState(name: string): name is TestStateName {
@@ -94,8 +94,9 @@ async function storeCandidate(
     readonly document: TestDocument;
     readonly excerpt: string;
   },
-): Promise<void> {
+): Promise<string> {
   if (!input.document.page.includes(input.excerpt)) throw new Error('a TEST excerpt occurs on its page, as the evidence verifier requires');
+  const candidateId = randomUUID();
   const count = 'count' in input.value ? input.value : undefined;
   const choice = 'choice' in input.value ? input.value.choice : null;
   await database.as(
@@ -110,7 +111,7 @@ async function storeCandidate(
      INSERT INTO sovitech.evidence_excerpts (evidence_id, project_id, content_hash, text)
      SELECT id, $2::uuid, $14::text, $15::text FROM locator`,
     [
-      randomUUID(),
+      candidateId,
       scope.projectId,
       input.subjectId,
       input.fieldKey,
@@ -128,6 +129,7 @@ async function storeCandidate(
     ],
     scope,
   );
+  return candidateId;
 }
 
 /**
@@ -206,9 +208,17 @@ async function documentValue(
  *   (docs/adr/0045 decision 1), so every other cell reads Unknown (Equipment, the inspector, UD-08);
  * - `assets-numbered` (phase 4 part B, A-1): one TEST equipment list whose page numbers its equipment, as
  *   numbered lists do: two tags written only in digits, "101" and "1.2" (each tag as written is a figure the
- *   page shows bound to its display object, and a heading on the asset record).
+ *   page shows bound to its display object, and a heading on the asset record);
+ * - `building-type-engineer-review` (phase 7, G3-7's rendered half): the `building-type-inference` state, then the stack's
+ *   development engineer (a synthetic person holding `sovitech_engineer`, ADR 0038 decision 10; never a member of
+ *   the project) opens that inference and verifies it, each in the engineer's own request on the app's login, through
+ *   the store's guarded functions `sovitech.open_review_item` and `sovitech.verify_candidate` (the only writer of
+ *   `engineer_verified`; rule 10: "The caller must be an authenticated user with the `sovitech_engineer` role, who has
+ *   opened the item"). No review endpoint exists while PRD D-16 is open (docs/adr/0053 decision 1), so prompt 3 section
+ *   14's "through the review endpoint" reads "through the guarded function", as G3-7's case file does. The demo is
+ *   refused here first, and the store refuses it again (SVV05).
  */
-export async function writeTestState(database: TestDatabase, name: TestStateName, projectId: string): Promise<void> {
+export async function writeTestState(database: TestDatabase, name: TestStateName, projectId: string, accounts: { readonly engineerId: string }): Promise<void> {
   const [project] = await database.asAdministrator<{ isDemo: boolean }>('SELECT is_demo AS "isDemo" FROM sovitech.projects WHERE id = $1', [projectId]);
   if (project === undefined) throw new TestStateRefused('project_not_found');
   if (project.isDemo) throw new TestStateRefused('demo_project');
@@ -232,7 +242,8 @@ export async function writeTestState(database: TestDatabase, name: TestStateName
       await documentValue(database, scope, { label: 'operations A', subjectId: projectId, fieldKey: 'project.occupancy', value: { choice: 'mostly_occupied' }, excerpt: 'Occupancy: mostly occupied' });
       await documentValue(database, scope, { label: 'operations B', subjectId: projectId, fieldKey: 'project.occupancy', value: { choice: 'mixed' }, excerpt: 'Occupancy: mixed' });
       return;
-    case 'building-type-inference': {
+    case 'building-type-inference':
+    case 'building-type-engineer-review': {
       const document = await registerDocument(database, scope, {
         label: 'room schedule',
         fileName: 'TEST room schedule.xlsx',
@@ -240,7 +251,12 @@ export async function writeTestState(database: TestDatabase, name: TestStateName
         status: 'analysed',
         coverage: 'pages 1-1 of 1',
       });
-      await storeCandidate(database, scope, { subjectId: building.id, fieldKey: 'building.type', value: { choice: 'hotel' }, source: 'ai_inference', document, excerpt: 'Guest rooms on every upper floor' });
+      const candidateId = await storeCandidate(database, scope, { subjectId: building.id, fieldKey: 'building.type', value: { choice: 'hotel' }, source: 'ai_inference', document, excerpt: 'Guest rooms on every upper floor' });
+      if (name === 'building-type-engineer-review') {
+        const engineer = { userId: accounts.engineerId, projectId };
+        await database.as('app', 'SELECT sovitech.open_review_item($1::uuid, $2::uuid)', [randomUUID(), candidateId], engineer);
+        await database.as('app', 'SELECT sovitech.verify_candidate($1::uuid, $2::uuid, $3::text)', [randomUUID(), candidateId, 'confidence:medium'], engineer);
+      }
       return;
     }
     case 'floors-conflict':

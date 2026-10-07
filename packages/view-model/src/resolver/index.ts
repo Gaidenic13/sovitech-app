@@ -20,7 +20,8 @@
  *   engineer fields)"); ai_inference high or medium → Likely or Possible, from
  *   `DerivedCandidate.confidence` (G3-18), never `Candidate.confidence`; an ambiguous reading
  *   (rule 8: "carries both alternatives with low confidence") on an owner field → Please check; an
- *   unverified engineer field → SOVITECH will check; a design-stage document on an existing
+ *   unverified engineer field → SOVITECH will check (an inference's tier read through rule 3's calibration,
+ *   `wordingTier`, when the caller passes one: docs/adr/0054; production passes none); a design-stage document on an existing
  *   building or BMS modernization project → From design drawings, the line naming the stage and
  *   revision (2.3; G2-6); document → From document; calculated → Calculated; reference → Reference.
  *   Step 4 (resolveDetection, and a decision shown with a visible suggestion): Suggested and Not
@@ -54,6 +55,8 @@
  */
 import {
   UNKNOWN_QUALIFIER,
+  wordingTier,
+  type Calibration,
   type Candidate,
   type CandidateEvent,
   type Confidence,
@@ -206,6 +209,14 @@ export interface ResolveFieldInput {
   readonly valueId?: ValueId;
   /** Step 4's detection reading: Not found in documents with "You can still include it." (2.8; section 5, step 4). */
   readonly detection?: boolean;
+  /**
+   * Rule 3's calibration of the tiers' wording (docs/adr/0054): an inference's badge reads `wordingTier` of its derived
+   * tier, one step lower while its tier dropped. Production passes none (the approver has not set the threshold, D-53;
+   * PRD R-152 "Until decided": no tier's wording changes); the cases pass a TEST setting's calibration (G3-6, G3-25). It
+   * reaches the badge's wording only: never the verification, the provisional status or the source line (rule 3,
+   * "Confidence never changes verification").
+   */
+  readonly calibration?: Calibration | null;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -318,7 +329,7 @@ function candidateBadges(input: ResolveFieldInput, candidate: Candidate, derived
     applicable.push('confirmed_by_you');
   }
   if (candidate.source === 'ai_inference') {
-    const confidence: Confidence = derived?.confidence ?? 'low';
+    const confidence: Confidence = wordingTier(derived?.confidence ?? 'low', input.calibration ?? null);
     if (confidence === 'high') applicable.push('likely');
     else if (confidence === 'medium') applicable.push('possible');
     else applicable.push(ownerField ? 'please_check' : 'sovitech_will_check');

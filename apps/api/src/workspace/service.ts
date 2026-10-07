@@ -13,7 +13,8 @@
  *   the state (`lockProjectWrites`; ADR 0036 decision 13), write only what the view-model's planners plan through the
  *   store's one path, and append, never change (2.4); a decision equal to the stored one writes nothing (7.1.1-C8);
  *   nothing is skipped from here (rule 7's skips are the wizard's);
- * - no count outside the engine (ADR 0045 decision 2); nothing from an IFC model, no model area (R-078, R-080).
+ * - no count outside the engine (ADR 0045 decision 2); nothing from an IFC model, no model area (R-078, R-080);
+ * - a conflict a read derives first is logged once, as section 8's `conflict_raised` (../wizard/conflicts.ts; G4-48).
  */
 import { lockProjectWrites, databaseTime, newId, readAssetRegisterInputs, readDocumentRegistrations, type Request } from '@sovitech/db';
 import { deriveAssetRegister, documentStatuses, type CandidateEvent, type DocumentEvent, type FieldState } from '@sovitech/domain';
@@ -61,6 +62,7 @@ import { appendRecords } from '../wizard/answers';
 import { Displays, resolveSubjectField, resolveWizardField } from '../wizard/displays';
 import { intakeFields, planProject, type WizardPlan } from '../wizard/plan';
 import { fieldOnSubject, readProjectState, stillReadingCount, type ProjectState, type WizardField } from '../wizard/project-state';
+import { logStateConflicts } from '../wizard/conflicts';
 import { closedGates, deriveField, registryOf } from '../wizard/registry';
 import { fieldOfCandidate } from '../wizard/service';
 import { namedSubjectDisplays } from './naming';
@@ -137,6 +139,8 @@ interface WorkspaceRead {
 
 async function read(services: ApiServices, request: Request, gates: GateSource, scope: WorkspaceScope): Promise<WorkspaceRead> {
   const state = await readProjectState(request, scope, registryOf(services));
+  // Section 8: a conflict this read derives first is logged once (`conflict_raised`; G4-48), and nothing served changes.
+  await logStateConflicts(request, state);
   const plan = planProject(state);
   return { state, plan, project: workspaceProjectOf(state, plan, gates) };
 }

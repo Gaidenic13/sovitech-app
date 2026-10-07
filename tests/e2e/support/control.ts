@@ -7,7 +7,7 @@
 import { readStackState } from '../setup/paths';
 
 /** The TEST states the stack writes (tests/e2e/setup/control.ts `TEST_STATES`). */
-export type TestState = 'document-being-read' | 'owner-conflicts' | 'building-type-inference' | 'floors-conflict' | 'assets-listed' | 'assets-numbered';
+export type TestState = 'document-being-read' | 'owner-conflicts' | 'building-type-inference' | 'building-type-engineer-review' | 'floors-conflict' | 'assets-listed' | 'assets-numbered';
 
 /** Writes a TEST state into a TEST project (never the demo: the stack refuses it); throws when refused. */
 export async function writeTestState(state: TestState, projectId: string): Promise<void> {

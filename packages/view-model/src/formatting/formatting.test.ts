@@ -18,6 +18,7 @@ import {
   formatExactNumber,
   formatOwnerQuantity,
   formatRangeOverValues,
+  formatShareOfCounts,
   rangeSignificantFigures,
   roundRangeOutward,
   type FormatOptions,
@@ -191,5 +192,20 @@ describe('F-RENDER-04 · rule 2: dates in the render allowlist\'s format', () =>
     expect(formatDateAndTime('2026-10-02T00:15:00+03:00').text).toBe('2 Oct 2026, 00:15');
     expect(() => formatDateAndTime('2026-10-06')).toThrow(/ISO 8601/u);
     expect(() => formatDateAndTime('2026-10-06T24:00:00Z')).toThrow();
+  });
+});
+
+describe('ADR 0053 decision 7 · section 4 ("Measure it"): a share of two counts as a percentage, rounded at display', () => {
+  it('to one decimal place at most, half up, in the interface format; a share needs a whole of one or more', () => {
+    expect(formatShareOfCounts(1, 3, DEFAULT_FORMAT_OPTIONS)).toBe('33.3');
+    expect(formatShareOfCounts(2, 3, DEFAULT_FORMAT_OPTIONS)).toBe('66.7');
+    expect(formatShareOfCounts(1, 4, DEFAULT_FORMAT_OPTIONS)).toBe('25');
+    expect(formatShareOfCounts(1, 8, DEFAULT_FORMAT_OPTIONS)).toBe('12.5');
+    expect(formatShareOfCounts(0, 5, DEFAULT_FORMAT_OPTIONS)).toBe('0');
+    expect(formatShareOfCounts(5, 5, DEFAULT_FORMAT_OPTIONS)).toBe('100');
+    expect(formatShareOfCounts(1, 3, { numberFormat: 'ro' })).toBe('33,3');
+    expect(() => formatShareOfCounts(1, 0, DEFAULT_FORMAT_OPTIONS)).toThrow(RangeError);
+    expect(() => formatShareOfCounts(4, 3, DEFAULT_FORMAT_OPTIONS)).toThrow(RangeError);
+    expect(() => formatShareOfCounts(1.5, 3, DEFAULT_FORMAT_OPTIONS)).toThrow(RangeError);
   });
 });

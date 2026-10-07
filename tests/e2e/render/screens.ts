@@ -66,6 +66,14 @@
  * of a version not in the project; Export Report failing on Payback and Lifecycle; and the print route of both pages
  * (R-121) on the demo and on a new project, loading and failing. OPEX & Savings reads the project now: the demo (an
  * existing building: the upload offered) and a new project (new construction: none).
+ * Phase 7 (2026-10-07; docs/adr/0053): the development-only admin area, as the development admin: UD-39 (accounts and
+ * roles, role events, projects by id with the demo line on the demo's rows, processors), UD-40 (datasets) and UD-41
+ * (guardrail events, speed and truth, confidence wording, the erasure log), each loaded, loading (its view held) and
+ * failing; each read by an account that may not (the engineer, the commercial reviewer, the owner): the app's not-found
+ * page, titled "Page not found", nothing of the area shown; the entry (`/`) landing the admin on UD-39; and the project
+ * list of each account without `owner` (the engineer's and the commercial reviewer's role lines with no "New project";
+ * the admin's line and "Open the admin area"). The admin plus owner's list is a component test
+ * (apps/web/src/admin/AdminArea.test.tsx): no development account holds two roles (ADR 0038 decision 10).
  */
 import type { Page } from '@playwright/test';
 import { ruleLineById, statusLineById } from '@sovitech/registry';
@@ -73,6 +81,7 @@ import { displayObjectsFromApi, type ApiDisplayObjectSource } from './api-displa
 import { REPO_ROOT } from '../setup/paths';
 import { writeTestState, type TestState } from '../support/control';
 import {
+  adminView,
   equipmentExport,
   failRequests,
   holdRequests,
@@ -91,7 +100,7 @@ import {
   workspaceFrame,
   workspaceView,
 } from '../support/network';
-import { createProject, demoProjectId, newProjectAt, openProjectScreen, pressPrimary, proposalSettled, screenReady, signIn, signedInAt, skipEverything, testProject } from '../support/wizard';
+import { createProject, demoProjectId, newProjectAt, openProjectScreen, pressPrimary, proposalSettled, screenReady, signIn, signInAs, signedInAt, skipEverything, testProject, type DevAccount } from '../support/wizard';
 import { includeSystems, openSwitcher, openWorkspaceScreen } from '../support/workspace';
 
 /** A screen that shows no value: no display objects. */
@@ -526,6 +535,62 @@ async function openMetricsPrint(page: Page, projectId: string, printed: 'payback
   await screenReady(page);
 }
 
+// ---- Phase 7: the development-only admin area (docs/adr/0053) and the landings by role ---------------------
+
+/** The admin area's pages (APP_PATHS). */
+const ADMIN = { accounts: '/admin/accounts', datasets: '/admin/datasets', guardrailEvents: '/admin/guardrail-events' } as const;
+
+/** Waits for an admin page's sections: its view answered and drawn. */
+async function adminLoaded(page: Page): Promise<void> {
+  await page.locator('[data-admin-section]').first().waitFor({ timeout: 30_000 });
+  await screenReady(page);
+}
+
+/** The development admin at the admin page the render spec opened (sign-in returns to it). */
+const asAdmin = async (page: Page) => {
+  await signInAs(page, 'admin');
+  await adminLoaded(page);
+};
+
+/** The development admin at an admin page opened afresh while its view is held: the page's one loading line, no figure. */
+const adminLoading = (path: string) => async (page: Page) => {
+  await asAdmin(page);
+  await holdRequests(page, adminView, { releaseAfterMs: LOADING_MS });
+  await page.goto(path);
+  await page.locator('[data-admin-state="loading"]').waitFor();
+  await loadingShown(page);
+};
+
+/** The development admin at an admin page opened afresh with its view failing: "This page could not be loaded." and Try again. */
+const adminFailed = (path: string) => async (page: Page) => {
+  await asAdmin(page);
+  await failRequests(page, adminView);
+  await page.goto(path);
+  await page.locator('[data-admin-state="failed"]').waitFor();
+  await loadFailedShown(page);
+};
+
+/**
+ * An account that may not read the admin area at the admin page the render spec opened: the app's not-found page, with
+ * nothing of the area (no navigation, no admin title) and no admin request (ADR 0053 decisions 3 and 5).
+ */
+const refusedAs = (account: DevAccount) => async (page: Page) => {
+  await signInAs(page, account);
+  await page.getByRole('heading', { level: 1, name: 'This page does not exist.' }).waitFor();
+  if ((await page.getByRole('navigation', { name: 'Admin area' }).count()) > 0) throw new Error('ADR 0053 decision 5: the admin area\'s navigation shows to an account without sovitech_admin');
+  await screenReady(page);
+};
+
+/** An account without `owner` on the project list: its role lines, and no "New project" (ADR 0053 decision 4). */
+const projectListAs = (account: DevAccount) => async (page: Page) => {
+  await signInAs(page, account);
+  await page.locator('[data-role-lines]').waitFor();
+  if ((await page.getByRole('link', { name: 'New project' }).count()) + (await page.getByRole('button', { name: 'New project' }).count()) > 0) {
+    throw new Error('R-136 · ADR 0053 decision 4: "New project" shows to an account without owner');
+  }
+  await screenReady(page);
+};
+
 export const RENDER_SCREENS: readonly RenderScreen[] = [
   // ---- Session (UD-36) and the project list (UD-37) --------------------------------------------
   { name: 'entry: signed out, sent to sign-in (UD-36)', path: '/', displayObjects: displayObjectsFromApi() },
@@ -718,6 +783,23 @@ export const RENDER_SCREENS: readonly RenderScreen[] = [
     displayObjects: displayObjectsFromApi(),
     arrange: withState('Render Operations Confirm', 'building-type-inference', 'steps/5', async (page) => {
       await page.getByRole('button', { name: "Yes, it's a hotel" }).first().waitFor();
+    }),
+  },
+  {
+    name: "OB-5 step 5, new project: the inferred building type a SOVITECH engineer verified (the stack's development engineer, through the guarded function), Verified by SOVITECH with \"AI inference, verified by SOVITECH on <date>\", nothing to confirm (G3-7; rules 3, 5 and 10; phase 7)",
+    path: STEP,
+    displayObjects: displayObjectsFromApi(),
+    arrange: withState('Render Operations Engineer Review', 'building-type-engineer-review', 'steps/5', async (page) => {
+      await page.getByText(/^AI inference, verified by SOVITECH on /u).first().waitFor();
+      await page.getByText('Verified by SOVITECH', { exact: true }).first().waitFor();
+    }),
+  },
+  {
+    name: 'UD-45 all extracted data, new project: the building type a SOVITECH engineer verified, Verified by SOVITECH with its dated line (G3-7; phase 7)',
+    path: '/projects/:projectId/extracted',
+    displayObjects: displayObjectsFromApi(),
+    arrange: withState('Render Extracted Engineer Review', 'building-type-engineer-review', 'extracted', async (page) => {
+      await page.getByText(/^AI inference, verified by SOVITECH on /u).first().waitFor();
     }),
   },
   {
@@ -1577,6 +1659,80 @@ export const RENDER_SCREENS: readonly RenderScreen[] = [
       await failRequests(page, metricsPrintView);
       await openMetricsPrint(page, demoProjectId(), 'lifecycle', 'failed');
       await loadFailedShown(page);
+    },
+  },
+  // ---- Phase 7: the development-only admin area (docs/adr/0053) and the landings by role ------------------
+  {
+    name: 'UD-39 Accounts and roles, the development admin: every account with its roles, the role events, projects by id with the demo line on the demo\'s rows only, no processor chosen, no control (R-134; R-143, R-154 "Until decided"; G10-10)',
+    path: ADMIN.accounts,
+    displayObjects: displayObjectsFromApi(),
+    arrange: asAdmin,
+  },
+  {
+    name: 'entry (/): the development admin, who holds sovitech_admin and not owner, lands on UD-39 (ADR 0053 decision 4)',
+    path: '/',
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await signInAs(page, 'admin');
+      await page.waitForURL((url) => url.pathname === ADMIN.accounts, { timeout: 30_000 });
+      await adminLoaded(page);
+    },
+  },
+  { name: 'UD-39 Accounts and roles: loading, its view held', path: ADMIN.accounts, displayObjects: displayObjectsFromApi(), arrange: adminLoading(ADMIN.accounts) },
+  { name: 'UD-39 Accounts and roles: load failure, its view failing', path: ADMIN.accounts, displayObjects: displayObjectsFromApi(), arrange: adminFailed(ADMIN.accounts) },
+  {
+    name: 'UD-39 Accounts and roles, the development engineer: the not-found page, nothing of the admin area (ADR 0053 decision 5; G10-3\'s reading in the browser)',
+    path: ADMIN.accounts,
+    displayObjects: displayObjectsFromApi(),
+    arrange: refusedAs('engineer'),
+  },
+  {
+    name: 'UD-40 Datasets, the development admin: each dataset the gates wait for, "No version received", "No approval record", what waits for it, no control (R-150 "Until decided"; G1-33)',
+    path: ADMIN.datasets,
+    displayObjects: displayObjectsFromApi(),
+    arrange: asAdmin,
+  },
+  { name: 'UD-40 Datasets: loading, its view held', path: ADMIN.datasets, displayObjects: displayObjectsFromApi(), arrange: adminLoading(ADMIN.datasets) },
+  { name: 'UD-40 Datasets: load failure, its view failing', path: ADMIN.datasets, displayObjects: displayObjectsFromApi(), arrange: adminFailed(ADMIN.datasets) },
+  {
+    name: 'UD-40 Datasets, the development commercial reviewer: the not-found page, nothing of the admin area (ADR 0053 decision 5)',
+    path: ADMIN.datasets,
+    displayObjects: displayObjectsFromApi(),
+    arrange: refusedAs('commercialReviewer'),
+  },
+  {
+    name: 'UD-41 Guardrail events, the development admin: counts per type for each project and in all, "By release: not counted yet", each speed metric beside its truth metric ("not counted yet", "Target not set"), the confidence wording unchanged, the erasure log, the demo line on the demo\'s rows only, no control (R-151; R-152, R-155 "Until decided"; GS-2; G3-26; G13-15)',
+    path: ADMIN.guardrailEvents,
+    displayObjects: displayObjectsFromApi(),
+    arrange: asAdmin,
+  },
+  { name: 'UD-41 Guardrail events: loading, its view held', path: ADMIN.guardrailEvents, displayObjects: displayObjectsFromApi(), arrange: adminLoading(ADMIN.guardrailEvents) },
+  { name: 'UD-41 Guardrail events: load failure, its view failing', path: ADMIN.guardrailEvents, displayObjects: displayObjectsFromApi(), arrange: adminFailed(ADMIN.guardrailEvents) },
+  {
+    name: 'UD-41 Guardrail events, the development owner: the not-found page, nothing of the admin area (ADR 0053 decision 5)',
+    path: ADMIN.guardrailEvents,
+    displayObjects: displayObjectsFromApi(),
+    arrange: refusedAs('owner'),
+  },
+  {
+    name: 'UD-37 project list, the development engineer: no project of theirs, the engineer\'s role line ("The engineer review queue is not built …"), no "New project" (R-128 "Until decided"; ADR 0053 decision 4)',
+    path: '/projects',
+    displayObjects: displayObjectsFromApi(),
+    arrange: projectListAs('engineer'),
+  },
+  {
+    name: 'UD-37 project list, the development commercial reviewer: the reviewer\'s role line, no "New project" (R-129 "Until decided"; ADR 0053 decision 4)',
+    path: '/projects',
+    displayObjects: displayObjectsFromApi(),
+    arrange: projectListAs('commercialReviewer'),
+  },
+  {
+    name: 'UD-37 project list, the development admin: the admin\'s role line and "Open the admin area", no "New project" (ADR 0053 decision 4)',
+    path: '/projects',
+    displayObjects: displayObjectsFromApi(),
+    arrange: async (page) => {
+      await projectListAs('admin')(page);
+      await page.locator('[data-open-admin]').waitFor();
     },
   },
 ];

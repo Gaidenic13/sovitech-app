@@ -12,3 +12,4 @@ export * from './intake';
 export * from './workspace';
 export * from './proposal';
 export * from './metrics';
+export * from './admin';

@@ -1,0 +1,44 @@
+# 0054. Rule 3's calibration of the confidence tiers' wording
+
+- **Status:** Proposed (the calibration threshold is a registry value the guardrails leave to the approver: prompt 3 5.2 asks for "Proposed" on such an ADR, as ADR 0010 is; phase 7 part B, the verifier's V-4). The counting mechanism (decisions 2 to 4) is built as a default, reversible; decision 1 (no threshold applied in production) waits for the approver with D-53.
+- **Date:** 2026-10-07
+
+## Context
+
+- **Guardrails rule 3**: "The app records how often owners and engineers correct each confidence tier and item type. When corrections for a tier exceed the threshold set by the approver (proposed: 10% over the last 50 decisions), that tier's wording drops one step until the cause is fixed. Confidence never changes verification." Section 10 lists "lowering a validator threshold or the calibration threshold" among the loosenings, and says "When unsure, treat the change as loosening".
+- **Case G3-6** (indexed since v1.0): "Corrections for 'Likely' exceed the threshold | The wording for that tier drops to Possible".
+- **PRD R-152** (S2; "Blocked by open question approver setting 2 (D-53)"). "Until decided": "Corrections are counted per confidence tier and item type, and no tier's wording changes (US-ADMIN-22 AC1)." **D-53's interim**: "The correction threshold is recorded but not applied: corrections are counted per tier and item type, and no tier's wording changes (US-ADMIN-22 AC1). Prompt 3 section 5.2 applies the proposed threshold too, so the two differ on this one setting."
+- **Prompt 3 5.2, "Registry values the guardrails leave to the approver"**: "the calibration threshold of 10% over 50 decisions ... each labelled 'proposed'". The registry records it (`settings.calibrationThreshold`: 10, 50) in the unapproved baseline v0.
+- **The build log, phase 0**: "Phase 7, which builds G3-6, must follow the stricter reading unless the owner decides otherwise." **The run's precedent for an unclear direction** (the index-check ruling, ADR 0003; D-33): where following a default may count as a loosening, the PRD's line is followed ("When unsure, treat the change as loosening"). The phase 0 loosening check also counts a change of the calibration threshold in either direction as a loosening (build log, phase 0, round 2).
+- **ADR 0016 decision 22 and G3-18**: a badge reads the derived tier (`DerivedCandidate.confidence`), never the stored one; the build log, phase 3: "phase 7's calibration (G3-6) reads the derived tier too".
+
+## Decision
+
+1. **Production follows R-152's line: corrections are counted, and no tier's wording changes while the approver has not set the threshold.** Which of the two readings is stricter is not clear: applying the proposed threshold shows more cautious wording (Truth up, Speed neutral), but it changes what the owner sees on a value the approver has not set, and section 10 names lowering the calibration threshold a loosening, so turning it on from "not applied" may read as one. By the run's precedent (ADR 0003), the PRD's line is followed and the other reading is written as a proposal for the approver (P-7-CALIBRATION-APPLY, build log phase 7). Live, nothing changes in any case: with no `ANTHROPIC_API_KEY` there is no AI inference, so no tier is shown and no correction can occur.
+2. **The mechanism is built and proven with a TEST setting** (G3-6, G3-25), as the engine is with TEST datasets (prompt 3 5.4): `calibrateTiers(decisions, setting)` in `packages/domain/src/calibration.ts` (pure); `wordingTier(tier, calibration)` the one place a tier's wording steps down; the resolver's badge choice (`packages/view-model/src/resolver`) takes an optional calibration and reads `wordingTier` of the derived tier. Production passes no setting (`null`): no tier drops. Each case names the setting it runs with (guardrails section 7, "Where behaviour depends on a registry setting, the case names the setting").
+3. **Readings** (each listed for the approver with D-53):
+   - **A decision** settles an inference: an owner's confirmation (agreement) or correction (the owner's value replacing it, logged `owner_corrected_inference`); an engineer's verification (agreement) or rejection (correction). An owner's "Looks right" is no confirmation (rule 3) and "Something's wrong" changes no value, so neither counts.
+   - **The tier** of a decision is the derived tier the person was shown, recorded when the decision is made (the owner's correction already records it: `confidence:<tier>` on `owner_corrected_inference`; an owner's confirmation of an inference records it as the reason of its `user_confirmed` event, the API builder confirming the store and derive accept that reason; an engineer's decisions record it the same way once D-16 lets engineers act).
+   - **The item type** is the field (its key).
+   - **App-wide** (rule 3: "the app records"): the counts span every project. They hold a tier, a field key, an outcome and a time only, never a subject, candidate, value or project (rule 13). In this build only the admin reads them (UD-41), through the admin definer functions (ADR 0053 decision 6); no owner request reads another project's decisions, because no wording is applied (decision 1).
+   - **The window and the drop** (used by the mechanism only): the last `window` decisions of a tier, newest by time, fewer counting as they are; the tier's wording drops one step while its corrections in the window are more than `correctionRatePercent` of the decisions in it, and the drop ends when they no longer are (the window's own reading of "until the cause is fixed"). High reads as medium (Likely becomes Possible); medium reads as low (Please check on an owner field, SOVITECH will check on an engineer field); low stays low.
+   - **Verification and provisional status never change** (rule 3: "Confidence never changes verification"): the calibration reaches only the badge's wording, never derive.
+4. **No control** anywhere sets, lowers or changes the threshold (US-ADMIN-22 AC4; section 10); UD-41 shows the threshold's state, the counts and each tier's wording as shown.
+
+## Consequences
+
+- G3-6 becomes a real case, proven with a TEST setting; the owner sees no tier change in this build.
+- R-152's counts are live on UD-41 (none occur without an AI run).
+- If the approver sets the threshold, decision 1 is reversed in one place (the setting passed to `calibrateTiers`), and the owner requests then read the app-wide decisions through a definer function returning tier, field key, outcome and time only.
+
+## How to reverse
+
+Once the approver sets the threshold (D-53) with an approval reference that resolves (section 10), pass the registry's `settings.calibrationThreshold` to `calibrateTiers` in the API's view context, add the app-wide decision read for owner requests (a definer function of the same shape as the admin's), and remove decision 1's `null`. The loosening check compares the threshold with the approved snapshot.
+
+## Built (phase 7, part A)
+
+- **The domain** (decision 2): `calibrateTiers` in `packages/domain/src/calibration.ts`: per tier, the last `window` decisions newest first (by time to the nanosecond, the domain's `olderFirst`), fewer counting as they are; dropped while the window's corrections are more than the rate of its decisions, compared in whole numbers; low never drops; a `null` setting counts every decision and drops nothing; a setting outside rule 3's shape (a rate outside 0 to 100, a window that is not a whole number of one or more) is refused. It reads a decision's tier, field key, outcome and time only. Property tests: `packages/domain/src/calibration.test.ts` (8, fast-check).
+- **The resolver** (decision 2): `ResolveFieldInput.calibration` (optional; production passes none); an inference's badge reads `wordingTier` of its derived tier. Nothing else reads it: not derive, not the source line, not the verification (G3-25).
+- **The recorded tier** (decision 3): the owner's "Yes" on an inference (`planConfirmation`) records `confidence:<tier>`, the derived tier the owner was shown, as the reason of its `user_confirmed` event; derive reads no reason on that event, and the store takes any reason. An engineer's verification or rejection records it the same way once D-16 lets engineers act (Track E).
+- **The store** (decision 3): `sovitech.admin_calibration_decisions()` (migration 0018) returns the decisions on inferences app-wide, with the tier recorded, the field key, the outcome, who and when, and no project, subject, candidate or value; a decision recorded with no tier reads `unstated`, and the API counts it under no tier. Only the admin reads it (UD-41).
+- **Cases:** G3-6 (real, with the TEST setting of 10% over the last 50 decisions named in the case), G3-24 and G3-25 (new, for indexing at 1.13).

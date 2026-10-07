@@ -29,6 +29,10 @@ export const STACK_LOG = join(E2E_OUTPUT, 'stack.log');
 export interface StackState {
   /** The development owner's account id (the sign-in page lists it as "Development owner"). */
   readonly devOwnerId: string;
+  /** Phase 7 (ADR 0038, amended): the development engineer, commercial reviewer and admin ("Development engineer", …). */
+  readonly devEngineerId: string;
+  readonly devReviewerId: string;
+  readonly devAdminId: string;
   /** The demo project the seed built, with its analysis done in the extractor's sandbox. */
   readonly demoProjectId: string;
   /**

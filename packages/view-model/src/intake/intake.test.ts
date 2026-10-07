@@ -519,6 +519,21 @@ describe('F-REVIEW-03 · F-REVIEW-04 · rules 3, 4, 5 and 7: the owner\'s field 
     expect(refusalOf(() => planConfirmation({ fields: [field], candidateId: hotel.id, shownConfirmations: new Set(), ...who }))).toBe('confirmation_not_shown');
   });
 
+  it('ADR 0054 decision 3 · R-152 · rule 3: Yes on an inference records the derived tier the owner was shown as the event\'s reason, read by the calibration counts', () => {
+    const hotel = inferredHotel();
+    const field = intakeField(buildingType, BUILDING, [hotel], events(), [DOC]);
+    const tier = field.state.candidates.find((entry) => entry.candidateId === hotel.id)?.confidence;
+    expect(tier).toBeDefined();
+    expect(planConfirmation({ fields: [field], candidateId: hotel.id, shownConfirmations: new Set([hotel.id]), ...who })).toEqual({
+      candidateId: hotel.id,
+      type: 'user_confirmed',
+      by: 'test-owner',
+      role: 'owner',
+      at: who.at,
+      reason: `confidence:${String(tier)}`,
+    });
+  });
+
   it('US-REVIEW-11 AC3: the owner resolves an owner conflict, naming what they saw; an engineer\'s conflict or a closed one is refused', () => {
     const count = testField('project.testCount', { kind: 'count', subject: 'project', unit: 'count', confirmBy: 'owner', valueShape: 'non_negative_integer' });
     const a = found({ id: 90, subjectId: PROJECT, field: count, document: DOC, value: { quantity: { value: 3, unit: 'count' } }, minute: 1 });

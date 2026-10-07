@@ -5,7 +5,8 @@
  * development login (./auth/dev-login.ts), the project list and creation, and the
  * wizard (./wizard/routes.ts), phase 4's workspace (./workspace/routes.ts;
  * docs/adr/0043, 0044, 0045), and phase 5's stored proposal, Reports and exports
- * (./proposal/routes.ts; docs/adr/0047 to 0050). The phase 2 routes return records and 2.8 status lines;
+ * (./proposal/routes.ts; docs/adr/0047 to 0050), phase 6's Metrics pages (./metrics/routes.ts; docs/adr/0052) and phase 7's
+ * development-only admin area (./admin/routes.ts; docs/adr/0053). The phase 2 routes return records and 2.8 status lines;
  * every phase 3 route that shows a value answers display objects (prompt 3 section 6).
  *
  * - Every project route reads the session's user from a signed, HTTP-only cookie and
@@ -45,6 +46,7 @@ import { registerWizardRoutes } from './wizard/routes';
 import { registerWorkspaceRoutes } from './workspace/routes';
 import { registerProposalRoutes } from './proposal/routes';
 import { registerMetricsRoutes } from './metrics/routes';
+import { registerAdminRoutes } from './admin/routes';
 
 const UUID = { type: 'string', pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' } as const;
 const PROJECT_PARAMS = { type: 'object', properties: { projectId: UUID }, required: ['projectId'] } as const;
@@ -182,6 +184,10 @@ export async function registerApiRoutes(app: FastifyInstance, services: ApiServi
   // ---- Phase 6: the Metrics pages, their print views and "Export Report" (docs/adr/0052) -----------
 
   registerMetricsRoutes(app, services);
+
+  // ---- Phase 7: the development-only admin area, read-only (docs/adr/0053) ----------------------------
+
+  registerAdminRoutes(app, services);
 
   // ---- Uploads (ADR 0019) --------------------------------------------------------------
 

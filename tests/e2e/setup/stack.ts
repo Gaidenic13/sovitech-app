@@ -3,7 +3,8 @@
  * global setup (global-setup.ts) through tsx, so the store, the seed and Docker run in plain Node:
  *
  * 1. a TEST database (`startTestDatabase`: Testcontainers, the pinned Postgres image, every migration);
- * 2. the extraction service account (TEST) and the development owner (ADR 0038, `ensureDevOwner`);
+ * 2. the extraction service account (TEST) and the development accounts (ADR 0038, amended in phase 7: `ensureDevAccounts`,
+ *    the development owner, engineer, commercial reviewer and admin, each holding its one role);
  * 3. the demo seed with the extractor in its sandbox (both locally built images), its data folder
  *    under the home folder (Colima shares only that), then the development owner made a member of
  *    the demo (PRD R-136 interim, `addToDemoProject`); since the viewer step the seed's two IFC models
@@ -37,7 +38,7 @@ import { join } from 'node:path';
 import { createTestAccount, startTestDatabase, type TestDatabase } from '@sovitech/db/testing';
 import { TestStateRefused, isTestState, writeTestState } from './control';
 import { assertGatesStartupSafe } from '@sovitech/registry/gates';
-import { addToDemoProject, ensureDevOwner } from '../../../apps/api/src/cli/dev-accounts';
+import { DEV_ACCOUNTS, addToDemoProject, ensureDevAccounts } from '../../../apps/api/src/cli/dev-accounts';
 import { DockerExtractorRunner } from '../../../apps/api/src/jobs/sandbox';
 import { seedDemo } from '../../../apps/api/src/seed/demo-seed';
 import { FileStore } from '../../../apps/api/src/storage/file-store';
@@ -115,7 +116,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
  *   project (204), refuses the demo project (403 `demo_project`) and an unknown project (404).
  * Answers carry codes and ids only (rule 13).
  */
-function startControl(database: TestDatabase): Promise<Server> {
+function startControl(database: TestDatabase, accounts: { readonly engineerId: string }): Promise<Server> {
   const server = createServer((request, response) => {
     const url = new URL(request.url ?? '/', 'http://127.0.0.1');
     const answer = (status: number, body?: unknown) => {
@@ -131,7 +132,7 @@ function startControl(database: TestDatabase): Promise<Server> {
     const state = /^\/test-states\/(?<name>[a-z-]+)$/u.exec(url.pathname)?.groups?.['name'];
     if (request.method === 'POST' && state !== undefined) {
       if (!isTestState(state) || !UUID.test(projectId)) return answer(400, { code: 'request_invalid' });
-      writeTestState(database, state, projectId)
+      writeTestState(database, state, projectId, accounts)
         .then(() => {
           log('test_state_written', { state, projectId });
           answer(204);
@@ -202,8 +203,9 @@ async function main(): Promise<void> {
     log('database_starting');
     database = await startTestDatabase();
     const extractionAccountId = await createTestAccount(database, { label: 'e2e extraction service', kind: 'service', roles: [] });
-    const devOwnerId = await ensureDevOwner(database.operator);
-    log('accounts_ready', { extractionAccountId, devOwnerId });
+    const devAccounts = await ensureDevAccounts(database.operator);
+    const devOwnerId = devAccounts.owner;
+    log('accounts_ready', { extractionAccountId, devOwnerId, devEngineerId: devAccounts.sovitech_engineer, devReviewerId: devAccounts.sovitech_commercial_reviewer, devAdminId: devAccounts.sovitech_admin });
 
     log('demo_seeding');
     const report = await seedDemo({
@@ -232,15 +234,16 @@ async function main(): Promise<void> {
       SOVITECH_IFC_READER_IMAGE: IMAGES.ifcReader,
       // The viewer step: the image the worker converts stored IFC models with, for viewing only.
       SOVITECH_CONVERTER_IMAGE: CONVERTER_IMAGE,
-      SOVITECH_DEV_ACCOUNTS: devOwnerId,
+      // Phase 7 (ADR 0038, amended): every development account, the owner first, so the sign-in page offers the four roles.
+      SOVITECH_DEV_ACCOUNTS: DEV_ACCOUNTS.map((account) => devAccounts[account.role]).join(','),
       // Phase 5: the origin the API prints the proposal's print route from (ADR 0050 decision 2); the worker ignores it.
       SOVITECH_WEB_ORIGIN: WEB_ORIGIN,
     });
     children.push(startChild('api', 'apps/api/src/index.ts', environment));
     children.push(startChild('worker', 'apps/api/src/worker-main.ts', environment));
     await waitForHealth(60_000);
-    control = await startControl(database);
-    const state: StackState = { devOwnerId, demoProjectId, controlOrigin: `http://127.0.0.1:${String((control.address() as AddressInfo).port)}` };
+    control = await startControl(database, { engineerId: devAccounts.sovitech_engineer });
+    const state: StackState = { devOwnerId, devEngineerId: devAccounts.sovitech_engineer, devReviewerId: devAccounts.sovitech_commercial_reviewer, devAdminId: devAccounts.sovitech_admin, demoProjectId, controlOrigin: `http://127.0.0.1:${String((control.address() as AddressInfo).port)}` };
     writeFileSync(STATE_FILE, `${JSON.stringify(state, null, 2)}\n`);
     log('stack_ready', { ...state });
   } catch (error) {

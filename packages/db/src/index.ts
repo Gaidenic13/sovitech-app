@@ -180,3 +180,20 @@ export {
   type StoredProposalVersion,
   type StoredQuotationRecordRow,
 } from './proposals';
+export {
+  readAdminAccounts,
+  readAdminCalibrationDecisions,
+  readAdminErasures,
+  readAdminGuardrailCounts,
+  readAdminInferenceDecisions,
+  readAdminProjects,
+  readAdminRoleEvents,
+  type AdminAccountRow,
+  type AdminCalibrationDecisionRow,
+  type AdminErasureRow,
+  type AdminGuardrailCountRow,
+  type AdminGuardrailCounts,
+  type AdminInferenceDecisionCounts,
+  type AdminProjectRow,
+  type AdminRoleEventRow,
+} from './admin-reads';

@@ -12,7 +12,8 @@
  * project's write lock, taken before the state is read: `ownerState`). Continue never confirms a fact
  * (rule 3) and is never refused for anything the owner left open (rule 7). Each enforcement leaves its
  * section 8 event: `skipped`, `owner_corrected_inference`, `question_for_known_field` and
- * `confirmation_budget_exceeded` (the last two once per field, under the same lock).
+ * `confirmation_budget_exceeded` (the last two once per field, under the same lock); and a read that derives a
+ * conflict first logs `conflict_raised` once (./conflicts.ts; G4-48).
  */
 import { databaseTime, lockProjectWrites, newId, readUserUploadSessions, type Request } from '@sovitech/db';
 import type { GateSource } from '@sovitech/registry/gates';
@@ -55,6 +56,7 @@ import { Displays, FORMAT, resolveSubjectField, resolveWizardField } from './dis
 import { inlineAskQuestionIds, intakeFields, planProject, type WizardPlan } from './plan';
 import { fieldIn, fieldOnSubject, readProjectState, type ProjectState, type WizardField } from './project-state';
 import { STEP_1_FIELDS, closedGates, questionOf, registryOf, type ApiRegistry } from './registry';
+import { logStateConflicts } from './conflicts';
 import { logPlanDefects, logServedAsksForKnownFields } from './defects';
 import { extractedResponse, proposalResponse, stepResponse, type StepViewOptions, type ViewContext } from './views';
 
@@ -85,6 +87,8 @@ async function viewContext(request: Request, registry: ApiRegistry, gates: GateS
   const state = await readProjectState(request, scope, registry);
   const plan = planProject(state);
   await logDefects(request, state, plan);
+  // Section 8: a conflict this read derives first is logged once (`conflict_raised`; G4-48).
+  await logStateConflicts(request, state);
   return { state, plan, displays: new Displays(), gates: closedGates(gates) };
 }
 

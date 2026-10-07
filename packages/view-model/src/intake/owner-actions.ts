@@ -78,6 +78,10 @@ export function planConcern(input: { readonly fields: readonly IntakeField[]; re
  * `user_confirmed` event by the owner on the candidate, only when its field passes rule 5's test
  * now with that candidate and it was among the confirmations shown within the budget (else
  * `confirmation_not_shown`). The badge then reads Confirmed by you, the origin still shown (rule 3).
+ * On an inference, the event's reason records the derived tier the owner was shown,
+ * `confidence:<tier>`, as the owner's correction of one records it on `owner_corrected_inference`:
+ * rule 3's decision counts read it as an agreement on that tier (docs/adr/0054 decision 3). Derive
+ * reads no reason on `user_confirmed`, so the verification is the same with or without it.
  */
 export function planConfirmation(input: { readonly fields: readonly IntakeField[]; readonly candidateId: string; readonly shownConfirmations: ReadonlySet<string> } & Who): CandidateEvent {
   const field = input.fields.find((entry) => derivedOf(entry, input.candidateId)?.status === 'eligible');
@@ -85,7 +89,9 @@ export function planConfirmation(input: { readonly fields: readonly IntakeField[
   if (candidate === undefined || candidate.id !== input.candidateId || !input.shownConfirmations.has(input.candidateId)) {
     throw new IntakeRefusal('confirmation_not_shown', 'no confirmation of that value is shown to the owner (rule 5)');
   }
-  return { candidateId: input.candidateId, type: 'user_confirmed', by: input.by, role: 'owner', at: input.at };
+  const event: CandidateEvent = { candidateId: input.candidateId, type: 'user_confirmed', by: input.by, role: 'owner', at: input.at };
+  if (candidate.source !== 'ai_inference' || field === undefined) return event;
+  return { ...event, reason: `confidence:${derivedOf(field, candidate.id)?.confidence ?? 'unstated'}` };
 }
 
 /**

@@ -91,6 +91,20 @@ export function formatExactNumber(value: number, options: FormatOptions): string
   return formatDecimal(exact(value, 'the value'), options);
 }
 
+/**
+ * A share of two whole counts as a percentage, to one decimal place at most, half up, in the interface format ("33.3",
+ * "25", "0"): the admin area's owner correction rate on inferences (guardrails section 4, "Measure it"; docs/adr/0053
+ * decision 7), rounded here at display only (rule 9). Throws for a part that is no whole count, or a whole of none or
+ * smaller than the part: a share of nothing is no value (the caller says that no decision is recorded instead).
+ */
+export function formatShareOfCounts(part: number, whole: number, options: FormatOptions): string {
+  if (!Number.isInteger(part) || !Number.isInteger(whole) || part < 0 || whole < 1 || part > whole) {
+    throw new RangeError('formatting: a share is a whole count of a whole count of one or more, at most all of it');
+  }
+  const percent = new Exact(part).times(100).dividedBy(whole).toDecimalPlaces(1, Decimal.ROUND_HALF_UP);
+  return formatDecimal(percent, options);
+}
+
 /** The unit symbol shown after a figure, or none for a count. */
 function shownSymbol(unit: UnitDefinition | undefined): string | undefined {
   if (unit === undefined || unit.code === COUNT_UNIT_CODE) return undefined;

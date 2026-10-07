@@ -32,7 +32,10 @@
     "capex": "CAPEX Breakdown",
     "opex": "OPEX & Savings",
     "payback": "Payback Analysis",
-    "lifecycle": "Lifecycle Analysis"
+    "lifecycle": "Lifecycle Analysis",
+    "adminAccounts": "Accounts and roles",
+    "adminDatasets": "Datasets",
+    "adminGuardrailEvents": "Guardrail events"
   },
   "header": {
     "menu": "Menu",
@@ -64,7 +67,15 @@
     "empty": "No projects yet.",
     "emptyDetail": "A new project starts with its name, its type and where the building is.",
     "open": "Open",
-    "listLabel": "Your projects"
+    "listLabel": "Your projects",
+    "roleLines": {
+      "sovitech_engineer": "The engineer review queue is not built: where SOVITECH engineers work is not decided yet.",
+      "sovitech_commercial_reviewer": "The commercial review of a price is not built: where it happens is not decided yet.",
+      "sovitech_admin": "Open the admin area to see accounts, datasets and guardrail events."
+    },
+    "openAdmin": "Open the admin area",
+    "introWithoutOwner": "Open a project to see its intake.",
+    "roleLinesLabel": "What your role does in this build"
   },
   "stepper": {
     "label": "Intake steps",
@@ -890,6 +901,103 @@
       "filters": {
         "system": "System",
         "allSystems": "All systems"
+      }
+    }
+  },
+  "admin": {
+    "nav": { "label": "Admin area", "accounts": "Accounts and roles", "datasets": "Datasets", "guardrailEvents": "Guardrail events" },
+    "intro": "Development only. Everything here is read-only: nothing on these pages creates, grants, approves or changes anything.",
+    "loading": "Loading this page",
+    "loadFailed": "This page could not be loaded.",
+    "accounts": {
+      "subtitle": "Who can sign in, the roles each account holds, every change of role, and the projects with their members.",
+      "accountsIntro": "Each account and the roles it holds now, with the day each role was granted.",
+      "accountsNone": "No account exists yet.",
+      "account": "Account",
+      "kindColumn": "Kind",
+      "rolesNone": "No role",
+      "roleEventsIntro": "Every role granted or revoked, newest first, with who did it and the reason they recorded.",
+      "roleEventsNone": "No role has been granted or revoked yet.",
+      "role": "Role",
+      "change": "Change",
+      "by": "By",
+      "at": "When",
+      "reason": "Reason",
+      "projectsIntro": "Each project by its id, with the day it was created and its members. A project's name stays with its owner.",
+      "projectsNone": "No project exists yet.",
+      "project": "Project",
+      "created": "Created",
+      "membersNone": "No member",
+      "accounts": "Accounts",
+      "roles": "Roles",
+      "roleEvents": "Role changes",
+      "projects": "Projects",
+      "members": "Members",
+      "development": "Development account",
+      "granted": "Granted",
+      "revoked": "Revoked",
+      "kind": { "person": "Person", "service": "Service account", "seed": "Seed account" },
+      "processors": "Processors",
+      "processorsNone": "No processor is chosen. No owner document or excerpt is sent to any external service."
+    },
+    "datasets": {
+      "intro": "Every reference dataset the gates wait for, with its approval status, except the IFC mapping tables, which are not listed as a dataset until the approver decides how IFC models give values. Only the approver approves a dataset.",
+      "none": "No dataset is declared, and no gate waits for one.",
+      "name": "Dataset",
+      "version": "Version",
+      "approval": "Approval status",
+      "waitsFor": "Waited for by"
+    },
+    "guardrailEvents": {
+      "subtitle": "What the guardrails recorded: the events by type, each speed metric beside its truth metric, corrections by confidence tier, and every erasure.",
+      "countsIntro": "Every guardrail event recorded, by type, for all projects and for each project.",
+      "metricsIntro": "Each speed metric beside the truth metric it is read with, for each project. A metric no record counts says so.",
+      "metricColumn": "Metric",
+      "valueColumn": "Value",
+      "calibrationIntro": "Owner and engineer corrections of AI inferences, by confidence tier and item type, and the wording each tier shows.",
+      "wording": "Wording shown",
+      "noCorrections": "No correction recorded for this tier.",
+      "tiers": { "high": "High", "medium": "Medium", "low": "Low" },
+      "erasuresIntro": "One entry for each erased document, newest first: who asked, in which role, when, and what was removed. No document text is kept here.",
+      "roleColumn": "Role",
+      "roles": { "owner": "Owner", "system": "System" },
+      "projectsNone": "No project exists yet.",
+      "counts": "Events by type",
+      "project": "Project",
+      "total": "All projects",
+      "metrics": "Speed and truth",
+      "speed": "Speed",
+      "truth": "Truth",
+      "target": "Target",
+      "calibration": "Confidence wording",
+      "tier": "Tier",
+      "itemType": "Item type",
+      "corrections": "Corrections",
+      "erasures": "Erasure log",
+      "erasuresNone": "No erasure has run.",
+      "who": "Asked by",
+      "when": "When",
+      "document": "Document",
+      "removed": "Removed",
+      "type": {
+        "ai_output_rejected": "AI output refused",
+        "evidence_not_found": "Evidence not found",
+        "question_for_known_field": "Question for a known field",
+        "owner_corrected_inference": "Owner corrected an inference",
+        "engineer_corrected_accepted_item": "Engineer corrected an accepted item",
+        "conflict_raised": "Conflict raised",
+        "reserved_term_blocked": "Reserved term blocked",
+        "embedded_instruction": "Embedded instruction",
+        "confirmation_budget_exceeded": "Confirmation budget exceeded",
+        "skipped": "Skipped"
+      },
+      "metric": {
+        "questions_per_project": "Questions per project",
+        "owner_correction_rate": "Owner correction rate on inferences",
+        "confirmations_per_project": "Confirmations per project",
+        "engineer_corrections_of_accepted_items": "Engineer corrections of accepted items",
+        "time_to_first_estimate": "Time from upload to first estimate",
+        "estimated_share_of_first_estimate": "Share of estimated and provisional values in that estimate"
       }
     }
   }

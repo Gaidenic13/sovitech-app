@@ -11,8 +11,17 @@
 import type { Page } from '@playwright/test';
 import { readStackState } from '../setup/paths';
 
-/** The development owner's account button on the sign-in page (UD-36). */
-const DEV_OWNER = /Development owner/u;
+/**
+ * The development accounts the sign-in page offers on the e2e stack (UD-36; ADR 0038, amended, decision 10), each
+ * synthetic and holding exactly one app role: matched by the start of its button's name, the account's display name.
+ */
+export const DEV_ACCOUNTS = {
+  owner: /^Development owner\b/u,
+  engineer: /^Development engineer\b/u,
+  commercialReviewer: /^Development commercial reviewer\b/u,
+  admin: /^Development admin\b/u,
+} as const;
+export type DevAccount = keyof typeof DEV_ACCOUNTS;
 
 /** Waits until the screen says it has rendered what it asked for (the render contract's marker). */
 export async function screenReady(page: Page): Promise<void> {
@@ -25,6 +34,15 @@ export async function screenReady(page: Page): Promise<void> {
  * returns to that page; from a blank page it opens sign-in.
  */
 export async function signIn(page: Page): Promise<void> {
+  await signInAs(page, 'owner');
+}
+
+/**
+ * Signs in as one of the development accounts through the sign-in page (phase 7: the engineer, the commercial reviewer
+ * and the admin beside the owner), the same way `signIn` does: it lands where the app sends that account, by role
+ * (apps/web/src/admin/landing.ts; ADR 0053 decision 4), or back on the page that sent it to sign-in.
+ */
+export async function signInAs(page: Page, account: DevAccount): Promise<void> {
   const current = new URL(page.url());
   if (!current.protocol.startsWith('http')) await page.goto('/sign-in');
   else if (current.pathname !== '/sign-in') {
@@ -34,7 +52,7 @@ export async function signIn(page: Page): Promise<void> {
     );
     if (!sent) await page.goto('/sign-in');
   }
-  await page.getByRole('button', { name: DEV_OWNER }).click();
+  await page.getByRole('button', { name: DEV_ACCOUNTS[account] }).click();
   await page.waitForURL((url) => url.pathname !== '/sign-in');
   await screenReady(page);
 }

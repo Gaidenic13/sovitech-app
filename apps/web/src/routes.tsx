@@ -1,6 +1,6 @@
 import { useEffect, type JSX } from 'react';
 import { Navigate, Outlet, ScrollRestoration, createBrowserRouter, useMatches, useParams, type Params, type RouteObject } from 'react-router';
-import { STEP_NUMBERS, UUID_PATTERN, type StepNumber } from '@sovitech/view-model/browser';
+import { STEP_NUMBERS, UUID_PATTERN, type SessionUser, type StepNumber } from '@sovitech/view-model/browser';
 import { copy } from './copy';
 import { LoadFailed, Loading } from './pages/PageState';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -39,6 +39,11 @@ import { OpexPage } from './workspace/pages/metrics/OpexPage';
 import { PaybackPage } from './workspace/pages/metrics/PaybackPage';
 import { MetricsPrintPage } from './workspace/pages/metrics/print/MetricsPrintPage';
 import { STEP_PAGE_NAMES } from './steps/step-titles';
+import { AdminLayout } from './admin/AdminLayout';
+import { AccountsPage } from './admin/AccountsPage';
+import { DatasetsPage } from './admin/DatasetsPage';
+import { GuardrailEventsPage } from './admin/GuardrailEventsPage';
+import { landingOf, mayReadAdminArea } from './admin/landing';
 
 /**
  * The app's routes (react-router 7, docs/adr/0035-phase-3-frontend-dependencies.md). `APP_PATHS` is
@@ -71,14 +76,19 @@ import { STEP_PAGE_NAMES } from './steps/step-titles';
  *   `/projects/:projectId/metrics/financial-overview` (DB-02), `/metrics/capex` (DB-13), `/metrics/opex` (DB-12),
  *   `/metrics/payback` (DB-21) and `/metrics/lifecycle` (DB-22) (no Metrics landing, Phasing or Scenarios: R-093), and
  *   the print route of a page with "Export Report", `/projects/:projectId/print/metrics/:page/:snapshotId` (R-121),
- *   outside every frame.
+ *   outside every frame;
+ * - phase 7 (docs/adr/0053): the development-only admin area, `/admin/accounts` (UD-39), `/admin/datasets` (UD-40) and
+ *   `/admin/guardrail-events` (UD-41), in its own frame (./admin/AdminLayout.tsx), read-only, reached by role: `/` sends a
+ *   user holding `sovitech_admin` and not `owner` there (./admin/landing.ts), and every other user to the project list.
+ *   No engineer page is built: PRD R-128 "Until decided" (D-16), the build log, phase 7, "Plan".
  * Every route but sign-in needs a session (rule 13); a screen of a project sits in its layout
  * (../wizard/ProjectLayout.tsx: the header's name, the demo line, the quiet notice, the uploads).
  *
  * Each route names its page in the document title (WCAG 2.4.2), set centrally from the matched
  * route's `handle` (`DocumentTitle`): "<page> – SOVITECH" from the catalogue (`titles.*`, and each
  * step's own title), never a project's name or any figure, so the title holds no digit (the render
- * test reads it) and says nothing of a project before its screen is shown.
+ * test reads it) and says nothing of a project before its screen is shown. An admin page names itself only to a user
+ * holding `sovitech_admin`; to anyone else its title is "Page not found", as its screen is (./admin/AdminLayout.tsx).
  */
 export const APP_PATHS = [
   '/',
@@ -103,6 +113,9 @@ export const APP_PATHS = [
   '/projects/:projectId/metrics/payback',
   '/projects/:projectId/metrics/lifecycle',
   '/projects/:projectId/print/metrics/:page/:snapshotId',
+  '/admin/accounts',
+  '/admin/datasets',
+  '/admin/guardrail-events',
 ] as const;
 
 /** A page's name in the document title: "<page> – SOVITECH". */
@@ -111,9 +124,12 @@ export function pageTitle(page: string): string {
 }
 
 
-/** What a route puts in the document title, from its parameters. */
+/** Who is signed in, as far as a title needs it (their roles), or nobody. */
+export type TitleViewer = Pick<SessionUser, 'roles'> | null;
+
+/** What a route puts in the document title, from its parameters and, where a page is drawn by role, the viewer's roles. */
 export interface RouteHandle {
-  readonly title: (params: Readonly<Params>) => string;
+  readonly title: (params: Readonly<Params>, viewer: TitleViewer) => string;
 }
 
 function isRouteHandle(handle: unknown): handle is RouteHandle {
@@ -130,15 +146,21 @@ function projectPage(name: (params: Readonly<Params>) => string | undefined): Ro
   };
 }
 
+/** An admin page's title: its name to a user holding `sovitech_admin`, "Page not found" to anyone else (nothing of the area is revealed). */
+function adminPage(name: string): RouteHandle {
+  return { title: (_params, viewer) => pageTitle(viewer !== null && mayReadAdminArea(viewer) ? name : copy.titles.notFound) };
+}
+
 /** The document title of the matched route: the deepest route that names one, else "SOVITECH". */
-export function titleOfMatches(matches: ReadonlyArray<{ readonly handle: unknown; readonly params: Readonly<Params> }>): string {
+export function titleOfMatches(matches: ReadonlyArray<{ readonly handle: unknown; readonly params: Readonly<Params> }>, viewer: TitleViewer = null): string {
   let title: string = copy.titles.app;
-  for (const match of matches) if (isRouteHandle(match.handle)) title = match.handle.title(match.params);
+  for (const match of matches) if (isRouteHandle(match.handle)) title = match.handle.title(match.params, viewer);
   return title;
 }
 
 function DocumentTitle() {
-  const title = titleOfMatches(useMatches());
+  const { session } = useSession();
+  const title = titleOfMatches(useMatches(), session.status === 'signed_in' ? session.user : null);
   useEffect(() => {
     document.title = title;
   }, [title]);
@@ -174,7 +196,7 @@ function WizardStep() {
 /** `/`: where the session sends the visitor. */
 function Entry() {
   const { session } = useSession();
-  if (session.status === 'signed_in') return <Navigate to="/projects" replace />;
+  if (session.status === 'signed_in') return <Navigate to={landingOf(session.user)} replace />;
   if (session.status === 'signed_out') return <Navigate to="/sign-in" replace />;
   return <SessionWaiting failed={session.status === 'failed'} />;
 }
@@ -207,6 +229,17 @@ export const routes: RouteObject[] = [
         element: <RequireSession loading={<SessionWaiting failed={false} />} failed={<SessionWaiting failed />} />,
         children: [
           { path: '/projects', element: <ProjectListPage />, handle: { title: () => pageTitle(copy.titles.projects) } satisfies RouteHandle },
+          // Phase 7 (docs/adr/0053): the development-only admin area, read-only, in its own frame.
+          {
+            path: '/admin',
+            element: <AdminLayout />,
+            children: [
+              { index: true, element: <Navigate to="accounts" replace /> },
+              { path: 'accounts', element: <AccountsPage />, handle: adminPage(copy.titles.adminAccounts) },
+              { path: 'datasets', element: <DatasetsPage />, handle: adminPage(copy.titles.adminDatasets) },
+              { path: 'guardrail-events', element: <GuardrailEventsPage />, handle: adminPage(copy.titles.adminGuardrailEvents) },
+            ],
+          },
           { path: '/projects/new', element: <NewProjectStep1 />, handle: { title: () => pageTitle(copy.titles.newProject) } satisfies RouteHandle },
           {
             path: '/projects/:projectId',

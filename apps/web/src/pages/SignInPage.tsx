@@ -8,6 +8,9 @@
  *   login off (404 `dev_login_off`) the page says no sign-in is set up.
  * - No project name, document or value shows before sign-in (US-ADMIN-01 AC1; rule 13).
  * - The logo and no tagline (US-ADMIN-01 AC5; R-148 "Until decided").
+ * - After sign-in, the page the visitor was sent here from, or else where the account's roles land it (phase 7;
+ *   docs/adr/0053 decision 4; ../admin/landing.ts): the admin area for a user holding `sovitech_admin` and not
+ *   `owner`, the project list for everyone else. The app's entry (`/`) decides, from the session.
  *
  * Undesigned (UD-36): drawn in the wizard's language, per the frontend-design skill within the
  * brand: one centred column on the page surface, the logo in the header, a plain title, and each
@@ -29,13 +32,16 @@ import { LoadFailed, Loading } from './PageState';
 
 type Accounts = { readonly status: 'on'; readonly accounts: readonly SessionUser[] } | { readonly status: 'off' };
 
-/** Where sign-in returns to: the page the visitor was sent here from, inside the app only. */
+/**
+ * Where sign-in returns to: the page the visitor was sent here from, inside the app only; else the app's entry, which
+ * lands the session by role (../routes.tsx `Entry`; ../admin/landing.ts).
+ */
 function returnPath(state: unknown): string {
   if (typeof state === 'object' && state !== null && 'from' in state) {
     const from = (state as { from: unknown }).from;
     if (typeof from === 'string' && from.startsWith('/') && !from.startsWith('//') && !from.startsWith('/sign-in')) return from;
   }
-  return '/projects';
+  return '/';
 }
 
 export function SignInPage() {
