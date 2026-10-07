@@ -10,6 +10,7 @@ Running log of plan, progress, checks and open items for `docs/dev-prompts/03-bu
 | 3: the intake wizard, steps 1-8 | Part A built and integrated (the planner, four builders, two step builders, then the integrator, who also built the e2e share); part B: the verifier, the read-only adversarial review and the design review (56 findings raised, 54 distinct), a triage, five fix groups, then the integrator; then a final verification (seven new problems), a fix round (the API and store; the web) and the integrator; exit criteria (a), (b) and (c) met, with the render test, axe, the reserved-term scan and the demo line on every screen of the flows and on the 45 render screens, which name the states checked and those not; not committed | 2026-09-30/10-01 | Brand theme and UI kit (Brand values only), the view-model (formatting, resolver, question engine), every route of the wizard contract, the development login, steps 1 to 8 with UD-33 to UD-37, UD-45 and the proposal page (Generate stores nothing before phase 5). No API key: every document fact reads Unknown, every output "Not available yet". Part B: of 54 distinct findings (56 raised; A-10 and A-13 repeat V-1 and V-11), 44 fixed (6 in part), 1 needing no change, 1 written as a proposal (A-9), 4 logged, 4 rejected, and five proposals written; among the fixes, stale owner answers refused (no owner in conflict with themself), owner text checked and isolated, skips once and only where asked, an independent known-field defect detector, 2.8's stage labels on the investment outputs, the demo line while loading or failing, session-bound CSRF and session lifetimes, and the design review's layout fixes. After the final verification: of its seven new problems, 6 fixed (the owner's writes serialised per project and one request per press, so answers and skips sent together count once; step 8's "changed" message kept; the Proposal card names a stage only while a figure at that stage can be produced; file names served without bidirectional controls; the routing line's condition; this log's severities and tally) and 1 explained and left for D-10 (a skip naming step 8 before the owner reached it; proposal P-3C-STEP8-SKIP-AFTER-VISIT). Guardrails 1.8: 19 cases indexed in the phase (G7-8, G8-21, G10-10, G11-9 in part A; G2-13, G3-19, G4-36, G5-4, G7-9 to G7-12, G8-22, G8-23, G10-11, G10-12 in part B; G2-14, G4-38, G7-13 after the final verification), G10-11's Expected aligned with rules 7 and 10 before commit (its first wording kept in the change log; question 11), two change-log rows, extended. `pnpm check`: 8 of 9 steps pass; the checks step fails only on the index check, by design (D-33): 188 ids, 141 real, 20 pending, 27 no automated check yet, 0 other problems. `pnpm e2e` 143 passed; `pnpm test:proposed` 51 passed, 1 todo |
 | 4: workspace, building model and scope | Part A built and integrated (the planner, six builders, then the integrator, who also built the e2e and render share); part B: the verifier, the read-only adversarial review and the design review (43 findings raised, 38 distinct), a triage, five fix groups, then the integrator; exit criteria met on the integrated tree, with the render test, axe, the reserved-term scan and the demo line on every flow screen and on the 85 render screens, which name the states checked and those not; not committed | 2026-10-02 | The owner's viewer answer ("Trial now, decide later"): the That Open spike ran on the fixtures and the 101 MB `perf` model in the no-network sandbox (conversion 42-57 s under 0.85 GB; first view 3.0-3.4 s; 60 fps on the M1 Pro's integrated GPU, 1 fps in software; tab at most 571 MiB; ADR 0046), and no viewer is in the app. Built: the workspace frame (flat sidebar of built pages, the project switcher UD-32, the project card, the 360px inspector, the 48px footer with the demo line and "Still reading"), Documents (DB-15 with UD-21, UD-22, UD-42, UD-43), System Scope (DB-16), Equipment (DB-17) with the asset record (UD-08), Zones (DB-20, List only), Topology's Logical view (DB-08). Not built, per the PRD's "Until decided" lines: Property, Overview, tabs, DB-01, the 2D plan component, every model view. No API key: the registers are empty live and say why; proven with TEST registries and TEST states. Part B: of 38 distinct findings, 28 fixed, 7 fixed in part (the rest a proposal, a named later phase, or holding in part), 1 written as a proposal (A-13), 1 logged (V-13), 1 left for phase 5 (DR-11), and five claims rejected with reasons; three triage proposals and one optional reading written (P-4B-TAG-FORMAT-CONTROLS, P-4B-LIFE-SAFETY-PARTS, P-4B-HISTORY-ENTRY-WORDING, P-4B-DELETE-EFFECT-ASSETS); among the fixes, a tag written as a number no longer takes the app and its demo line down, the delete effect is derived, levels and zones are named and never shown as stored keys or ids, the history shows each entry with its badge and status, Delete racing an upload keeps the other file, unanswered radios no longer draw as chosen, one main beside the sidebar, one floor control, the registers fit beside the inspector. Guardrails 1.9: 24 cases indexed in the phase (part A: G1-26, G1-27, G3-20, G4-39, G4-40, G7-14, G7-15, G11-10, G11-11, G12-10, G13-9; part B: G2-15, G3-21, G3-22, G4-41 to G4-44, G7-16, G7-17, G8-24, G12-11, G12-12, G13-10), two change-log rows, extended. `pnpm check`: 8 of 9 steps pass; the checks step fails only on the index check, by design (D-33): 212 ids, 166 real, 20 pending, 26 no automated check yet, 0 other problems. `pnpm e2e` 243 passed twice (85 render screens, flows (a) to (f)); `pnpm test:proposed` 53 passed, 0 todo |
 | 5: calculation engine, pricing, proposal and export | Part A built and integrated (the planner; the builders: the engine, the view-model with the API, store and seed, print and PDF, the web; then the integrator, who also did the e2e and render share); part B: the verifier, the read-only adversarial review and the design review (37 findings raised, 34 distinct), a triage, five fix groups, then the integrator; exit criteria met on the integrated tree, with the render test, axe, the reserved-term scan and the demo line on the 106 render screens and every flow screen; not committed | 2026-10-05/07 | No dataset is approved and no key is set: every proposal output reads "Not available yet", naming the dataset and what else is missing, never a figure; Generate stores a real snapshot (migrations 0015, 0016), never blocked, one POST per press; the stored proposal is the landing (no Overview page, R-116), with versions; the PDF is the print route printed by headless Chromium in the API, the demo line on every page, no logo until P-5-PRINT-LOGO-UNREADABLE; Reports lists the exported PDFs; Equipment exports CSV; the engine (ranges, unknown policies, incomplete totals, staleness, stages from stored records, quotation records) is proven with TEST formulas and datasets in the test runner only. Part B: of 34 distinct findings, 28 fixed (V-8 and DR-1 in part), 1 fixed in this log, 2 owner questions (with V-8's second half and DR-1's second half, questions 2 to 5), 3 logged for later (V-11, A-8, A-9), and five claims rejected with reasons; two clarification proposals (P-5B-STILL-READING-SCOPE, P-5B-QUOTATION-UNKNOWN-INPUT) and one store tightening (P-5B-SVX17-SAME-TRANSACTION) written, not applied; among the fixes, an incomplete total is no longer the head's figure, a stale record's date no longer answers 500, stored versions no longer promise an update that never comes, "Formal quotation" no longer survives an input answered after issue, a stored snapshot can no longer be added to, two Generates at once leave one active engine value, the formula hash covers a body's helpers, the CSV is safe under a ";" separator and scanned for reserved terms, every served Add is drawn, and Reports' Download sits above the footer. Guardrails 1.10: 19 cases indexed in the phase (part A: G1-28, G1-29, G3-23, G4-45, G7-18, G7-19, G9-10 to G9-12, G10-13, G10-14, G11-12, G13-11, G13-12; part B: G4-46, G4-47, G7-20, G7-21, G14-4), two change-log rows, extended; no rule text changed. `pnpm check`: 8 of 9 steps pass; the checks step fails only on the index check, by design (D-33): 231 ids, 205 real, 20 pending, 6 no automated check yet, 0 other problems. `pnpm e2e --workers=2` 288 passed twice; `pnpm test:render` 137 passed; `pnpm test:proposed` 53 passed. D-14, the time zone, the stored export file, earlier versions' open items and an Add on each For you item are the owner's questions in this report |
+| Viewer step (owner decision D-03, after phase 5) | Planned; nothing built | 2026-10-07 | Part 1 (no approval): the conversion pipeline live (sandboxed job, conversion record, derived files keyed by project and content hash and erased with their document, the access-checked serving route) and the viewer built and proven off screen; no screen changes. Part 2 (the 3D view on step 3 and System Scope) waits for the approver's decision on P-V-CANVAS-UNREADABLE, the render test's reviewed entry for the canvas, which needs D-05 first. No storey stepping (PRD R-080 is stricter than prompt 3 section 8) |
 | 6: Metrics pages the PRD allows | Not started | | |
 | 7: engineer review and verification | Not started | | |
 
@@ -3641,3 +3642,366 @@ Only those that change the build; the earlier phases' questions stand (the API k
    - **One step-of-field map** (group 1's note): the intake step of a field is written twice, `apps/api/src/wizard/registry.ts` `productionStepOfField` and `packages/view-model/src/proposal/view.ts` `intakeStepOf` (DR-12's order); move one helper into `packages/view-model/src/intake` for both, with DR-12's headings.
    - **Versions within one minute** (DR-5's residual): they read alike in the versions rail and share a PDF file name; to be settled with question 2's change to the formatting module (seconds, or a version number beside the time), with no new question.
    - **V-7's dependency-cruiser rule** (optional in the triage): `src/bodies` may import only `../interval` and a type-only `../catalogue`, with its seeded bad input under `tools/`; the closure hash fails closed on whatever a body imports (FV-1: the parser, `decimal.js` alone by its locked version), so it is a guard on the shape, not on the hash.
+
+## The viewer step (after phase 5; owner decision D-03, 2026-10-05)
+
+### Plan
+
+**Start of the step (2026-10-07).** Guardrails v1.10 (2026-10-06); the section 10 approver table is still empty (D-05), and no change-log row records an approval. All 18 gates are closed. Phase 5 is committed (`a98ca0e`). The owner's answer of 2026-10-05 to phase 4 question 1 ("Owner answers during the run") is **"1 b"**, the option "Yes, after phase 5": build the geometry-only viewer as the trial did, once phase 5 is done; with no GPU, the model area reads "Not available yet" instead of a slow view. As recorded there:
+- D-03 is decided for the viewer: That Open on web-ifc, converted in the no-network sandbox, keyed by project and content hash, erased with its document, and shown as a document with nothing read from the model.
+- Reading a model for this view is the owner's decision for display only.
+- D-01's other parts (the engineer's record and values) stay open, D-04 stays open, and every IFC gate stays closed.
+
+ADR 0046 holds the spike, its measurements and its recommendation, with Finding 12 (grid labels) fixed in `fbecfe0`. Still true at the start: no `ANTHROPIC_API_KEY`. Uploads accept fixture hashes only (ADR 0028, the owner's decision of 2026-09-25), so the owner's own models, the sample of 2026-10-03 included, cannot be uploaded to the local app and cannot be viewed in it. The demo holds two IFC fixtures (`demo-hotel-arh.ifc`, `demo-hotel-mep-rev-a.ifc`), stored "Not analysed".
+
+**The plan in brief.**
+- The owner's decision lifts the "Until decided" lines that kept the viewer out: the conversion (R-025), the model view on step 3 (R-078) and System Scope's canvas (R-054, its canvas part). Nothing else moves. View modes, Topology's 3D and 2D, the floor inspector and a model page (DB-01) wait for D-02. Plans, pins, selection, overlays and the level join are Later. The engineer's record and the model-text checks wait for D-01. Values wait for the IFC proposals.
+- **One thing stands between the built viewer and the owner's screen: the render test.** It fails every canvas that is not on its reviewed `render.unreadable` list (ADR 0006 decision 3). Adding an entry is an added allow entry, which the loosening check refuses without an approved exception-list snapshot (guardrails section 10; prompt 3 section 13; P-4-PLAN-UNREADABLE and P-5-PRINT-LOGO-UNREADABLE are the precedents). So the view on screen needs the approver's decision on **P-V-CANVAS-UNREADABLE** (item 6), and that needs the approver named first (D-05). There is no honest way around it. Any drawing surface (a canvas, an image, an inline SVG larger than an icon) fails the same way, by design, and moving the view to a route or window the render test does not visit would be a workaround.
+- **So the step has two parts.**
+  - **Part 1, now, with no approval.** The conversion pipeline runs live: the sandboxed job, the conversion record, the derived files keyed by project and content hash and erased with their document, and the serving route behind the access check. The viewer itself (`packages/viewer`: the canvas, the graphics probe, the keys and buttons, the lazily loaded chunk) and the model area's new states are built and proven in unit and component tests and in `tests/proposed/`, but mounted on no live page. **The owner sees no change on any screen in part 1.**
+  - **Part 2, on the approver's yes.** The entry, its marker and the mount on step 3 and System Scope, with every model-area state on screen and the render test, axe, the reserved-term scan and the demo line on each.
+- **One part of the brief is not built: storey stepping.** PRD R-080 and US-MODEL-07 AC1 say that no storey is isolated while model values cannot be stored. That is stricter than prompt 3 section 8 ("Storeys are stepped through without labels") and the trial, so it wins (prompt 3 section 3; question 2 below).
+
+#### 1. Which screens may now draw a model view
+
+**How the gates are read.** D-03's own "Until decided" line says "Whether a viewer is built at all waits for this decision and D-04."
+- **D-04 does not hold the viewer back.** Its "Until decided" line limits the first slice only: "S1 (proposed) stores IFC files as "Not analysed" and builds no viewer (build-readiness 3 "Now" items 5 and 10)". R-025, R-054 and R-078 are S2. Prompt 3 section 4 builds every slice but Later and never calls anything released or "slice 1". The owner, who decides D-04, has directed this step while leaving D-04 open. So the viewer is built as S2 work, and nothing about it is described as slice 1.
+- **D-01 is decided for reading the model for display only.** Its other parts keep R-023 and R-024 unbuilt.
+- **A requirement whose remaining gate is D-02, D-08, a proposal or Later keeps its line.**
+
+| Requirement | Gated by | Its "Until decided" line, quoted (or, where Gated by is none, its requirement) | After the owner's decision of 2026-10-05 |
+|---|---|---|---|
+| R-025 Conversion, shown only as a document | D-03, D-04, D-01 | "Not built: no conversion runs and no view shows a stored model; the model views show their no-model state (E-MODEL, UD-46). The tooling (That Open Fragments on three.js, or IfcConvert GLB and SVG without printed areas) is Proposed (ifc-input 2.2), to be settled in a spike." | **Lifted by the owner's decision on D-03, with D-01's display part decided in the same answer.** D-04 does not hold it (above). Built under its four conditions: keyed and served after the access check, erased with the document, no text in the scene, and the document named with its stage and revision. |
+| R-078 A view of the stored model; no-model state | D-03, D-04, D-01 | "No model view is built: whether and when a viewer is built is open (onboarding Q3, dashboards 8.5, build-readiness decisions 3 and 4), and `docs/build-readiness.md` 3 ("Now" item 10) recommends no 3D on step 3 in the first slice. The pages that draw a model area render without it, and never draw an illustrative, generic or mockup model in its place (US-MODEL-05 AC2; R-080). A stored IFC model keeps its `DocumentRecord` and its "Not analysed: IFC model stored, not analysed" line (E-IFC)." | **Lifted the same way.** The model area and its states (UD-46) on OB-3 and on the workspace pages R-078 names. Drawing the view waits for P-V-CANVAS-UNREADABLE (item 6). |
+| R-054 A stored model on System Scope's canvas | D-03, D-04, D-01, D-02 | "For onboarding Q3, dashboards 8.5 and build-readiness decisions 3 and 4: no viewer is built, so the canvas and its 3D / 2D / Section control are not built, and no illustrative model is shown. For dashboards 8.3: whether the 3D and 2D controls swap this canvas or open Topology 07 and 10 (UD-31) stays open." | **Canvas part lifted.** The control part stays **held by D-02**: no 3D / 2D / Section control (R-074). |
+| R-079 View modes | D-03, D-02, D-04, D-01 | "No mode control is built. While onboarding Q3, dashboards 8.5 and build-readiness decisions 3 and 4 are open, no model view exists (R-078); once it exists, and while dashboards 8.3 is open, the view shows the model's geometry as US-MODEL-04 AC1 describes, with no other mode." | **Held by D-02.** Its own line now applies in its second half: geometry, no mode control, no exploded, wireframe or section mode. |
+| R-074 System Scope's view-mode control | D-02, D-03, D-04, D-01 | "System Scope has no view-mode control: no control on the page swaps its canvas or opens Topology's views ..." | **Held by D-02.** No control. |
+| R-073 Topology's view modes | D-02, D-08 | "While dashboards 8.3 is open, Topology shows the Logical view (R-071) with no view-mode control and no separate LOGICAL top tab. While new Q23 is open, no Hybrid mode is built." | **Held by D-02 and D-08.** Topology draws no model (DB-07, DB-10 not built). |
+| R-075 System overlays on the model and on plans | 9 IFC and dashboards proposals, D-01, D-03, D-04, D-92; Later | "... no system riser, device icon, pin or system colour is drawn on any model, Topology offers no 3D or plan mode, no SYSTEM LAYERS panel is built on any plan ..." | **Held: Later, and the proposals.** |
+| R-080 What model areas leave out (S2) | none | (requirement) "... no storey is isolated, lifted or highlighted on its own, no floor selector is built beside the view on OB-3, no level label, function or number is attached to the geometry ... nothing in a model view can be selected ... No page draws an illustrative, generic or mockup model, and no signage, brand name or logo text is drawn on any building." | **Applies to the viewer from its first build.** This is why storeys are not stepped through (item 2). |
+| R-081 Floor isolation joined to the model | 7 IFC proposals, D-01, D-03, D-04, D-92; Later | "... no storey is isolated, lifted or labelled on its own, no floor selector is built beside the view on OB-3, no level label, function or number is attached to the geometry, and the register takes no level, level name or floor count from the model's storeys ..." | **Held: Later, and the proposals.** |
+| R-082 Pins, scale, orientation, provenance marks | 7.2.8, 6.2.15 and 7 more proposals, D-01, D-03, D-92; Later | "... no pin, device icon, highlight, zone fill or routing line is drawn on a model view, plan, minimap or key plan; no scale bar, compass, north mark or orientation word appears; no model is shown as illustrative and no signage is drawn; and when a declared revision supersedes the model, the current model is shown with no "From a superseded revision" label on the view." | **Held: Later, the proposals and `view-provenance`.** |
+| R-083 Selecting an object | 5 IFC proposals, D-01, D-03, D-92; Later | "... nothing in a model view can be selected, no inspector opens from the canvas and no data from the model is shown; the floor inspector and asset details open only from lists of register rows ..." | **Held: Later, and `ifc-values`.** |
+| R-084 Per-level plans (UD-04) | 7 IFC proposals, D-01, D-03, D-02, D-04, D-92; Later | "... no plan or Floor Plan mode is available on DB-10, DB-17 or DB-20, and the List modes of DB-17 and DB-20 stay available ..." | **Held: Later.** No plan anywhere, so P-4-PLAN-UNREADABLE is not needed in this step. |
+| R-085 Floor inspector (DB-01) | D-02 | "The floor inspector is not placed on any page while dashboards 8.3 is open (`design/dashboards-spec.md` 2.5 proposes retiring the Wireframe module and no model page) ..." | **Held by D-02.** So no DB-01 page: no requirement places a model page while D-02 is open (R-146; D-02's line, "A page whose place depends on it is built only as its requirement's "Until decided" line allows"). |
+| R-086 CAPEX's building panel (DB-13) | D-08, D-03 | "CAPEX's building panel shows only what R-078 provides (the model view or its no-model state, and no panel while the viewer is undecided), and its "All Systems" dropdown and "By Floor" and "By System" segments are not built." | **D-03 part lifted for phase 6.** The panel shows R-078's area, and its segments stay held by D-08. DB-02's canvas (R-078's screens; R-088 builds no cost callouts) is also phase 6's. |
+| R-162 A text path to everything a view shows | none | (requirement) "Whenever a 3D or 2D view is shown, everything the page tells the user with it is also on the page as text." | **Applies from the first view** (item 5). |
+| R-023 Engineer-only record of header and schema errors | D-01, D-04 | "Not built: no model is read, and stored models keep R-022's behaviour." | **Held by D-01's other parts and D-04.** The converter reads shapes and the spatial tree only. It records no header, schema error or authoring tool, and no engineer's view (UD-44) is built. |
+| R-024 Model text is data; instructions reported | D-01 | "Not built: no model text is read or checked, and stored models keep R-022's behaviour." | **Held by D-01's other parts.** The converter drops all text unread. So no `embedded_instruction` finding comes from a conversion, and no state changes (G14-5, item 7). |
+| R-028 A model's stage and revision | ifc-input 6.2.1 to 6.2.3, 6.2.10, D-01, D-92 | "v1.5 behaviour: a stored model's stage and revision read Unknown whatever its file name or IfcProject phase says, code proposes no revision link between models, and only the owner's or an engineer's declaration links two models as revisions (R-022)." | **Held.** The view names its model with stage and revision as recorded, so Unknown (2.3). Which model is current follows people's declarations only. |
+| R-029 A model counts in "not found" only for what code processed | as R-028 | "... no "Not found in the analysed documents (<coverage>)" line counts any model as searched (rule 12, G12-4)." | **Held.** A converted or viewed model still counts as searched nowhere (G12-5, extended). |
+| R-022 IFC and RVT stored "Not analysed" (S1) | none | (requirement) "... Each model shows the 2.8 status line for a file stored but not analysed ... for as long as no value from it can be stored ..." | **Unchanged.** Documents keeps "Not analysed: IFC model stored, not analysed" for a converted model. No conversion line is added there. |
+| R-026 Demo IFC models | D-18 | "No demo IFC profile is generated: the demo carries no IFC model beyond the committed test-profile fixtures (ifc-input 5.3), stored "Not analysed"." | **Held.** The demo's view shows the committed ARH and MEP rev A fixtures, with the demo line. |
+| R-057, R-064, R-070 Risers, zone outlines and equipment pins | proposals; Later | R-057: "nothing is drawn on System Scope's canvas: no system risers, pins, links between systems, key-plan inset, section-direction caption or north mark"; R-064: "no Floor Plan mode is offered, and the List mode stays available"; R-070: "no pins, popovers, leader lines or model callouts are drawn, and no "View on Floor Plan" or "VIEW IN 3D" action, plan strip or Floor Plan mode is offered" | **Held: Later.** |
+
+**The screens, so.**
+- **May draw a model view:** OB-3, step 3's view area (UD-46; the approved column, with no 3D / 2D / Wireframe toggle and no floor selector), and DB-16, System Scope's canvas (DB-16's layout with the canvas in its place beside the list and the detail panel, and no 3D / 2D / Section control). Both are drawn in part 2. Each shows the area's text states in part 2 too.
+- **Later in this build:** DB-02's canvas and DB-13's building panel, in phase 6, with R-078's area or its no-model state.
+- **No model view:** DB-01 (D-02), DB-07 and DB-10 (R-073, R-075, R-084), DB-17 and DB-20 (R-080, R-084: List modes only), UD-31 (D-02) and UD-04 (Later).
+
+#### 2. What the viewer shows, and what it does not, under the closed gates
+
+**It shows** one current IFC model of the project at a time. A current model is one that no declared revision supersedes and that is neither withdrawn nor erased (US-MODEL-04 AC7).
+- The view is drawn from the converted view file: shapes only, the whole model, in token colours read from the CSS custom properties at runtime, never the model's own colours. These are the App theme's surface and line tokens. Whether a second Extension tone is needed for edges is for the design review (D-19).
+- The camera turns, tilts, zooms, pans and returns to the whole model, from the keyboard, from buttons and with the pointer.
+- **Beside the view, as page text bound to value ids**, the model's document line: the file name as uploaded (without bidirectional or format controls, G2-14), "Stage" with its value (Unknown, 2.8), "Revision" with its value (Unknown), and the 2.8 status line "Not analysed: IFC model stored, not analysed". These are the same display objects Documents serves (G2-7). This is the `view-provenance` gate's closed behaviour: "The view names its model with its stage and revision as recorded (2.3)".
+- **Where the project has more than one current model** (the demo has two), a chooser lists them by file name (bound), in Documents' order. The first is shown by default, and choosing writes nothing. This is prompt 3 5.2 "Several models" ("One model shown at a time, chosen by discipline, its source named"). Discipline cannot be used: a model's category reads Unknown (G1-26), and nothing is read from the model (product doc issue 2; question 3).
+
+**It does not show** anything read from the model, and none of the following:
+- **Text:** no text, number, name, tag or label in the scene, in textures or as page elements placed by the scene. No storey, space, element or system name, and no class name.
+- **Storeys:** no storey isolated, stepped, lifted, exploded or highlighted, and no floor selector beside the view on OB-3. Choosing a level in System Scope's floor filter leaves the view showing the whole model (R-080; R-054 AC5).
+- **Modes:** no exploded, wireframe, section or 2D mode, and no mode control (R-079, R-074; D-02). No plan (R-084).
+- **Interaction:** no selection, hover highlight, picking, popover or inspector from the canvas. A click, hover or key press selects nothing and asks the server for nothing (R-080, R-083; `ifc-values`).
+- **Marks:** no pin, device icon, zone fill, routing line, scale bar, compass, north mark, orientation word, measurement or "From a superseded revision" line (R-082; `view-provenance`).
+- **Counts:** no count, area or level of anything in the model. No register, count or floor number takes anything from the model (R-081 AC4; rule 1; G1-30).
+- **No illustrative, generic or mockup model, and no signage.** No That Open logo or other third-party mark (ADR 0046 Finding 2; R-140).
+- **Model checks:** no model-contents, model-check, schema or coverage line on any owner screen (R-078; ifc-input 6.2.3 and 6.2.14 stay proposals).
+- **Documents is unchanged:** no conversion status there, and the model stays "Not analysed" (R-022, R-025: "no model reads as analysed because it is shown").
+- **No slow view:** where no hardware graphics are available, the area reads "Not available yet" instead (item 4).
+- **No partial model** while the conversion is still running.
+
+#### 3. The pipeline
+
+- **One conversion per stored IFC model, for display only.** The trigger is an IFC document registered in a project: an upload's completion, Replace, or the demo seed, which pushes its fixtures through the same pipeline. When the worker starts, each stored, current IFC document with no conversion record is queued once. Jobs are keyed by (project id, content hash), so a second document of the same bytes in the same project reuses the conversion. The job runs on the existing queue (ADR 0020) as its own job kind, one at a time (the 4 GB container on the 8 GiB Colima VM), apart from the analysis job. The analysis job stays as it is: no IFC reader job runs live (R-023, R-024; ruling (b) of phase 2).
+- **The converter.**
+  - **Its code moves** from `packages/viewer-spike/src/convert/` to a new package, `packages/model-converter`, with its tests, the Finding 12 case and the IFC2X3 classes case among them. The spike keeps its bench and its plan cutter (IFC-12's input) and imports the converter from there. The dependency rule `viewer-spike-imported-by-nothing` stays unchanged. A new rule lets only the converter image's entry, the spike and tests import `@sovitech/model-converter`: never `apps/web` or `packages/viewer`.
+  - **The image** `services/viewer-spike/` becomes `services/model-converter/` (`.dockerignore` lines with it). It must be **rebuilt**: the image of 2026-10-02 predates Finding 12's fix (ADR 0046). A check compares the image's recorded source hash with the converter's sources, so a stale image fails the job with a code, never a silent old converter.
+  - **The view profile** is ADR 0046 decision 6 as it stands: shapes, GlobalIds and the spatial tree. No attribute but GlobalId, no property or quantity set, material, type or unit. The STEP header is emptied, and every item whose category is not an IFC class name is deleted (`ThatOpenGrid`, `ThatOpenAlignment` and any later one). A fixed model id. IFC2X3's `IfcElectricalElement` and `IfcEquipmentElement` are added.
+  - **Its output:** a code only on stdout, and `summary.json` with sizes, times and memory only (rule 13).
+- **The sandbox:** the flags of `apps/api/src/jobs/sandbox.ts`, as the spike's runner applied them: `--network none`, `--read-only`, `--cap-drop ALL`, `--security-opt no-new-privileges`, `--user 10001:10001`, `--pids-limit 256`, `--memory` equal to `--memory-swap` at 4g, `--cpus 2`, a 64 MB noexec `/tmp`, the stored file mounted read-only, and one writable tmpfs `/output` copied out through the daemon by `copy-out.ts` and checked by `output-file.ts` (regular files, size bounds). The wall clock is 15 minutes (ADR 0041 item 2). The containers and the volume are removed whatever happens. The converter's `summary.json` is read through the existing reviewed output reader (`apps/api/src/jobs/read-output.ts`), so no new `JSON.parse` reader is needed (`lint-bans.json-parse-reviewed` is untouched).
+- **The derived files:** `<root>/<projectId>/<sha256:…>/derived/viewer.frag` (the store's `derivedPath`) and `derived/storeys.json`, the storey index.
+  - **The storey index** is written at conversion so no page ever computes it (ADR 0046 Finding 7). It holds the storeys' order by their shapes' heights and each storey's element GlobalIds: no name, elevation attribute or other text (R-079: "read by the converter for display only and is not stored as a value").
+  - **No page reads the index in this step:** R-080 forbids isolating a storey, and the exploded mode waits for D-02. It is kept so that allowing either later needs no reconversion of every stored model. If the owner prefers, it is left out until then (question 2).
+  - **No thumbnail, screenshot, plan or picture** of the model is made.
+- **The conversion record** is a new append-only table, `model_view_events` (migration in `packages/db`): `queued`, `started`, `converted`, `failed` with a code (`parse_failed`, `timed_out`, `out_of_memory`, `no_geometry`, `stale_image`, `output_refused`) and `erased`. Each event holds the project, document and content hash, the converter name and version, the image digest, byte sizes and durations, and no text from the model. State is derived. Row-level security is on `project_id`, and update, delete and truncate are revoked with raising triggers (G4-20). It is not a value: no candidate, field event, badge, field state or Documents line comes from it (R-025; US-IFC-08 AC6; G1-30).
+- **Isolation and erasure** (rule 13; G13-4; ifc-input 6.2.16's stricter choice, built since phase 2).
+  - The existing erasure job removes `derived/` with the hash's folder once no other active document of the project holds that hash (G13-10's rule), and writes the `erased` conversion event.
+  - A conversion that finishes after its document's erasure has committed stores nothing. The derived write takes the project's write lock and checks the document's state under it, the erasure takes the same lock, and the job's tmpfs output is discarded.
+  - Two projects that upload the same bytes get two conversions, and neither can load the other's file.
+- **Serving:** `GET /api/projects/:projectId/documents/:documentId/model-view` (`documents.modelView`).
+  - **It checks** the session and membership, and reads the document and its conversion under row-level security.
+  - **It answers only for** an IFC document of this project that is current and has a `converted` record for its hash. It streams `viewer.frag` as `application/octet-stream` with `Cache-Control: no-store` and `X-Content-Type-Options: nosniff`.
+  - **Anything else** answers 404, saying nothing of another project.
+  - **The browser keeps no copy:** no HTTP cache, IndexedDB or Cache Storage entry, so an erasure is not outlived in the browser.
+  - **The model area's display objects** come from the step 3 and System Scope views. A server-side `modelArea` builder in `packages/view-model` serves the state, the document line's value ids (`document:<id>.name`, `.stage`, `.revision`, `.status`), the "Not available yet" line and its action, the chooser and the file's route. It is written and unit-tested in part 1 and served from part 2, when the contract gains it (ADR 0044, amended).
+- **The browser side** (`packages/viewer`, imported by `apps/web` only, as section 6 allows).
+  - **What loads when:** the graphics probe (item 4) sits in the main bundle and is a few lines long. The view is one lazily loaded chunk (`React.lazy` over a literal `import()`), fetched only after the probe answers "hardware". The planner measures whether it can be built on `@thatopen/fragments`, `three` and `camera-controls` alone. The spike measured that trio at 683,413 bytes gzipped, against 1,080,282 with `@thatopen/components`, whose `SimpleRenderer` also draws That Open's logo.
+  - **The Fragments worker comes from the app's own origin**, as a static import with Vite's `?url`. Nothing is fetched from unpkg or any CDN (ADR 0046 Finding 1). `no-computed-import` gains its Worker edges (phase 0's note). No web-ifc WebAssembly is served: the browser opens Fragments only and never an IFC file (prompt 3 section 8).
+  - **One canvas:** colours from the tokens at runtime, no colour literal. No raycaster, hover handler or picking is installed. Everything is disposed on unmount: geometry, worker and context. On `webglcontextlost` the area changes to item 4's line.
+  - **Lint:** the code is written to need no lint-ban exemption (no rounding, number coercion or totals outside their modules). One that seems needed is a proposal, not an entry (item 6).
+- **Budgets** (ADR 0041; reported, never a failing check).
+  - **Conversion:** within 15 minutes and under 4 GB on the `perf` model. It is measured in part 1 through the live job harness on a TEST project, because the `perf` model's hash is not in the manifest and the upload guard refuses it, and on the fixtures through the live upload path.
+  - **The view:** first view within 5 seconds, orbit at 30 fps or better on integrated graphics, the tab under 1.5 GB. Measured in part 2 on the development machine's GPU Chromium (ANGLE Metal), as the spike was.
+  - **Storeys on demand:** moot while R-080 shows the whole model only. The file loads whole (9.3 MB for `perf`, 0.6 MB for the owner's sample in the spike).
+  - **Code-split:** the wizard's initial script stays under 300 KB gzipped (209,091 after phase 5). The chunk and the worker are measured separately.
+  - **Still not measured:** a typical office laptop's integrated graphics and a large real model (ADR 0046).
+
+#### 4. No usable GPU
+
+- **The probe** runs before the chunk loads, on a canvas never attached to the page, so the render test never sees it.
+  - It asks for `webgl2` with `failIfMajorPerformanceCaveat: true`. Chromium refuses that when it would fall back to software rendering.
+  - When a context is given, it reads the renderer's name (`WEBGL_debug_renderer_info` where the browser offers it, `RENDERER` otherwise) and treats a software renderer as no hardware: SwiftShader, llvmpipe, softpipe, lavapipe, "Microsoft Basic Render Driver", or a name with "Software" in it.
+  - It releases the context (`WEBGL_lose_context`).
+  - It never measures a frame rate to decide. That would draw a slow view first, which the owner ruled out, and would vary from run to run.
+  - There is no "show it anyway" control. That would be a new control the owner did not ask for.
+- **The wording** is the 2.8 badge "Not available yet" in rule 7's form, through the existing rule line `not_available_yet_named` ("Not available yet: {missing}"). No new status line is involved. The slot names what is missing, as phase 4's missing names do (`packages/view-model/src/workspace/copy.ts`, `MISSING`).
+  - **Its source:** the owner's "with no GPU, the model area reads 'Not available yet'", and PRD section 11 (Proposed, D-35): "Without WebGL, the view area would read 'Not available yet' with its reason, as rule 7 requires of any missing output". The PRD glosses WebGL as "the browser's 3D graphics support".
+  - **The filler, draft for the owner's OK:** "Not available yet: hardware graphics support in this browser". It holds no digit (a "3D" would put a digit on the page outside a value element) and no reserved term.
+  - **No action is offered.** No action in the app supplies graphics hardware (prompt 3 5.3: "with an action where the owner has one").
+  - **The document line stays beside it,** and Documents keeps the file's Download, so the view never holds the only copy of anything (R-162).
+- **The other states of the area,** each in the same form (UD-46; US-MODEL-05):
+  - no IFC model stored: the existing "Not available yet: an IFC model of the building", with "Upload a model";
+  - the conversion still running: "Not available yet: <file name>, still being prepared";
+  - the conversion failed, or produced no shape: "Not available yet: <file name>, could not be converted", with "Upload a model" (another export).
+
+  The words "still being prepared" and "could not be converted" are US-MODEL-05 AC4's. The file name is a bound document value inside the line, as in `revision_changed`. None of these blocks Continue, Generate or any other control (rule 7; G7-23). A model that becomes viewable later opens no dialog and changes nothing the owner entered (US-MODEL-05 AC6).
+- **Testing.** Playwright's headless shell renders with SwiftShader, so by default every e2e and render screen sees the "hardware graphics support" line, and the network log shows that the chunk is never fetched. The canvas path is proven two ways: on the development machine's GPU Chromium, and in tests by an init script that patches `getContext` in the page, so the small fixtures draw in SwiftShader (38 to 48 fps in the spike). The app itself has no override: no environment variable, query parameter or setting. CI runners have no GPU and see the line only.
+
+#### 5. Keyboard paths and list equivalents
+
+- **Keys** (the bench's, minus storey stepping). Tab reaches the view as one stop, with a visible 2px mint focus ring. While the view has focus:
+  - the arrow keys turn (left and right) and tilt (up and down);
+  - + and − zoom;
+  - W, A, S and D pan;
+  - Home returns to the whole model.
+
+  Page Up and Page Down are not bound (R-080). The keys act only while the view has focus (WCAG 2.1.4), arrows do not scroll the page while it has focus, and Tab and Shift+Tab leave it, so there is no trap (2.1.2).
+- **Buttons:** a toolbar beside the view with "Turn left", "Turn right", "Tilt up", "Tilt down", "Zoom in", "Zoom out" and "Show the whole model". It is one tab stop, with arrow keys moving inside it (roving tabindex). The buttons are the single-pointer alternative to dragging (WCAG 2.2, 2.5.7) and the path for people who do not use the keys. None is ever disabled.
+- **The key help** is visible text under the toolbar, with no digit and no reserved term.
+- **Accessible name:** the view's name comes from the document line by `aria-labelledby`. It is never an `aria-label` holding the file name, whose digits would sit outside a value element.
+- **Motion:** with `prefers-reduced-motion`, camera moves are instant, with no damping or easing. Nothing ever moves on its own: no auto-rotation, and no value animates (G2-8).
+- **Skipping:** the view and the toolbar are two tab stops, so the page can be passed through without operating the view (PRD section 11, "operated or skipped by keyboard"; D-35).
+- **List equivalents.** Nothing in the view is selectable while `ifc-values` is closed, so "every selectable object has a list equivalent" (prompt 3 phase 4 exit; section 11) holds vacuously for objects. What it means now is R-162: everything the page tells the user with the view is also page text.
+  - The document line names the model, its stage, its revision and its status.
+  - The chooser lists the current models by name.
+  - The level register's list beside the view (System Scope's floor filter) and the registers on their own pages (Equipment, Zones, Documents) work fully without the view.
+  - The view adds no fact of its own: no object, storey, count or label.
+  - No list of the model's objects (names, classes, GlobalIds) is built. Showing one would show data read from the model (rule 2; `ifc-values`; R-083).
+
+#### 6. Approvals needed
+
+**P-V-CANVAS-UNREADABLE** (a render-test loosening for the approver). It is the only approval the viewer needs, and it needs the approver named first (D-05).
+
+The change, in `tests/e2e/render/allowlist.ts`:
+```diff
+   unreadable: [
+     { id: 'brand-logo', element: 'img', src: …, reason: …, source: … },
++    {
++      id: 'model-view',
++      element: 'canvas',
++      // the one component that draws it; the static marker scan accepts the marker only there
++      component: 'packages/viewer/src/model-view/ModelView.tsx',
++      reason:
++        'The view of a stored IFC model, shown as a document while ifc-values and view-provenance are closed: the shapes of its converted view file only (GlobalIds and the spatial tree; no name, property, header, grid or alignment text: ADR 0046 decision 6 and Finding 12), in token colours, with no sprite, points, textured material, text geometry or page element in the scene. It draws no name, figure or label; the model it shows is named beside it as page text bound to value ids.',
++      source:
++        "the owner's decision of 2026-10-05 (D-03, \"1 b\"); prompt 3 section 8; PRD R-025, R-054, R-078, R-162; docs/adr/0046-viewer-spike.md decisions 4 and 6; docs/adr/0051-model-viewer.md",
++    },
+   ],
+```
+The same change, by the approver, also does three things:
+- records an approved exception-list snapshot: the baseline with `render.unreadable` `model-view` added, whose approval reference resolves to a change-log row naming the approver (ADR 0010);
+- adds `model-view` to the `render.unreadable` bullet under "For the owner's review";
+- adds the entry to ADR 0006's table.
+
+Then the marker `data-render-unreadable="model-view"` is written in that one component, and the view is mounted on step 3 and System Scope (part 2).
+
+- **The failure behind it.** The owner decided the view (D-03), and no page can show it.
+  - An unmarked canvas fails the render test as `unreadable-pixels` (G2-1's `g2-1/canvas.html`).
+  - Every screen state is render-tested (prompt 3 section 14, item 2).
+  - Without the entry, `pnpm check` fails the loosening check (an added allow entry with no approved snapshot).
+  - The proposed test of part 1 shows both halves on the ARH fixture: the view fails the render test as it stands, and passes with the entry laid over the list.
+- **Effect on Truth: neutral, with one limit stated.** The canvas shows no value.
+  - The converter drops every model text: a blocking test named after ifc-input 6.2.15 checks every string of the view file.
+  - The scene audit fails a sprite, text geometry, a textured material or a page element placed by the scene.
+  - Labels stay page elements bound to value ids.
+  - **The limit:** the render test cannot read what the canvas draws, so a later change that drew text inside it would pass the render test. The converter's test and the scene audit catch the routes known today. A render-test check inside the canvas is ifc-input 6.2.15 (D-46), which this does not apply.
+- **Effect on Speed: up.** The owner sees the building from their own document on step 3 and System Scope. No question, gate, confirmation or blocked state is added, and nothing waits for the view.
+- **Proving case** (extending G2-1's harness when applied):
+  - a canvas marked `model-view` passes;
+  - an unmarked canvas still fails;
+  - the marker in any file but `ModelView.tsx` fails the static scan;
+  - an `<img>` or an inline `<svg>` marked `model-view` fails as the wrong kind;
+  - the step 3 and System Scope render screens with a converted fixture model pass;
+  - the 6.2.15 scene audit fails a scene holding a text sprite.
+
+  One thing to settle when it is applied: G2-1 checks that its clean page uses every entry, while the static scan accepts a component-confined marker only in its component. This is the first component-confined entry to be used, so part 2's planner reconciles the two in ADR 0006 without widening the confinement.
+- **What is built without it** (part 1, item 8): the whole pipeline, live; the viewer component, probe, keys and buttons, proven off screen; the model-area builder and the kit's area states, unit- and component-tested. **Buildable live now if the owner wants it:** System Scope's model area with UD-46's two present states (R-054 AC1: "Not available yet: an IFC model of the building" with "Upload a model", or the stored model's "Not analysed" line). The plan recommends landing it with part 2, so that System Scope's layout changes once.
+
+**Listed for the approver, not blocking: P-V-MODEL-AREA-WORDING** (a wording clarification of 2.8, as prompt 3 5.3 asks for the G12-1 substitutions; not a loosening). The model area fills rule 7's "Not available yet: {missing}" with:
+- "an IFC model of the building" (phase 3);
+- "<file name>, still being prepared" and "<file name>, could not be converted" (US-MODEL-05 AC4's words);
+- "hardware graphics support in this browser" (the owner's D-03 answer; PRD section 11).
+
+The proposed 2.8 clarification, not applied:
+```diff
+ | Output missing a first-estimate input | **Not available yet** | "Add the building area to see this. [Add area]" |
++
++A view that cannot be shown uses the same badge in rule 7's form, naming what is missing: "Not available yet: an IFC model of the building" [Upload a model]; "Not available yet: <model file>, still being prepared"; "Not available yet: <model file>, could not be converted" [Upload a model]; "Not available yet: hardware graphics support in this browser".
+```
+- **The failure behind it:** no 2.8 example names a missing view, so each filler is the build's reading.
+- **Truth:** up, since the area says why.
+- **Speed:** neutral.
+- **Proving case:** G7-22.
+
+The build uses these lines in part 2 whether or not the clarification is taken, because they are rule 7's form, and does not edit 2.8.
+
+**Considered and not needed.**
+- **The plan image** (P-4-PLAN-UNREADABLE): no plan is drawn in this step (R-084 Later; R-079 no 2D mode). The owner chose "Not available yet", not a plan, for a machine with no GPU. It stays a proposal, unchanged.
+- **New status wording:** none. The states use the 2.8 badge in rule 7's form and the existing 2.8 line for a stored model. The document line uses Documents' own display objects. The copy avoids "3D", whose digit outside a value element would need a fixed-copy entry such as rule 2's "3D / 2D". That would be a `render.entries` addition, a loosening.
+- **A gate opening:** none. `ifc-values`, `view-provenance` and the other 16 stay closed, and nothing in this step needs them open.
+- **A new gate:** none. Prompt 3 5.3 puts a new gate beyond the build's decision, and the loosening check already holds the drawing behind the approval of its entry. A second switch would add nothing.
+- **Other exception-list entries:** none planned.
+  - The viewer is written to need no `eslint.allowlist` exemption.
+  - The converter's summary goes through the reviewed output reader.
+  - Derived files live under `SOVITECH_DATA_DIR`, outside the repo (`fixture-manifest` lists untouched).
+  - No reserved-term allowance.
+
+  If a builder finds one is needed, it becomes a proposal in this section, never an entry.
+- **The no-GPU state:** the owner's own product decision (D-03). It adds no question, gate, confirmation or blocked action, Continue, Generate and every control stay available, and it changes no rule. The guardrails do not require a view.
+- **Reading the model in the live app:** the owner's decision for display only (D-01's display part). Showing a model as a document is v1.5 behaviour (ifc-input 6.3.1 item 2; prompt 3 section 8). No value, finding or record of the model's content is made.
+- **Stricter choices built live, not approvals:** derived files erased with their document and `no-store` serving (ifc-input 6.2.16), and no text in the view file or scene (ifc-input 6.2.15). Their tests are blocking tests named after those proposals, not indexed (prompt 3 phase 2).
+- **Storey stepping:** an owner and PRD question (R-080, question 2), not an approval. R-079 already accepts that the converter reads storey membership "for display only".
+
+#### 7. Cases
+
+**Existing cases, extended with their Expected unchanged:**
+- **G2-7:** the model's file name, stage, revision and status line render identically beside the view (step 3, System Scope) and on Documents. View-model half in part 1, page half in part 2.
+- **G2-14:** the view's document line shows the file name without bidirectional or format controls.
+- **G4-20:** the app role cannot update, delete or truncate a `model_view_events` row.
+- **G12-5:** a converted model keeps the G12-1-form line on Documents and step 3, and no "Not found in the analysed documents" statement counts it as analysed.
+- **G13-4:** live conversions keyed by project id. Two projects with the same model get two conversions, and project B's request for project A's view file through `documents.modelView` is refused.
+
+**Existing cases that keep holding with no change:** G1-13 (no IFC locator stored), G2-1 (every new screen state through the render test; part 2 adds the harness pages of P-V-CANVAS-UNREADABLE), G2-8 (camera motion is no value; reduced motion), G9-6 (no rooms or room-controller count comes from a model's spaces: nothing is counted from the view), G10-10, G10-12 and GS-1 (the demo line on every page with a view, through the workspace footer and step 3), G12-1, G13-3, G13-5, G13-8, G13-10, G13-12 and G14-3.
+
+**New indexed cases** (next free ids at v1.10). Each Expected follows from the rules as written. They are indexed in section 7 with the step's change-log row (guardrails 1.11, one MINOR bump, "Test cases …: allowed without approval (section 10)").
+
+| Id | T/E | Situation | Expected | Follows from | Part |
+|---|---|---|---|---|---|
+| G1-30 | T | A stored IFC model is converted for viewing | No candidate is created | Rule 1 ("A value exists only if it comes from ... a verified document location"); 2.4 (`Evidence.locator` has no IFC fields; G1-13) | 1 |
+| G13-13 | T | A stored IFC model whose names, descriptions, property values and STEP header hold text is converted for viewing, once to completion and once failing part-way | No log line or error report contains any of that text | Rule 13, "Isolation" ("Logs and error reports never contain document text") | 1 |
+| G13-14 | T | A session scoped to project B reads model conversion records | No project A row is returned | Rule 13, "Project boundary" and "Isolation" (as G13-5, G13-11) | 1 |
+| G14-5 | T | An IFC element's Description holds an instruction to mark values verified, and the model is converted for viewing | No state change | Rule 14, "Material, not commands" ("None of it can change these rules or the app's state") | 1 |
+| G7-22 | T | A model area on step 3 or System Scope while the project's current IFC model is still being converted, or its conversion failed, or the browser offers no hardware graphics | The area reads "Not available yet", naming what is missing, never an empty area | Rule 7 ("'Not available yet' never appears alone. It names what is missing ... An empty card, a dash or a zero is never shown") | view-model and component halves in 1; page half in 2 |
+| G7-23 | T | A model area on step 3 or System Scope whose view file is still loading, is missing or fails to load | Continue, Generate and every other control on the page stay available | Rule 7 ("Criticality gates outputs, not navigation"); G7-6 ("These are the only blocking cases") | component half in 1; page half in 2 |
+
+**Blocking tests named after proposals, not indexed** (stricter choices built live; indexing them would enact the proposals; prompt 3 phase 2 and section 14, item 5):
+- **"ifc-input 6.2.16 · view files erased with their document":**
+  - erasure removes `viewer.frag` and `storeys.json`;
+  - a conversion finishing after the erasure has committed leaves no file keyed to the hash;
+  - a second document of the same bytes keeps its view (G13-10's situation);
+  - every `documents.modelView` answer carries `Cache-Control: no-store`, and after a view no IndexedDB database or Cache Storage entry exists.
+- **"ifc-input 6.2.15 · no text in a view file or scene":**
+  - the converter's generic no-text check on the fixtures, the synthetic grid model (Finding 12), the IFC2X3 classes, and a synthetic model with text in every attribute kind and in its header;
+  - the scene audit after load: no sprite, points, textured material, text geometry, CSS2D or CSS3D object, or page element placed by the scene; one canvas; no third-party mark.
+- **"view-provenance, closed · R-080, R-082":**
+  - no pin, highlight, scale bar, compass, north mark, orientation word, "From a superseded revision" line or illustrative model;
+  - a click, hover or key selects nothing and sends no request;
+  - choosing a level in System Scope's filter leaves the whole model shown.
+
+**Proposed (`tests/proposed/`, non-blocking):**
+- **"P-V-CANVAS-UNREADABLE":** the ARH fixture's view fails the render test with today's list, and passes with the entry laid over it through test-utils, with the graphics init script.
+- **IFC-12:** unchanged, still waiting (no plan is built).
+- **IFC-14:** its general form ("no copy about a model contains a reserved term") is checked live by the reserved-term scan over the new copy.
+
+**Acceptance tests** (titles start with their ids; not guardrail cases):
+- US-MODEL-04 AC1 to AC11, US-MODEL-05 AC1 to AC7, US-IFC-08 AC1 to AC8 and US-SCOPE-12 AC1 to AC8 (the canvas's), with the D-02-held parts as their absences;
+- R-080's gates-closed criteria: US-MODEL-07 AC1 to AC4, US-MODEL-08 AC1 to AC4, US-MODEL-09 AC1 and AC2, US-MODEL-10 AC1;
+- R-162;
+- the probe's three answers;
+- a keyboard-only flow through the view and its toolbar;
+- the view page makes no request outside the app's origin (US-IFC-08 AC7; ADR 0046 Finding 1);
+- no viewer chunk is fetched where the probe answers "no hardware".
+
+**Rules touched:** 1, 2, 7, 12, 13 and 14, and 2.3 (which model is current; its stage and revision). Rule 2's limit inside the canvas has no automated check (ifc-input 6.2.15, D-46): its guard is the 6.2.15-named tests above.
+
+#### 8. Split, risks and ADRs
+
+**Part 1** (now; a planner, then builders who each own their files, then the integrator; the run's working rules on resources and the e2e lock as in phase 5):
+
+| # | Builder | Owns | Delivers | Cases |
+|---|---|---|---|---|
+| P | Planner | this plan's follow-through: ADR 0051, the contract draft (not served until part 2), the copy keys | the package move's skeleton, the dependency rule for `@sovitech/model-converter` with its seeded bad imports | none |
+| B1 | Converter and image | `packages/model-converter/**` (moved from the spike, with its tests), `services/model-converter/**`, `.dockerignore`, the spike's import of it | the view profile as built, the storey index, the summary of codes, sizes and times, the image's source-hash label and its check, the rebuilt image, the measurements of the fixtures and `perf` through the job harness | G13-13 (converter half), the 6.2.15 converter tests, G14-5 (converter half) |
+| B2 | API, jobs and store | `apps/api/src/jobs/**` (the job kind), `apps/api/src/documents/**` (the route), `apps/api/src/seed/**` (the demo's conversions), the erasure hook, `packages/db` (migration, guards, row-level security), `packages/view-model/src/model-area/**` (server builder, unit tests), `tests/api/**` | the queue and job, sandbox use, copy-out and output checks, the locked derived write, the erasure and its race, `documents.modelView`, the worker-start backfill, `modelArea` with TEST inputs | G1-30, G13-13 (API half), G13-14, G14-5, G4-20 and G12-5 and G13-4 (extensions), the 6.2.16 tests, G7-22 (view-model half), G2-7 (view-model half) |
+| B3 | Viewer package | `packages/viewer/**` | the probe, `ModelView` (lazy entry, worker URL, token colours, no picking, disposal, context loss), the toolbar and keys, the key help, the scene audit as an exported test helper, component tests with a stubbed renderer, `tests/proposed/P-V-CANVAS-UNREADABLE*` | the 6.2.15 scene test, G7-23 (component half) |
+| B4 | Kit and step 3 | `packages/ui/src/components/ModelArea.tsx` and its styles, `apps/web/src/steps/step-3/Step3.tsx` (the area only) | the kit's area with every state, the document line, the chooser and a slot for the view, unmounted; step 3 moved onto the kit's `ModelArea` with no visible change (DR-15's carried item); component tests with axe | G7-22 and G2-14 (component halves) |
+| B5 | E2E and measurements | `tests/e2e/**` (the pipeline's flows only), ADR 0041 | the flow: a fixture IFC uploaded on Documents, a conversion record, the route serving it, project B refused, Delete erasing the file; the in-app conversion numbers | the e2e halves of G13-4 and the 6.2.16 tests |
+
+The integrator indexes the six new cases and the extensions (guardrails 1.11, two change-log rows as before), runs the full checks under the lock, and runs the read-only adversarial review against this step's changes (prompt 3 section 12).
+
+**Part 2** (on the approver's yes to P-V-CANVAS-UNREADABLE):
+- the entry, the approved snapshot and the owner's-review bullet (the approver's change);
+- the marker in `ModelView.tsx`;
+- the contract's model-area fields served by the step 3 and System Scope views;
+- the area mounted on step 3, and on System Scope in DB-16's layout (list, canvas, detail panel, at 1440 px beside the 360 px inspector);
+- render screens for every state: no model, preparing, failed, no hardware graphics (the default in headless Chromium), and viewable (with the init script), each on the demo and on a new project;
+- the keyboard-only flow, the GPU measurements and the design review;
+- G2-1's harness pages for the entry, with the clean-page and confinement question settled in ADR 0006.
+
+**Risks.**
+- **Nothing visible until the approver acts.** The approver is not yet named (D-05). Until then the owner's decision shows on no screen, and part 1 is all plumbing. Said plainly so it is not a surprise.
+- **Owner models cannot be viewed locally:** the fixtures-only upload guard (ADR 0028) admits only the synthetic models.
+- **R-080 against the trial:** no storey stepping. If the owner wants it, the PRD changes first (question 2).
+- **No GPU in CI:** CI sees only the no-hardware line. The canvas path runs on the development machine's GPU Chromium and in tests through the init-script patch. A GPU-only regression can pass CI, so part 2's report names where each was run.
+- **Probe errors.**
+  - A browser that hides its renderer's name and gives a software context without the performance caveat would draw slowly.
+  - An integrated GPU that passes the probe may still be slow on a large model. The office-laptop measurement is still missing (ADR 0046).
+  - Neither is masked by a frame-rate fallback, which would show the slow view first.
+- **The converter image's staleness:** Finding 12's fix is not in the image of 2026-10-02. The source-hash check makes a stale image fail with a code.
+- **Races:** erasure against a running conversion, and two documents with the same bytes (G13-10). Both are covered by the 6.2.16 tests and the locked write.
+- **Memory on the 16 GB machine:** one conversion at a time, apart from the analysis job and the e2e runs. The `perf` conversion runs alone under the lock, as in the spike.
+- **That Open's defaults:** CDN workers, the vendor logo, IndexedDB caching and hover highlighters, any of which may come back with a library update. The tests above and the no-request check catch them, and versions are pinned exactly.
+- **Lint bans in viewer code:** rounding and number coercion around canvas sizes. Use the renderer's own sizing, and turn any exemption into a proposal.
+- **Licences:** if Fragments' browser build carries web-ifc's JavaScript, the web bundle ships MPL-2.0 code. The third-party notices page is updated, and counsel's review stays D-94.
+- **The layout:** System Scope with a canvas at 1440 px, and step 3's approved column without its toggle and floor selector. These are listed for the design review in part 2.
+
+**ADRs.**
+- **New: 0051 "The model viewer: Fragments converted in the sandbox, shown as a document".**
+  - Status "Accepted: owner decision 2026-10-05" for the viewer, its conversion and the no-GPU state.
+  - "Default, reversible" for: no `@thatopen/components` (by measurement), token colours, the chooser by name, the storey index written and unread, the probe's method, the toolbar, and `no-store`.
+  - "Proposed" for the canvas entry (P-V-CANVAS-UNREADABLE).
+  - Context: D-03, D-01 (display part), D-02, D-04, D-35, D-46, D-89.
+- **Amended:**
+  - 0046: its recommendation adopted by 0051; the spike stays as the bench and IFC-12's input.
+  - 0041: items 2 and 3 with in-app numbers.
+  - 0044: `documents.modelView` and the model-area fields.
+  - 0006: its sentence "The model viewer's canvas ... added by the phase that builds them" predates the round 2 loosening check, and becomes "proposed for the approver" (P-V-CANVAS-UNREADABLE).
+  - 0020: the new job kind.
+
+#### Product doc issues (this step)
+
+1. **Prompt 3 section 8 and ADR 0046's recommendation against PRD R-080 and US-MODEL-07 AC1.** Prompt 3 says "Storeys are stepped through without labels" and ADR 0046 recommends label-free storey stepping. The PRD says "no single storey is isolated, lifted or highlighted on its own". The PRD is stricter and is followed: the whole model only.
+2. **Prompt 3 5.2 "Several models" ("chosen by discipline") against G1-26 and `ifc-values`.** A model's category reads Unknown while unclassified, and nothing is read from the model. So the default becomes a chooser by file name (ADR 0051).
+3. **The PRD still records D-03 as open.** R-025, R-054 and R-078 list it as a gate, and D-01's row has no display-only part. The owner's answer of 2026-10-05 is recorded in this log ("Owner answers during the run"). The next run of prompts 1 and 2 records it in PRD section 15 with the owner's words.
+4. **ADR 0006's line on the viewer's canvas** (item 8, ADRs) against the loosening check of phase 0 round 2: it is corrected in the ADR, since ADRs are the build's to amend.
+
+#### Questions for the owner (this step)
+
+Only those that change the build; the earlier questions stand.
+
+1. **D-05, then P-V-CANVAS-UNREADABLE** (item 6). Without these, part 1 is all that can be built, and no 3D view appears on any screen. Naming the approver comes first. The approver's own words about this one change then admit the viewer's canvas to the render test's reviewed list.
+2. **Storey stepping** (R-080; the option you chose reads "as the trial did"). The trial stepped through storeys one at a time, with no labels. The PRD says that while model values cannot be stored, the view shows the whole model and no storey on its own. Should the viewer:
+   - (a) show the whole model only, as the PRD says (planned); or
+   - (b) step through storeys without labels, as the trial did (then R-080 and US-MODEL-07 AC1 change in the next PRD run before it is built)?
+   With (a), should the storey index still be written at conversion (planned), or left out until it is needed?
+3. **Several models** (D-03's open sub-question; prompt 3 5.2). The demo has two current models (ARH and MEP). Show one at a time, chosen from a list of their file names with the first shown by default (planned), or both together?
